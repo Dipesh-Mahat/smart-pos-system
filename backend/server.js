@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
+const helmetConfig = require('./backend/helmetConfig'); // Import helmet configuration
+const rateLimiter = require('./backend/rateLimiter'); // Import rate-limiting middleware
 
 // Create an Express app
 const app = express();
@@ -11,6 +13,12 @@ const port = process.env.PORT || 5000;
 // Middleware
 app.use(cors()); // Enable CORS
 app.use(express.json()); // Middleware for parsing JSON
+
+// Apply helmet security headers to all routes
+app.use(helmetConfig());
+
+// Apply rate-limiting globally to prevent DoS attacks
+app.use(rateLimiter);
 
 // Check if MONGODB_URI is defined
 if (!process.env.MONGODB_URI) {
