@@ -3,8 +3,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
-const helmetConfig = require('./backend/helmetConfig'); // Import helmet configuration
-const rateLimiter = require('./backend/rateLimiter'); // Import rate-limiting middleware
+
+// Import middleware
+const helmetConfig = require('./middleware/helmetConfig'); // Import Helmet configuration
+const rateLimiter = require('./middleware/rateLimiter'); // Rate-limiting middleware
+const authenticateJWT = require('./middleware/authJWT'); // JWT authentication middleware
+
+// Import routes
+const routes = require('./routes/index'); // Your main routes file
 
 // Create an Express app
 const app = express();
@@ -12,12 +18,12 @@ const port = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors()); // Enable CORS
-app.use(express.json()); // Middleware for parsing JSON
+app.use(express.json()); // Parse JSON requests
 
-// Apply helmet security headers to all routes
-app.use(helmetConfig());
+// Apply Helmet security headers
+app.use(helmetConfig()); // Use the imported Helmet configuration
 
-// Apply rate-limiting globally to prevent DoS attacks
+// Apply rate-limiting globally
 app.use(rateLimiter);
 
 // Check if MONGODB_URI is defined
@@ -27,12 +33,19 @@ if (!process.env.MONGODB_URI) {
 }
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log('Database connected successfully'))
-  .catch(err => {
+  .catch((err) => {
     console.error('Error connecting to MongoDB:', err);
     process.exit(1); // Exit if there’s an error connecting to MongoDB
   });
+
+// Use routes
+app.use('/api', routes); // Use your main routes file
 
 // Basic route to test backend
 app.get('/', (req, res) => {
