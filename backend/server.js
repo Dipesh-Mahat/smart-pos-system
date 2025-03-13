@@ -10,6 +10,7 @@ const rateLimiter = require('./middleware/rateLimiter'); // Rate-limiting middle
 const authenticateJWT = require('./middleware/authJWT'); // JWT authentication middleware
 
 // Import routes
+const authRoutes = require('./routes/authRoutes'); // Authentication routes
 const routes = require('./routes/index'); // Your main routes file
 
 // Create an Express app
@@ -26,25 +27,8 @@ app.use(helmetConfig()); // Use the imported Helmet configuration
 // Apply rate-limiting globally
 app.use(rateLimiter);
 
-// Check if MONGODB_URI is defined
-if (!process.env.MONGODB_URI) {
-  console.error('MONGODB_URI environment variable is not defined!');
-  process.exit(1); // Exit process with an error code if MongoDB URI is not found
-}
-
-// Connect to MongoDB
-mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log('Database connected successfully'))
-  .catch((err) => {
-    console.error('Error connecting to MongoDB:', err);
-    process.exit(1); // Exit if there’s an error connecting to MongoDB
-  });
-
 // Use routes
+app.use('/api/auth', authRoutes); // Authentication routes
 app.use('/api', routes); // Use your main routes file
 
 // Basic route to test backend
@@ -59,6 +43,34 @@ process.on('SIGINT', () => {
     console.log('MongoDB connection closed');
     process.exit(0); // Exit process after MongoDB disconnects
   });
+});
+
+// Connect to MongoDB
+if (!process.env.MONGODB_URI) {
+  console.error('MONGODB_URI environment variable is not defined!');
+  process.exit(1); // Exit process with an error code if MongoDB URI is not found
+}
+
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log('Database connected successfully'))
+  .catch((err) => {
+    console.error('Error connecting to MongoDB:', err);
+    process.exit(1); // Exit if there’s an error connecting to MongoDB
+  });
+
+// Default error handling middleware for any undefined routes
+app.use((req, res, next) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+// Global error handler for uncaught errors
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ message: 'Internal Server Error' });
 });
 
 // Start the server
