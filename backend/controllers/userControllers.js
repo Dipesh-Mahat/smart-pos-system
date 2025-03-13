@@ -1,56 +1,31 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // Example User model
+const User = require('./models/User');
 
-// Login controller
-const login = async (req, res) => {
-  const { username, password } = req.body;
-
+// Get user profile (Protected route)
+const getProfile = async (req, res) => {
   try {
-    // Find user in the database
-    const user = await User.findOne({ username });
+    const user = await User.findById(req.user.id).select('-password'); // Exclude password
     if (!user) {
-      return res.status(400).json({ message: 'Invalid username or password' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    // Compare passwords
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      return res.status(400).json({ message: 'Invalid username or password' });
-    }
-
-    // Generate JWT
-    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: '1h', // Token expires in 1 hour
-    });
-
-    res.json({ token });
-  } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
-// Register controller
-const register = async (req, res) => {
-  const { username, password } = req.body;
-
+// Get all users (Admin only)
+const getAllUsers = async (req, res) => {
   try {
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
 
-    // Create new user
-    const user = new User({ username, password: hashedPassword });
-    await user.save();
-
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    const users = await User.find().select('-password'); // Exclude passwords
+    res.status(200).json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
-// Protected route controller
-const getData = async (req, res) => {
-  res.json({ message: 'This is protected data', user: req.user });
-};
-
-module.exports = { login, register, getData };
+module.exports = { getProfile, getAllUsers };
