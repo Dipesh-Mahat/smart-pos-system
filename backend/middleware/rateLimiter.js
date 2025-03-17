@@ -43,7 +43,7 @@ const keyGenerator = (req) => {
  */
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // Higher limit for retail environment with multiple employees
+  max: 200, // Higher limit for retail environment
   standardHeaders: true,
   legacyHeaders: false,
   message: 'Too many requests, please try again after 15 minutes',

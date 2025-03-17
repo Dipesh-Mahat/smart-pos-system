@@ -7,17 +7,14 @@ const authenticateJWT = (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Access denied. No token provided.' });
     }
 
-    const token = authHeader.split(' ')[1]; // Extract token
+    const token = authHeader.split(' ')[1];
     
-    // Check if token exists
     if (!token || token === 'null' || token === 'undefined') {
       return res.status(401).json({ success: false, message: 'Invalid token format.' });
     }
 
-    // Verify JWT token
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
-        // Handle different JWT errors with appropriate responses
         if (err.name === 'TokenExpiredError') {
           return res.status(401).json({
             success: false,
@@ -37,10 +34,7 @@ const authenticateJWT = (req, res, next) => {
         }
       }
 
-      // Attach user info to request
       req.user = decoded;
-      
-      // Add timestamp to track when the request was authenticated
       req.authTime = new Date();
       
       next();
