@@ -1,29 +1,56 @@
-# Ignore node_modules for both frontend and backend
+# Dependencies
 node_modules/
+/.pnp
+.pnp.js
 
-# Ignore environment variable files
-/.env
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Ignore log files
+# Build outputs
+/build/
+/dist/
+/out/
+
+# Logs
+logs
 *.log
-
-# Ignore build files
-/build
-/dist
-
-# Ignore system files and directories (common for MacOS and Windows users)
-.DS_Store
-Thumbs.db
-
-# Ignore IDE/editor specific files
-.idea/
-.vscode/
-
-# Ignore dependency directories for other potential environments (if used)
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
 
-# Ignore package lock files (optional, but recommended if using Yarn instead)
-package-lock.json
-yarn.lock
+# Testing
+/coverage
+/.nyc_output
+
+# IDEs and editors
+/.idea
+/.vscode
+*.swp
+*.swo
+.DS_Store
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Misc
+.DS_Store
+Thumbs.db
+.cache/
+.temp/
+.tmp/
+temp/
+tmp/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
