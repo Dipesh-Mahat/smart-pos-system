@@ -2,82 +2,147 @@
 
 const express = require('express');
 const User = require('../models/User');
-const { authenticate, authorize } = require('../middleware/authenticate');
+const authenticateJWT = require('../middleware/authJWT');
+const authorize = require('../middleware/authorize');
+const { sanitizeInput } = require('../utils/security');
 const router = express.Router();
 
 // Register a new user (shopowner, storevendor, admin)
 router.post('/register', async (req, res) => {
-  const { username, email, password, firstName, lastName, role, shopName } = req.body;
-
-  // Input validation (simplified)
-  if (!username || !email || !password || !firstName || !lastName || !role) {
-    return res.status(400).json({ error: 'All fields are required.' });
-  }
-
   try {
-    const newUser = new User({
-      username,
-      email,
-      password,
-      firstName,
-      lastName,
-      role,
-      shopName: role === 'shopowner' ? shopName : undefined, // Only for shopowners
-    });
+    const { username, email, password, firstName, lastName, role, shopName } = req.body;
 
+    // Input validation
+    if (!username || !email || !password || !firstName || !lastName || !role) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'All required fields must be provided' 
+      });
+    }
+
+    // Sanitize inputs
+    const sanitizedData = {
+      username: sanitizeInput(username),
+      email: email.toLowerCase(),
+      password,
+      firstName: sanitizeInput(firstName),
+      lastName: sanitizeInput(lastName),
+      role,
+      shopName: role === 'shopowner' ? sanitizeInput(shopName) : undefined
+    };
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ 
+      $or: [
+        { email: sanitizedData.email },
+        { username: sanitizedData.username }
+      ]
+    });
+    
+    if (existingUser) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'User with this email or username already exists' 
+      });
+    }
+
+    // Create new user
+    const newUser = new User(sanitizedData);
     await newUser.save();
 
     // Generate JWT token
     const token = newUser.generateAuthToken();
 
     res.status(201).json({
+      success: true,
       message: `${role} created successfully!`,
-      token,  // Send JWT token in the response
+      token
     });
   } catch (err) {
-    res.status(400).json({ error: 'Error creating user', message: err.message });
+    console.error('Registration error:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error',
+      message: err.message 
+    });
   }
 });
 
 // Login a user (generates JWT token)
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required.' });
-  }
-
   try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ error: 'Invalid email or password.' });
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Email and password are required' 
+      });
     }
 
+    // Find user by email (case insensitive)
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(401).json({ 
+        success: false,
+        error: 'Invalid credentials' 
+      });
+    }
+
+    // Verify password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({ error: 'Invalid email or password.' });
+      return res.status(401).json({ 
+        success: false,
+        error: 'Invalid credentials' 
+      });
     }
 
+    // Generate token
     const token = user.generateAuthToken();
-    res.status(200).json({ message: 'Login successful', token });
+    
+    res.status(200).json({ 
+      success: true,
+      message: 'Login successful', 
+      token,
+      user: {
+        id: user._id,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName
+      }
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('Login error:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error' 
+    });
   }
 });
 
 // Admin-only route
-router.get('/admin-dashboard', authenticate, authorize(['admin']), (req, res) => {
-  res.send('Welcome to the Admin Dashboard');
+router.get('/admin-dashboard', authenticateJWT, authorize('admin'), (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Welcome to the Admin Dashboard'
+  });
 });
 
 // Shopowner-only route
-router.get('/shopowner-dashboard', authenticate, authorize(['shopowner']), (req, res) => {
-  res.send('Welcome to the Shopowner Dashboard');
+router.get('/shopowner-dashboard', authenticateJWT, authorize('shopowner', 'admin'), (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Welcome to the Shopowner Dashboard'
+  });
 });
 
 // Storevendor-only route
-router.get('/storevendor-dashboard', authenticate, authorize(['storevendor']), (req, res) => {
-  res.send('Welcome to the Storevendor Dashboard');
+router.get('/storevendor-dashboard', authenticateJWT, authorize('storevendor', 'shopowner', 'admin'), (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Welcome to the Storevendor Dashboard'
+  });
 });
 
 module.exports = router;

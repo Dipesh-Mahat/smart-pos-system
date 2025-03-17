@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 // Define the user schema
 const userSchema = new mongoose.Schema({
@@ -56,6 +58,25 @@ userSchema.pre('save', async function (next) {
 // Method to compare input password with the stored hashed password
 userSchema.methods.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password);
+};
+
+// Method to generate JWT token
+userSchema.methods.generateAuthToken = function() {
+  return jwt.sign(
+    { 
+      id: this._id, 
+      email: this.email, 
+      role: this.role,
+      // Add a unique identifier to prevent token reuse
+      jti: crypto.randomBytes(16).toString('hex')
+    },
+    process.env.JWT_SECRET,
+    { 
+      expiresIn: '8h', // Token lifetime
+      issuer: 'smart-pos-system',
+      audience: 'pos-users'
+    }
+  );
 };
 
 // Export the model
