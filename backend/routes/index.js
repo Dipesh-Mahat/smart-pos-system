@@ -1,21 +1,31 @@
 const express = require('express');
 const router = express.Router();
+const authenticateJWT = require('../middleware/authJWT');
+const authorize = require('../middleware/authorize');
+const userRoutes = require('./userRoutes');
 
-// Import middleware
-const limiter = require('../middleware/rateLimiter'); // Rate-limiting middleware
-const authenticateJWT = require('../middleware/authJWT'); // JWT authentication middleware
-
-// Apply rate limiting to all routes in this file
-router.use(limiter);
-
-// Example public route
-router.get('/data', (req, res) => {
-  res.send('Data from MongoDB');
+// Public routes (no authentication required)
+router.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'API is healthy' });
 });
 
-// Protected route example (requires JWT authentication)
-router.get('/protected', authenticateJWT, (req, res) => {
-  res.json({ message: 'This is a protected route.', user: req.user });
+// Protected routes (authentication required)
+// Apply JWT authentication middleware to all routes below
+router.use('/users', authenticateJWT, userRoutes);
+
+// Admin-only routes
+router.get('/admin/stats', authenticateJWT, authorize('admin'), (req, res) => {
+  res.status(200).json({ message: 'Admin stats accessed successfully' });
+});
+
+// Shop owner routes
+router.get('/shop/dashboard', authenticateJWT, authorize('shopowner', 'admin'), (req, res) => {
+  res.status(200).json({ message: 'Shop dashboard accessed successfully' });
+});
+
+// Store vendor routes
+router.get('/vendor/dashboard', authenticateJWT, authorize('storevendor', 'shopowner', 'admin'), (req, res) => {
+  res.status(200).json({ message: 'Vendor dashboard accessed successfully' });
 });
 
 module.exports = router;

@@ -5,13 +5,13 @@ const cors = require('cors');
 require('dotenv').config();
 
 // Import middleware
-const helmetConfig = require('../middleware/helmetConfig'); // Import Helmet configuration
-const rateLimiter = require('../middleware/rateLimiter'); // Rate-limiting middleware
-const authenticateJWT = require('../middleware/authJWT'); // JWT authentication middleware
+const helmetConfig = require('./middleware/helmetConfig'); // Fix path
+const { apiLimiter, authLimiter, registerLimiter } = require('./middleware/rateLimiter'); // Fix path and import specific limiters
+const authenticateJWT = require('./middleware/authJWT'); // Fix path
 
 // Import routes
-const authRoutes = require('../routes/authRoutes'); // Authentication routes
-const routes = require('../routes/index'); // Your main routes file
+const authRoutes = require('./routes/authRoutes'); // Fix path
+const routes = require('./routes/index'); // Fix path
 
 // Create an Express app
 const app = express();
@@ -24,8 +24,10 @@ app.use(express.json()); // Parse JSON requests
 // Apply Helmet security headers
 app.use(helmetConfig()); // Use the imported Helmet configuration
 
-// Apply rate-limiting globally
-app.use(rateLimiter);
+// Apply rate-limiting to specific routes
+app.use('/api/auth/login', authLimiter); // Stricter rate limiting for login
+app.use('/api/auth/register', registerLimiter); // Rate limiting for registration
+app.use('/api', apiLimiter); // General API rate limiting
 
 // Use routes
 app.use('/api/auth', authRoutes); // Authentication routes
@@ -59,7 +61,7 @@ mongoose
   .then(() => console.log('Database connected successfully'))
   .catch((err) => {
     console.error('Error connecting to MongoDB:', err);
-    process.exit(1); // Exit if there’s an error connecting to MongoDB
+    process.exit(1); // Exit if there's an error connecting to MongoDB
   });
 
 // Default error handling middleware for any undefined routes
