@@ -7,8 +7,7 @@ require('dotenv').config();
 
 // Import middleware
 const helmetConfig = require('./middleware/helmetConfig');
-const { apiLimiter } = require('./middleware/rateLimiter');
-const { identifyDevice, deviceRegisterLimiter, deviceAuthLimiter } = require('./middleware/deviceRateLimiter');
+const { identifyDevice, apiLimiter, authLimiter, registerLimiter, adminLimiter } = require('./middleware/rateLimiter');
 const authenticateJWT = require('./middleware/authJWT');
 
 // Import routes
@@ -34,8 +33,9 @@ app.use(helmetConfig());
 app.use(identifyDevice);
 
 // Apply rate-limiting to specific routes
-app.use('/api/auth/login', deviceAuthLimiter); // Device-based rate limiting for login
-app.use('/api/auth/register', deviceRegisterLimiter); // Device-based rate limiting for registration
+app.use('/api/auth/login', authLimiter); // Rate limiting for login
+app.use('/api/auth/register', registerLimiter); // Rate limiting for registration
+app.use('/api/admin', adminLimiter); // Rate limiting for admin actions
 app.use('/api', apiLimiter); // General API rate limiting
 
 // Use routes
