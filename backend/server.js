@@ -5,13 +5,13 @@ const cors = require('cors');
 require('dotenv').config();
 
 // Import middleware
-const helmetConfig = require('./middleware/helmetConfig'); // Import Helmet configuration
-const rateLimiter = require('./middleware/rateLimiter'); // Rate-limiting middleware
-const authenticateJWT = require('./middleware/authJWT'); // JWT authentication middleware
+const helmetConfig = require('../middleware/helmetConfig'); // Import Helmet configuration
+const rateLimiter = require('../middleware/rateLimiter'); // Rate-limiting middleware
+const authenticateJWT = require('../middleware/authJWT'); // JWT authentication middleware
 
 // Import routes
-const authRoutes = require('./routes/authRoutes'); // Authentication routes
-const routes = require('./routes/index'); // Your main routes file
+const authRoutes = require('../routes/authRoutes'); // Authentication routes
+const routes = require('../routes/index'); // Your main routes file
 
 // Create an Express app
 const app = express();
