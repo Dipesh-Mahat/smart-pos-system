@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User'); // Adjust path if needed
+const { logSecurityEvent } = require('../utils/securityLogger');
 
 // Function to generate JWT token with improved security
 const generateToken = (user) => {
@@ -58,43 +59,50 @@ const login = async (req, res) => {
     const normalizedEmail = email.toLowerCase();
     const user = await User.findOne({ email: normalizedEmail });
     
+    // Check if account is locked
+    if (user && user.lockUntil && user.lockUntil > Date.now()) {
+      logSecurityEvent('LOGIN_BLOCKED', { email: normalizedEmail });
+      return res.status(423).json({
+        success: false,
+        message: 'Account is temporarily locked. Please try again later.'
+      });
+    }
+
     // Use constant-time comparison to prevent timing attacks
     // Don't reveal whether the email exists or password is wrong
-    if (!user) {
+    if (!user || !await bcrypt.compare(password, user.password)) {
+      if (user) {
+        await user.incrementLoginAttempts();
+        logSecurityEvent('LOGIN_FAILED', { email: normalizedEmail });
+      }
       return res.status(401).json({ 
         success: false, 
         message: 'Invalid credentials' 
       });
     }
 
-    // Compare passwords
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      // Log failed login attempts (in a real system, you'd track this for lockout)
-      console.log(`Failed login attempt for email: ${normalizedEmail}`);
-      
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Invalid credentials' 
-      });
-    }
-
-    // Generate JWT token
-    const token = generateToken(user);
+    // Reset login attempts on successful login
+    await user.resetLoginAttempts();
+    
+    // Generate tokens
+    const accessToken = user.generateAuthToken();
+    const refreshToken = user.generateRefreshToken();
 
     // Set HTTP-only cookie with the token for added security
-    res.cookie('auth_token', token, {
+    res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Only use HTTPS in production
       sameSite: 'strict',
-      maxAge: 8 * 60 * 60 * 1000 // 8 hours in milliseconds
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
+
+    logSecurityEvent('LOGIN_SUCCESS', { userId: user._id });
 
     // Return minimal user info to reduce exposure
     res.status(200).json({
       success: true,
       message: 'Login successful',
-      token, // Still include token for clients that need it
+      token: accessToken, // Still include token for clients that need it
       user: {
         id: user._id,
         role: user.role,
@@ -103,6 +111,7 @@ const login = async (req, res) => {
       }
     });
   } catch (error) {
+    logSecurityEvent('LOGIN_ERROR', { error: error.message });
     console.error('Login error:', error);
     res.status(500).json({ 
       success: false,

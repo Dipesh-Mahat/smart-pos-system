@@ -3,5 +3,13 @@
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd Backend && node server.js",
     "client": "cd Frontend && npm start"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "winston": "^3.17.0"
   }
 }

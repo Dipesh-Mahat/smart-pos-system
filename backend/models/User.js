@@ -39,6 +39,19 @@ const userSchema = new mongoose.Schema({
     required: function() { return this.role === 'shopowner'; }, // Only required for shopowners
     trim: true 
   },
+  failedLoginAttempts: {
+    type: Number,
+    default: 0
+  },
+  lockUntil: {
+    type: Date
+  },
+  lastPasswordChange: {
+    type: Date,
+    default: Date.now
+  },
+  passwordResetToken: String,
+  passwordResetExpires: Date
 }, { timestamps: true });
 
 // Hash password before saving the user
@@ -77,6 +90,29 @@ userSchema.methods.generateAuthToken = function() {
       audience: 'pos-users'
     }
   );
+};
+
+userSchema.methods.generateRefreshToken = function() {
+  return jwt.sign(
+    { id: this._id },
+    process.env.REFRESH_TOKEN_SECRET,
+    { expiresIn: '7d' }
+  );
+};
+
+userSchema.methods.incrementLoginAttempts = async function() {
+  // Lock account if 5 failed attempts
+  if (this.failedLoginAttempts >= 4) {
+    this.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes lock
+  }
+  this.failedLoginAttempts += 1;
+  await this.save();
+};
+
+userSchema.methods.resetLoginAttempts = async function() {
+  this.failedLoginAttempts = 0;
+  this.lockUntil = undefined;
+  await this.save();
 };
 
 // Export the model
