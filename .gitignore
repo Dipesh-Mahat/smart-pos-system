@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-/.pnp
+.pnp
 .pnp.js
 
 # Environment variables
@@ -54,3 +54,12 @@ tmp/
 
 # Optional eslint cache
 .eslintcache
+
+# Git credentials
+.gitconfig
+.git-credentials
+
+# IDE specific files
+.vscode/
+.idea/
+*.code-workspace
