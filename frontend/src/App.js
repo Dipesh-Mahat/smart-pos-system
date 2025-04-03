@@ -1,24 +1,38 @@
-import logo from './logo.svg';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
+// Component to redirect to the HTML pages
+function HTMLPageRedirect({ page }) {
+  useEffect(() => {
+    window.location.href = `/pages/${page}.html`;
+  }, [page]);
+
+  return <div className="loading">Loading...</div>;
+}
+
+// Main App component
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        {/* Redirect root to index.html */}
+        <Route path="/" element={<HTMLPageRedirect page="index" />} />
+        
+        {/* Redirect specific routes to their HTML counterparts */}
+        <Route path="/login" element={<HTMLPageRedirect page="login" />} />
+        <Route path="/dashboard" element={<HTMLPageRedirect page="dashboard" />} />
+        <Route path="/inventory" element={<HTMLPageRedirect page="inventory" />} />
+        <Route path="/items" element={<HTMLPageRedirect page="itemManagement" />} />
+        <Route path="/transactions" element={<HTMLPageRedirect page="transactions" />} />
+        <Route path="/reports" element={<HTMLPageRedirect page="reports" />} />
+        <Route path="/suppliers" element={<HTMLPageRedirect page="suppliers" />} />
+        <Route path="/settings" element={<HTMLPageRedirect page="settings" />} />
+        
+        {/* Fallback for any other route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 

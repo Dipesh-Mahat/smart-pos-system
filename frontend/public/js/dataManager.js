@@ -1,7 +1,7 @@
 // Data Manager for NeoPOS
 const DataManager = {
-    // Base URL for API - change to your actual backend URL
-    apiUrl: 'http://localhost:5000/api',
+    // Base URL for API - production backend URL
+    apiUrl: 'https://smart-pos-system-backend.vercel.app/api',
     
     // Auth token storage
     token: null,
