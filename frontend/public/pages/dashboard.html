@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeoPOS</title>
-   <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/navigation.css">
 </head>
 <body>
     <div class="container">
@@ -13,7 +14,7 @@
             <div class="app-title">NeoPOS</div>
             <div class="header-icons">
                 <div class="notification-icon">🔔</div>
-                <div class="profile-icon"><img src="../images/User.png" alt="profile icon" style="width: 20px; height: 20px;"></div>
+                <div class="profile-icon"><img src="../images/userAvatar.png" alt="profile icon" style="width: 20px; height: 20px;"></div>
             </div>
         </div>
 
@@ -92,6 +93,11 @@
     <!-- Overlay for when menu is open -->
     <div class="menu-overlay" id="menuOverlay"></div>
 
+    <!-- Import JavaScript files -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/navigation.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/dataManager.js"></script>
     <script>
         // JavaScript for interactions
         document.addEventListener('DOMContentLoaded', function() {

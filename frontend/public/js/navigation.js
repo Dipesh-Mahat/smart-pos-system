@@ -129,7 +129,7 @@ function addBackButton() {
 function updateProfileIcon() {
     const profileIcon = document.querySelector('.profile-icon');
     if (profileIcon) {
-        profileIcon.innerHTML = '<img src="images/User.png" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">';
+        profileIcon.innerHTML = '<img src="../images/userAvatar.png" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">';
     }
 }
 

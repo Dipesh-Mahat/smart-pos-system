@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeoPOS - Inventory</title>
-    <link rel="stylesheet" href="css/navigation.css">
+    <link rel="stylesheet" href="../css/navigation.css">
     <style>
         * {
             margin: 0;
@@ -655,7 +655,7 @@
             <div class="app-title">NeoPOS</div>
             <div class="header-icons">
                 <div class="notification-icon">🔔</div>
-                <div class="profile-icon"><img src="photo/Profile.png" alt="Profile"></div>
+                <div class="profile-icon"><img src="../images/userAvatar.png" alt="Profile"></div>
             </div>
         </header>
 
@@ -675,7 +675,7 @@
                 </div>
                 <div class="menu-item">
                     <div class="menu-icon-folder">📈</div>
-                    <div class="menu-text"><a href="report.html">Analytics & Report</a></div>
+                    <div class="menu-text"><a href="reports.html">Analytics & Report</a></div>
                 </div>
                 <div class="menu-item">
                     <div class="menu-icon-folder">🤝</div>
@@ -687,7 +687,7 @@
                 </div>
                 <div class="menu-item">
                     <div class="menu-icon-folder">💸</div>
-                    <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
+                    <div class="menu-text"><a href="addExpense.html">Add Expense</a></div>
                 </div>
             </div>
         </div>
@@ -728,7 +728,7 @@
                     <div class="search-icon">🔍</div>
                     <input type="text" class="search-input" placeholder="Search items...">
                     <div class="barcode-icon">
-                        <img src="photo/download 10.png" alt="barcode icon" style="width: 20px; height: 20px;">
+                        <img src="../images/barCodeIcon.png" alt="barcode icon" style="width: 20px; height: 20px;">
                     </div>
                 </div>
 
@@ -809,15 +809,17 @@
                 </div>
             </div>
 
-            <a href="add-item.html" class="add-item-button">
+            <a href="addItem.html" class="add-item-button">
                 +
                 <span class="add-item-label">New Item</span>
             </a>
         </main>
     </div>
 
-    <script src="js/sidebar.js"></script>
-    <script src="js/notifications.js"></script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/navigation.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/dataManager.js"></script>
     <script>
         // Search functionality
         document.querySelector('.search-input').addEventListener('input', function(e) {
