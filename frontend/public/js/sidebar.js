@@ -33,17 +33,17 @@ function initializeSidebar() {
 // Map menu items to their corresponding pages
 function getMenuItemHref(menuText) {
     const menuMap = {
-        'Dashboard': 'index.html',
-        'Sales Management': 'sales.html',
+        'Dashboard': 'dashboard.html',
+        'Sales Management': 'salesManagement.html',
         'Inventory': 'inventory.html',
         'Transactions': 'transactions.html',
-        'Analytics & Report': 'report.html',
+        'Analytics & Report': 'reports.html',
         'Suppliers': 'suppliers.html',
         'Settings': 'settings.html',
-        'Add Expense': 'add-expense.html'
+        'Add Expense': 'addExpense.html'
     };
     return menuMap[menuText];
 }
 
 // Initialize sidebar when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeSidebar); 
+document.addEventListener('DOMContentLoaded', initializeSidebar);

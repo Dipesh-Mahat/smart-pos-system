@@ -1,13 +1,13 @@
 // Navigation links
 const navigationLinks = [
-    { name: 'Dashboard', url: 'index.html', icon: '📊' },
-    { name: 'Store Management', url: 'store-management.html', icon: '🏪' },
+    { name: 'Dashboard', url: 'dashboard.html', icon: '📊' },
+    { name: 'Store Management', url: 'storeManagement.html', icon: '🏪' },
     { name: 'Inventory', url: 'inventory.html', icon: '📦' },
     { name: 'Transactions', url: 'transactions.html', icon: '🔄' },
-    { name: 'Analytics & Report', url: 'analytics.html', icon: '📈' },
+    { name: 'Analytics & Report', url: 'reports.html', icon: '📈' },
     { name: 'Suppliers', url: 'suppliers.html', icon: '🤝' },
     { name: 'Settings', url: 'settings.html', icon: '⚙️' },
-    { name: 'Add Expense', url: 'add-expense.html', icon: '💸' }
+    { name: 'Add Expense', url: 'addExpense.html', icon: '💸' }
 ];
 
 // Initialize sidebar
@@ -129,7 +129,7 @@ function addBackButton() {
 function updateProfileIcon() {
     const profileIcon = document.querySelector('.profile-icon');
     if (profileIcon) {
-        profileIcon.innerHTML = '<img src="images/profile.png" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">';
+        profileIcon.innerHTML = '<img src="images/User.png" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">';
     }
 }
 
@@ -141,13 +141,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Add back button for specific pages
     const pagesWithBackButton = [
-        'add-expense.html',
-        'add-item.html',
-        'supplier-details.html',
-        'receipt-detail.html'
+        'addExpense.html',
+        'addItem.html',
+        'supplierDetails.html',
+        'receiptDetail.html'
     ];
     
     if (pagesWithBackButton.some(page => window.location.href.includes(page))) {
         addBackButton();
     }
-}); 
+});
