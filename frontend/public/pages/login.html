@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoPOS - Login</title>
+    <link rel="stylesheet" href="../css/login.css">
+    <link rel="icon" href="../images/neopos-logo.svg">
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo-container">
+            <img src="../images/neopos-logo.svg" alt="NeoPOS Logo" class="app-logo-img">
+        </div>
+        <h1>Login to NeoPOS</h1>
+        
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Logging in...</p>
+        </div>
+        
+        <div id="errorAlert" style="color: #dc3545; margin-bottom: 20px; display: none;"></div>
+        
+        <form class="login-form" id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+                <div class="error-message" id="usernameError">Please enter your username</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+                <div class="error-message" id="passwordError">Please enter your password</div>
+            </div>
+            
+            <button type="submit">Login</button>
+        </form>
+        
+        <div class="form-footer">
+            <p>Don't have an account? Contact your administrator</p>
+            <p><a href="#">Forgot password?</a></p>
+        </div>
+    </div>
+    
+    <script src="../js/dataManager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const errorAlert = document.getElementById('errorAlert');
+            const loading = document.querySelector('.loading');
+            
+            // Check if already logged in
+            if (DataManager.isLoggedIn()) {
+                window.location.href = 'index.html';
+            }
+            
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Get form values
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+                
+                // Basic client-side validation
+                if (!username) {
+                    document.getElementById('usernameError').style.display = 'block';
+                    return;
+                } else {
+                    document.getElementById('usernameError').style.display = 'none';
+                }
+                
+                if (!password) {
+                    document.getElementById('passwordError').style.display = 'block';
+                    return;
+                } else {
+                    document.getElementById('passwordError').style.display = 'none';
+                }
+                
+                // Show loading spinner
+                loading.style.display = 'block';
+                loginForm.style.display = 'none';
+                errorAlert.style.display = 'none';
+                
+                try {
+                    // Attempt to login using the DataManager
+                    const result = await DataManager.login(username, password);
+                    
+                    if (result.success) {
+                        // Redirect to dashboard on successful login
+                        window.location.href = 'index.html';
+                    } else {
+                        // Show error message
+                        errorAlert.textContent = result.message || 'Login failed. Please check your credentials.';
+                        errorAlert.style.display = 'block';
+                        
+                        // Hide loading spinner
+                        loading.style.display = 'none';
+                        loginForm.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    
+                    // Show error message
+                    errorAlert.textContent = 'An error occurred during login. Please try again.';
+                    errorAlert.style.display = 'block';
+                    
+                    // Hide loading spinner
+                    loading.style.display = 'none';
+                    loginForm.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
