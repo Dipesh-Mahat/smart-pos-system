@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoPOS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .menu-icon {
+            cursor: pointer;
+        }
+        
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .icon-container {
+            display: flex;
+            gap: 20px;
+        }
+        
+        /* Side Menu (Hamburger Menu) */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: #f5f5f5;
+            z-index: 10;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        
+        .side-menu.open {
+            left: 0;
+        }
+        
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 5;
+            display: none;
+        }
+        
+        .menu-overlay.active {
+            display: block;
+        }
+        
+        .menu-items {
+            padding: 20px 0;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            cursor: pointer;
+        }
+        
+        .menu-item:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .menu-icon-folder {
+            margin-right: 15px;
+            color: #ffc107;
+        }
+        
+        .menu-text {
+            font-size: 16px;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 0 0 20px 0;
+        }
+        
+        .item-row {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #e0e0e0;
+            margin-bottom: 2px;
+        }
+        
+        .item-description {
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .item-quantity {
+            color: #333;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+        
+        .item-price {
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .add-item-btn {
+            margin: 10px 0;
+            padding: 16px;
+            background-color: #d4d4d4;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .summary {
+            margin-top: 10px;
+            background-color: #d4d4d4;
+            border-radius: 4px;
+            padding: 16px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .total-label {
+            color: #777;
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .total-amount {
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .discount-link {
+            color: #3d42a5;
+            text-align: center;
+            font-weight: 500;
+            text-decoration: underline;
+            cursor: pointer;
+            display: block;
+        }
+        
+        .charge-btn {
+            margin: 16px 0;
+            padding: 16px;
+            background-color: #4cd964;
+            border: none;
+            border-radius: 4px;
+            color: black;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .clear-btn {
+            margin-bottom: 16px;
+            padding: 16px;
+            background-color: #ff7d7d;
+            border: none;
+            border-radius: 4px;
+            color: black;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        /* Discount popup */
+        .discount-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 20;
+            display: none;
+        }
+        
+        .discount-popup.active {
+            display: block;
+        }
+        
+        .discount-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .discount-title {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        
+        .close-btn {
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .discount-options {
+            padding: 15px;
+        }
+        
+        .discount-option {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .discount-input {
+            width: 100%;
+            margin: 8px 0 15px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .discount-save {
+            background-color: #4cd964;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: none;
+            float: right;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .or-text {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .footer {
+            display: flex;
+            justify-content: space-around;
+            background-color: white;
+            padding: 10px 0;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .footer-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            text-decoration: none;
+            color: #333;
+        }
+        
+        .footer-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Side Menu (Hamburger Menu) -->
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-items">
+            <div class="menu-item">
+                <div class="menu-icon-folder">📁</div>
+                <div class="menu-text">Dashboard</div>
+            </div>
+           
+            <div class="menu-item">
+                <div class="menu-icon-folder">📁</div>
+                <div class="menu-text">Inventory</div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📁</div>
+                <div class="menu-text">Transactions</div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📁</div>
+                <div class="menu-text">Analytics & Report</div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📁</div>
+                <div class="menu-text">Suppliers</div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📁</div>
+                <div class="menu-text">Settings</div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📁</div>
+                <div class="menu-text">Add Expense</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for when menu is open -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    
+    <!-- Discount popup -->
+    <div class="discount-popup" id="discountPopup">
+        <div class="discount-header">
+            <div class="discount-title">ADD DISCOUNT</div>
+            <div class="close-btn" id="closeDiscountBtn">×</div>
+        </div>
+        <div class="discount-options">
+            <div class="discount-option">ADD DISCOUNT IN RS</div>
+            <input type="number" class="discount-input" id="discountRs" placeholder="Enter amount in RS">
+            
+            <div class="or-text">OR</div>
+            
+            <div class="discount-option">ADD DISCOUNT IN %</div>
+            <input type="number" class="discount-input" id="discountPercent" placeholder="Enter percentage">
+            
+            <button class="discount-save" id="saveDiscountBtn">SAVE</button>
+        </div>
+    </div>
+    
+    <div class="header">
+        <div class="menu-icon" id="menuIcon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 18H21V16H3V18ZM3 13H21V11H3V13ZM3 6V8H21V6H3Z" fill="black"/>
+            </svg>
+        </div>
+        <h1 class="logo">NeoPOS</h1>
+        <div class="icon-container">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16ZM16 17H8V11C8 8.52 9.51 6.5 12 6.5C14.49 6.5 16 8.52 16 11V17Z" fill="black"/>
+            </svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 5C13.66 5 15 6.34 15 8C15 9.66 13.66 11 12 11C10.34 11 9 9.66 9 8C9 6.34 10.34 5 12 5ZM12 19.2C9.5 19.2 7.29 17.92 6 15.98C6.03 13.99 10 12.9 12 12.9C13.99 12.9 17.97 13.99 18 15.98C16.71 17.92 14.5 19.2 12 19.2Z" fill="black"/>
+            </svg>
+        </div>
+    </div>
+    
+    <div class="content">
+        <div class="item-row">
+            <div>
+                <div class="item-description">Item</div>
+                <div class="item-quantity">2 × 100</div>
+            </div>
+            <div class="item-price">200</div>
+        </div>
+        
+        <div class="item-row">
+            <div>
+                <div class="item-description">Item 2</div>
+                <div class="item-quantity">3 × 100</div>
+            </div>
+            <div class="item-price">300</div>
+        </div>
+        
+        <div class="item-row">
+            <div>
+                <div class="item-description">Item 3</div>
+                <div class="item-quantity">4 × 100</div>
+            </div>
+            <div class="item-price">400</div>
+        </div>
+        
+        <div class="add-item-btn">ADD NEW ITEM</div>
+        
+        <div class="summary">
+            <div class="total-row">
+                <div class="total-label">TOTAL</div>
+                <div class="total-amount">900</div>
+            </div>
+            <div class="discount-link" id="addDiscountLink">ADD DISCOUNT</div>
+        </div>
+        
+        <div class="charge-btn">CHARGE : RS 900</div>
+        <div class="clear-btn">CLEAR</div>
+    </div>
+    
+    <div class="footer">
+        <a href="report.html" class="footer-item">
+            <div class="footer-icon">📋</div>
+            <div>Report</div>
+        </a>
+        <a href="today.html" class="footer-item">
+            <div class="footer-icon">💲</div>
+            <div>Today</div>
+        </a>
+        <a href="counter.html" class="footer-item">
+            <div class="footer-icon">👨‍💻</div>
+            <div>Counter</div>
+        </a>
+        <a href="item.html" class="footer-item">
+            <div class="footer-icon">☰</div>
+            <div>Item</div>
+        </a>
+        <a href="more.html" class="footer-item">
+            <div class="footer-icon">•••</div>
+            <div>more</div>
+        </a>
+    </div>
+
+    <script>
+        // Get elements
+        const menuIcon = document.getElementById('menuIcon');
+        const sideMenu = document.getElementById('sideMenu');
+        const menuOverlay = document.getElementById('menuOverlay');
+        const discountPopup = document.getElementById('discountPopup');
+        const closeDiscountBtn = document.getElementById('closeDiscountBtn');
+        const saveDiscountBtn = document.getElementById('saveDiscountBtn');
+        const discountRsInput = document.getElementById('discountRs');
+        const discountPercentInput = document.getElementById('discountPercent');
+        const addDiscountLink = document.getElementById('addDiscountLink');
+        
+        // Menu icon click event - toggle side menu
+        menuIcon.addEventListener('click', function() {
+            sideMenu.classList.toggle('open');
+            menuOverlay.classList.toggle('active');
+        });
+        
+        // Close menu when clicking outside
+        menuOverlay.addEventListener('click', function() {
+            sideMenu.classList.remove('open');
+            menuOverlay.classList.remove('active');
+            discountPopup.classList.remove('active');
+        });
+
+        // Menu item click events
+        document.querySelectorAll('.menu-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                const menuText = this.querySelector('.menu-text').textContent;
+                console.log(menuText + ' clicked');
+                // Add functionality for each menu item here
+                
+                // Close the menu after clicking an item
+                sideMenu.classList.remove('open');
+                menuOverlay.classList.remove('active');
+            });
+        });
+        
+        // Discount popup functionality
+        addDiscountLink.addEventListener('click', function() {
+            discountPopup.classList.add('active');
+            menuOverlay.classList.add('active');
+            
+            // Reset input fields
+            discountRsInput.value = '';
+            discountPercentInput.value = '';
+            discountRsInput.disabled = false;
+            discountPercentInput.disabled = false;
+        });
+        
+        // Handle input in RS field - disable percent field
+        discountRsInput.addEventListener('input', function() {
+            if (this.value !== '') {
+                discountPercentInput.disabled = true;
+            } else {
+                discountPercentInput.disabled = false;
+            }
+        });
+        
+        // Handle input in percent field - disable RS field
+        discountPercentInput.addEventListener('input', function() {
+            if (this.value !== '') {
+                discountRsInput.disabled = true;
+            } else {
+                discountRsInput.disabled = false;
+            }
+        });
+        
+        closeDiscountBtn.addEventListener('click', function() {
+            discountPopup.classList.remove('active');
+            menuOverlay.classList.remove('active');
+        });
+        
+        saveDiscountBtn.addEventListener('click', function() {
+            const rsValue = discountRsInput.value.trim();
+            const percentValue = discountPercentInput.value.trim();
+            
+            if (rsValue !== '') {
+                alert('Discount of RS ' + rsValue + ' applied');
+                // Here you would update the total amount displayed
+            } else if (percentValue !== '') {
+                alert('Discount of ' + percentValue + '% applied');
+                // Here you would update the total amount displayed
+            } else {
+                alert('Please enter a discount value');
+                return;
+            }
+            
+            discountPopup.classList.remove('active');
+            menuOverlay.classList.remove('active');
+        });
+        
+        // Add item button click
+        document.querySelector('.add-item-btn').addEventListener('click', function() {
+            alert('Add new item clicked');
+        });
+        
+        // Charge button click
+        document.querySelector('.charge-btn').addEventListener('click', function() {
+            window.location.href = 'Sub-Counter.html';
+        });
+        
+        // Clear button click
+        document.querySelector('.clear-btn').addEventListener('click', function() {
+            alert('Clear all items clicked');
+        });
+    </script>
+</body>
+</html>

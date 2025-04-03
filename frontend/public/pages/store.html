@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoPOS - Store Settings</title>
+    <link rel="stylesheet" href="css/navigation.css">
+    <style>
+        :root {
+            --bg-color: #fff;
+            --text-color: #333;
+            --secondary-text: #666;
+            --card-bg: white;
+            --border-color: #eee;
+            --hover-bg: #f8f9fa;
+            --icon-bg: #f0f7ff;
+            --header-bg: #f8f9fa;
+            --shadow-color: rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #fff;
+            --secondary-text: #aaa;
+            --card-bg: #2d2d2d;
+            --border-color: #404040;
+            --hover-bg: #363636;
+            --icon-bg: #404040;
+            --header-bg: #2d2d2d;
+            --shadow-color: rgba(0,0,0,0.3);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .store-container {
+            padding: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .store-section {
+            background: var(--card-bg);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px var(--shadow-color);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .add-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .store-list {
+            padding: 16px;
+        }
+
+        .store-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .store-item:last-child {
+            border-bottom: none;
+        }
+
+        .store-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--icon-bg);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 20px;
+        }
+
+        .store-info {
+            flex: 1;
+        }
+
+        .store-name {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .store-details {
+            font-size: 14px;
+            color: var(--secondary-text);
+        }
+
+        .store-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            color: var(--secondary-text);
+            font-size: 18px;
+        }
+
+        .action-button:hover {
+            color: #007bff;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .back-button:hover {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="menu-icon">☰</div>
+            <div class="app-title">Store Settings</div>
+            <div class="header-icons">
+                <div class="notification-icon">🔔</div>
+                <div class="profile-icon">👤</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="store-container">
+                <button class="back-button" onclick="window.location.href='more.html'">← Back</button>
+
+                <div class="store-section">
+                    <div class="section-header">
+                        <div class="section-title">Store Locations</div>
+                        <button class="add-button">Add Location</button>
+                    </div>
+                    <div class="store-list">
+                        <div class="store-item">
+                            <div class="store-icon">🏪</div>
+                            <div class="store-info">
+                                <div class="store-name">Main Store</div>
+                                <div class="store-details">123 Main Street, Kathmandu</div>
+                            </div>
+                            <div class="store-actions">
+                                <button class="action-button">✏️</button>
+                                <button class="action-button">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="store-item">
+                            <div class="store-icon">🏪</div>
+                            <div class="store-info">
+                                <div class="store-name">Branch Store</div>
+                                <div class="store-details">456 Branch Road, Lalitpur</div>
+                            </div>
+                            <div class="store-actions">
+                                <button class="action-button">✏️</button>
+                                <button class="action-button">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="store-section">
+                    <div class="section-header">
+                        <div class="section-title">Opening Hours</div>
+                        <button class="add-button">Edit Hours</button>
+                    </div>
+                    <div class="store-list">
+                        <div class="store-item">
+                            <div class="store-icon">⏰</div>
+                            <div class="store-info">
+                                <div class="store-name">Weekdays</div>
+                                <div class="store-details">9:00 AM - 8:00 PM</div>
+                            </div>
+                        </div>
+                        <div class="store-item">
+                            <div class="store-icon">⏰</div>
+                            <div class="store-info">
+                                <div class="store-name">Weekends</div>
+                                <div class="store-details">10:00 AM - 7:00 PM</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="store-section">
+                    <div class="section-header">
+                        <div class="section-title">Staff Management</div>
+                        <button class="add-button">Add Staff</button>
+                    </div>
+                    <div class="store-list">
+                        <div class="store-item">
+                            <div class="store-icon">👥</div>
+                            <div class="store-info">
+                                <div class="store-name">John Doe</div>
+                                <div class="store-details">Manager</div>
+                            </div>
+                            <div class="store-actions">
+                                <button class="action-button">✏️</button>
+                                <button class="action-button">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="store-item">
+                            <div class="store-icon">👥</div>
+                            <div class="store-info">
+                                <div class="store-name">Jane Smith</div>
+                                <div class="store-details">Cashier</div>
+                            </div>
+                            <div class="store-actions">
+                                <button class="action-button">✏️</button>
+                                <button class="action-button">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/navigation.js"></script>
+</body>
+</html> 

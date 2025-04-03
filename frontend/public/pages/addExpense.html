@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoPOS - Add Expense</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .profile-icon img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+
+        .expense-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .submit-button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .submit-button:hover {
+            background-color: #0056b3;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="menu-icon" id="menuIcon">☰</div>
+            <div class="app-title">Add Expense</div>
+            <div class="header-icons">
+                <div class="notification-icon">🔔</div>
+                <div class="profile-icon"><img src="photo/Profile.png" alt="Profile"></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="expense-form">
+                <div class="page-title">Add New Expense</div>
+                <form>
+                    <div class="form-group">
+                        <label for="expense-title">Expense Title</label>
+                        <input type="text" id="expense-title" placeholder="Enter expense title" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expense-amount">Amount</label>
+                        <input type="number" id="expense-amount" placeholder="Enter amount" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expense-category">Category</label>
+                        <select id="expense-category" required>
+                            <option value="">Select category</option>
+                            <option value="utilities">Utilities</option>
+                            <option value="rent">Rent</option>
+                            <option value="supplies">Supplies</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expense-date">Date</label>
+                        <input type="date" id="expense-date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expense-description">Description</label>
+                        <textarea id="expense-description" placeholder="Enter expense description"></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-button">Add Expense</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Menu -->
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-items">
+            <div class="menu-item">
+                <div class="menu-icon-folder">📊</div>
+                <div class="menu-text"><a href="index.html">Dashboard</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📦</div>
+                <div class="menu-text"><a href="inventory.html">Inventory</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">🔄</div>
+                <div class="menu-text"><a href="transactions.html">Transactions</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📈</div>
+                <div class="menu-text"><a href="report.html">Analytics & Report</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">🤝</div>
+                <div class="menu-text"><a href="suppliers.html">Suppliers</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">⚙️</div>
+                <div class="menu-text"><a href="settings.html">Settings</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">💸</div>
+                <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for menu -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <script src="sidebar.js"></script>
+</body>
+</html> 

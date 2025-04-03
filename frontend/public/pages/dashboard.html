@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoPOS</title>
+   <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="menu-icon">☰</div>
+            <div class="app-title">NeoPOS</div>
+            <div class="header-icons">
+                <div class="notification-icon">🔔</div>
+                <div class="profile-icon"><img src="../images/User.png" alt="profile icon" style="width: 20px; height: 20px;"></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="reminder-section">Reminder of items</div>
+            
+            <div class="new-sale-section">
+                <div class="circle-button">
+                    <div class="plus-icon"><a href="itemManagement.html">+</a></div>
+                </div>
+                <div>New Sale</div>
+            </div>
+            
+            <!-- Empty space below -->
+        </div>
+
+        <div class="bottom-nav">
+            <a href="reports.html" class="nav-item">
+                <div class="nav-icon">📄</div>
+                <div>Report</div>
+            </a>
+            <a href="dailySummary.html" class="nav-item">
+                <div class="nav-icon">💲</div>
+                <div>Today</div>
+            </a>
+            <a href="dashboard.html" class="nav-item">
+                <div class="nav-icon">👨‍💻</div>
+                <div>Counter</div>
+            </a>
+            <a href="itemManagement.html" class="nav-item active">
+                <div class="nav-icon">☰</div>
+                <div>Item</div>
+            </a>
+            <a href="more.html" class="nav-item">
+                <div class="nav-icon">⋯</div>
+                <div>More</div>
+            </a>
+        </div>
+        
+    </div>
+
+    <!-- Side Menu (Hamburger Menu) -->
+    <div id="sideMenu" class="side-menu">
+        <div class="menu-items">
+            <div class="menu-item">
+                <div class="menu-icon-folder">📊</div>
+                <div class="menu-text"><a href="dashboard.html">Dashboard</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📦</div>
+                <div class="menu-text"><a href="inventory.html">Inventory</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">🔄</div>
+                <div class="menu-text"><a href="transactions.html">Transactions</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📈</div>
+                <div class="menu-text"><a href="reports.html">Analytics & Report</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">🤝</div>
+                <div class="menu-text"><a href="suppliers.html">Suppliers</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">⚙️</div>
+                <div class="menu-text"><a href="settings.html">Settings</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">💸</div>
+                <div class="menu-text"><a href="addExpense.html">Add Expense</a></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for when menu is open -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <script>
+        // JavaScript for interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuIcon = document.querySelector('.menu-icon');
+            const sideMenu = document.getElementById('sideMenu');
+            const menuOverlay = document.getElementById('menuOverlay');
+            
+            // Menu icon click event - toggle side menu
+            menuIcon.addEventListener('click', function() {
+                sideMenu.classList.toggle('open');
+                menuOverlay.classList.toggle('active');
+            });
+            
+            // Close menu when clicking outside
+            menuOverlay.addEventListener('click', function() {
+                sideMenu.classList.remove('open');
+                menuOverlay.classList.remove('active');
+            });
+
+            // Menu item click events
+            document.querySelectorAll('.menu-item').forEach(function(item) {
+                item.addEventListener('click', function() {
+                    const menuText = this.querySelector('.menu-text').textContent;
+                    console.log(menuText + ' clicked');
+                    // Add functionality for each menu item here
+                    
+                    // Close the menu after clicking an item
+                    sideMenu.classList.remove('open');
+                    menuOverlay.classList.remove('active');
+                });
+            });
+
+            // Notification icon click event
+            document.querySelector('.notification-icon').addEventListener('click', function() {
+                alert('Notifications clicked');
+                // Add your notification code here
+            });
+
+            // Profile icon click event
+            document.querySelector('.profile-icon').addEventListener('click', function() {
+                alert('Profile clicked');
+                // Add your profile code here
+            });
+
+            // New Sale button click event
+            document.querySelector('.new-sale-section').addEventListener('click', function() {
+                alert('New Sale clicked');
+                // Add your new sale code here
+            });
+
+            // Bottom navigation items click events
+            document.querySelectorAll('.nav-item').forEach(function(item) {
+                item.addEventListener('click', function() {
+                    // Remove active class from all nav items
+                    document.querySelectorAll('.nav-item').forEach(function(navItem) {
+                        navItem.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Get the nav item name
+                    const navName = this.querySelector('div:last-child').textContent;
+                    console.log(navName + ' tab clicked');
+                    // Add your navigation code here
+                });
+            });
+        });
+    </script>
+</body>
+</html>

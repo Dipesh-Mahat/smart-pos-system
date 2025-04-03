@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoPOS - Inventory</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Main content styles */
+        .main-content {
+            flex: 1;
+            background-color: #fff;
+            overflow-y: auto;
+        }
+
+        .inventory-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background-color: #e0e0e0;
+            margin-bottom: 1px;
+        }
+
+        .item-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .item-stock {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .item-price {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* Bottom action bar */
+        .bottom-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px;
+            background-color: #f5f5f5;
+            border-top: 1px solid #ddd;
+        }
+
+        .scan-bill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .add-item {
+            width: 48px;
+            height: 48px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .profile-icon img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="menu-icon" id="menuIcon">☰</div>
+            <div class="app-title">NeoPOS</div>
+            <div class="header-icons">
+                <div class="notification-icon">🔔</div>
+                <div class="profile-icon"><img src="photo/Profile.png" alt="Profile"></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="inventory-item">
+                <div class="item-info">
+                    <div class="item-name">APPLE</div>
+                    <div class="item-stock">Item left</div>
+                </div>
+                <div class="item-price">RS.XXX 2000</div>
+            </div>
+            
+            <div class="inventory-item">
+                <div class="item-info">
+                    <div class="item-name">APPLE</div>
+                    <div class="item-stock">Item left</div>
+                </div>
+                <div class="item-price">RS.XXX 2000</div>
+            </div>
+            
+            <div class="inventory-item">
+                <div class="item-info">
+                    <div class="item-name">APPLE</div>
+                    <div class="item-stock">Item left</div>
+                </div>
+                <div class="item-price">RS.XXX 2000</div>
+            </div>
+            
+            <div class="inventory-item">
+                <div class="item-info">
+                    <div class="item-name">APPLE</div>
+                    <div class="item-stock">Item left</div>
+                </div>
+                <div class="item-price">RS.XXX 2000</div>
+            </div>
+            
+            <div class="inventory-item">
+                <div class="item-info">
+                    <div class="item-name">APPLE</div>
+                    <div class="item-stock">Item left</div>
+                </div>
+                <div class="item-price">RS.XXX 2000</div>
+            </div>
+            
+            <div class="inventory-item">
+                <div class="item-info">
+                    <div class="item-name">APPLE</div>
+                    <div class="item-stock">Item left</div>
+                </div>
+                <div class="item-price">RS.XXX 2000</div>
+            </div>
+        </div>
+
+        <div class="bottom-actions">
+            <div class="scan-bill">
+                <img src="photo/download 10.png" alt="scan icon" style="width: 20px; height: 20px;">
+                <span>Scan Bill</span>
+                <span>?</span>
+            </div>
+            <a href="add-item.html" class="add-item">+</a>
+        </div>
+    </div>
+
+    <!-- Side Menu -->
+    <div id="sideMenu" class="side-menu">
+        <div class="menu-items">
+            <div class="menu-item">
+                <div class="menu-icon-folder">📊</div>
+                <div class="menu-text"><a href="index.html">Dashboard</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📦</div>
+                <div class="menu-text"><a href="inventory.html">Inventory</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">🔄</div>
+                <div class="menu-text"><a href="transactions.html">Transactions</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📈</div>
+                <div class="menu-text"><a href="report.html">Analytics & Report</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">🤝</div>
+                <div class="menu-text"><a href="suppliers.html">Suppliers</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">⚙️</div>
+                <div class="menu-text"><a href="settings.html">Settings</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">💸</div>
+                <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for menu -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <!-- Notification Panel -->
+    <div id="notificationPanel" class="notification-panel">
+        <div class="notification-header">
+            <div class="notification-title">Notifications</div>
+            <div class="close-notifications">×</div>
+        </div>
+        <div class="notification-content">
+            <div class="notification-item unread">
+                <div class="notification-icon">📢</div>
+                <div class="notification-text">
+                    <div class="notification-message">New update available!</div>
+                    <div class="notification-time">2 hours ago</div>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notification-icon">📦</div>
+                <div class="notification-text">
+                    <div class="notification-message">Low stock alert: Item #1234</div>
+                    <div class="notification-time">5 hours ago</div>
+                </div>
+            </div>
+        </div>
+        <div class="notification-footer">
+            <a href="#">View all notifications</a>
+        </div>
+    </div>
+
+    <div id="notificationOverlay" class="notification-overlay"></div>
+
+    <script src="sidebar.js"></script>
+</body>
+</html> 
