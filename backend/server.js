@@ -9,17 +9,13 @@ require('dotenv').config();
 const helmetConfig = require('../backend/middleware/helmetConfig');
 const { identifyDevice, apiLimiter, authLimiter, registerLimiter, adminLimiter } = require('../backend/middleware/rateLimiter');
 const authenticateJWT = require('../backend/middleware/authJWT');
-const { csrfProtection, handleCsrfError } = require('../middleware/csrfProtection');
+const { csrfProtection, handleCsrfError } = require('../backend/middleware/csrfProtection');
 
-// Import routes
-const authRoutes = require('../backend/routes/authRoutes');
-const routes = require('../backend/routes/index');
-
-// Create an Express app
+// Create an Express app (This should come first)
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Middleware
+// Middleware (after app initialization)
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true // Allow cookies to be sent with requests
@@ -29,6 +25,12 @@ app.use(cookieParser()); // Parse cookies
 
 // Apply Helmet security headers
 app.use(helmetConfig());
+
+// Apply CSRF protection middleware
+app.use(csrfProtection);
+
+// Handle CSRF errors
+app.use(handleCsrfError);
 
 // Apply device identification middleware
 app.use(identifyDevice);
@@ -47,6 +49,10 @@ app.post('/api/*', csrfProtection);
 app.put('/api/*', csrfProtection);
 app.delete('/api/*', csrfProtection);
 
+// Import routes
+const authRoutes = require('../backend/routes/authRoutes');
+const routes = require('../backend/routes/index');
+
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api', routes);
@@ -57,8 +63,13 @@ app.get('/', (req, res) => {
 });
 
 // CSRF token endpoint
-app.get('/api/csrf-token', (req, res) => {
+app.get('/api/csrf-token', csrfProtection, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
+});
+
+// Example protected route
+app.post('/api/protected-route', csrfProtection, (req, res) => {
+  res.json({ success: true, message: 'CSRF-protected route accessed!' });
 });
 
 // Error handling for CSRF token failures

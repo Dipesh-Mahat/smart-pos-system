@@ -17,19 +17,19 @@ const handleCsrfError = (err, req, res, next) => {
     return next(err);
   }
 
-  // Log CSRF attack attempt
+  // Log CSRF attack attempt with essential information
   logSecurityEvent('CSRF_ATTACK_ATTEMPT', {
     ip: req.ip,
     path: req.path,
     method: req.method,
-    headers: req.headers,
-    deviceId: req.deviceId || 'unknown'
+    deviceId: req.deviceId || 'unknown',
+    userAgent: req.get('User-Agent')  // Adding user agent for better context
   });
 
-  // Send forbidden response
+  // Send a generic response to prevent revealing attack details
   res.status(403).json({
     success: false,
-    message: 'Invalid or missing CSRF token'
+    message: 'CSRF token validation failed'
   });
 };
 
