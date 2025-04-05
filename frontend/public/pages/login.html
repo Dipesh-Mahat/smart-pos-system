@@ -38,11 +38,86 @@
         </form>
         
         <div class="form-footer">
-            <p>Don't have an account? Contact your administrator</p>
+            <p>Don't have an account?</p>
             <p><a href="#">Forgot password?</a></p>
         </div>
     </div>
     
+    <div class="login-popup" id="loginPopup">
+        <div class="popup-content">
+            <span class="close-popup" id="closePopup">&times;</span>
+            <h2>Login</h2>
+            <form>
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+
+                <button type="submit" id="demoLogin">Demo Login</button>
+            </form>
+            <p>Don't have an account? <a href="#" id="signupLink">Sign up</a></p>
+        </div>
+    </div>
+
+    <style>
+    /* Popup styles */
+    .login-popup {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 300px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        text-align: center;
+    }
+
+    .close-popup {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    input {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    button {
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+    </style>
+
     <script src="../js/dataManager.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -110,6 +185,29 @@
                     loginForm.style.display = 'block';
                 }
             });
+
+            // Open and close popup logic
+            const loginPopup = document.getElementById('loginPopup');
+            const closePopup = document.getElementById('closePopup');
+            const demoLogin = document.getElementById('demoLogin');
+
+            // Open popup
+            function openLoginPopup() {
+                loginPopup.style.display = 'flex';
+            }
+
+            // Close popup
+            closePopup.addEventListener('click', () => {
+                loginPopup.style.display = 'none';
+            });
+
+            // Redirect on demo login
+            if (demoLogin) {
+                demoLogin.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.href = 'index.html';
+                });
+            }
         });
     </script>
 </body>
