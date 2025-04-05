@@ -1,26 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // Adjust path if needed
+const User = require('../models/User');
 const { logSecurityEvent } = require('../utils/securityLogger');
-
-// Function to generate JWT token with improved security
-const generateToken = (user) => {
-  return jwt.sign(
-    { 
-      id: user._id, 
-      email: user.email, 
-      role: user.role,
-      // Add a unique identifier to prevent token reuse
-      jti: require('crypto').randomBytes(16).toString('hex')
-    },
-    process.env.JWT_SECRET,
-    { 
-      expiresIn: '8h', // Reduced token lifetime for security
-      issuer: 'smart-pos-system',
-      audience: 'pos-users'
-    }
-  );
-};
 
 // Basic input validation
 const validateLoginInput = (email, password) => {
@@ -34,8 +15,8 @@ const validateLoginInput = (email, password) => {
   
   if (!password) {
     errors.password = 'Password is required';
-  } else if (password.length < 6) {
-    errors.password = 'Password must be at least 6 characters';
+  } else if (password.length < 8) { // Changed from 6 to 8 for consistency
+    errors.password = 'Password must be at least 8 characters';
   }
   
   return {
@@ -165,15 +146,11 @@ const register = async (req, res) => {
       });
     }
 
-    // Hash password with higher work factor for better security
-    const salt = await bcrypt.genSalt(12); // Increased from default 10
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create new user with normalized data
+    // Create new user with normalized data - let the pre-save hook handle password hashing
     const newUser = new User({ 
       username: username.trim(), 
       email: normalizedEmail, 
-      password: hashedPassword, 
+      password, // Pass password directly, pre-save hook will hash it
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       role,

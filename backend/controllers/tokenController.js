@@ -3,7 +3,8 @@ const User = require('../models/User');
 
 const refreshToken = async (req, res) => {
   try {
-    const refreshToken = req.cookies.refresh_token;
+    // Check for token in cookies first, then in request body
+    const refreshToken = req.cookies.refresh_token || req.body.refreshToken;
     
     if (!refreshToken) {
       return res.status(401).json({ 

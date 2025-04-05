@@ -60,7 +60,7 @@ userSchema.pre('save', async function (next) {
   
   try {
     // Generate salt and hash the password
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12); // Changed from 10 to 12 for consistency
     this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (err) {
@@ -75,6 +75,14 @@ userSchema.methods.comparePassword = async function (password) {
 
 // Method to generate JWT token
 userSchema.methods.generateAuthToken = function() {
+  // Different token expiration times based on role
+  let expiresIn = '12h'; // Default for shopowner and storevendor
+  
+  // Admins get longer expiration time - 6 days
+  if (this.role === 'admin') {
+    expiresIn = '6d';
+  }
+  
   return jwt.sign(
     { 
       id: this._id, 
@@ -85,7 +93,7 @@ userSchema.methods.generateAuthToken = function() {
     },
     process.env.JWT_SECRET,
     { 
-      expiresIn: '12h', // Token lifetime
+      expiresIn: expiresIn, // Role-based token lifetime
       issuer: 'smart-pos-system',
       audience: 'pos-users'
     }
@@ -101,11 +109,14 @@ userSchema.methods.generateRefreshToken = function() {
 };
 
 userSchema.methods.incrementLoginAttempts = async function() {
-  // Lock account if 5 failed attempts
-  if (this.failedLoginAttempts >= 4) {
+  // Increment first
+  this.failedLoginAttempts += 1;
+  
+  // Lock account after 5 failed attempts (not after 4)
+  if (this.failedLoginAttempts >= 5) {
     this.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes lock
   }
-  this.failedLoginAttempts += 1;
+  
   await this.save();
 };
 
