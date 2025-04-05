@@ -1,49 +1,103 @@
-// Sidebar navigation functionality
-function initializeSidebar() {
-    const menuIcon = document.getElementById('menuIcon');
+document.addEventListener('DOMContentLoaded', function() {
+    // Get menu elements
+    const menuIcon = document.querySelector('.menu-icon');
     const sideMenu = document.getElementById('sideMenu');
     const menuOverlay = document.getElementById('menuOverlay');
-    
-    // Toggle menu
-    menuIcon.addEventListener('click', function() {
+    const notificationIcon = document.querySelector('.notification-icon');
+    const notificationPanel = document.getElementById('notificationPanel');
+    const notificationOverlay = document.getElementById('notificationOverlay');
+    const closeNotifications = document.querySelector('.close-notifications');
+
+    // Menu toggle functionality
+    function toggleMenu() {
         sideMenu.classList.toggle('open');
         menuOverlay.classList.toggle('active');
-    });
-    
-    // Close menu when clicking overlay
-    menuOverlay.addEventListener('click', function() {
+        document.body.style.overflow = sideMenu.classList.contains('open') ? 'hidden' : '';
+    }
+
+    // Close menu function
+    function closeMenu() {
         sideMenu.classList.remove('open');
         menuOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Menu icon click event
+    menuIcon.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleMenu();
     });
 
-    // Menu item click events
+    // Close menu when clicking overlay
+    menuOverlay.addEventListener('click', closeMenu);
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!sideMenu.contains(e.target) && !menuIcon.contains(e.target)) {
+            closeMenu();
+        }
+    });
+
+    // Prevent menu from closing when clicking inside
+    sideMenu.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // Handle menu item clicks
     document.querySelectorAll('.menu-item').forEach(function(item) {
-        item.addEventListener('click', function() {
-            const menuText = this.querySelector('.menu-text').textContent;
-            const href = getMenuItemHref(menuText);
-            if (href) {
-                window.location.href = href;
+        item.addEventListener('click', function(e) {
+            const link = this.querySelector('a');
+            if (link) {
+                closeMenu();
             }
-            sideMenu.classList.remove('open');
-            menuOverlay.classList.remove('active');
         });
     });
-}
 
-// Map menu items to their corresponding pages
-function getMenuItemHref(menuText) {
-    const menuMap = {
-        'Dashboard': 'dashboard.html',
-        'Sales Management': 'salesManagement.html',
-        'Inventory': 'inventory.html',
-        'Transactions': 'transactions.html',
-        'Analytics & Report': 'reports.html',
-        'Suppliers': 'suppliers.html',
-        'Settings': 'settings.html',
-        'Add Expense': 'addExpense.html'
-    };
-    return menuMap[menuText];
-}
+    // Handle menu item link clicks
+    document.querySelectorAll('.menu-item a').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
 
-// Initialize sidebar when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeSidebar);
+    // Notification panel functionality
+    function toggleNotifications() {
+        notificationPanel.classList.toggle('active');
+        notificationOverlay.classList.toggle('active');
+        document.body.style.overflow = notificationPanel.classList.contains('active') ? 'hidden' : '';
+    }
+
+    // Notification icon click event
+    notificationIcon.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleNotifications();
+    });
+
+    // Close notifications when clicking overlay
+    notificationOverlay.addEventListener('click', function() {
+        notificationPanel.classList.remove('active');
+        notificationOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+
+    // Close notifications button
+    closeNotifications.addEventListener('click', function() {
+        notificationPanel.classList.remove('active');
+        notificationOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+
+    // Close notifications when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!notificationPanel.contains(e.target) && !notificationIcon.contains(e.target)) {
+            notificationPanel.classList.remove('active');
+            notificationOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+
+    // Prevent notifications from closing when clicking inside
+    notificationPanel.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+});

@@ -9,7 +9,7 @@ require('dotenv').config();
 const helmetConfig = require('../backend/middleware/helmetConfig');
 const { identifyDevice, apiLimiter, authLimiter, registerLimiter, adminLimiter } = require('../backend/middleware/rateLimiter');
 const authenticateJWT = require('../backend/middleware/authJWT');
-const { csrfProtection, handleCsrfError } = require('./middleware/csrfProtection');
+const { csrfProtection, handleCsrfError } = require('../middleware/csrfProtection');
 
 // Import routes
 const authRoutes = require('../backend/routes/authRoutes');
