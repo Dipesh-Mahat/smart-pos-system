@@ -85,7 +85,7 @@ userSchema.methods.generateAuthToken = function() {
     },
     process.env.JWT_SECRET,
     { 
-      expiresIn: '8h', // Token lifetime
+      expiresIn: '12h', // Token lifetime
       issuer: 'smart-pos-system',
       audience: 'pos-users'
     }
