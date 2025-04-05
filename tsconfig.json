@@ -12,8 +12,9 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "allowJs": true
   },
-  "include": ["backend/**/*"],
+  "include": ["backend/**/*", "backend/**/*.js"],
   "exclude": ["node_modules", "dist"]
 }
