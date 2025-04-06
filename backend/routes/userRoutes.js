@@ -11,7 +11,7 @@ const router = express.Router();
 // Login route has been moved to authRoutes.js
 
 // Get current user profile
-router.get('/profile', async (req, res) => {
+router.get('/profile', authenticateJWT, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     if (!user) {

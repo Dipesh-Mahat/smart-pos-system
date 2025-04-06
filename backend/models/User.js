@@ -23,8 +23,8 @@ const userSchema = new mongoose.Schema({
   },
   role: { 
     type: String, 
-    enum: ['admin', 'shopowner', 'storevendor'], // Removed 'user' and kept only the three roles
-    default: 'storevendor' // Default to 'storevendor' if not provided
+    enum: ['admin', 'shopowner', 'supplier'], // Removed 'user' and kept only the three roles
+    default: 'shopowner' // Default to 'storevendor' if not provided
   },
   firstName: { 
     type: String, 
