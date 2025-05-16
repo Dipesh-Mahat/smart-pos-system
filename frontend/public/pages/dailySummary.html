@@ -191,16 +191,22 @@
             font-size: 16px;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/navigation.css">
 </head>
 <body>
     <div class="container">
+        
         <div class="header">
-            <div class="menu-icon">☰</div>
+            <div class="menu-icon"><i class="fas fa-bars"></i></div>
             <div class="app-title">NeoPOS</div>
             <div class="header-icons">
-                <div class="notification-icon">🔔</div>
-                <div class="profile-icon">👤</div>
+                <div class="notification-icon"><i class="fas fa-bell"></i></div>
+                <div class="profile-icon"><img src="../images/userAvatar.png" alt="profile icon" style="width: 20px; height: 20px;"></div>
+                <div class="logout-icon" style="margin-left: 15px; cursor: pointer;" title="Logout"><i class="fas fa-sign-out-alt"></i></div>
             </div>
+        </div>
+
         </div>
 
         <div class="main-content">
@@ -301,35 +307,10 @@
     <div class="menu-overlay" id="menuOverlay"></div>
 
     <script>
-        // JavaScript for interactions
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuIcon = document.querySelector('.menu-icon');
-            const sideMenu = document.getElementById('sideMenu');
-            const menuOverlay = document.getElementById('menuOverlay');
-            
-            // Menu icon click event - toggle side menu
-            menuIcon.addEventListener('click', function() {
-                sideMenu.classList.toggle('open');
-                menuOverlay.classList.toggle('active');
-            });
-            
-            // Close menu when clicking outside
-            menuOverlay.addEventListener('click', function() {
-                sideMenu.classList.remove('open');
-                menuOverlay.classList.remove('active');
-            });
+    // JavaScript for interactions
+    document.addEventListener('DOMContentLoaded', function() {
+        // Menu handling is now done by menuComponent.js
 
-            // Menu item click events
-            document.querySelectorAll('.menu-item').forEach(function(item) {
-                item.addEventListener('click', function() {
-                    const menuText = this.querySelector('.menu-text').textContent;
-                    console.log(menuText + ' clicked');
-                    // Add functionality for each menu item here
-                    
-                    // Close the menu after clicking an item
-                    sideMenu.classList.remove('open');
-                    menuOverlay.classList.remove('active');
-                });
             });
 
             // Sale item click events
@@ -358,5 +339,34 @@
             });
         });
     </script>
+
+    // Add standard navbar event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Notification icon click event
+        document.querySelector('.notification-icon').addEventListener('click', function() {
+            alert('Notifications clicked');
+            // Add your notification code here
+        });
+
+        // Profile icon click event
+        document.querySelector('.profile-icon').addEventListener('click', function() {
+            alert('Profile clicked');
+            // Add your profile code here
+        });
+
+        // Logout functionality
+        document.querySelector('.logout-icon').addEventListener('click', function() {
+            // Clear authentication tokens
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('neopos_auth_token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('neopos_user');
+            
+            // Redirect to main page
+            window.location.href = '../main.html';
+        });
+    });
+
 </body>
 </html>

@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeoPOS - Login</title>
     <link rel="stylesheet" href="../css/login.css">
-    <link rel="icon" href="../images/neopos-logo.svg">
+    <link rel="icon" href="../images/neopos-logo.png">
 </head>
-<body>
-    <div class="login-container">
+<body>    <div class="login-container">
         <div class="logo-container">
-            <img src="../images/neopos-logo.svg" alt="NeoPOS Logo" class="app-logo-img">
+            <img src="../images/neopos-logo.png" alt="NeoPOS Logo" class="app-logo-img">
         </div>
         <h1>Login to NeoPOS</h1>
         
@@ -33,12 +31,17 @@
                 <input type="password" id="password" name="password" required>
                 <div class="error-message" id="passwordError">Please enter your password</div>
             </div>
+              <button type="submit">Login</button>
             
-            <button type="submit">Login</button>
+            <div class="divider">OR</div>
+            
+            <button type="button" class="google-btn">
+                <img src="../images/auth/google_signin_button.svg" alt="Sign in with Google">
+            </button>
         </form>
         
         <div class="form-footer">
-            <p>Don't have an account?</p>
+            <p>Don't have an account? <a href="register.html">Create account</a></p>
             <p><a href="#">Forgot password?</a></p>
         </div>
     </div>
@@ -199,13 +202,28 @@
             // Close popup
             closePopup.addEventListener('click', () => {
                 loginPopup.style.display = 'none';
-            });
-
-            // Redirect on demo login
+            });            // Redirect on demo login
             if (demoLogin) {
                 demoLogin.addEventListener('click', (e) => {
                     e.preventDefault();
                     window.location.href = 'index.html';
+                });
+            }
+            
+            // Google OAuth button logic
+            const googleBtn = document.querySelector('.google-btn');
+            if (googleBtn) {
+                googleBtn.addEventListener('click', function() {
+                    // This would normally initiate Google OAuth flow
+                    alert('Google OAuth integration will be implemented with backend support.');
+                    // Simulate login process with a loading indicator
+                    loading.style.display = 'block';
+                    loginForm.style.display = 'none';
+                    
+                    // For demo purposes, redirect after a short delay
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
                 });
             }
         });

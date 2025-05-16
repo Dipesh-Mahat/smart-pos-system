@@ -148,16 +148,21 @@
             color: #007bff;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <div class="container">
+        
         <div class="header">
-            <div class="menu-icon">☰</div>
-            <div class="app-title">Store Settings</div>
+            <div class="menu-icon"><i class="fas fa-bars"></i></div>
+            <div class="app-title">NeoPOS</div>
             <div class="header-icons">
-                <div class="notification-icon">🔔</div>
-                <div class="profile-icon">👤</div>
+                <div class="notification-icon"><i class="fas fa-bell"></i></div>
+                <div class="profile-icon"><img src="../images/userAvatar.png" alt="profile icon" style="width: 20px; height: 20px;"></div>
+                <div class="logout-icon" style="margin-left: 15px; cursor: pointer;" title="Logout"><i class="fas fa-sign-out-alt"></i></div>
             </div>
+        </div>
+
         </div>
 
         <div class="main-content">
@@ -253,5 +258,34 @@
     </div>
 
     <script src="js/navigation.js"></script>
+
+    // Add standard navbar event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Notification icon click event
+        document.querySelector('.notification-icon').addEventListener('click', function() {
+            alert('Notifications clicked');
+            // Add your notification code here
+        });
+
+        // Profile icon click event
+        document.querySelector('.profile-icon').addEventListener('click', function() {
+            alert('Profile clicked');
+            // Add your profile code here
+        });
+
+        // Logout functionality
+        document.querySelector('.logout-icon').addEventListener('click', function() {
+            // Clear authentication tokens
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('neopos_auth_token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('neopos_user');
+            
+            // Redirect to main page
+            window.location.href = '../main.html';
+        });
+    });
+
 </body>
 </html> 
