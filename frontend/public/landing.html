@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoPOS - Smart Point of Sale System</title>
+    <link rel="stylesheet" href="css/landing.css">
+    <link rel="icon" href="favicon.ico">    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">    <!-- Google OAuth Client Library -->    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Meta tag for Google Sign-In -->
+    <meta name="google-signin-client_id" content="489848070288-0he2h9ti3a9aqljpagoigmt5h9tmt38k.apps.googleusercontent.com">
+    <!-- External Google Auth Script -->
+    <script src="js/googleAuth.js" defer></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">            <a href="#" class="logo">
+                <img src="images/neopos-logo.png" alt="NeoPOS Logo">
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#benefits">Benefits</a></li>
+                <li><a href="#testimonials">Testimonials</a></li>                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#" id="loginBtn" class="login-btn">Login</a></li>
+                <li><a href="#" id="registerBtn">Register</a></li>
+            </ul>
+            <div class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">            <div class="hero-content">                <h1>Streamline Your Business with NeoPOS</h1>                <p>The smart point of sale system designed for modern businesses. Manage inventory, process transactions, and gain insights - all in one place.</p>
+                <div class="hero-buttons">
+                    <a href="#features" class="btn btn-primary">Explore Features</a>
+                    <a href="#" id="heroGetStarted" class="btn btn-secondary">Get Started</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="images/workInProgress.png" alt="NeoPOS Dashboard Preview">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Powerful Features for Modern Business</h2>
+                <p>Everything you need to manage your business efficiently</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="images/counterIcon.png" alt="Transactions">
+                    </div>
+                    <h3>Quick Transactions</h3>
+                    <p>Process sales quickly with an intuitive interface designed for speed and accuracy.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="images/barCodeIcon.png" alt="Inventory">
+                    </div>
+                    <h3>Inventory Management</h3>
+                    <p>Track stock levels in real-time and get notifications when it's time to reorder.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="images/documentIcon.png" alt="Reports">
+                    </div>
+                    <h3>Comprehensive Reports</h3>
+                    <p>Gain valuable insights with detailed sales and inventory reports.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="images/currencyIcon.png" alt="Finance">
+                    </div>
+                    <h3>Financial Tracking</h3>
+                    <p>Monitor revenue, expenses, and profit margins to optimize your business.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section id="benefits" class="benefits">
+        <div class="container">
+            <div class="section-header">
+                <h2>Why Choose NeoPOS?</h2>
+                <p>The smart choice for growing businesses</p>
+            </div>
+            <div class="benefits-wrapper">
+                <div class="benefits-content">
+                    <div class="benefit-item">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <h3>Easy to Use</h3>
+                            <p>Intuitive interface that requires minimal training for your staff.</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <h3>Cloud-Based</h3>
+                            <p>Access your data from anywhere, anytime with secure cloud storage.</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <h3>Scalable Solution</h3>
+                            <p>Grows with your business from a single store to multiple locations.</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <h3>Dedicated Support</h3>
+                            <p>24/7 customer support to help you whenever you need assistance.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="benefits-image">
+                    <img src="images/workIsOn.png" alt="NeoPOS Benefits">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <h2>What Our Customers Say</h2>
+                <p>Success stories from businesses like yours</p>
+            </div>
+            <div class="testimonials-slider">
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        <p>"NeoPOS has transformed our retail operations. The inventory management feature alone has saved us countless hours and prevented stockouts."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="images/userAvatar.png" alt="User Avatar">
+                        <div>
+                            <h4>Sarah Johnson</h4>
+                            <p>Retail Store Owner</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        <p>"The reports and analytics have given us insights we never had before. We've increased our profit margins by 15% since implementing NeoPOS."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="images/userAvatar.png" alt="User Avatar">
+                        <div>
+                            <h4>Michael Chang</h4>
+                            <p>Restaurant Manager</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        <p>"Customer support is exceptional. Any time we've had questions or needed help, the NeoPOS team has been there for us."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="images/userAvatar.png" alt="User Avatar">
+                        <div>
+                            <h4>Emma Davis</h4>
+                            <p>Cafe Owner</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <div class="section-header">
+                <h2>Simple, Transparent Pricing</h2>
+                <p>Choose the plan that fits your business needs</p>
+            </div>
+            <div class="pricing-cards">                <div class="pricing-card">
+                    <div class="price-header">
+                        <h3>Starter</h3>
+                        <div class="price">NPR 3,500<span>/month</span></div>
+                    </div>
+                    <ul class="price-features">
+                        <li><i class="fas fa-check"></i> Single register</li>                        <li><i class="fas fa-check"></i> Basic inventory management</li>
+                        <li><i class="fas fa-check"></i> Sales reports</li>
+                        <li><i class="fas fa-check"></i> Email support</li>
+                    </ul>
+                    <a href="#" class="btn btn-outline pricing-get-started">Get Started</a>
+                </div>                <div class="pricing-card featured">
+                    <div class="popular-badge">Most Popular</div>
+                    <div class="price-header">
+                        <h3>Professional</h3>
+                        <div class="price">NPR 7,000<span>/month</span></div>
+                    </div>
+                    <ul class="price-features">
+                        <li><i class="fas fa-check"></i> Up to 3 registers</li>
+                        <li><i class="fas fa-check"></i> Advanced inventory management</li>                        <li><i class="fas fa-check"></i> Comprehensive analytics</li>
+                        <li><i class="fas fa-check"></i> 24/7 phone & email support</li>
+                        <li><i class="fas fa-check"></i> Customer loyalty program</li>
+                    </ul>
+                    <a href="#" class="btn btn-primary pricing-get-started">Get Started</a>
+                </div>                <div class="pricing-card">
+                    <div class="price-header">
+                        <h3>Enterprise</h3>
+                        <div class="price">NPR 12,000<span>/month</span></div>
+                    </div>
+                    <ul class="price-features">
+                        <li><i class="fas fa-check"></i> Unlimited registers</li>
+                        <li><i class="fas fa-check"></i> Multi-location support</li>
+                        <li><i class="fas fa-check"></i> Custom reporting</li>
+                        <li><i class="fas fa-check"></i> Dedicated account manager</li>
+                        <li><i class="fas fa-check"></i> API access</li>
+                        <li><i class="fas fa-check"></i> White label options</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-outline">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->    <section class="cta">
+        <div class="container">
+            <h2>Ready to Transform Your Business?</h2>
+            <p>Join thousands of businesses already using NeoPOS to streamline their operations.</p>
+            <a href="#" id="ctaGetStarted" class="btn btn-light">Get Started Today</a>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2>Contact Us</h2>
+                <p>Have questions? We're here to help.</p>
+            </div>
+            <div class="contact-wrapper">
+                <div class="contact-info">                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h3>Address</h3>
+                            <p>Thamel, Kathmandu 44600, Nepal</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h3>Phone</h3>
+                            <p>+977 01-4123456</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h3>Email</h3>
+                            <p>info@neopos.com</p>
+                        </div>
+                    </div>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="contact-form">
+                    <form>
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone">
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Message</label>
+                            <textarea id="message" name="message" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <img src="images/neopos-logo.png" alt="NeoPOS Logo" class="footer-logo">
+                    <p>Smart point of sale system designed to help businesses grow and succeed in today's competitive market.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Our Team</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Press</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">API</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                        <li><a href="#">GDPR Compliance</a></li>
+                    </ul>
+                </div>
+            </div>            <div class="copyright">
+                <p>&copy; 2023-2025 NeoPOS. All rights reserved. | Proudly developed in Nepal</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->    <script>
+        // Mobile menu toggle
+        document.querySelector('.menu-toggle').addEventListener('click', function() {
+            document.querySelector('.nav-links').classList.toggle('active');
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+    
+    <!-- Forms and authentication functionality -->
+    <script src="js/landingForms.js"></script>
+    
+    <!-- Login Popup -->
+    <div class="popup-overlay" id="loginPopup">
+        <div class="popup-container">
+            <div class="popup-content">
+                <span class="close-popup">&times;</span>                <div class="logo-container">
+                    <img src="images/neopos-logo.png" alt="NeoPOS Logo" class="popup-logo">
+                </div>
+                <h2>Login to NeoPOS</h2>
+                
+                <div class="loading-popup">
+                    <div class="spinner"></div>
+                    <p>Logging in...</p>
+                </div>
+                
+                <div class="error-alert" id="loginErrorAlert"></div>
+                
+                <form class="popup-form" id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" name="username" required>
+                        <div class="error-message" id="loginUsernameError">Please enter your username</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" name="password" required>
+                        <div class="error-message" id="loginPasswordError">Please enter your password</div>
+                    </div>
+                    
+                    <button type="submit" class="popup-btn">Login</button>
+                    
+                    <div class="popup-divider">OR</div>
+                    
+                    <button type="button" class="google-btn">
+                        <img src="images/auth/google_signin_button.svg" alt="Sign in with Google">
+                    </button>
+                </form>
+                
+                <div class="popup-footer">
+                    <p>Don't have an account? <a href="#" id="switchToRegister">Create account</a></p>
+                    <p><a href="#" id="forgotPassword">Forgot password?</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Register Popup -->
+    <div class="popup-overlay" id="registerPopup">
+        <div class="popup-container">
+            <div class="popup-content">
+                <span class="close-popup">&times;</span>                <div class="logo-container">
+                    <img src="images/neopos-logo.png" alt="NeoPOS Logo" class="popup-logo">
+                </div>
+                <h2>Create Your Account</h2>
+                
+                <div class="loading-popup">
+                    <div class="spinner"></div>
+                    <p>Creating account...</p>
+                </div>
+                
+                <div class="error-alert" id="registerErrorAlert"></div>
+                
+                <form class="popup-form" id="registerForm">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" required>
+                        <div class="error-message" id="nameError">Please enter your full name</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                        <div class="error-message" id="emailError">Please enter a valid email</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerUsername">Username</label>
+                        <input type="text" id="registerUsername" name="username" required>
+                        <div class="error-message" id="registerUsernameError">Please choose a username</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" name="password" required>
+                        <div class="error-message" id="registerPasswordError">Password must be at least 8 characters</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                        <div class="error-message" id="confirmPasswordError">Passwords do not match</div>
+                    </div>
+                    
+                    <button type="submit" class="popup-btn">Create Account</button>
+                    
+                    <div class="popup-divider">OR</div>
+                    
+                    <button type="button" class="google-btn">
+                        <img src="images/auth/google_register_button.svg" alt="Register with Google">
+                    </button>
+                </form>
+                
+                <div class="popup-footer">
+                    <p>Already have an account? <a href="#" id="switchToLogin">Login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+      <!-- Form and authentication handling moved to external JS files -->
+</body>
+</html>
