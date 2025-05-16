@@ -59,6 +59,12 @@ tmp/
 .gitconfig
 .git-credentials
 
+# Sensitive OAuth files
+/backend/config/secrets/
+backend/config/secrets/
+*client_secret*.json
+google_oauth_credentials.json
+
 # IDE specific files
 .vscode/
 .idea/
