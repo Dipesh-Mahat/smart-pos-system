@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoPOS - Transactions</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Search bar styles */
+        .search-container {
+            padding: 16px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .search-box input {
+            flex: 1;
+            border: none;
+            padding: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-icon {
+            color: #666;
+            margin-right: 8px;
+        }
+
+        /* Receipt list styles */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 16px;
+            background-color: white;
+        }
+
+        .receipt-item {
+            display: block;
+            padding: 16px;
+            background-color: #e0e0e0;
+            margin-bottom: 1px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .receipt-item:active {
+            background-color: #d0d0d0;
+        }
+
+        .receipt-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 12px;
+            margin: -12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            color: #2c3e50;
+        }
+
+        .menu-icon:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.05);
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .side-menu.open {
+            left: 0;
+            box-shadow: 8px 0 24px rgba(0,0,0,0.15);
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .menu-items {
+            padding: 16px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .menu-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(8px);
+        }
+
+        .menu-icon-folder {
+            margin-right: 16px;
+            font-size: 22px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item:hover .menu-icon-folder {
+            transform: scale(1.1);
+        }
+
+        .menu-text {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .menu-text a {
+            color: #2c3e50;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .menu-item:hover .menu-text a {
+            color: #007bff;
+        }
+
+        @media screen and (min-width: 1024px) {
+            .side-menu {
+                left: 0;
+                box-shadow: none;
+                border-right: 1px solid #e9ecef;
+            }
+
+            .menu-icon {
+                display: none;
+            }
+
+            .menu-overlay {
+                display: none !important;
+            }
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .menu-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .close-menu {
+            font-size: 24px;
+            color: #6c757d;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-menu:hover {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="menu-icon" id="menuIcon">☰</div>
+            <div class="app-title">NeoPOS</div>
+            <div class="header-icons">
+                <div class="notification-icon">🔔</div>
+                <div class="profile-icon">👤</div>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Search by RECEIPT number">
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="page-title">RECEIPTS</div>
+            
+            <a href="receipt-detail.html?id=1" class="receipt-item">
+                <div class="receipt-number">RECEIPT: 1</div>
+            </a>
+
+            <a href="receipt-detail.html?id=2" class="receipt-item">
+                <div class="receipt-number">RECEIPT: 2</div>
+            </a>
+
+            <a href="receipt-detail.html?id=3" class="receipt-item">
+                <div class="receipt-number">RECEIPT: 3</div>
+            </a>
+
+            <a href="receipt-detail.html?id=4" class="receipt-item">
+                <div class="receipt-number">RECEIPT: 4</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Side Menu -->
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-header">
+            <div class="menu-title">Menu</div>
+            <div class="close-menu" id="closeMenu">×</div>
+        </div>
+        <div class="menu-items">
+            <div class="menu-item">
+                <div class="menu-icon-folder">📊</div>
+                <div class="menu-text"><a href="index.html">Dashboard</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📦</div>
+                <div class="menu-text"><a href="inventory.html">Inventory</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">🔄</div>
+                <div class="menu-text"><a href="transactions.html">Transactions</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📈</div>
+                <div class="menu-text"><a href="report.html">Analytics & Report</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">🤝</div>
+                <div class="menu-text"><a href="suppliers.html">Suppliers</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">⚙️</div>
+                <div class="menu-text"><a href="settings.html">Settings</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">💸</div>
+                <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for menu -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuIcon = document.getElementById('menuIcon');
+            const sideMenu = document.getElementById('sideMenu');
+            const menuOverlay = document.getElementById('menuOverlay');
+            
+            // Menu icon click event - toggle side menu
+            menuIcon.addEventListener('click', function() {
+                sideMenu.classList.toggle('open');
+                menuOverlay.classList.toggle('active');
+            });
+            
+            // Close menu when clicking outside
+            menuOverlay.addEventListener('click', function() {
+                sideMenu.classList.remove('open');
+                menuOverlay.classList.remove('active');
+            });
+
+            // Menu item click events
+            document.querySelectorAll('.menu-item').forEach(function(item) {
+                item.addEventListener('click', function() {
+                    const menuText = this.querySelector('.menu-text').textContent;
+                    console.log(menuText + ' clicked');
+                    // Add functionality for each menu item here
+                    
+                    // Close the menu after clicking an item
+                    sideMenu.classList.remove('open');
+                    menuOverlay.classList.remove('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

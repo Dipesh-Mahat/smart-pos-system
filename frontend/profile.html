@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoPOS - Profile</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .profile-container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #f1f3f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-right: 24px;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .profile-role {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .profile-section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edit-button {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .edit-button:hover {
+            background: #0056b3;
+        }
+
+        .info-group {
+            margin-bottom: 16px;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .info-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .info-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+
+        .save-button {
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 8px;
+            display: none;
+        }
+
+        .cancel-button {
+            padding: 8px 16px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+        }
+
+        .button-group {
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="back-button" onclick="window.location.href='settings.html'">
+                ← <span style="font-size: 18px;">Back</span>
+            </div>
+            <div class="app-title">Profile</div>
+            <div class="header-icons">
+                <div class="notification-icon">🔔</div>
+                <div class="profile-icon"><img src="photo\Profile.png" alt="profile icon" style="width: 20px; height: 20px;"></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="profile-container">
+                <div class="profile-header">
+                    <div class="profile-avatar"><img src="photo\Profile.png" alt="profile icon" style="width:100px; height: 100px; border-radius: 50px;"></div>
+                    <div class="profile-info">
+                        <div class="profile-name">Dipesh mahat </div>
+                        <div class="profile-role">Store Manager</div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <div class="section-title">
+                        Personal Information
+                        <button class="edit-button" onclick="toggleEdit('personal')">Edit</button>
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">Full Name</div>
+                        <div class="info-value" id="name-value">Dipesh mahat </div>
+                        <input type="text" class="info-input" id="name-input" value="Dipesh mahat">
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">Email</div>
+                        <div class="info-value" id="email-value">john.doe@neopos.com</div>
+                        <input type="email" class="info-input" id="email-input" value="john.doe@neopos.com">
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">Phone</div>
+                        <div class="info-value" id="phone-value">+977 9841234567</div>
+                        <input type="tel" class="info-input" id="phone-input" value="+977 9841234567">
+                    </div>
+                    <div class="button-group" id="personal-buttons">
+                        <button class="save-button" onclick="saveChanges('personal')">Save Changes</button>
+                        <button class="cancel-button" onclick="cancelEdit('personal')">Cancel</button>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <div class="section-title">
+                        Business Information
+                        <button class="edit-button" onclick="toggleEdit('business')">Edit</button>
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">Store Name</div>
+                        <div class="info-value" id="store-value">NeoPOS Store</div>
+                        <input type="text" class="info-input" id="store-input" value="NeoPOS Store">
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">Business Type</div>
+                        <div class="info-value" id="business-value">Retail</div>
+                        <input type="text" class="info-input" id="business-input" value="Retail">
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">Address</div>
+                        <div class="info-value" id="address-value">123 Main Street, Kathmandu</div>
+                        <input type="text" class="info-input" id="address-input" value="123 Main Street, Kathmandu">
+                    </div>
+                    <div class="button-group" id="business-buttons">
+                        <button class="save-button" onclick="saveChanges('business')">Save Changes</button>
+                        <button class="cancel-button" onclick="cancelEdit('business')">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleEdit(section) {
+            const container = document.querySelector(`.profile-section:${section === 'personal' ? 'first-of-type' : 'last-of-type'}`);
+            const inputs = container.querySelectorAll('.info-input');
+            const values = container.querySelectorAll('.info-value');
+            const buttons = container.querySelector('.button-group');
+            const editButton = container.querySelector('.edit-button');
+
+            inputs.forEach(input => input.style.display = 'block');
+            values.forEach(value => value.style.display = 'none');
+            buttons.querySelector('.save-button').style.display = 'inline-block';
+            buttons.querySelector('.cancel-button').style.display = 'inline-block';
+            editButton.style.display = 'none';
+        }
+
+        function saveChanges(section) {
+            const container = document.querySelector(`.profile-section:${section === 'personal' ? 'first-of-type' : 'last-of-type'}`);
+            const inputs = container.querySelectorAll('.info-input');
+            const values = container.querySelectorAll('.info-value');
+            const buttons = container.querySelector('.button-group');
+            const editButton = container.querySelector('.edit-button');
+
+            inputs.forEach((input, index) => {
+                values[index].textContent = input.value;
+                input.style.display = 'none';
+            });
+            values.forEach(value => value.style.display = 'block');
+            buttons.querySelector('.save-button').style.display = 'none';
+            buttons.querySelector('.cancel-button').style.display = 'none';
+            editButton.style.display = 'block';
+        }
+
+        function cancelEdit(section) {
+            const container = document.querySelector(`.profile-section:${section === 'personal' ? 'first-of-type' : 'last-of-type'}`);
+            const inputs = container.querySelectorAll('.info-input');
+            const values = container.querySelectorAll('.info-value');
+            const buttons = container.querySelector('.button-group');
+            const editButton = container.querySelector('.edit-button');
+
+            inputs.forEach((input, index) => {
+                input.value = values[index].textContent;
+                input.style.display = 'none';
+            });
+            values.forEach(value => value.style.display = 'block');
+            buttons.querySelector('.save-button').style.display = 'none';
+            buttons.querySelector('.cancel-button').style.display = 'none';
+            editButton.style.display = 'block';
+        }
+    </script>
+</body>
+</html> 

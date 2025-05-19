@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoPOS - Add Expense</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .profile-icon img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+
+        .expense-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .submit-button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .submit-button:hover {
+            background-color: #0056b3;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 12px;
+            margin: -12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            color: #2c3e50;
+        }
+
+        .menu-icon:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.05);
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .side-menu.open {
+            left: 0;
+            box-shadow: 8px 0 24px rgba(0,0,0,0.15);
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .menu-items {
+            padding: 16px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .menu-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(8px);
+        }
+
+        .menu-icon-folder {
+            margin-right: 16px;
+            font-size: 22px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item:hover .menu-icon-folder {
+            transform: scale(1.1);
+        }
+
+        .menu-text {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .menu-text a {
+            color: #2c3e50;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .menu-item:hover .menu-text a {
+            color: #007bff;
+        }
+
+        @media screen and (min-width: 1024px) {
+            .side-menu {
+                left: 0;
+                box-shadow: none;
+                border-right: 1px solid #e9ecef;
+            }
+
+            .menu-icon {
+                display: none;
+            }
+
+            .menu-overlay {
+                display: none !important;
+            }
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .menu-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .close-menu {
+            font-size: 24px;
+            color: #6c757d;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-menu:hover {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="menu-icon" id="menuIcon">☰</div>
+            <div class="app-title">Add Expense</div>
+            <div class="header-icons">
+                <div class="notification-icon">🔔</div>
+                <div class="profile-icon"><img src="photo/Profile.png" alt="Profile"></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="expense-form">
+                <div class="page-title">Add New Expense</div>
+                <form>
+                    <div class="form-group">
+                        <label for="expense-title">Expense Title</label>
+                        <input type="text" id="expense-title" placeholder="Enter expense title" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expense-amount">Amount</label>
+                        <input type="number" id="expense-amount" placeholder="Enter amount" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expense-category">Category</label>
+                        <select id="expense-category" required>
+                            <option value="">Select category</option>
+                            <option value="utilities">Utilities</option>
+                            <option value="rent">Rent</option>
+                            <option value="supplies">Supplies</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expense-date">Date</label>
+                        <input type="date" id="expense-date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expense-description">Description</label>
+                        <textarea id="expense-description" placeholder="Enter expense description"></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-button">Add Expense</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Menu -->
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-header">
+            <div class="menu-title">Menu</div>
+            <div class="close-menu" id="closeMenu">×</div>
+        </div>
+        <div class="menu-items">
+            <div class="menu-item">
+                <div class="menu-icon-folder">📊</div>
+                <div class="menu-text"><a href="index.html">Dashboard</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📦</div>
+                <div class="menu-text"><a href="inventory.html">Inventory</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">🔄</div>
+                <div class="menu-text"><a href="transactions.html">Transactions</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📈</div>
+                <div class="menu-text"><a href="report.html">Analytics & Report</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">🤝</div>
+                <div class="menu-text"><a href="suppliers.html">Suppliers</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">⚙️</div>
+                <div class="menu-text"><a href="settings.html">Settings</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">💸</div>
+                <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for menu -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuIcon = document.getElementById('menuIcon');
+            const sideMenu = document.getElementById('sideMenu');
+            const menuOverlay = document.getElementById('menuOverlay');
+            const closeMenu = document.getElementById('closeMenu');
+            
+            function openMenu() {
+                sideMenu.classList.add('open');
+                menuOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                menuIcon.style.display = 'none';
+            }
+
+            function closeMenuHandler() {
+                sideMenu.classList.remove('open');
+                menuOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+                menuIcon.style.display = 'flex';
+            }
+            
+            // Open menu when clicking hamburger icon
+            menuIcon.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openMenu();
+            });
+            
+            // Close menu when clicking close button
+            closeMenu.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeMenuHandler();
+            });
+            
+            // Close menu when clicking overlay
+            menuOverlay.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeMenuHandler();
+            });
+
+            // Close menu when clicking menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const icon = this.querySelector('.menu-icon-folder');
+                    icon.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        closeMenuHandler();
+                        icon.style.transform = '';
+                    }, 200);
+                });
+            });
+
+            // Close menu when pressing Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sideMenu.classList.contains('open')) {
+                    closeMenuHandler();
+                }
+            });
+
+            // Handle window resize
+            function handleResize() {
+                if (window.innerWidth >= 1024) {
+                    sideMenu.style.left = '0';
+                    menuOverlay.style.display = 'none';
+                    menuIcon.style.display = 'none';
+                } else {
+                    if (!sideMenu.classList.contains('open')) {
+                        sideMenu.style.left = '-300px';
+                        menuIcon.style.display = 'flex';
+                    }
+                }
+            }
+
+            window.addEventListener('resize', handleResize);
+            handleResize();
+        });
+    </script>
+</body>
+</html> 
