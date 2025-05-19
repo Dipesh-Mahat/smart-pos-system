@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { login, register } = require('../controllers/authControllers');
+const { login, register, googleAuth } = require('../controllers/authControllers');
 const { refreshToken } = require('../controllers/tokenController');
 const { authLimiter, registerLimiter } = require('../middleware/rateLimiter');
 
@@ -8,5 +8,8 @@ const { authLimiter, registerLimiter } = require('../middleware/rateLimiter');
 router.post('/login', authLimiter, login);
 router.post('/register', registerLimiter, register);
 router.post('/refresh-token', refreshToken);
+
+// Google OAuth routes
+router.post('/google', googleAuth);
 
 module.exports = router;

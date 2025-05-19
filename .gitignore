@@ -70,4 +70,9 @@ google_oauth_credentials.json
 .idea/
 *.code-workspace
 
+# Sensitive files
+/backend/config/secrets/
+*client_secret*.json
+google_oauth_credentials.json
+
 capstone/
