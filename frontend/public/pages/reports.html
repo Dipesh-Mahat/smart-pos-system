@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeoPOS - Report</title>
+    <link rel="stylesheet" href="../css/navigation.css">
     <style>
         * {
             margin: 0;
@@ -13,7 +14,7 @@
         }
 
         body {
-            background-color: #f5f5f5;
+            background-color: #f8f9fa;
             max-width: 100vw;
             height: 100vh;
             overflow: hidden;
@@ -41,27 +42,25 @@
         .menu-icon {
             font-size: 24px;
             cursor: pointer;
+            color: #444;
         }
 
         .app-title {
             font-weight: bold;
             font-size: 18px;
+            color: #2c3e50;
         }
 
         .header-icons {
             display: flex;
             align-items: center;
+            gap: 16px;
         }
 
         .profile-icon {
             width: 24px;
             height: 24px;
-            background-color: #333;
             border-radius: 50%;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             cursor: pointer;
         }
 
@@ -69,60 +68,161 @@
         .date-selector {
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 12px;
+            justify-content: space-between;
+            padding: 16px;
             background-color: #fff;
-            border-bottom: 1px solid #e0e0e0;
+            margin: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
         .date-nav {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 16px;
         }
 
         .date-arrow {
             cursor: pointer;
-            font-size: 18px;
+            font-size: 20px;
+            color: #6c757d;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .date-arrow:hover {
+            background-color: #f8f9fa;
+            color: #007bff;
         }
 
         .date-text {
             font-size: 16px;
             font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .date-range-selector {
+            padding: 8px 16px;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .date-range-selector:hover {
+            border-color: #007bff;
+            color: #007bff;
         }
 
         /* Report content styles */
         .main-content {
             flex: 1;
-            background-color: #f5f5f5;
-            display: flex;
-            flex-direction: column;
+            padding: 0 16px;
             overflow-y: auto;
         }
 
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
         .report-section {
-            background-color: #e0e0e0;
-            margin-bottom: 2px;
-            padding: 12px 16px;
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .report-section.full-width {
+            grid-column: 1 / -1;
         }
 
         .report-title {
-            font-weight: bold;
-            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .report-icon {
+            width: 32px;
+            height: 32px;
+            background: #e9ecef;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
         }
 
         .item-list {
-            list-style-position: inside;
-            padding-left: 10px;
-            margin-bottom: 10px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
         }
 
         .item-list li {
-            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .item-list li:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .item-rank {
+            width: 24px;
+            height: 24px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .item-value {
+            font-weight: 500;
+            color: #2c3e50;
         }
 
         .report-value {
+            font-size: 24px;
             font-weight: bold;
+            color: #2c3e50;
+            margin: 8px 0;
+        }
+
+        .value-change {
+            font-size: 14px;
+            color: #28a745;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .value-change.negative {
+            color: #dc3545;
         }
 
         /* Bottom navigation */
@@ -130,8 +230,8 @@
             display: flex;
             justify-content: space-between;
             background-color: white;
-            padding: 10px 0;
-            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+            padding: 12px 0;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
         }
 
         .nav-item {
@@ -139,9 +239,11 @@
             flex-direction: column;
             align-items: center;
             flex: 1;
-            padding: 5px 0;
+            padding: 8px 0;
             font-size: 12px;
-            cursor: pointer;
+            color: #6c757d;
+            text-decoration: none;
+            transition: color 0.3s;
         }
 
         .nav-icon {
@@ -149,22 +251,47 @@
             margin-bottom: 4px;
         }
 
-        .active {
+        .nav-item.active {
             color: #007bff;
         }
 
-        /* Hamburger menu styles */
+        .nav-item:hover {
+            color: #007bff;
+        }
+
+        .invoice-icon {
+            position: fixed;
+            right: 24px;
+            bottom: 80px;
+            width: 56px;
+            height: 56px;
+            background: #007bff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .invoice-icon:hover {
+            transform: scale(1.1);
+        }
+
+        /* Side Menu styles */
         .side-menu {
             position: fixed;
             top: 0;
             left: -280px;
             width: 280px;
-            height: 100%;
-            background-color: #f5f5f5;
-            z-index: 10;
+            height: 100vh;
+            background: white;
+            z-index: 1000;
             transition: left 0.3s ease;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
         }
 
         .side-menu.open {
@@ -177,8 +304,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 5;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
             display: none;
         }
 
@@ -187,120 +314,163 @@
         }
 
         .menu-items {
-            padding: 20px 0;
+            padding: 20px;
         }
 
         .menu-item {
             display: flex;
             align-items: center;
-            padding: 12px 20px;
+            padding: 12px;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: background-color 0.3s;
             cursor: pointer;
         }
 
         .menu-item:hover {
-            background-color: #e0e0e0;
+            background-color: #f8f9fa;
         }
 
         .menu-icon-folder {
-            margin-right: 15px;
+            margin-right: 12px;
+            font-size: 20px;
         }
 
-        .menu-text {
-            font-size: 16px;
-        }
-
-        /* Invoice icon in main content */
-        .invoice-icon {
-            position: absolute;
-            bottom: 80px;
-            right: 20px;
-            background-color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            cursor: pointer;
-            z-index: 3;
+        .menu-text a {
+            color: #2c3e50;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="menu-icon">☰</div>
-            <div class="app-title">NeoPOS</div>
+            <div class="menu-icon" id="menuIcon">☰</div>
+            <div class="app-title">Reports</div>
             <div class="header-icons">
-                <div class="profile-icon">👤</div>
+                <div class="profile-icon"><img src="../images/Profile.png" alt="Profile" style="width: 24px; height: 24px; border-radius: 50%;"></div>
             </div>
         </div>
 
         <div class="date-selector">
             <div class="date-nav">
                 <div class="date-arrow">←</div>
-                <div class="date-text">28 feb</div>
+                <div class="date-text">February 2024</div>
                 <div class="date-arrow">→</div>
             </div>
+            <div class="date-range-selector">Custom Range</div>
         </div>
 
         <div class="main-content">
-            <div class="report-section">
-                <div class="report-title">Most selling item</div>
-                <ol class="item-list">
-                    <li>Item 1</li>
-                    <li>Item 2</li>
-                    <li>Item 3</li>
-                </ol>
-            </div>
-            
-            <div class="report-section">
-                <div class="report-title">Total sales</div>
-                <div class="report-value">Rs. XXXX</div>
-            </div>
-            
-            <div class="report-section">
-                <div class="report-title">Profit</div>
-                <div class="report-value">Rs. XXXX</div>
-            </div>
-            
-            <div class="report-section">
-                <div class="report-title">Loss</div>
-                <div class="report-value">Rs. XXXX</div>
-            </div>
-            
-            <div class="report-section">
-                <div class="report-title">Discount</div>
-                <div class="report-value">Rs. XXXX</div>
+            <div class="report-grid">
+                <div class="report-section">
+                    <div class="report-title">
+                        <span>Total Sales</span>
+                        <div class="report-icon">💰</div>
+                    </div>
+                    <div class="report-value">₹1,25,480</div>
+                    <div class="value-change">↑ 15% from last month</div>
+                </div>
+                
+                <div class="report-section">
+                    <div class="report-title">
+                        <span>Net Profit</span>
+                        <div class="report-icon">📈</div>
+                    </div>
+                    <div class="report-value">₹32,750</div>
+                    <div class="value-change">↑ 8% from last month</div>
+                </div>
+                
+                <div class="report-section">
+                    <div class="report-title">
+                        <span>Total Expenses</span>
+                        <div class="report-icon">💸</div>
+                    </div>
+                    <div class="report-value">₹15,230</div>
+                    <div class="value-change negative">↑ 5% from last month</div>
+                </div>
+                
+                <div class="report-section">
+                    <div class="report-title">
+                        <span>Total Discounts</span>
+                        <div class="report-icon">🏷️</div>
+                    </div>
+                    <div class="report-value">₹8,450</div>
+                    <div class="value-change">↓ 12% from last month</div>
+                </div>
+
+                <div class="report-section full-width">
+                    <div class="report-title">
+                        <span>Top Selling Items</span>
+                        <div class="report-icon">🌟</div>
+                    </div>
+                    <ul class="item-list">
+                        <li>
+                            <div class="item-name">
+                                <div class="item-rank">1</div>
+                                <span>Basmati Rice Premium</span>
+                            </div>
+                            <div class="item-value">₹45,200</div>
+                        </li>
+                        <li>
+                            <div class="item-name">
+                                <div class="item-rank">2</div>
+                                <span>Toned Milk 1L</span>
+                            </div>
+                            <div class="item-value">₹32,150</div>
+                        </li>
+                        <li>
+                            <div class="item-name">
+                                <div class="item-rank">3</div>
+                                <span>Whole Wheat Atta</span>
+                            </div>
+                            <div class="item-value">₹28,900</div>
+                        </li>
+                        <li>
+                            <div class="item-name">
+                                <div class="item-rank">4</div>
+                                <span>Refined Oil 5L</span>
+                            </div>
+                            <div class="item-value">₹25,600</div>
+                        </li>
+                        <li>
+                            <div class="item-name">
+                                <div class="item-rank">5</div>
+                                <span>Sugar</span>
+                            </div>
+                            <div class="item-value">₹22,300</div>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
 
-        <div class="invoice-icon">📝</div>
+        <div class="invoice-icon" title="Download Report">📊</div>
 
         <div class="bottom-nav">
-            <a href="report.html" class="nav-item">
-                <div class="nav-icon">📄</div>
+            <a href="report.html" class="nav-item active">
+                <div class="nav-icon">📊</div>
                 <div>Report</div>
             </a>
             <a href="today.html" class="nav-item">
-                <div class="nav-icon">💲</div>
+                <div class="nav-icon">📅</div>
                 <div>Today</div>
             </a>
             <a href="index.html" class="nav-item">
-                <div class="nav-icon">👨‍💻</div>
+                <div class="nav-icon">🏪</div>
                 <div>Counter</div>
             </a>
-            <a href="itemManagement.html" class="nav-item active">
-                <div class="nav-icon">☰</div>
-                <div>Item</div>
+            <a href="item.html" class="nav-item">
+                <div class="nav-icon">📦</div>
+                <div>Items</div>
             </a>
             <a href="more.html" class="nav-item">
-                <div class="nav-icon">⋯</div>
+                <div class="nav-icon">⚙️</div>
                 <div>More</div>
             </a>
         </div>
-        
     </div>
 
     <!-- Side Menu (Hamburger Menu) -->
@@ -320,7 +490,7 @@
             </div>
             <div class="menu-item">
                 <div class="menu-icon-folder">📈</div>
-                <div class="menu-text"><a href="reports.html">Analytics & Report</a></div>
+                <div class="menu-text"><a href="report.html">Analytics & Report</a></div>
             </div>
             <div class="menu-item">
                 <div class="menu-icon-folder">🤝</div>
@@ -332,47 +502,17 @@
             </div>
             <div class="menu-item">
                 <div class="menu-icon-folder">💸</div>
-                <div class="menu-text"><a href="addExpense.html">Add Expense</a></div>
+                <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
             </div>
         </div>
     </div>
 
-    <!-- Overlay for menu -->
+    <!-- Overlay for when menu is open -->
     <div class="menu-overlay" id="menuOverlay"></div>
 
-    <!-- Notification Panel -->
-    <div id="notificationPanel" class="notification-panel">
-        <div class="notification-header">
-            <div class="notification-title">Notifications</div>
-            <div class="close-notifications">×</div>
-        </div>
-        <div class="notification-content">
-            <div class="notification-item unread">
-                <div class="notification-icon">📢</div>
-                <div class="notification-text">
-                    <div class="notification-message">New update available!</div>
-                    <div class="notification-time">2 hours ago</div>
-                </div>
-            </div>
-            <div class="notification-item">
-                <div class="notification-icon">📦</div>
-                <div class="notification-text">
-                    <div class="notification-message">Low stock alert: Item #1234</div>
-                    <div class="notification-time">5 hours ago</div>
-                </div>
-            </div>
-        </div>
-        <div class="notification-footer">
-            <a href="#">View all notifications</a>
-        </div>
-    </div>
-
-    <div id="notificationOverlay" class="notification-overlay"></div>
-
     <script>
-        // JavaScript for interactions
         document.addEventListener('DOMContentLoaded', function() {
-            const menuIcon = document.querySelector('.menu-icon');
+            const menuIcon = document.getElementById('menuIcon');
             const sideMenu = document.getElementById('sideMenu');
             const menuOverlay = document.getElementById('menuOverlay');
             
@@ -401,42 +541,52 @@
                 });
             });
 
-            // Profile icon click event
-            document.querySelector('.profile-icon').addEventListener('click', function() {
-                alert('Profile clicked');
-                // Add your profile code here
-            });
+            // Date navigation
+            const dateArrows = document.querySelectorAll('.date-arrow');
+            const dateText = document.querySelector('.date-text');
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            let currentDate = new Date();
 
-            // Date navigation events
-            document.querySelectorAll('.date-arrow').forEach(function(arrow, index) {
-                arrow.addEventListener('click', function() {
-                    const direction = index === 0 ? 'previous' : 'next';
-                    alert('Navigate to ' + direction + ' date');
-                    // Add date navigation logic here
+            function updateDateText() {
+                dateText.textContent = `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+            }
+
+            dateArrows.forEach((arrow, index) => {
+                arrow.addEventListener('click', () => {
+                    if (index === 0) {
+                        // Previous month
+                        currentDate.setMonth(currentDate.getMonth() - 1);
+                    } else {
+                        // Next month
+                        currentDate.setMonth(currentDate.getMonth() + 1);
+                    }
+                    updateDateText();
+                    // Here you would typically fetch new data for the selected month
                 });
             });
 
-            // Invoice icon click event
-            document.querySelector('.invoice-icon').addEventListener('click', function() {
-                alert('Invoice view clicked');
-                // Add your invoice view code here
+            // Custom range selector
+            document.querySelector('.date-range-selector').addEventListener('click', () => {
+                // Here you would typically show a date range picker
+                alert('Date range picker coming soon!');
             });
 
-            // Bottom navigation items click events
-            document.querySelectorAll('.nav-item').forEach(function(item) {
-                item.addEventListener('click', function() {
-                    // Remove active class from all nav items
-                    document.querySelectorAll('.nav-item').forEach(function(navItem) {
-                        navItem.classList.remove('active');
-                    });
-                    
-                    // Add active class to clicked item
-                    this.classList.add('active');
-                    
-                    // Get the nav item name
-                    const navName = this.querySelector('div:last-child').textContent;
-                    console.log(navName + ' tab clicked');
-                    // Add your navigation code here
+            // Download report
+            document.querySelector('.invoice-icon').addEventListener('click', () => {
+                // Here you would typically trigger report download
+                alert('Downloading report...');
+            });
+
+            // Add hover effects
+            const reportSections = document.querySelectorAll('.report-section');
+            reportSections.forEach(section => {
+                section.addEventListener('mouseenter', () => {
+                    section.style.transform = 'translateY(-2px)';
+                    section.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                });
+                section.addEventListener('mouseleave', () => {
+                    section.style.transform = 'translateY(0)';
+                    section.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
                 });
             });
         });

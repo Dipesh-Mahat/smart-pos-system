@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeoPOS</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    body {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .menu-icon {
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .menu-icon:hover {
+        background: rgba(255,255,255,0.1);
+        transform: scale(1.05);
+    }
+    
+    .logo {
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    
+    .icon-container {
+        display: flex;
+        gap: 20px;
+    }
+
+    .icon-container svg {
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .icon-container svg:hover {
+        background: rgba(255,255,255,0.1);
+        transform: scale(1.05);
+    }
+    
+    /* Side Menu (Hamburger Menu) */
+    .side-menu {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        width: 280px;
+        height: 100%;
+        background: white;
+        z-index: 1000;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+        overflow-y: auto;
+    }
+    
+    .side-menu.open {
+        left: 0;
+    }
+    
+    .menu-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        display: none;
+        backdrop-filter: blur(4px);
+    }
+    
+    .menu-overlay.active {
+        display: block;
+    }
+    
+    .menu-items {
+        padding: 20px 0;
+    }
+    
+    .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 14px 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        margin: 4px 12px;
+    }
+    
+    .menu-item:hover {
+        background: #f8f9fa;
+        transform: translateX(8px);
+    }
+    
+    .menu-icon-folder {
+        margin-right: 16px;
+        font-size: 20px;
+        transition: transform 0.3s ease;
+    }
+
+    .menu-item:hover .menu-icon-folder {
+        transform: scale(1.1);
+    }
+    
+    .menu-text {
+        font-size: 16px;
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .menu-text a {
+        color: #2c3e50;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .menu-item:hover .menu-text a {
+        color: #007bff;
+    }
+    
+    .grand-total {
+        margin: 24px;
+        padding: 24px;
+        display: flex;
+        justify-content: space-between;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    .grand-total:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .grand-total-label {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .grand-total-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #007bff;
+    }
+    
+    .cash-received {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 700;
+        margin: 32px 0;
+        color: #2c3e50;
+    }
+    
+    .button-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        margin: 0 24px;
+    }
+    
+    .button {
+        width: 80%;
+        padding: 16px;
+        border: none;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: 600;
+        color: white;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .yes-button {
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+    }
+
+    .yes-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40,167,69,0.2);
+    }
+    
+    .no-button {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+    }
+
+    .no-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220,53,69,0.2);
+    }
+    
+    .or-text {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 8px 0;
+        color: #6c757d;
+        position: relative;
+        width: 100%;
+        text-align: center;
+    }
+
+    .or-text::before,
+    .or-text::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 45%;
+        height: 1px;
+        background: #e9ecef;
+    }
+
+    .or-text::before {
+        left: 0;
+    }
+
+    .or-text::after {
+        right: 0;
+    }
+    
+    .note-container {
+        margin: 32px 24px;
+        padding: 24px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    .note-container:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .note-label {
+        font-size: 16px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 12px;
+    }
+    
+    .note-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+
+    .note-input:focus {
+        outline: none;
+        border-color: #007bff;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    }
+    
+    .received-button {
+        display: block;
+        width: 90%;
+        margin: 32px auto;
+        padding: 16px;
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 18px;
+        font-weight: 600;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(40,167,69,0.2);
+        text-decoration: none;
+    }
+
+    .received-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40,167,69,0.3);
+    }
+
+    .received-button:active {
+        transform: translateY(0);
+    }
+    
+    .footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        max-width: 600px;
+        display: flex;
+        justify-content: space-around;
+        background: white;
+        padding: 16px 0;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .footer-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 12px;
+        text-decoration: none;
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
+
+    .footer-item:hover {
+        color: #007bff;
+        transform: translateY(-2px);
+    }
+    
+    .footer-icon {
+        font-size: 24px;
+        margin-bottom: 4px;
+    }
+
+    /* Popup styles */
+    .credit-popup, .discount-popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        width: 90%;
+        max-width: 400px;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        z-index: 1000;
+        display: none;
+        overflow: hidden;
+    }
+    
+    .credit-popup.active, .discount-popup.active {
+        display: block;
+    }
+    
+    .credit-header, .discount-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid #e9ecef;
+        background: #f8f9fa;
+    }
+    
+    .credit-title, .discount-title {
+        font-weight: 600;
+        font-size: 18px;
+        color: #2c3e50;
+    }
+    
+    .close-btn {
+        font-size: 24px;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        color: #6c757d;
+    }
+
+    .close-btn:hover {
+        background: #e9ecef;
+        color: #2c3e50;
+        transform: scale(1.1);
+    }
+    
+    .credit-content, .discount-options {
+        padding: 24px;
+    }
+    
+    .credit-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 20px;
+    }
+    
+    .credit-cancel, .credit-confirm {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .credit-cancel {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+    }
+
+    .credit-confirm {
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+        color: white;
+    }
+
+    .credit-cancel:hover, .credit-confirm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+</style>
+</head>
+<body>
+    <!-- Credit popup - simple version -->
+<div class="credit-popup" id="creditPopup">
+    <div class="credit-header">
+        <div class="credit-title">CREDIT SALE</div>
+        <div class="close-btn" id="closeCreditBtn">×</div>
+    </div>
+    <div class="credit-content">
+        <div style="text-align: center; margin: 15px 0;">
+            This sale will be recorded as credit
+        </div>
+        
+        <div class="credit-buttons">
+            <button class="credit-cancel" id="cancelCreditBtn">CANCEL</button>
+            <button class="credit-confirm" id="confirmCreditBtn">CONFIRM</button>
+        </div>
+    </div>
+</div>
+<!-- Side Menu (Hamburger Menu) -->
+<div class="side-menu" id="sideMenu">
+    <div class="menu-items">
+        <div class="menu-item">
+            <div class="menu-icon-folder">📊</div>
+            <div class="menu-text"><a href="index.html">Dashboard</a></div>
+        </div>
+        <div class="menu-item">
+            <div class="menu-icon-folder">📦</div>
+            <div class="menu-text"><a href="inventory.html">Inventory</a></div>
+        </div>
+        <div class="menu-item">
+            <div class="menu-icon-folder">🔄</div>
+            <div class="menu-text"><a href="transactions.html">Transactions</a></div>
+        </div>
+        <div class="menu-item">
+            <div class="menu-icon-folder">📈</div>
+            <div class="menu-text"><a href="report.html">Analytics & Report</a></div>
+        </div>
+        <div class="menu-item">
+            <div class="menu-icon-folder">🤝</div>
+            <div class="menu-text"><a href="suppliers.html">Suppliers</a></div>
+        </div>
+        <div class="menu-item">
+            <div class="menu-icon-folder">⚙️</div>
+            <div class="menu-text"><a href="settings.html">Settings</a></div>
+        </div>
+        <div class="menu-item">
+            <div class="menu-icon-folder">💸</div>
+            <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay for when menu is open -->
+<div class="menu-overlay" id="menuOverlay"></div>
+
+<div class="header">
+    <div class="menu-icon" id="menuIcon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 18H21V16H3V18ZM3 13H21V11H3V13ZM3 6V8H21V6H3Z" fill="white"/>
+        </svg>
+    </div>
+    <h1 class="logo">NeoPOS</h1>
+    <div class="icon-container">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16ZM16 17H8V11C8 8.52 9.51 6.5 12 6.5C14.49 6.5 16 8.52 16 11V17Z" fill="white"/>
+        </svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="cursor: pointer;" onclick="window.location.href='profile.html'">
+            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 5C13.66 5 15 6.34 15 8C15 9.66 13.66 11 12 11C10.34 11 9 9.66 9 8C9 6.34 10.34 5 12 5ZM12 19.2C9.5 19.2 7.29 17.92 6 15.98C6.03 13.99 10 12.9 12 12.9C13.99 12.9 17.97 13.99 18 15.98C16.71 17.92 14.5 19.2 12 19.2Z" fill="white"/>
+        </svg>
+    </div>
+</div>
+<!-- Discount popup -->
+<div class="discount-popup" id="discountPopup">
+    <div class="discount-header">
+        <div class="discount-title">ADD DISCOUNT</div>
+        <div class="close-btn" id="closeDiscountBtn">×</div>
+    </div>
+    <div class="discount-options">
+        <div class="discount-option">ADD DISCOUNT IN RS</div>
+        <input type="number" class="discount-input" id="discountRs" placeholder="Enter amount in RS">
+        
+        <div class="or-text">OR</div>
+        
+        <div class="discount-option">ADD DISCOUNT IN %</div>
+        <input type="number" class="discount-input" id="discountPercent" placeholder="Enter percentage">
+        
+        <button class="discount-save" id="saveDiscountBtn">SAVE</button>
+    </div>
+</div>
+
+<div class="grand-total">
+    <div class="grand-total-label">GRAND TOTAL</div>
+    <div class="grand-total-value">RS XXXX</div>
+</div>
+
+<div class="cash-received">CASH RECEIVED?</div>
+
+<div class="button-container">
+    <div class="button yes-button">YES</div>
+    <div class="or-text">Or</div>
+    <div class="button no-button">NO</div>
+</div>
+
+<div class="note-container">
+    <div class="note-label">NOTE (OPTIONAL)</div>
+    <input type="text" class="note-input" placeholder="WRITE SOMETHING">
+</div>
+
+<div class="received-button"><a href="sucess.html">RECEIVED BY CASH</a></div>
+
+<div class="footer">
+    <a href="report.html" class="footer-item">
+        <div class="footer-icon">📋</div>
+        <div>Report</div>
+    </a>
+    <a href="today.html" class="footer-item">
+        <div class="footer-icon">💲</div>
+        <div>Today</div>
+    </a>
+    <a href="counter.html" class="footer-item">
+        <div class="footer-icon">👨‍💻</div>
+        <div>Counter</div>
+    </a>
+    <a href="item.html" class="footer-item">
+        <div class="footer-icon">☰</div>
+        <div>Item</div>
+    </a>
+    <a href="more.html" class="footer-item">
+        <div class="footer-icon">•••</div>
+        <div>more</div>
+    </a>
+</div>
+
+<script>
+    // Get elements
+    const menuIcon = document.getElementById('menuIcon');
+    const sideMenu = document.getElementById('sideMenu');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const discountPopup = document.getElementById('discountPopup');
+    const closeDiscountBtn = document.getElementById('closeDiscountBtn');
+    const saveDiscountBtn = document.getElementById('saveDiscountBtn');
+    const discountRsInput = document.getElementById('discountRs');
+    const discountPercentInput = document.getElementById('discountPercent');
+    
+    // Menu icon click event - toggle side menu
+    menuIcon.addEventListener('click', function() {
+        sideMenu.classList.toggle('open');
+        menuOverlay.classList.toggle('active');
+    });
+    
+    // Close menu when clicking outside
+    menuOverlay.addEventListener('click', function() {
+        sideMenu.classList.remove('open');
+        menuOverlay.classList.remove('active');
+        discountPopup.classList.remove('active');
+    });
+
+    // Menu item click events
+    document.querySelectorAll('.menu-item').forEach(function(item) {
+        item.addEventListener('click', function() {
+            const menuText = this.querySelector('.menu-text').textContent;
+            console.log(menuText + ' clicked');
+            // Add functionality for each menu item here
+            
+            // Close the menu after clicking an item
+            sideMenu.classList.remove('open');
+            menuOverlay.classList.remove('active');
+        });
+    });
+    
+    // Discount popup functionality
+    document.getElementById('addDiscountLink') && document.getElementById('addDiscountLink').addEventListener('click', function() {
+        discountPopup.classList.add('active');
+        menuOverlay.classList.add('active');
+        
+        // Reset input fields
+        discountRsInput.value = '';
+        discountPercentInput.value = '';
+    });
+    
+    // Handle input in RS field - disable percent field
+    discountRsInput.addEventListener('input', function() {
+        if (this.value !== '') {
+            discountPercentInput.disabled = true;
+        } else {
+            discountPercentInput.disabled = false;
+        }
+    });
+    
+    // Handle input in percent field - disable RS field
+    discountPercentInput.addEventListener('input', function() {
+        if (this.value !== '') {
+            discountRsInput.disabled = true;
+        } else {
+            discountRsInput.disabled = false;
+        }
+    });
+    
+    closeDiscountBtn.addEventListener('click', function() {
+        discountPopup.classList.remove('active');
+        menuOverlay.classList.remove('active');
+    });
+    
+    saveDiscountBtn.addEventListener('click', function() {
+        const rsValue = discountRsInput.value.trim();
+        const percentValue = discountPercentInput.value.trim();
+        
+        if (rsValue !== '') {
+            alert('Discount of RS ' + rsValue + ' applied');
+        } else if (percentValue !== '') {
+            alert('Discount of ' + percentValue + '% applied');
+        } else {
+            alert('Please enter a discount value');
+            return;
+        }
+        
+        discountPopup.classList.remove('active');
+        menuOverlay.classList.remove('active');
+    });
+    
+    // Add click event listeners to buttons
+    document.querySelector('.yes-button').addEventListener('click', function() {
+        alert('Cash received confirmed');
+    });
+    
+    document.querySelector('.no-button').addEventListener('click', function() {
+        // Show credit popup when NO is clicked
+        creditPopup.classList.add('active');
+        menuOverlay.classList.add('active');
+    });
+    
+    // Credit popup functionality
+    closeCreditBtn.addEventListener('click', function() {
+        creditPopup.classList.remove('active');
+        menuOverlay.classList.remove('active');
+    });
+    
+    cancelCreditBtn.addEventListener('click', function() {
+        creditPopup.classList.remove('active');
+        menuOverlay.classList.remove('active');
+    });
+    
+    confirmCreditBtn.addEventListener('click', function() {
+        alert('Credit sale confirmed');
+        creditPopup.classList.remove('active');
+        menuOverlay.classList.remove('active');
+    });
+    
+    document.querySelector('.received-button').addEventListener('click', function() {
+        const note = document.querySelector('.note-input').value;
+        alert('Payment processed by cash' + (note ? ' with note: ' + note : ''));
+    });
+    
+    // Footer items already have links, no need for click handlers
+</script>
+</body>
+</html>

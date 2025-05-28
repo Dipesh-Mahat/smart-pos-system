@@ -9,6 +9,8 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+# Secrets
+backend/config/secrets/
 
 # Build outputs
 /build/

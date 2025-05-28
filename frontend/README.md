@@ -1,6 +1,15 @@
-# Getting Started with Create React App
+# NeoPOS Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This directory contains the frontend code for the NeoPOS system.
+
+## Directory Structure
+
+- **public/** - Static assets and HTML pages
+  - **css/** - Stylesheets
+  - **js/** - JavaScript files
+  - **images/** - Image assets
+  - **pages/** - HTML pages for different sections of the application
+- **src/** - React source code (for future development)
 
 ## Available Scripts
 

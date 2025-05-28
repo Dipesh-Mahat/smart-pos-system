@@ -734,15 +734,14 @@
                 } else {
                     document.getElementById('passwordError').style.display = 'none';
                 }
-                
-                // Show loading spinner
+                  // Show loading spinner
                 if (loading) loading.style.display = 'block';
                 loginForm.style.display = 'none';
                 if (errorAlert) errorAlert.style.display = 'none';
                 
                 // For demo purposes, redirect to dashboard
                 setTimeout(() => {
-                    window.location.href = 'pages/index.html';
+                    window.location.href = 'pages/dashboard.html';
                 }, 1500);
                 
                 // Uncomment the section below when ready to use with real API
@@ -750,10 +749,9 @@
                 try {
                     // Attempt to login using the DataManager
                     const result = await DataManager.login(username, password);
-                    
-                    if (result.success) {
+                      if (result.success) {
                         // Redirect to dashboard on successful login
-                        window.location.href = 'pages/index.html';
+                        window.location.href = 'pages/dashboard.html';
                     } else {
                         // Show error message
                         errorAlert.textContent = result.message || 'Login failed. Please check your credentials.';

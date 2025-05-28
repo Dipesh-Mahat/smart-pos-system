@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeoPOS - More</title>
-    <link rel="stylesheet" href="css/navigation.css">
+    <link rel="stylesheet" href="../css/navigation.css">
     <style>
         :root {
             --bg-color: #fff;
@@ -159,16 +159,77 @@
         input:checked + .slider:before {
             transform: translateX(24px);
         }
+
+        /* Side Menu styles */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            background: var(--card-bg);
+            z-index: 1000;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 8px var(--shadow-color);
+        }
+
+        .side-menu.open {
+            left: 0;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .menu-overlay.active {
+            display: block;
+        }
+
+        .menu-items {
+            padding: 20px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .menu-icon-folder {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+
+        .menu-text a {
+            color: var(--text-color);
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="menu-icon">☰</div>
-            <div class="app-title">More</div>
+            
             <div class="header-icons">
-                <div class="notification-icon">🔔</div>
-                <div class="profile-icon">👤</div>
+
             </div>
         </div>
 
@@ -254,27 +315,95 @@
         </div>
     </div>
 
-    <script src="js/navigation.js"></script>
-    <script>
-        // Theme toggle functionality
-        const themeToggle = document.getElementById('themeToggle');
-        
-        // Check for saved theme preference
-        if (localStorage.getItem('theme') === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            themeToggle.checked = true;
-        }
+    <!-- Side Menu (Hamburger Menu) -->
+    <div id="sideMenu" class="side-menu">
+        <div class="menu-items">
+            <div class="menu-item">
+                <div class="menu-icon-folder">📊</div>
+                <div class="menu-text"><a href="index.html">Dashboard</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📦</div>
+                <div class="menu-text"><a href="inventory.html">Inventory</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">🔄</div>
+                <div class="menu-text"><a href="transactions.html">Transactions</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">📈</div>
+                <div class="menu-text"><a href="report.html">Analytics & Report</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">🤝</div>
+                <div class="menu-text"><a href="suppliers.html">Suppliers</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">⚙️</div>
+                <div class="menu-text"><a href="settings.html">Settings</a></div>
+            </div>
+            <div class="menu-item">
+                <div class="menu-icon-folder">💸</div>
+                <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
+            </div>
+        </div>
+    </div>
 
-        // Theme toggle handler
-        themeToggle.addEventListener('change', function() {
-            if (this.checked) {
+    <!-- Overlay for when menu is open -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuIcon = document.querySelector('.menu-icon');
+            const sideMenu = document.getElementById('sideMenu');
+            const menuOverlay = document.getElementById('menuOverlay');
+            
+            // Menu icon click event - toggle side menu
+            menuIcon.addEventListener('click', function() {
+                sideMenu.classList.toggle('open');
+                menuOverlay.classList.toggle('active');
+            });
+            
+            // Close menu when clicking outside
+            menuOverlay.addEventListener('click', function() {
+                sideMenu.classList.remove('open');
+                menuOverlay.classList.remove('active');
+            });
+
+            // Menu item click events
+            document.querySelectorAll('.menu-item').forEach(function(item) {
+                item.addEventListener('click', function() {
+                    const menuText = this.querySelector('.menu-text').textContent;
+                    console.log(menuText + ' clicked');
+                    // Add functionality for each menu item here
+                    
+                    // Close the menu after clicking an item
+                    sideMenu.classList.remove('open');
+                    menuOverlay.classList.remove('active');
+                });
+            });
+
+            // Theme toggle functionality
+            const themeToggle = document.getElementById('themeToggle');
+            
+            // Check for saved theme preference
+            if (localStorage.getItem('theme') === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
+                themeToggle.checked = true;
             }
+
+            // Theme toggle handler
+            themeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
         });
     </script>
 </body>
 </html>
+
