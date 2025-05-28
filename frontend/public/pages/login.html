@@ -14,7 +14,7 @@
         </div>
         <h1>Login to NeoPOS</h1>
         
-        <div class="loading">
+        <div class="loading" style="display: none;">
             <div class="spinner"></div>
             <p>Logging in...</p>
         </div>
@@ -25,43 +25,39 @@
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required>
-                <div class="error-message" id="usernameError">Please enter your username</div>
+                <div class="error-message" id="usernameError" style="display: none;">Please enter your username</div>
             </div>
             
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
-                <div class="error-message" id="passwordError">Please enter your password</div>
+                <div class="error-message" id="passwordError" style="display: none;">Please enter your password</div>
             </div>
             
             <button type="submit">Login</button>
         </form>
         
         <div class="form-footer">
-            <p>Don't have an account?</p>
-            <p><a href="#">Forgot password?</a></p>
+            <p>Don't have an account? <a href="#" id="signupLink">Sign up</a></p>
+            <p><a href="#" id="forgotPasswordLink">Forgot password?</a></p>
         </div>
     </div>
     
-    <div class="login-popup" id="loginPopup">
+    <div class="login-popup" id="loginPopup" style="display: none;">
         <div class="popup-content">
-            <span class="close-popup" id="closePopup">&times;</span>
-            <h2>Login</h2>
-            <form>
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
-
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-
+            <span class="close-popup" id="closePopup">×</span>
+            <h2>Demo Login</h2>
+            <form id="demoLoginForm">
+                <label for="demoUsername">Username</label>
+                <input type="text" id="demoUsername" name="username" required>
+                <label for="demoPassword">Password</label>
+                <input type="password" id="demoPassword" name="password" required>
                 <button type="submit" id="demoLogin">Demo Login</button>
             </form>
-            <p>Don't have an account? <a href="#" id="signupLink">Sign up</a></p>
         </div>
     </div>
 
     <style>
-    /* Popup styles */
     .login-popup {
         display: none;
         position: fixed;
@@ -74,7 +70,6 @@
         justify-content: center;
         align-items: center;
     }
-
     .popup-content {
         background: white;
         padding: 20px;
@@ -83,7 +78,6 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         text-align: center;
     }
-
     .close-popup {
         position: absolute;
         top: 10px;
@@ -91,19 +85,16 @@
         font-size: 20px;
         cursor: pointer;
     }
-
     form {
         display: flex;
         flex-direction: column;
         gap: 10px;
     }
-
     input {
         padding: 10px;
         border: 1px solid #ccc;
         border-radius: 4px;
     }
-
     button {
         padding: 10px;
         background-color: #007bff;
@@ -112,7 +103,6 @@
         border-radius: 4px;
         cursor: pointer;
     }
-
     button:hover {
         background-color: #0056b3;
     }
@@ -120,94 +110,123 @@
 
     <script src="../js/dataManager.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             const loginForm = document.getElementById('loginForm');
             const errorAlert = document.getElementById('errorAlert');
             const loading = document.querySelector('.loading');
-            
+            const loginPopup = document.getElementById('loginPopup');
+            const closePopup = document.getElementById('closePopup');
+            const demoLoginForm = document.getElementById('demoLoginForm');
+            const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+            const signupLink = document.getElementById('signupLink');
+
+            // Initialize DataManager to fetch CSRF token
+            await DataManager.init();
+
             // Check if already logged in
             if (DataManager.isLoggedIn()) {
-                window.location.href = 'index.html';
+                const user = DataManager.getCurrentUser();
+                window.location.href = user.role === 'admin' ? 'admin.html' : 'index.html';
             }
-            
+
+            // Handle login form submission
             loginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                
-                // Get form values
                 const username = document.getElementById('username').value.trim();
                 const password = document.getElementById('password').value;
-                
-                // Basic client-side validation
+
                 if (!username) {
                     document.getElementById('usernameError').style.display = 'block';
                     return;
-                } else {
-                    document.getElementById('usernameError').style.display = 'none';
                 }
-                
+                document.getElementById('usernameError').style.display = 'none';
+
                 if (!password) {
                     document.getElementById('passwordError').style.display = 'block';
                     return;
-                } else {
-                    document.getElementById('passwordError').style.display = 'none';
                 }
-                
-                // Show loading spinner
+                document.getElementById('passwordError').style.display = 'none';
+
                 loading.style.display = 'block';
                 loginForm.style.display = 'none';
                 errorAlert.style.display = 'none';
-                
+
                 try {
-                    // Attempt to login using the DataManager
                     const result = await DataManager.login(username, password);
-                    
                     if (result.success) {
-                        // Redirect to dashboard on successful login
-                        window.location.href = 'index.html';
+                        const user = DataManager.getCurrentUser();
+                        window.location.href = user.role === 'admin' ? 'admin.html' : 'index.html';
                     } else {
-                        // Show error message
                         errorAlert.textContent = result.message || 'Login failed. Please check your credentials.';
                         errorAlert.style.display = 'block';
-                        
-                        // Hide loading spinner
                         loading.style.display = 'none';
                         loginForm.style.display = 'block';
                     }
                 } catch (error) {
                     console.error('Login error:', error);
-                    
-                    // Show error message
                     errorAlert.textContent = 'An error occurred during login. Please try again.';
                     errorAlert.style.display = 'block';
-                    
-                    // Hide loading spinner
                     loading.style.display = 'none';
                     loginForm.style.display = 'block';
                 }
             });
 
-            // Open and close popup logic
-            const loginPopup = document.getElementById('loginPopup');
-            const closePopup = document.getElementById('closePopup');
-            const demoLogin = document.getElementById('demoLogin');
+            // Handle demo login
+            demoLoginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('demoUsername').value.trim();
+                const password = document.getElementById('demoPassword').value;
 
-            // Open popup
-            function openLoginPopup() {
+                loading.style.display = 'block';
+                loginPopup.style.display = 'none';
+                errorAlert.style.display = 'none';
+
+                try {
+                    const result = await DataManager.login(username, password);
+                    if (result.success) {
+                        const user = DataManager.getCurrentUser();
+                        window.location.href = user.role === 'admin' ? 'admin.html' : 'index.html';
+                    } else {
+                        errorAlert.textContent = result.message || 'Demo login failed. Please check your credentials.';
+                        errorAlert.style.display = 'block';
+                        loading.style.display = 'none';
+                        loginForm.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Demo login error:', error);
+                    errorAlert.textContent = 'An error occurred during demo login. Please try again.';
+                    errorAlert.style.display = 'block';
+                    loading.style.display = 'none';
+                    loginForm.style.display = 'block';
+                }
+            });
+
+            // Open demo login popup
+            const openDemoLogin = document.createElement('button');
+            openDemoLogin.textContent = 'Try Demo';
+            openDemoLogin.style.marginTop = '10px';
+            document.querySelector('.form-footer').appendChild(openDemoLogin);
+            openDemoLogin.addEventListener('click', () => {
                 loginPopup.style.display = 'flex';
-            }
+            });
 
-            // Close popup
             closePopup.addEventListener('click', () => {
                 loginPopup.style.display = 'none';
             });
 
-            // Redirect on demo login
-            if (demoLogin) {
-                demoLogin.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    window.location.href = 'index.html';
-                });
-            }
+            forgotPasswordLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('Forgot password functionality coming soon!');
+            });
+
+            signupLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('Sign up functionality coming soon!');
+            });
+
+            DataManager.addEventListener('login', (user) => {
+                console.log('User logged in:', user);
+            });
         });
     </script>
 </body>

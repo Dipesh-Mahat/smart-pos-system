@@ -49,6 +49,11 @@ Thumbs.db
 temp/
 tmp/
 
+# Sensitive configuration files
+/backend/config/secrets/
+*client_secret*.json
+google_oauth_credentials.json
+
 # Optional npm cache directory
 .npm
 
@@ -69,5 +74,10 @@ google_oauth_credentials.json
 .vscode/
 .idea/
 *.code-workspace
+
+# Sensitive files
+/backend/config/secrets/
+*client_secret*.json
+google_oauth_credentials.json
 
 capstone/

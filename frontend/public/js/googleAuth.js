@@ -320,6 +320,5 @@ if (typeof module !== 'undefined') {
         handleGoogleOAuthResponse,
         showAuthError,
         setupGoogleButtons,
-        handleGoogleLibLoad
-    };
+        handleGoogleLibLoad    };
 }

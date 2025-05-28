@@ -159,8 +159,7 @@
                     registerLoading.style.display = 'none';
                     
                     // Show success message in login popup
-                    loginErrorAlert.textContent = 'Registration successful! Please log in.';
-                    loginErrorAlert.style.color = '#28a745';
+                    loginErrorAlert.textContent = 'Registration successful! Please log in.';                    loginErrorAlert.style.color = '#28a745';
                     loginErrorAlert.style.display = 'block';                }, 1500);
             });
         });
