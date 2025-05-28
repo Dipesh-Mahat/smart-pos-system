@@ -17,7 +17,26 @@ const port = process.env.PORT || 5000;
 
 // Middleware (after app initialization)
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if(!origin) return callback(null, true);
+    
+    // Define allowed origins
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:5000',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5000',
+      'http://127.0.0.1:5500'
+    ];
+    
+    // Check if the origin is allowed
+    if(allowedOrigins.indexOf(origin) === -1){
+      return callback(new Error('CORS policy violation'), false);
+    }
+    
+    return callback(null, true);
+  },
   credentials: true // Allow cookies to be sent with requests
 }));
 app.use(express.json()); // Parse JSON requests
