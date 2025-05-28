@@ -19,14 +19,20 @@ This repository is organized into the following main directories:
 
 - **frontend/**: Contains all frontend code
   - **public/**: Static assets and HTML pages
-  - **src/**: React components and application logic
-- **backend/**: Contains server-side code
-  - **config/**: Configuration files and secrets management
-  - **controllers/**: Business logic
-  - **middleware/**: Request processing middleware
-  - **models/**: Data models
-  - **routes/**: API endpoints
+    - **css/**: Stylesheets (using standard naming conventions)
+    - **js/**: JavaScript files
+    - **images/**: Image assets
+    - **pages/**: HTML pages for different sections of the application
+  - **src/**: React components and source code (for future development)
+
+- **backend/**: Contains all server-side code
+  - **config/**: Configuration files including OAuth settings
+  - **controllers/**: API route controllers
+  - **middleware/**: Express middleware for auth, security, etc.
+  - **models/**: Database models
+  - **routes/**: API route definitions
   - **utils/**: Utility functions
+  - **logs/**: System and security logs
 
 ## Security Features
 
@@ -81,3 +87,21 @@ Runs only the frontend development server.
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Git Branching Strategy
+
+We use a feature-based branching strategy:
+
+- **main**: Production-ready code
+- **development**: Integration branch for active development
+- **staging**: Pre-production testing
+- **feature/xxx**: Feature-specific branches (e.g., feature/frontend, feature/security)
+
+## File Organization Standards
+
+- CSS files are organized in the `frontend/public/css` directory
+- JavaScript files are in the `frontend/public/js` directory
+- Images are stored in `frontend/public/images`
+- HTML files are in `frontend/public/pages`
+- All filenames use kebab-case (e.g., user-profile.html, landing-page.css)
+- CSS references use relative paths (e.g., "../css/styles.css")
