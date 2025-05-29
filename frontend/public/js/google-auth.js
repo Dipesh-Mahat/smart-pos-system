@@ -8,6 +8,9 @@ const googleClientId = '489848070288-0he2h9ti3a9aqljpagoigmt5h9tmt38k.apps.googl
 
 let googleAuth;
 
+// Set API base URL to Render backend only (no local testing)
+const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
+
 /**
  * Initialize Google OAuth client
  */
@@ -84,7 +87,7 @@ function handleGoogleOAuthResponse(response) {
         
     console.log('Sending request to:', apiUrl);
     
-    fetch(apiUrl, {
+    fetch(`${apiBaseUrl}/auth/google`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

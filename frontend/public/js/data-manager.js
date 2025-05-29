@@ -1,7 +1,7 @@
 // Data Manager for NeoPOS
 const DataManager = {
     // Base URL for API
-    apiUrl: 'http://localhost:5000/api', // Use localhost for dev, update to https://smart-pos-system-backend.vercel.app/api for prod
+    apiUrl: 'https://smart-pos-system.onrender.com/api', // Update to https://smart-pos-system-backend.vercel.app/api for prod
     
     // CSRF token storage
     csrfToken: null,
@@ -192,6 +192,9 @@ const DataManager = {
         this.notifyListeners('syncCompleted');
     }
 };
+
+// Set API base URL to Render backend only (no local testing)
+const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
 
 // Initialize data store when the script loads
 DataManager.init();
