@@ -21,7 +21,7 @@ This repository is organized into the following main directories:
   - **public/**: Static assets and HTML pages
     - **css/**: Stylesheets (using standard naming conventions)
     - **js/**: JavaScript files
-    - **images/**: Image assets
+    - **images/**: Image assets for UI elements and icons
     - **pages/**: HTML pages for different sections of the application
   - **src/**: React components and source code (for future development)
 
@@ -99,9 +99,12 @@ We use a feature-based branching strategy:
 
 ## File Organization Standards
 
-- CSS files are organized in the `frontend/public/css` directory
-- JavaScript files are in the `frontend/public/js` directory
-- Images are stored in `frontend/public/images`
-- HTML files are in `frontend/public/pages`
 - All filenames use kebab-case (e.g., user-profile.html, landing-page.css)
-- CSS references use relative paths (e.g., "../css/styles.css")
+- CSS files are organized in the `frontend/public/css` directory
+- JavaScript files are in `frontend/public/js` directory
+- Images follow a consistent naming convention:
+  - All image filenames use kebab-case (e.g., user-avatar.png, barcode-icon.png)
+  - Icon files are named with `-icon` suffix (e.g., document-icon.png)
+  - UI element images have descriptive names (e.g., export-data.png)
+- HTML files are organized in `frontend/public/pages`
+- File references use relative paths (e.g., "../css/styles.css", "../images/user-avatar.png")
