@@ -855,6 +855,33 @@ section {
     display: none;
 }
 
+.message-alert {
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.message-alert.success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.message-alert.error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.form-info {
+    color: var(--text-light);
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    text-align: center;
+}
+
 .popup-btn {
     width: 100%;
     padding: 12px;
@@ -907,6 +934,12 @@ section {
     cursor: pointer;
     transition: var(--transition);
     margin: 0 auto;
+}
+
+/* Add spacing for Google sign-in buttons */
+#g_id_signin_register,
+#g_id_signin_login {
+    margin-top: 20px;
 }
 
 .google-btn:hover {
@@ -966,4 +999,69 @@ section {
 .popup-footer a:hover {
     color: var(--primary-dark);
     text-decoration: underline;
+}
+
+/* ===== Any Device Section ===== */
+.any-device {
+    background-color: var(--light-color);
+    padding: 100px 0;
+}
+
+.device-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 40px;
+    margin-top: 50px;
+}
+
+.device-content {
+    flex: 1;
+    min-width: 300px;
+}
+
+.device-image {
+    flex: 1;
+    min-width: 300px;
+    text-align: center;
+}
+
+.device-image img {
+    max-width: 100%;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+.device-item {
+    display: flex;
+    margin-bottom: 30px;
+    align-items: flex-start;
+}
+
+.device-item i {
+    font-size: 30px;
+    color: var(--primary-color);
+    margin-right: 20px;
+    margin-top: 5px;
+}
+
+.device-item h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: var(--dark-color);
+}
+
+.device-item p {
+    color: var(--text-light);
+}
+
+/* Media Queries for Device Section */
+@media (max-width: 992px) {
+    .device-wrapper {
+        flex-direction: column-reverse;
+    }
+    
+    .device-image {
+        margin-bottom: 30px;
+    }
 }

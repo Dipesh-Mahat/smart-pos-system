@@ -20,24 +20,27 @@ app.use(cors({
   origin: function(origin, callback) {
     // Allow requests with no origin (like mobile apps, curl requests)
     if(!origin) return callback(null, true);
-    
-    // Define allowed origins
+      // Define allowed origins - only production URLs
     const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:5000',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:5000',
-      'http://127.0.0.1:5500'
+      'https://smart-pos-system-lime.vercel.app',  // Frontend Vercel deployment
+      'https://smart-pos-system.onrender.com'      // Backend Render deployment
     ];
+    
+    // For development and debugging - uncomment this to see the actual origin
+    // console.log('Request origin:', origin);
     
     // Check if the origin is allowed
     if(allowedOrigins.indexOf(origin) === -1){
-      return callback(new Error('CORS policy violation'), false);
+      // In production, we still want to allow the request but log the violation
+      console.warn(`CORS policy warning: Origin ${origin} not in allowedOrigins`);
+      return callback(null, true); // Allow request anyway instead of blocking
     }
     
     return callback(null, true);
   },
-  credentials: true // Allow cookies to be sent with requests
+  credentials: true, // Allow cookies to be sent with requests
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Explicitly list allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'] // Explicitly list allowed headers
 }));
 app.use(express.json()); // Parse JSON requests
 app.use(cookieParser()); // Parse cookies
@@ -110,10 +113,7 @@ if (!process.env.MONGODB_URI) {
 }
 
 mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGODB_URI)
   .then(() => console.log('Database connected successfully'))
   .catch((err) => {
     console.error('Error connecting to MongoDB:', err);
