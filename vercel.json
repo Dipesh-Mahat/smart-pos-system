@@ -10,8 +10,12 @@
       "dest": "/public/pages/$1"
     },
     {
+      "src": "/auth/google/callback",
+      "dest": "/index.html"
+    },
+    {
       "src": "/api/(.*)",
-      "dest": "https://smart-pos-system-backend.vercel.app/api/$1"
+      "dest": "https://smart-pos-system.onrender.com/api/$1"
     },
     {
       "src": "/(.*)",
