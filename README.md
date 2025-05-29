@@ -50,9 +50,11 @@ NeoPOS implements multiple layers of security:
 ### Branch Structure
 
 - `main`: Production-ready code
-- `staging`: Pre-production testing
-- `development`: Integration of features
-- Feature branches: `feature/frontend`, `feature/backend`, etc.
+- `frontend`: UI and client-side functionality
+- `backend`: Server-side API and business logic
+- `database`: Database schema and query optimization
+- `security`: Authentication, authorization, and security features
+- `ocr`: Optical Character Recognition implementation for receipt scanning
 
 ### Getting Started
 
@@ -90,12 +92,14 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Git Branching Strategy
 
-We use a feature-based branching strategy:
+We use a simple role-based branching strategy with 5 core branches as assigned by supervisor:
 
 - **main**: Production-ready code
-- **development**: Integration branch for active development
-- **staging**: Pre-production testing
-- **feature/xxx**: Feature-specific branches (e.g., feature/frontend, feature/security)
+- **frontend**: UI and client-side functionality development
+- **backend**: Server-side API and business logic development
+- **database**: Database schema and query optimization
+- **security**: Authentication, authorization, and security features
+- **ocr**: Optical Character Recognition implementation for receipt scanning
 
 ## File Organization Standards
 
