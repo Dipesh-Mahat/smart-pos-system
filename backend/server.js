@@ -6,10 +6,10 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 // Import middleware
-const helmetConfig = require('../backend/middleware/helmetConfig');
-const { identifyDevice, apiLimiter, authLimiter, registerLimiter, adminLimiter } = require('../backend/middleware/rateLimiter');
-const authenticateJWT = require('../backend/middleware/authJWT');
-const { csrfProtection, handleCsrfError } = require('../backend/middleware/csrfProtection');
+const helmetConfig = require('./middleware/helmetConfig');
+const { identifyDevice, apiLimiter, authLimiter, registerLimiter, adminLimiter } = require('./middleware/rateLimiter');
+const authenticateJWT = require('./middleware/authJWT');
+const { csrfProtection, handleCsrfError } = require('./middleware/csrfProtection');
 
 // Create an Express app (This should come first)
 const app = express();
@@ -48,32 +48,32 @@ app.use(cookieParser()); // Parse cookies
 // Apply Helmet security headers
 app.use(helmetConfig());
 
-// Apply CSRF protection middleware
-app.use(csrfProtection);
-
-// Handle CSRF errors
-app.use(handleCsrfError);
-
-// Apply device identification middleware
-app.use(identifyDevice);
-
-// Apply rate-limiting to specific routes
-app.use('/api/auth/login', authLimiter); // Rate limiting for login
-app.use('/api/auth/register', registerLimiter); // Rate limiting for registration
-app.use('/api/admin', adminLimiter); // Rate limiting for admin actions
-app.use('/api', apiLimiter); // General API rate limiting
-
-// Apply CSRF protection to state-changing routes
-app.use('/api/auth/register', csrfProtection);
-app.use('/api/users', csrfProtection);
-// GET requests typically don't need CSRF protection
-app.post('/api/*', csrfProtection);
-app.put('/api/*', csrfProtection);
-app.delete('/api/*', csrfProtection);
+// In production, enable CSRF protection
+if (process.env.NODE_ENV === 'production') {
+  // Apply CSRF protection middleware
+  app.use(csrfProtection);
+  
+  // Handle CSRF errors
+  app.use(handleCsrfError);
+  
+  // Apply CSRF protection to state-changing routes
+  app.use('/api/auth/register', csrfProtection);
+  app.use('/api/users', csrfProtection);
+  app.post('/api/*', csrfProtection);
+  app.put('/api/*', csrfProtection);
+  app.delete('/api/*', csrfProtection);
+  
+  // CSRF token endpoint
+  app.get('/api/csrf-token', csrfProtection, (req, res) => {
+    res.json({ csrfToken: req.csrfToken() });
+  });
+} else {
+  console.log('CSRF protection is disabled in development mode');
+}
 
 // Import routes
-const authRoutes = require('../backend/routes/authRoutes');
-const routes = require('../backend/routes/index');
+const authRoutes = require('./routes/authRoutes');
+const routes = require('./routes/index');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -84,18 +84,14 @@ app.get('/', (req, res) => {
   res.send('Smart POS System Backend is running');
 });
 
-// CSRF token endpoint
-app.get('/api/csrf-token', csrfProtection, (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
-});
+// Apply device identification middleware
+app.use(identifyDevice);
 
-// Example protected route
-app.post('/api/protected-route', csrfProtection, (req, res) => {
-  res.json({ success: true, message: 'CSRF-protected route accessed!' });
-});
-
-// Error handling for CSRF token failures
-app.use(handleCsrfError);
+// Apply rate-limiting to specific routes
+app.use('/api/auth/login', authLimiter); // Rate limiting for login
+app.use('/api/auth/register', registerLimiter); // Rate limiting for registration
+app.use('/api/admin', adminLimiter); // Rate limiting for admin actions
+app.use('/api', apiLimiter); // General API rate limiting
 
 // Graceful shutdown for the server
 process.on('SIGINT', () => {
