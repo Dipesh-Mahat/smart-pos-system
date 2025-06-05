@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeoPOS - Inventory</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../css/styles.css">
     <style>
         /* Main content styles */
         .main-content {
@@ -55,11 +55,120 @@
         .scan-bill {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background-color: #e0e0e0;
-            border-radius: 4px;
+            gap: 12px;
+            padding: 16px 24px;
+            background: linear-gradient(to right, #f8f9fa, #ffffff);
+            border-radius: 12px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+            position: relative;
+        }
+
+        .scan-bill:hover {
+            background: linear-gradient(to right, #e9ecef, #f8f9fa);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .scan-bill img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            filter: brightness(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .scan-bill:hover img {
+            transform: scale(1.1);
+        }
+
+        .scan-bill-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .scan-bill-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .scan-bill-description {
+            font-size: 13px;
+            color: #6c757d;
+            max-width: 300px;
+        }
+
+        .scan-bill-help {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            color: #6c757d;
+            font-size: 12px;
+            cursor: help;
+            transition: all 0.3s ease;
+        }
+
+        .scan-bill-help:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .scan-bill-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c3e50;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            width: 280px;
+            margin-bottom: 8px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+
+        .scan-bill-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #2c3e50 transparent transparent transparent;
+        }
+
+        .scan-bill-help:hover .scan-bill-tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-4px);
+        }
+
+        .scan-bill-tooltip-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+
+        .scan-bill-tooltip-text {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.4;
         }
 
         .add-item {
@@ -82,16 +191,473 @@
             height: 24px;
             object-fit: contain;
         }
+
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 12px;
+            margin: -12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            color: #2c3e50;
+        }
+
+        .menu-icon:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.05);
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .side-menu.open {
+            left: 0;
+            box-shadow: 8px 0 24px rgba(0,0,0,0.15);
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .menu-items {
+            padding: 16px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .menu-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(8px);
+        }
+
+        .menu-icon-folder {
+            margin-right: 16px;
+            font-size: 22px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item:hover .menu-icon-folder {
+            transform: scale(1.1);
+        }
+
+        .menu-text {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .menu-text a {
+            color: #2c3e50;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .menu-item:hover .menu-text a {
+            color: #007bff;
+        }
+
+        @media screen and (min-width: 1024px) {
+            .side-menu {
+                left: 0;
+                box-shadow: none;
+                border-right: 1px solid #e9ecef;
+                transition: transform 0.3s ease;
+            }
+
+            .side-menu.collapsed {
+                transform: translateX(-100%);
+            }
+
+            .menu-icon {
+                display: flex !important;
+                position: fixed;
+                top: 16px;
+                left: 16px;
+                z-index: 1002;
+                background: white;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+
+            .menu-overlay {
+                display: none !important;
+            }
+
+            .close-menu {
+                display: flex !important;
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                z-index: 1002;
+            }
+
+            .main-content {
+                margin-left: 300px;
+                transition: margin-left 0.3s ease;
+            }
+
+            .main-content.expanded {
+                margin-left: 0;
+            }
+
+            .bottom-actions {
+                margin-left: 300px;
+                transition: margin-left 0.3s ease;
+            }
+
+            .bottom-actions.expanded {
+                margin-left: 0;
+            }
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .menu-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .close-menu {
+            font-size: 24px;
+            color: #6c757d;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .close-menu:hover {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            transform: scale(1.1);
+        }
+
+        /* Notification Panel Styles */
+        .notification-panel {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 320px;
+            height: 100vh;
+            background: white;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -4px 0 16px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .notification-panel.open {
+            right: 0;
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .notification-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .close-notifications {
+            font-size: 24px;
+            color: #6c757d;
+            cursor: pointer;
+        }
+
+        .notification-content {
+            padding: 8px;
+        }
+
+        .notification-item {
+            display: flex;
+            padding: 12px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .notification-item.unread {
+            background-color: #f0f7ff;
+        }
+
+        .notification-icon {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+
+        .notification-message {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .notification-footer {
+            padding: 12px;
+            text-align: center;
+            border-top: 1px solid #f1f1f1;
+        }
+
+        .notification-footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .notification-overlay.active {
+            display: block;
+        }
+
+        /* Enhanced header and layout styles */
+        .header {
+            background: linear-gradient(to right, #ffffff, #f8f9fa);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .app-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: 0.5px;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .notification-icon {
+            font-size: 20px;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .notification-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .profile-icon img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.3s ease;
+        }
+
+        .profile-icon img:hover {
+            border-color: #007bff;
+        }
+
+        /* Enhanced inventory item styles */
+        .inventory-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: white;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .inventory-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+
+        .item-stock {
+            color: #6c757d;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .item-stock::before {
+            content: "•";
+            color: #28a745;
+            font-size: 18px;
+        }
+
+        .item-price {
+            font-weight: 600;
+            font-size: 18px;
+            color: #2c3e50;
+            background: #f8f9fa;
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        /* Enhanced bottom actions */
+        .bottom-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            background-color: white;
+            border-top: 1px solid #e9ecef;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .scan-bill {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scan-bill:hover {
+            background-color: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .scan-bill img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+
+        .scan-bill span {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .scan-bill span:last-child {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .add-item {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .add-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+        }
+
+        /* Main content container */
+        .main-content {
+            padding: 24px;
+            background-color: #f8f9fa;
+            min-height: calc(100vh - 180px);
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="menu-icon" id="menuIcon">☰</div>
+        <div class="header">            <div class="menu-icon" id="menuIcon">☰</div>
             <div class="app-title">NeoPOS</div>
             <div class="header-icons">
                 <div class="notification-icon">🔔</div>
-                <div class="profile-icon"><img src="photo/Profile.png" alt="Profile"></div>
+                <div class="profile-icon"><img src="../images/user-avatar.png" alt="Profile"></div>
             </div>
         </div>
 
@@ -99,7 +665,7 @@
             <div class="inventory-item">
                 <div class="item-info">
                     <div class="item-name">APPLE</div>
-                    <div class="item-stock">Item left</div>
+                    <div class="item-stock">15 items left</div>
                 </div>
                 <div class="item-price">RS.XXX 2000</div>
             </div>
@@ -107,7 +673,7 @@
             <div class="inventory-item">
                 <div class="item-info">
                     <div class="item-name">APPLE</div>
-                    <div class="item-stock">Item left</div>
+                    <div class="item-stock">8 items left</div>
                 </div>
                 <div class="item-price">RS.XXX 2000</div>
             </div>
@@ -115,7 +681,7 @@
             <div class="inventory-item">
                 <div class="item-info">
                     <div class="item-name">APPLE</div>
-                    <div class="item-stock">Item left</div>
+                    <div class="item-stock">23 items left</div>
                 </div>
                 <div class="item-price">RS.XXX 2000</div>
             </div>
@@ -123,7 +689,7 @@
             <div class="inventory-item">
                 <div class="item-info">
                     <div class="item-name">APPLE</div>
-                    <div class="item-stock">Item left</div>
+                    <div class="item-stock">5 items left</div>
                 </div>
                 <div class="item-price">RS.XXX 2000</div>
             </div>
@@ -131,7 +697,7 @@
             <div class="inventory-item">
                 <div class="item-info">
                     <div class="item-name">APPLE</div>
-                    <div class="item-stock">Item left</div>
+                    <div class="item-stock">12 items left</div>
                 </div>
                 <div class="item-price">RS.XXX 2000</div>
             </div>
@@ -139,24 +705,42 @@
             <div class="inventory-item">
                 <div class="item-info">
                     <div class="item-name">APPLE</div>
-                    <div class="item-stock">Item left</div>
+                    <div class="item-stock">30 items left</div>
                 </div>
                 <div class="item-price">RS.XXX 2000</div>
             </div>
         </div>
 
         <div class="bottom-actions">
-            <div class="scan-bill">
-                <img src="photo/download 10.png" alt="scan icon" style="width: 20px; height: 20px;">
-                <span>Scan Bill</span>
-                <span>?</span>
-            </div>
+            <a href="scan-bill.html" class="scan-bill">
+                <img src="../images/export-data.png" alt="Export Data">
+                <div class="scan-bill-content">
+                    <div class="scan-bill-title">
+                        Scan Bill
+                        <div class="scan-bill-help">?
+                            <div class="scan-bill-tooltip">
+                                <div class="scan-bill-tooltip-title">Quick Inventory Update</div>
+                                <div class="scan-bill-tooltip-text">
+                                    Use your camera to scan a purchase receipt. Our OCR technology will automatically update your inventory with the scanned items. Perfect for quick stock updates after shopping!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="scan-bill-description">
+                        Update inventory instantly by scanning your purchase receipt
+                    </div>
+                </div>
+            </a>
             <a href="add-item.html" class="add-item">+</a>
         </div>
     </div>
 
     <!-- Side Menu -->
     <div id="sideMenu" class="side-menu">
+        <div class="menu-header">
+            <div class="menu-title">Menu</div>
+            <div class="close-menu" id="closeMenu">×</div>
+        </div>
         <div class="menu-items">
             <div class="menu-item">
                 <div class="menu-icon-folder">📊</div>
@@ -172,7 +756,7 @@
             </div>
             <div class="menu-item">
                 <div class="menu-icon-folder">📈</div>
-                <div class="menu-text"><a href="report.html">Analytics & Report</a></div>
+                <div class="menu-text"><a href="reports.html">Analytics & Report</a></div>
             </div>
             <div class="menu-item">
                 <div class="menu-icon-folder">🤝</div>
@@ -221,6 +805,137 @@
 
     <div id="notificationOverlay" class="notification-overlay"></div>
 
-    <script src="sidebar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuIcon = document.getElementById('menuIcon');
+            const sideMenu = document.getElementById('sideMenu');
+            const menuOverlay = document.getElementById('menuOverlay');
+            const closeMenu = document.getElementById('closeMenu');
+            const mainContent = document.querySelector('.main-content');
+            const bottomActions = document.querySelector('.bottom-actions');
+            
+            function openMenu() {
+                sideMenu.classList.add('open');
+                sideMenu.classList.remove('collapsed');
+                menuOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                if (window.innerWidth >= 1024) {
+                    mainContent.classList.remove('expanded');
+                    bottomActions.classList.remove('expanded');
+                }
+            }
+
+            function closeMenuHandler() {
+                if (window.innerWidth >= 1024) {
+                    sideMenu.classList.add('collapsed');
+                    mainContent.classList.add('expanded');
+                    bottomActions.classList.add('expanded');
+                } else {
+                    sideMenu.classList.remove('open');
+                    menuOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+                menuIcon.style.display = 'flex';
+            }
+            
+            // Open menu when clicking hamburger icon
+            menuIcon.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openMenu();
+            });
+            
+            // Close menu when clicking close button
+            closeMenu.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeMenuHandler();
+            });
+            
+            // Close menu when clicking overlay
+            menuOverlay.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeMenuHandler();
+            });
+
+            // Close menu when clicking menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    if (window.innerWidth < 1024) {
+                        closeMenuHandler();
+                    }
+                });
+            });
+
+            // Close menu when pressing Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && (sideMenu.classList.contains('open') || sideMenu.classList.contains('collapsed'))) {
+                    closeMenuHandler();
+                }
+            });
+
+            // Handle window resize
+            function handleResize() {
+                if (window.innerWidth >= 1024) {
+                    // Desktop view
+                    sideMenu.classList.add('open');
+                    menuOverlay.classList.remove('active');
+                    menuIcon.style.display = 'flex';
+                    closeMenu.style.display = 'flex';
+                    
+                    // Reset mobile-specific classes
+                    sideMenu.classList.remove('collapsed');
+                    mainContent.classList.remove('expanded');
+                    bottomActions.classList.remove('expanded');
+                } else {
+                    // Mobile view
+                    if (!sideMenu.classList.contains('open')) {
+                        sideMenu.classList.remove('open');
+                        menuIcon.style.display = 'flex';
+                        closeMenu.style.display = 'flex';
+                    }
+                    // Reset desktop-specific classes
+                    sideMenu.classList.remove('collapsed');
+                    mainContent.classList.remove('expanded');
+                    bottomActions.classList.remove('expanded');
+                }
+            }
+
+            // Initialize on page load
+            handleResize();
+            
+            // Update on window resize
+            window.addEventListener('resize', handleResize);
+
+            // Notification functionality
+            const notificationIcon = document.querySelector('.notification-icon');
+            const notificationPanel = document.getElementById('notificationPanel');
+            const notificationOverlay = document.getElementById('notificationOverlay');
+            const closeNotifications = document.querySelector('.close-notifications');
+
+            if (notificationIcon && notificationPanel && notificationOverlay && closeNotifications) {
+                notificationIcon.addEventListener('click', function() {
+                    notificationPanel.classList.add('open');
+                    notificationOverlay.classList.add('active');
+                });
+
+                closeNotifications.addEventListener('click', function() {
+                    notificationPanel.classList.remove('open');
+                    notificationOverlay.classList.remove('active');
+                });
+
+                notificationOverlay.addEventListener('click', function() {
+                    notificationPanel.classList.remove('open');
+                    notificationOverlay.classList.remove('active');
+                });
+            }
+        });
+    </script>
 </body>
-</html> 
+</html>
+
+
+
+
+

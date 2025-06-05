@@ -4,31 +4,416 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeoPOS</title>
-    <link rel="stylesheet" href="../css/main.css">
-    <link rel="stylesheet" href="../css/navigation.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 12px;
+            margin: -12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            color: #2c3e50;
+            position: relative;
+            z-index: 1001;
+        }
+
+        .menu-icon:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.05);
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .side-menu.open {
+            left: 0;
+            box-shadow: 8px 0 24px rgba(0,0,0,0.15);
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .menu-items {
+            padding: 16px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .menu-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(8px);
+        }
+
+        .menu-icon-folder {
+            margin-right: 16px;
+            font-size: 22px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item:hover .menu-icon-folder {
+            transform: scale(1.1);
+        }
+
+        .menu-text {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .menu-text a {
+            color: #2c3e50;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .menu-item:hover .menu-text a {
+            color: #007bff;
+        }
+
+        @media screen and (min-width: 1024px) {
+            .side-menu {
+                left: 0;
+                box-shadow: none;
+                border-right: 1px solid #e9ecef;
+            }
+
+            .menu-icon {
+                display: none;
+            }
+
+            .menu-overlay {
+                display: none !important;
+            }
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .menu-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .close-menu {
+            font-size: 24px;
+            color: #6c757d;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-menu:hover {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            transform: scale(1.1);
+        }
+        
+        /* Menu Icon */
+.menu-icon {
+    font-size: 24px;
+    cursor: pointer;
+    color: #444;
+}
+
+/* Side Menu */
+.side-menu {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    background: white;
+    z-index: 1000;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+}
+
+.side-menu.open {
+    left: 0;
+}
+
+/* Menu Overlay */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    display: none;
+}
+
+.menu-overlay.active {
+    display: block;
+}
+
+/* Menu Items */
+.menu-items {
+    padding: 20px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    color: #2c3e50;
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: background-color 0.3s;
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    background-color: #f8f9fa;
+}
+
+.menu-icon-folder {
+    margin-right: 12px;
+    font-size: 20px;
+}
+
+.menu-text a {
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+        /* Enhanced text and layout styles */
+        .app-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: 0.5px;
+        }
+
+        .header {
+            background: linear-gradient(to right, #ffffff, #f8f9fa);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .notification-icon {
+            font-size: 20px;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .notification-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .profile-icon img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.3s ease;
+        }
+
+        .profile-icon img:hover {
+            border-color: #007bff;
+        }
+
+        .main-content {
+            padding: 24px;
+            background-color: #f8f9fa;
+            min-height: calc(100vh - 180px);
+        }
+
+        .reminder-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 0 auto 32px;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .reminder-section h2 {
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .reminder-content {
+            color: #6c757d;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .new-sale-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .circle-button {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .circle-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+        }
+
+        .plus-icon {
+            font-size: 32px;
+            color: white;
+            font-weight: 300;
+        }
+
+        .plus-icon a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .new-sale-section div:last-child {
+            color: #2c3e50;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .bottom-nav {
+            background: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .nav-item {
+            text-decoration: none;
+            color: #6c757d;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-item:hover {
+            color: #007bff;
+        }
+
+        .nav-item.active {
+            color: #007bff;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        .nav-item div:last-child {
+            font-size: 12px;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="menu-icon">☰</div>
-            <div class="app-title">NeoPOS</div>
+            <div class="menu-icon" id="menuIcon">☰</div>            <div class="app-title">NeoPOS</div>
             <div class="header-icons">
                 <div class="notification-icon">🔔</div>
-                <div class="profile-icon"><img src="../images/userAvatar.png" alt="profile icon" style="width: 20px; height: 20px;"></div>
+                <div class="profile-icon"><img src="../images/user-avatar.png" alt="profile icon"></div>
             </div>
         </div>
 
         <div class="main-content">
-            <div class="reminder-section">Reminder of items</div>
+            <div class="reminder-section">
+                <h2>Reminder of Items</h2>
+                <div class="reminder-content">
+                    Check your inventory for items that need attention. Stay on top of your stock levels and never run out of essential items.
+                </div>
+            </div>
             
             <div class="new-sale-section">
                 <div class="circle-button">
-                    <div class="plus-icon"><a href="itemManagement.html">+</a></div>
+                    <div class="plus-icon"><a href="item-management.html">+</a></div>
                 </div>
                 <div>New Sale</div>
             </div>
-            
-            <!-- Empty space below -->
         </div>
 
         <div class="bottom-nav">
@@ -36,15 +421,15 @@
                 <div class="nav-icon">📄</div>
                 <div>Report</div>
             </a>
-            <a href="dailySummary.html" class="nav-item">
+            <a href="daily-summary.html" class="nav-item">
                 <div class="nav-icon">💲</div>
                 <div>Today</div>
             </a>
-            <a href="dashboard.html" class="nav-item">
+            <a href="index.html" class="nav-item active">
                 <div class="nav-icon">👨‍💻</div>
                 <div>Counter</div>
             </a>
-            <a href="itemManagement.html" class="nav-item active">
+            <a href="item-management.html" class="nav-item">
                 <div class="nav-icon">☰</div>
                 <div>Item</div>
             </a>
@@ -53,15 +438,18 @@
                 <div>More</div>
             </a>
         </div>
-        
     </div>
 
     <!-- Side Menu (Hamburger Menu) -->
     <div id="sideMenu" class="side-menu">
+        <div class="menu-header">
+            <div class="menu-title">Menu</div>
+            <div class="close-menu" id="closeMenu">×</div>
+        </div>
         <div class="menu-items">
             <div class="menu-item">
                 <div class="menu-icon-folder">📊</div>
-                <div class="menu-text"><a href="dashboard.html">Dashboard</a></div>
+                <div class="menu-text"><a href="index.html">Dashboard</a></div>
             </div>
             <div class="menu-item">
                 <div class="menu-icon-folder">📦</div>
@@ -85,7 +473,7 @@
             </div>
             <div class="menu-item">
                 <div class="menu-icon-folder">💸</div>
-                <div class="menu-text"><a href="addExpense.html">Add Expense</a></div>
+                <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
             </div>
         </div>
     </div>
@@ -93,79 +481,87 @@
     <!-- Overlay for when menu is open -->
     <div class="menu-overlay" id="menuOverlay"></div>
 
-    <!-- Import JavaScript files -->
-    <script src="../js/sidebar.js"></script>
-    <script src="../js/navigation.js"></script>
-    <script src="../js/notifications.js"></script>
-    <script src="../js/dataManager.js"></script>
     <script>
-        // JavaScript for interactions
         document.addEventListener('DOMContentLoaded', function() {
-            const menuIcon = document.querySelector('.menu-icon');
+            const menuIcon = document.getElementById('menuIcon');
             const sideMenu = document.getElementById('sideMenu');
             const menuOverlay = document.getElementById('menuOverlay');
+            const closeMenu = document.getElementById('closeMenu');
             
-            // Menu icon click event - toggle side menu
-            menuIcon.addEventListener('click', function() {
-                sideMenu.classList.toggle('open');
-                menuOverlay.classList.toggle('active');
-            });
-            
-            // Close menu when clicking outside
-            menuOverlay.addEventListener('click', function() {
+            function openMenu() {
+                sideMenu.classList.add('open');
+                menuOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMenuHandler() {
                 sideMenu.classList.remove('open');
                 menuOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+                menuIcon.style.display = 'flex';
+            }
+            
+            // Open menu when clicking hamburger icon
+            menuIcon.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openMenu();
+            });
+            
+            // Close menu when clicking close button
+            closeMenu.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeMenuHandler();
+            });
+            
+            // Close menu when clicking overlay
+            menuOverlay.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeMenuHandler();
             });
 
-            // Menu item click events
-            document.querySelectorAll('.menu-item').forEach(function(item) {
+            // Close menu when clicking menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
                 item.addEventListener('click', function() {
-                    const menuText = this.querySelector('.menu-text').textContent;
-                    console.log(menuText + ' clicked');
-                    // Add functionality for each menu item here
-                    
-                    // Close the menu after clicking an item
-                    sideMenu.classList.remove('open');
+                    closeMenuHandler();
+                });
+            });
+
+            // Close menu when pressing Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sideMenu.classList.contains('open')) {
+                    closeMenuHandler();
+                }
+            });
+
+            // Handle window resize
+            function handleResize() {
+                if (window.innerWidth >= 1024) {
+                    // Large screen: menu always visible
+                    sideMenu.classList.add('open');
                     menuOverlay.classList.remove('active');
-                });
-            });
+                    menuIcon.style.display = 'none';
+                } else {
+                    // Small screen: menu hidden by default
+                    if (!sideMenu.classList.contains('open')) {
+                        sideMenu.classList.remove('open');
+                        menuIcon.style.display = 'flex';
+                    }
+                }
+            }
 
-            // Notification icon click event
-            document.querySelector('.notification-icon').addEventListener('click', function() {
-                alert('Notifications clicked');
-                // Add your notification code here
-            });
-
-            // Profile icon click event
-            document.querySelector('.profile-icon').addEventListener('click', function() {
-                alert('Profile clicked');
-                // Add your profile code here
-            });
-
-            // New Sale button click event
-            document.querySelector('.new-sale-section').addEventListener('click', function() {
-                alert('New Sale clicked');
-                // Add your new sale code here
-            });
-
-            // Bottom navigation items click events
-            document.querySelectorAll('.nav-item').forEach(function(item) {
-                item.addEventListener('click', function() {
-                    // Remove active class from all nav items
-                    document.querySelectorAll('.nav-item').forEach(function(navItem) {
-                        navItem.classList.remove('active');
-                    });
-                    
-                    // Add active class to clicked item
-                    this.classList.add('active');
-                    
-                    // Get the nav item name
-                    const navName = this.querySelector('div:last-child').textContent;
-                    console.log(navName + ' tab clicked');
-                    // Add your navigation code here
-                });
-            });
+            // Initialize correct state on page load
+            handleResize();
+            
+            // Update on window resize
+            window.addEventListener('resize', handleResize);
         });
     </script>
 </body>
 </html>
+
+
+
+

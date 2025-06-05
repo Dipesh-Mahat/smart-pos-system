@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeoPOS - Inventory</title>
-    <link rel="stylesheet" href="../css/navigation.css">
-    <link rel="icon" href="../images/neopos-logo.svg">
+    <link rel="stylesheet" href="../css/styles.css">
     <style>
         * {
             margin: 0;
@@ -43,19 +42,26 @@
         .menu-icon {
             font-size: 24px;
             cursor: pointer;
-        }
-
-        .app-logo {
+            padding: 12px;
+            margin: -12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            font-weight: bold;
-            font-size: 18px;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            color: #2c3e50;
         }
 
-        .app-logo img {
-            height: 32px;
-            width: 32px;
-            margin-right: 8px;
+        .menu-icon:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.05);
+        }
+
+        .app-title {
+            font-weight: bold;
+            font-size: 18px;
         }
 
         .header-icons {
@@ -265,6 +271,34 @@
             text-align: center;
         }
 
+        .go-to-counter-button {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.2);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            z-index: 100;
+        }
+
+        .go-to-counter-button:hover {
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,123,255,0.3);
+        }
+
+        .go-to-counter-button:active {
+            transform: translateX(-50%) translateY(0);
+        }
+
         /* Responsive desktop styles */
         @media screen and (min-width: 768px) {
             body {
@@ -363,6 +397,8 @@
                 overflow-y: auto;
                 transition: none;
                 padding: 16px 0;
+                box-shadow: none;
+                border-right: 1px solid #e9ecef;
             }
 
             .menu-item {
@@ -460,55 +496,29 @@
             }
         }
 
-        /* Large desktop view */
-        @media screen and (min-width: 1440px) {
-            .item-grid {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                gap: 24px;
+        /* Mobile-specific styles */
+        @media screen and (max-width: 1023px) {
+            .side-menu {
+                position: fixed;
+                top: 0;
+                left: -300px;
+                width: 300px;
+                height: 100vh;
+                background: white;
+                z-index: 1000;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+                overflow-y: auto;
             }
-            
-            .item-card {
-                min-height: 220px;
-                padding: 24px;
-            }
-            
-            .item-image {
-                width: 120px;
-                height: 120px;
-                font-size: 64px;
-            }
-            
-            .item-name {
-                font-size: 16px;
-                margin-bottom: 8px;
-            }
-            
-            .item-price {
-                font-size: 16px;
-            margin-bottom: 4px;
-        }
 
-            .item-stock {
-                font-size: 14px;
+            .side-menu.open {
+                left: 0;
+                box-shadow: 8px 0 24px rgba(0,0,0,0.15);
             }
-        }
 
-        /* Side menu styles */
-        .side-menu {
-            position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100%;
-            background-color: #f5f5f5;
-            z-index: 10;
-            transition: left 0.3s ease;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            overflow-y: auto;
-        }
-
-        .side-menu.open {
-            left: 0;
+            .menu-icon {
+                display: flex;
+            }
         }
 
         .menu-overlay {
@@ -517,50 +527,109 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 5;
-            display: none;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
         }
 
         .menu-overlay.active {
-            display: block;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .menu-header {
+            padding: 24px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .menu-title {
+            font-weight: 600;
+            font-size: 20px;
+            color: #2c3e50;
+            letter-spacing: 0.5px;
+        }
+
+        .close-menu {
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+            padding: 8px;
+            margin: -8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+
+        .close-menu:hover {
+            background-color: #e9ecef;
+            color: #2c3e50;
+            transform: scale(1.1);
         }
 
         .menu-items {
-            padding: 20px 0;
+            padding: 16px;
         }
 
         .menu-item {
             display: flex;
             align-items: center;
-            padding: 12px 20px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
+            padding: 14px 16px;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .menu-item:hover {
-            background-color: #e0e0e0;
-            border-left: 3px solid #007bff;
+            background-color: #f8f9fa;
+            transform: translateX(8px);
         }
 
         .menu-icon-folder {
-            margin-right: 15px;
-            width: 24px;
-            text-align: center;
+            margin-right: 16px;
+            font-size: 22px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item:hover .menu-icon-folder {
+            transform: scale(1.1);
         }
 
         .menu-text {
             font-size: 16px;
+            font-weight: 500;
         }
 
         .menu-text a {
+            color: #2c3e50;
             text-decoration: none;
-            color: inherit;
-            display: block;
-            width: 100%;
+            transition: color 0.3s ease;
         }
-        
+
+        .menu-item:hover .menu-text a {
+            color: #007bff;
+        }
+
         /* Notification panel */
         .notification-panel {
             position: fixed;
@@ -660,51 +729,48 @@
 <body>
     <div class="container">
         <header class="header">
-            <div class="menu-icon">☰</div>
-            <div class="app-logo">
-                <img src="../images/neopos-logo.svg" alt="NeoPOS Logo">
-                NeoPOS
-            </div>
+            <div class="menu-icon" id="menuIcon">☰</div>
+            <div class="app-title">Items</div>
             <div class="header-icons">
                 <div class="notification-icon">🔔</div>
-                <div class="profile-icon"><img src="../images/userAvatar.png" alt="Profile"></div>
+                <div class="profile-icon"><img src="../images/user-avatar.png" alt="Profile" style="width: 24px; height: 24px; border-radius: 50%;"></div>
             </div>
         </header>
 
-        <div id="sideMenu" class="side-menu">
+        <div class="side-menu" id="sideMenu">
+            <div class="menu-header">
+                <div class="menu-title">NeoPOS Menu</div>
+                <div class="close-menu" id="closeMenu">×</div>
+            </div>
             <div class="menu-items">
                 <div class="menu-item">
+                    <div class="menu-icon-folder">🏪</div>
+                    <div class="menu-text"><a href="index.html">Counter</a></div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon-folder">📅</div>
+                    <div class="menu-text"><a href="daily-summary.html">Today</a></div>
+                </div>
+                <div class="menu-item">
                     <div class="menu-icon-folder">📊</div>
-                    <div class="menu-text"><a href="index.html">Dashboard</a></div>
+                    <div class="menu-text"><a href="reports.html">Reports</a></div>
                 </div>
                 <div class="menu-item">
                     <div class="menu-icon-folder">📦</div>
+                    <div class="menu-text"><a href="item-management.html">Items</a></div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon-folder">🗂️</div>
                     <div class="menu-text"><a href="inventory.html">Inventory</a></div>
                 </div>
                 <div class="menu-item">
-                    <div class="menu-icon-folder">🔄</div>
-                    <div class="menu-text"><a href="transactions.html">Transactions</a></div>
-                </div>
-                <div class="menu-item">
-                    <div class="menu-icon-folder">📈</div>
-                    <div class="menu-text"><a href="reports.html">Analytics & Report</a></div>
-                </div>
-                <div class="menu-item">
-                    <div class="menu-icon-folder">🤝</div>
-                    <div class="menu-text"><a href="suppliers.html">Suppliers</a></div>
-                </div>
-                <div class="menu-item">
                     <div class="menu-icon-folder">⚙️</div>
-                    <div class="menu-text"><a href="settings.html">Settings</a></div>
-                </div>
-                <div class="menu-item">
-                    <div class="menu-icon-folder">💸</div>
-                    <div class="menu-text"><a href="addExpense.html">Add Expense</a></div>
+                    <div class="menu-text"><a href="more.html">Settings</a></div>
                 </div>
             </div>
         </div>
 
-        <div id="menuOverlay" class="menu-overlay"></div>
+        <div class="menu-overlay" id="menuOverlay"></div>
 
         <div id="notificationPanel" class="notification-panel">
             <div class="notification-header">
@@ -740,7 +806,7 @@
                     <div class="search-icon">🔍</div>
                     <input type="text" class="search-input" placeholder="Search items...">
                     <div class="barcode-icon">
-                        <img src="../images/barCodeIcon.png" alt="barcode icon" style="width: 20px; height: 20px;">
+                        <img src="../images/export-data.png" alt="Export Data" style="width: 20px; height: 20px;">
                     </div>
                 </div>
 
@@ -821,18 +887,81 @@
                 </div>
             </div>
 
-            <a href="addItem.html" class="add-item-button">
+            <a href="add-item.html" class="add-item-button">
                 +
                 <span class="add-item-label">New Item</span>
             </a>
+
+            <a href="counter.html" class="go-to-counter-button">Go to Counter</a>
         </main>
     </div>
 
     <script src="../js/sidebar.js"></script>
-    <script src="../js/navigation.js"></script>
     <script src="../js/notifications.js"></script>
-    <script src="../js/dataManager.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuIcon = document.getElementById('menuIcon');
+            const sideMenu = document.getElementById('sideMenu');
+            const menuOverlay = document.getElementById('menuOverlay');
+            const closeMenu = document.getElementById('closeMenu');
+
+            function openMenu() {
+                sideMenu.classList.add('open');
+                menuOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMenuHandler() {
+                sideMenu.classList.remove('open');
+                menuOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            menuIcon.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (sideMenu.classList.contains('open')) {
+                    closeMenuHandler();
+                } else {
+                    openMenu();
+                }
+            });
+
+            closeMenu.addEventListener('click', closeMenuHandler);
+            menuOverlay.addEventListener('click', closeMenuHandler);
+
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const icon = this.querySelector('.menu-icon-folder');
+                    icon.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        closeMenuHandler();
+                        icon.style.transform = '';
+                    }, 200);
+                });
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sideMenu.classList.contains('open')) {
+                    closeMenuHandler();
+                }
+            });
+
+            function handleResize() {
+                if (window.innerWidth >= 1024) {
+                    sideMenu.style.left = '0';
+                    menuOverlay.style.display = 'none';
+                } else {
+                    if (!sideMenu.classList.contains('open')) {
+                        sideMenu.style.left = '-300px';
+                    }
+                }
+            }
+
+            window.addEventListener('resize', handleResize);
+            handleResize();
+        });
+
         // Search functionality
         document.querySelector('.search-input').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
@@ -853,20 +982,13 @@
             // Add barcode scanning functionality here
             alert('Barcode scanning feature coming soon!');
         });
-
-        // For desktop view, check if we should show sidebar
-        function checkViewport() {
-            if (window.innerWidth >= 1024) {
-                document.getElementById('sideMenu').style.left = '0';
-                document.getElementById('menuOverlay').style.display = 'none';
-            } else {
-                document.getElementById('sideMenu').style.left = '-280px';
-            }
-        }
-
-        // Run on page load and resize
-        window.addEventListener('load', checkViewport);
-        window.addEventListener('resize', checkViewport);
     </script>
 </body>
 </html>
+
+
+
+
+
+
+

@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+<head>    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeoPOS - Smart Point of Sale System</title>
     <link rel="stylesheet" href="css/landing.css">
-    <link rel="icon" href="favicon.ico">    <!-- Google Fonts -->
+    <link rel="icon" href="favicon.ico"><!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,7 +13,7 @@
     <!-- Meta tag for Google Sign-In -->
     <meta name="google-signin-client_id" content="489848070288-0he2h9ti3a9aqljpagoigmt5h9tmt38k.apps.googleusercontent.com">
     <!-- External Google Auth Script -->
-    <script src="js/googleAuth.js" defer></script>
+    <script src="js/google-auth.js" defer></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -34,18 +33,20 @@
                 <i class="fas fa-bars"></i>
             </div>
         </div>
-    </nav>
-
-    <!-- Hero Section -->
+    </nav>    <!-- Hero Section -->
     <section class="hero">
-        <div class="container">            <div class="hero-content">                <h1>Streamline Your Business with NeoPOS</h1>                <p>The smart point of sale system designed for modern businesses. Manage inventory, process transactions, and gain insights - all in one place.</p>
+        <div class="container">            <div class="hero-content">
+                <h1>Streamline Your Business with NeoPOS</h1>
+                <p>The smart mobile point of sale system that turns your everyday devices into powerful business tools. No expensive hardware needed - just use your smartphone, tablet, or laptop to manage inventory, scan products, track sales, and gain valuable insights.</p>
                 <div class="hero-buttons">
                     <a href="#features" class="btn btn-primary">Explore Features</a>
                     <a href="#" id="heroGetStarted" class="btn btn-secondary">Get Started</a>
                 </div>
             </div>
             <div class="hero-image">
-                <img src="images/workInProgress.png" alt="NeoPOS Dashboard Preview">
+                <!-- Replace with a professional POS dashboard mockup image -->
+                <img src="images/neopos-dashboard-devices.png" alt="NeoPOS Dashboard on Multiple Devices">
+                <!-- Note: You need to download this image and place it in your images folder -->
             </div>
         </div>
     </section>
@@ -56,35 +57,78 @@
             <div class="section-header">
                 <h2>Powerful Features for Modern Business</h2>
                 <p>Everything you need to manage your business efficiently</p>
-            </div>
-            <div class="features-grid">
+            </div>            <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <img src="images/counterIcon.png" alt="Transactions">
+                        <img src="images/counter-icon.png" alt="Transactions">
                     </div>
                     <h3>Quick Transactions</h3>
-                    <p>Process sales quickly with an intuitive interface designed for speed and accuracy.</p>
+                    <p>Process sales quickly with an intuitive interface designed for speed and accuracy on any device.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <img src="images/barCodeIcon.png" alt="Inventory">
+                        <img src="images/barcode-icon.png" alt="Inventory">
                     </div>
-                    <h3>Inventory Management</h3>
-                    <p>Track stock levels in real-time and get notifications when it's time to reorder.</p>
+                    <h3>Mobile Scanning</h3>
+                    <p>Use your smartphone camera to scan barcodes for instant product lookup and inventory updates.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <img src="images/documentIcon.png" alt="Reports">
+                        <img src="images/document-icon.png" alt="Reports">
                     </div>
                     <h3>Comprehensive Reports</h3>
-                    <p>Gain valuable insights with detailed sales and inventory reports.</p>
+                    <p>Gain valuable insights with detailed sales, inventory, and performance reports accessible anywhere.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <img src="images/currencyIcon.png" alt="Finance">
+                        <img src="images/currency-icon.png" alt="Finance">
                     </div>
-                    <h3>Financial Tracking</h3>
-                    <p>Monitor revenue, expenses, and profit margins to optimize your business.</p>
+                    <h3>Multi-location Control</h3>
+                    <p>Manage multiple locations from a single account with real-time synchronization across all devices.</p>
+                </div>
+            </div></div>
+    </section>
+
+    <!-- Use Any Device Section -->
+    <section id="any-device" class="any-device">
+        <div class="container">
+            <div class="section-header">
+                <h2>Use Your Existing Devices</h2>
+                <p>Say goodbye to expensive POS hardware</p>
+            </div>
+            <div class="device-wrapper">
+                <div class="device-content">
+                    <div class="device-item">
+                        <i class="fas fa-mobile-alt"></i>
+                        <div>
+                            <h3>Mobile Phones</h3>
+                            <p>Turn any smartphone into a powerful POS terminal. Scan barcodes, update inventory, and process transactions from your pocket.</p>
+                        </div>
+                    </div>
+                    <div class="device-item">
+                        <i class="fas fa-tablet-alt"></i>
+                        <div>
+                            <h3>Tablets</h3>
+                            <p>Perfect for counter operations, tablets provide a larger screen while maintaining mobility throughout your store.</p>
+                        </div>
+                    </div>
+                    <div class="device-item">
+                        <i class="fas fa-laptop"></i>
+                        <div>
+                            <h3>Laptops & Desktops</h3>
+                            <p>Manage your entire operation from your computer with our web-based dashboard for comprehensive control.</p>
+                        </div>
+                    </div>
+                    <div class="device-item">
+                        <i class="fas fa-money-bill-wave-alt"></i>
+                        <div>
+                            <h3>Save Thousands</h3>
+                            <p>Eliminate the need to purchase expensive dedicated POS hardware. Use what you already own to run your business efficiently.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="device-image">
+                    <img src="images/neopos-dashboard-devices.png" alt="NeoPOS on Multiple Devices">
                 </div>
             </div>
         </div>
@@ -97,39 +141,37 @@
                 <h2>Why Choose NeoPOS?</h2>
                 <p>The smart choice for growing businesses</p>
             </div>
-            <div class="benefits-wrapper">
-                <div class="benefits-content">
+            <div class="benefits-wrapper">                <div class="benefits-content">
                     <div class="benefit-item">
                         <i class="fas fa-check-circle"></i>
                         <div>
-                            <h3>Easy to Use</h3>
-                            <p>Intuitive interface that requires minimal training for your staff.</p>
+                            <h3>Significant Cost Savings</h3>
+                            <p>Save thousands on expensive dedicated POS hardware by using your existing devices.</p>
                         </div>
                     </div>
                     <div class="benefit-item">
                         <i class="fas fa-check-circle"></i>
                         <div>
-                            <h3>Cloud-Based</h3>
-                            <p>Access your data from anywhere, anytime with secure cloud storage.</p>
+                            <h3>Work From Anywhere</h3>
+                            <p>Access your business data from anywhere, anytime with secure cloud synchronization.</p>
                         </div>
                     </div>
                     <div class="benefit-item">
                         <i class="fas fa-check-circle"></i>
                         <div>
                             <h3>Scalable Solution</h3>
-                            <p>Grows with your business from a single store to multiple locations.</p>
+                            <p>Grows with your business from a single store to multiple locations without hardware limitations.</p>
                         </div>
                     </div>
                     <div class="benefit-item">
                         <i class="fas fa-check-circle"></i>
                         <div>
-                            <h3>Dedicated Support</h3>
-                            <p>24/7 customer support to help you whenever you need assistance.</p>
+                            <h3>No Technical Skills Required</h3>
+                            <p>Intuitive interface that requires minimal training - if you can use a smartphone, you can use NeoPOS.</p>
                         </div>
-                    </div>
-                </div>
+                    </div>                </div>
                 <div class="benefits-image">
-                    <img src="images/workIsOn.png" alt="NeoPOS Benefits">
+                    <img src="images/pos-store-usage.png" alt="NeoPOS in a Modern Store Environment">
                 </div>
             </div>
         </div>
@@ -142,25 +184,23 @@
                 <h2>What Our Customers Say</h2>
                 <p>Success stories from businesses like yours</p>
             </div>
-            <div class="testimonials-slider">
-                <div class="testimonial-card">
+            <div class="testimonials-slider">                <div class="testimonial-card">
                     <div class="testimonial-text">
-                        <p>"NeoPOS has transformed our retail operations. The inventory management feature alone has saved us countless hours and prevented stockouts."</p>
-                    </div>
-                    <div class="testimonial-author">
-                        <img src="images/userAvatar.png" alt="User Avatar">
+                        <p>"NeoPOS has transformed our retail operations. Being able to use our existing tablets and phones instead of expensive POS hardware saved us over $5,000 in startup costs."</p>
+                    </div>                    <div class="testimonial-author">
+                        <img src="images/testimonial-avatar-1.png" alt="Robert Johnson">
                         <div>
-                            <h4>Sarah Johnson</h4>
+                            <h4>Robert Johnson</h4>
                             <p>Retail Store Owner</p>
                         </div>
                     </div>
                 </div>
                 <div class="testimonial-card">
                     <div class="testimonial-text">
-                        <p>"The reports and analytics have given us insights we never had before. We've increased our profit margins by 15% since implementing NeoPOS."</p>
+                        <p>"The mobile scanning feature is a game-changer. Our staff can update inventory right from the floor using their phones. No more clipboards or double-entry!"</p>
                     </div>
                     <div class="testimonial-author">
-                        <img src="images/userAvatar.png" alt="User Avatar">
+                        <img src="images/testimonial-avatar-2.png" alt="Michael Chang">
                         <div>
                             <h4>Michael Chang</h4>
                             <p>Restaurant Manager</p>
@@ -169,12 +209,11 @@
                 </div>
                 <div class="testimonial-card">
                     <div class="testimonial-text">
-                        <p>"Customer support is exceptional. Any time we've had questions or needed help, the NeoPOS team has been there for us."</p>
-                    </div>
-                    <div class="testimonial-author">
-                        <img src="images/userAvatar.png" alt="User Avatar">
+                        <p>"Customer support is exceptional. The ability to run our entire café from just our phones and a tablet has simplified everything and saved us thousands."</p>
+                    </div>                    <div class="testimonial-author">
+                        <img src="images/testimonial-avatar-3.png" alt="Thomas Parker">
                         <div>
-                            <h4>Emma Davis</h4>
+                            <h4>Thomas Parker</h4>
                             <p>Cafe Owner</p>
                         </div>
                     </div>
@@ -193,7 +232,7 @@
             <div class="pricing-cards">                <div class="pricing-card">
                     <div class="price-header">
                         <h3>Starter</h3>
-                        <div class="price">NPR 3,500<span>/month</span></div>
+                        <div class="price">NPR 500<span>/month</span></div>
                     </div>
                     <ul class="price-features">
                         <li><i class="fas fa-check"></i> Single register</li>                        <li><i class="fas fa-check"></i> Basic inventory management</li>
@@ -205,7 +244,7 @@
                     <div class="popular-badge">Most Popular</div>
                     <div class="price-header">
                         <h3>Professional</h3>
-                        <div class="price">NPR 7,000<span>/month</span></div>
+                        <div class="price">NPR 1,500<span>/month</span></div>
                     </div>
                     <ul class="price-features">
                         <li><i class="fas fa-check"></i> Up to 3 registers</li>
@@ -217,7 +256,7 @@
                 </div>                <div class="pricing-card">
                     <div class="price-header">
                         <h3>Enterprise</h3>
-                        <div class="price">NPR 12,000<span>/month</span></div>
+                        <div class="price">NPR 4,000<span>/month</span></div>
                     </div>
                     <ul class="price-features">
                         <li><i class="fas fa-check"></i> Unlimited registers</li>
@@ -231,12 +270,10 @@
                 </div>
             </div>
         </div>
-    </section>
-
-    <!-- CTA Section -->    <section class="cta">
+    </section>    <!-- CTA Section -->    <section class="cta">
         <div class="container">
             <h2>Ready to Transform Your Business?</h2>
-            <p>Join thousands of businesses already using NeoPOS to streamline their operations.</p>
+            <p>Join thousands of businesses already using NeoPOS to run their operations from any device, anywhere. No expensive hardware required!</p>
             <a href="#" id="ctaGetStarted" class="btn btn-light">Get Started Today</a>
         </div>
     </section>
@@ -359,18 +396,11 @@
             });
         });
     </script>
-    
-    <!-- Forms and authentication functionality -->
-    <script src="js/landingForms.js"></script>
-    
-    <!-- Login Popup -->
+  <!-- Login Popup -->
     <div class="popup-overlay" id="loginPopup">
         <div class="popup-container">
-            <div class="popup-content">
-                <span class="close-popup">&times;</span>                <div class="logo-container">
-                    <img src="images/neopos-logo.png" alt="NeoPOS Logo" class="popup-logo">
-                </div>
-                <h2>Login to NeoPOS</h2>
+            <div class="popup-content">                <span class="close-popup">&times;</span>
+                <h2 style="text-align: center;">Login to NeoPOS</h2>
                 
                 <div class="loading-popup">
                     <div class="spinner"></div>
@@ -385,20 +415,25 @@
                         <input type="text" id="loginUsername" name="username" required>
                         <div class="error-message" id="loginUsernameError">Please enter your username</div>
                     </div>
-                    
-                    <div class="form-group">
+                      <div class="form-group">
                         <label for="loginPassword">Password</label>
-                        <input type="password" id="loginPassword" name="password" required>
-                        <div class="error-message" id="loginPasswordError">Please enter your password</div>
-                    </div>
+                        <div style="position: relative;">
+                            <input type="password" id="loginPassword" name="password" required>
+                            <i class="fas fa-eye password-toggle" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;" onclick="togglePasswordVisibility('loginPassword', this)"></i>
+                        </div>
+                        <div class="error-message" id="loginPasswordError">Please enter your password</div>                    </div>
                     
                     <button type="submit" class="popup-btn">Login</button>
                     
-                    <div class="popup-divider">OR</div>
-                    
-                    <button type="button" class="google-btn">
-                        <img src="images/auth/google_signin_button.svg" alt="Sign in with Google">
-                    </button>
+                    <div id="g_id_signin_login"
+                         class="g_id_signin"
+                         data-type="standard"
+                         data-shape="rectangular"
+                         data-theme="outline"
+                         data-text="sign_in_with"
+                         data-size="large"
+                         data-logo_alignment="left">
+                    </div>
                 </form>
                 
                 <div class="popup-footer">
@@ -412,11 +447,8 @@
     <!-- Register Popup -->
     <div class="popup-overlay" id="registerPopup">
         <div class="popup-container">
-            <div class="popup-content">
-                <span class="close-popup">&times;</span>                <div class="logo-container">
-                    <img src="images/neopos-logo.png" alt="NeoPOS Logo" class="popup-logo">
-                </div>
-                <h2>Create Your Account</h2>
+            <div class="popup-content">                <span class="close-popup">&times;</span>
+                <h2 style="text-align: center;">Create Your Account</h2>
                 
                 <div class="loading-popup">
                     <div class="spinner"></div>
@@ -443,26 +475,34 @@
                         <input type="text" id="registerUsername" name="username" required>
                         <div class="error-message" id="registerUsernameError">Please choose a username</div>
                     </div>
-                    
-                    <div class="form-group">
+                      <div class="form-group">
                         <label for="registerPassword">Password</label>
-                        <input type="password" id="registerPassword" name="password" required>
+                        <div style="position: relative;">
+                            <input type="password" id="registerPassword" name="password" required>
+                            <i class="fas fa-eye password-toggle" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;" onclick="togglePasswordVisibility('registerPassword', this)"></i>
+                        </div>
                         <div class="error-message" id="registerPasswordError">Password must be at least 8 characters</div>
                     </div>
                     
                     <div class="form-group">
                         <label for="confirmPassword">Confirm Password</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                        <div style="position: relative;">
+                            <input type="password" id="confirmPassword" name="confirmPassword" required>
+                            <i class="fas fa-eye password-toggle" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;" onclick="togglePasswordVisibility('confirmPassword', this)"></i>
+                        </div>
                         <div class="error-message" id="confirmPasswordError">Passwords do not match</div>
                     </div>
+                      <button type="submit" class="popup-btn">Create Account</button>
                     
-                    <button type="submit" class="popup-btn">Create Account</button>
-                    
-                    <div class="popup-divider">OR</div>
-                    
-                    <button type="button" class="google-btn">
-                        <img src="images/auth/google_register_button.svg" alt="Register with Google">
-                    </button>
+                    <div id="g_id_signin_register"
+                         class="g_id_signin"
+                         data-type="standard"
+                         data-shape="rectangular"
+                         data-theme="outline"
+                         data-text="sign_up_with"
+                         data-size="large"
+                         data-logo_alignment="left">
+                    </div>
                 </form>
                 
                 <div class="popup-footer">
@@ -470,7 +510,96 @@
                 </div>
             </div>
         </div>
+    </div>    <!-- Form and authentication handling moved to external JS files -->
+    
+    <!-- Forgot Password Popup -->
+    <div class="popup-overlay" id="forgotPasswordPopup">
+        <div class="popup-container">
+            <div class="popup-content">
+                <span class="close-popup">&times;</span>
+                <h2 style="text-align: center;">Reset Your Password</h2>
+                
+                <div class="loading-popup">
+                    <div class="spinner"></div>
+                    <p>Sending reset link...</p>
+                </div>
+                
+                <div class="message-alert" id="forgotPasswordAlert"></div>
+                
+                <form class="popup-form" id="forgotPasswordForm">
+                    <p class="form-info">Enter your email address and we'll send you a link to reset your password.</p>
+                    
+                    <div class="form-group">
+                        <label for="resetEmail">Email Address</label>
+                        <input type="email" id="resetEmail" name="email" required>
+                        <div class="error-message" id="resetEmailError">Please enter a valid email address</div>
+                    </div>
+                    
+                    <button type="submit" class="popup-btn">Send Reset Link</button>
+                </form>
+                
+                <div class="popup-footer">
+                    <p>Remember your password? <a href="#" id="backToLogin">Back to login</a></p>
+                </div>
+            </div>
+        </div>
     </div>
-      <!-- Form and authentication handling moved to external JS files -->
+    
+    <script>      window.onload = function() {
+        // Render Google Sign-In button for login
+        if (window.google && document.getElementById('g_id_signin_login')) {
+          google.accounts.id.initialize({
+            client_id: '489848070288-0he2h9ti3a9aqljpagoigmt5h9tmt38k.apps.googleusercontent.com',
+            callback: function(response) {
+              // Handle login response here
+              // You can send response.credential to your backend
+              console.log('Google login credential:', response.credential);
+            }
+          });
+          google.accounts.id.renderButton(
+            document.getElementById('g_id_signin_login'),
+            { theme: 'outline', size: 'large' }
+          );
+        }
+        // Render Google Sign-In button for register
+        if (window.google && document.getElementById('g_id_signin_register')) {
+          google.accounts.id.initialize({
+            client_id: '489848070288-0he2h9ti3a9aqljpagoigmt5h9tmt38k.apps.googleusercontent.com',
+            callback: function(response) {
+              // Handle register response here
+              // You can send response.credential to your backend
+              console.log('Google register credential:', response.credential);
+            }
+          });
+          google.accounts.id.renderButton(
+            document.getElementById('g_id_signin_register'),
+            { theme: 'outline', size: 'large', text: 'signup_with' }
+          );
+        }
+      };
+
+      // Function to toggle password visibility
+      function togglePasswordVisibility(inputId, icon) {
+        const passwordInput = document.getElementById(inputId);
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          icon.classList.remove('fa-eye');
+          icon.classList.add('fa-eye-slash');
+        } else {
+          passwordInput.type = 'password';
+          icon.classList.remove('fa-eye-slash');
+          icon.classList.add('fa-eye');
+        }
+      }    </script>
+    <!-- Forms and authentication functionality -->
+    <script src="js/landing-forms.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+

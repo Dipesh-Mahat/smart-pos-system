@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoPOS - Add Item</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        /* Form styles */
+        .form-container {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .form-group:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #2c3e50;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+
+        .form-group .input-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-group .input-group input {
+            flex: 1;
+        }
+
+        .form-group .input-group .toggle {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .form-group .input-group .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .form-group .input-group .toggle .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e9ecef;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .form-group .input-group .toggle .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        .form-group .input-group .toggle input:checked + .slider {
+            background-color: #007bff;
+        }
+
+        .form-group .input-group .toggle input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .barcode-group {
+            position: relative;
+        }
+
+        .barcode-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .barcode-icon:hover {
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .save-button {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 16px 64px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .save-button:hover {
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,123,255,0.3);
+        }
+
+        .save-button:active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 32px;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .form-description {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        /* Image upload styles */
+        .image-upload-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            border: 2px dashed #e9ecef;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            overflow: hidden;
+        }
+
+        .image-upload-container:hover {
+            border-color: #007bff;
+            background: #f1f8ff;
+        }
+
+        .image-upload-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .image-upload-placeholder {
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .image-upload-placeholder svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            color: #007bff;
+        }
+
+        .image-upload-text {
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .image-options {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 24px;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+
+        .image-options.active {
+            transform: translateY(0);
+        }
+
+        .image-option {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+        }
+
+        .image-option:last-child {
+            margin-bottom: 0;
+        }
+
+        .image-option:hover {
+            background: #f8f9fa;
+        }
+
+        .image-option-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 16px;
+            color: #007bff;
+        }
+
+        .image-option-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="menu-icon" id="menuIcon">☰</div>
+            <div class="app-title">NeoPOS</div>
+            <div class="header-icons">
+                <div class="notification-icon">🔔</div>
+                <div class="profile-icon" onclick="window.location.href='profile.html'">👤</div>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <div class="page-title">Add New Item</div>
+            <form>
+                <div class="form-group">
+                    <label>Product Image (Optional)</label>
+                    <div class="image-upload-container" id="imageUpload">
+                        <div class="image-upload-placeholder">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                            <div class="image-upload-text">Click to add product image</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemName">Item Name</label>
+                    <input type="text" id="itemName" placeholder="Enter item name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input type="number" id="quantity" placeholder="Enter quantity" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="costPrice">Cost Price</label>
+                    <input type="number" id="costPrice" placeholder="Enter cost price" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="sellPrice">Sell Price</label>
+                    <input type="number" id="sellPrice" placeholder="Enter sell price" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="discount">Discount (%)</label>
+                    <input type="number" id="discount" placeholder="Enter discount percentage">
+                </div>
+
+                <div class="form-group">
+                    <label for="expDate">Expiration Date</label>
+                    <input type="date" id="expDate" placeholder="Select expiration date">
+                </div>
+
+                <div class="form-group">
+                    <label>Low Stock Alert</label>
+                    <div class="input-group">
+                        <input type="number" id="lowStockThreshold" placeholder="Enter low stock threshold">
+                        <label class="toggle">
+                            <input type="checkbox" id="enableLowStock">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-description">Enable to receive notifications when stock falls below this threshold</div>
+                </div>
+
+                <div class="form-group barcode-group">
+                    <label for="barCode">Barcode</label>
+                    <input type="text" id="barCode" placeholder="Enter barcode">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAEMSURBVDiNldMxS0JRGMbx/3tvdnOQIHAxIVqiwaYQxKBFaGpwCcKlrU/QJ2hqcG9w9BsULU3NFg0RQaOLBEEhJTQ4qPc0qFd7r3qmc877Puc5nPOKqtLaBd6BPCCt0wBWVDXyAcrlchaRfaCgqq5tEwFE5NI0zQUfOABuWkASqAG5/4ACOFbVqg+EQBmoAQsWgQ1V/fIBN5lcxqYFkZ6q/vw5kU2gCixZBLZV9d0Hwp9ayRZwCKxYBA5U9dEHasAGkLAEHKvqkw8kgBMgZwk4V9VnH0gBZ8C6BeBSVV98wAHOgU0LwI2qvvpAGrgAti0AZRFxW0AY2AV2/jF+qKqvzZU+gCwwsYQNgTdVHf8CRyiV7KLvQEAAAAAASUVORK5CYII=" alt="Barcode" class="barcode-icon">
+                </div>
+            </form>
+
+            <button class="save-button">Save Item</button>
+        </div>
+
+        <!-- Image Options Overlay -->
+        <div class="overlay" id="overlay"></div>
+        <div class="image-options" id="imageOptions">
+            <div class="image-option" id="cameraOption">
+                <svg class="image-option-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                <span class="image-option-text">Take Photo</span>
+            </div>
+            <div class="image-option" id="galleryOption">
+                <svg class="image-option-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span class="image-option-text">Choose from Gallery</span>
+            </div>
+        </div>
+
+        <!-- Side Menu -->
+        <div class="side-menu" id="sideMenu">
+            <div class="menu-items">
+                <div class="menu-item">
+                    <div class="menu-icon-folder">📁</div>
+                    <div class="menu-text">Dashboard</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon-folder">📁</div>
+                    <div class="menu-text"><a href="store-management.html">Store Management</a></div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon-folder">📁</div>
+                    <div class="menu-text">Inventory</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon-folder">📁</div>
+                    <div class="menu-text">Transactions</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon-folder">📁</div>
+                    <div class="menu-text">Analytics & Report</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon-folder">📁</div>
+                    <div class="menu-text">Suppliers</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon-folder">📁</div>
+                    <div class="menu-text">Settings</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon-folder">📁</div>
+                    <div class="menu-text">Add Expense</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlay for menu -->
+        <div class="menu-overlay" id="menuOverlay"></div>
+    </div>
+
+    <script src="../js/sidebar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageUpload = document.getElementById('imageUpload');
+            const imageOptions = document.getElementById('imageOptions');
+            const overlay = document.getElementById('overlay');
+            const cameraOption = document.getElementById('cameraOption');
+            const galleryOption = document.getElementById('galleryOption');
+            const saveButton = document.querySelector('.save-button');
+            
+            // Show image options when clicking on image upload container
+            imageUpload.addEventListener('click', function() {
+                imageOptions.classList.add('active');
+                overlay.classList.add('active');
+            });
+
+            // Hide image options when clicking overlay
+            overlay.addEventListener('click', function() {
+                imageOptions.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+
+            // Handle camera option
+            cameraOption.addEventListener('click', function() {
+                // Here you would implement camera functionality
+                // For now, we'll just show an alert
+                alert('Camera functionality would be implemented here');
+                imageOptions.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+
+            // Handle gallery option
+            galleryOption.addEventListener('click', function() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            imageUpload.innerHTML = `<img src="${e.target.result}" alt="Product Image">`;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+                input.click();
+                imageOptions.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+
+            saveButton.addEventListener('click', function() {
+                // Get all form values
+                const itemName = document.getElementById('itemName').value;
+                const quantity = document.getElementById('quantity').value;
+                const costPrice = document.getElementById('costPrice').value;
+                const sellPrice = document.getElementById('sellPrice').value;
+                const discount = document.getElementById('discount').value;
+                const expDate = document.getElementById('expDate').value;
+                const barCode = document.getElementById('barCode').value;
+
+                // Validate form
+                if (!itemName || !quantity || !costPrice || !sellPrice) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+
+                // Here you would typically send this data to your backend
+                console.log('Saving item:', {
+                    itemName,
+                    quantity,
+                    costPrice,
+                    sellPrice,
+                    discount,
+                    expDate,
+                    barCode
+                });
+
+                // Redirect back to inventory page
+                window.location.href = 'inventory.html';
+            });
+        });
+    </script>
+</body>
+</html> 
+
+

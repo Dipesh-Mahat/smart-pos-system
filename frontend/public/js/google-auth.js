@@ -8,6 +8,9 @@ const googleClientId = '489848070288-0he2h9ti3a9aqljpagoigmt5h9tmt38k.apps.googl
 
 let googleAuth;
 
+// Set API base URL to Render backend only (no local testing)
+const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
+
 /**
  * Initialize Google OAuth client
  */
@@ -16,14 +19,22 @@ function initializeGoogleAuth() {
         // Get the current origin for better compatibility across environments
         const currentOrigin = window.location.origin;
         
+        // Log the current origin for debugging
+        console.log('Current origin for OAuth redirect:', currentOrigin);
+        
+        // Configure the redirect URI based on the environment
+        let redirectUri = `${currentOrigin}/auth/google/callback`;
+        
+        // Initialize the Google OAuth client
         googleAuth = google.accounts.oauth2.initTokenClient({
             client_id: googleClientId,
             scope: 'email profile',
             callback: handleGoogleOAuthResponse,
-            // Explicitly set the redirect URI if needed
-            redirect_uri: `${currentOrigin}/api/auth/google/callback`
+            // Match redirect URI exactly as registered in Google Console
+            redirect_uri: redirectUri
         });
-        console.log('Google OAuth initialized with origin:', currentOrigin);
+        
+        console.log('Google OAuth initialized with redirect URI:', redirectUri);
     } else {
         console.error('Google OAuth libraries not loaded');
     }
@@ -36,23 +47,39 @@ function initializeGoogleAuth() {
 function handleGoogleOAuthResponse(response) {
     if (response.error) {
         console.error('Google OAuth error:', response.error);
-        showAuthError(`Authentication failed: ${response.error}`);
+        
+        // Handle specific OAuth errors
+        if (response.error === 'redirect_uri_mismatch') {
+            showAuthError('Authentication failed: The redirect URI does not match what is configured in Google Console.');
+            console.error('Redirect URI mismatch. Please make sure the redirect URI in the code matches what is configured in the Google Cloud Console.');
+        } else if (response.error === 'access_denied') {
+            showAuthError('Authentication was canceled or denied by the user.');
+        } else if (response.error === 'popup_closed_by_user') {
+            showAuthError('The authentication popup was closed before completing the process. Please try again.');
+        } else {
+            showAuthError(`Authentication failed: ${response.error}`);
+        }
         return;
     }
     
     // We have access token now
     const accessToken = response.access_token;
-    
-    // Use the token to fetch user info from Google
+      // Use the token to fetch user info from Google
     fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: {
             'Authorization': `Bearer ${accessToken}`
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Failed to fetch user info: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+    })
     .then(data => {
-        console.log('Google user info:', data);
-          // Get information about which popup is active (login or register)
+        console.log('Google user info retrieved successfully');
+        
+        // Get information about which popup is active (login or register)
         const isLoginPopup = document.getElementById('loginPopup')?.style.display === 'flex';
         const isRegisterPopup = document.getElementById('registerPopup')?.style.display === 'flex';
         
@@ -76,15 +103,10 @@ function handleGoogleOAuthResponse(response) {
         }
         
         console.log('Auth mode detected as:', authMode);
-          // Send the Google user info to your backend
-    // Use relative URL or detect the current host dynamically
-    const apiUrl = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
-        ? `${window.location.protocol}//${window.location.hostname}:5000/api/auth/google`
-        : '/api/auth/google';
-        
-    console.log('Sending request to:', apiUrl);
+      // Send the Google user info to your backend
+    console.log('Sending request to backend API:', `${apiBaseUrl}/auth/google`);
     
-    fetch(apiUrl, {
+    fetch(`${apiBaseUrl}/auth/google`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -93,14 +115,25 @@ function handleGoogleOAuthResponse(response) {
             token: accessToken,
             googleData: data,
             authMode: authMode
-        })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Authentication failed: ${response.status}`);
+        }),
+        credentials: 'include' // Send cookies if needed
+    })
+    .then(response => {
+        if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error('404: Endpoint not found. The API URL may be incorrect.');
+            } else if (response.status === 401) {
+                throw new Error('401: Authentication failed. Please try again.');
+            } else if (response.status === 400) {
+                throw new Error('400: Invalid request data.');
+            } else if (response.status === 500) {
+                throw new Error('500: Server error. Please try again later.');
+            } else {
+                throw new Error(`${response.status}: Authentication failed.`);
             }
-            return response.json();
-        })
+        }
+        return response.json();
+    })
         .then(result => {            if (result.success) {
                 // Show brief success message before redirect
                 const activePopup = document.querySelector('.popup-overlay[style*="flex"]');
@@ -132,29 +165,63 @@ function handleGoogleOAuthResponse(response) {
             } else {
                 showAuthError(result.message || 'Authentication failed');
             }
-        })        .catch(error => {
-            console.error('Backend authentication error:', error);
-            if (error.message && error.message.includes('404')) {                showAuthError('Your Google account is not registered. Please sign up first.');
-            } else if (error.message && error.message.includes('401')) {
-                showAuthError('Authentication failed. Please try again or use regular login.');
-            } else if (error.message && error.message.includes('400')) {
-                // Handle case where user tries to use Google OAuth but has a regular account
-                const activePopup = document.querySelector('.popup-overlay[style*="flex"]');
-                const isRegisterPopup = activePopup && activePopup.id === 'registerPopup';
-                
-                if (isRegisterPopup) {
-                    showAuthError('An account with this email already exists. Please log in instead.');
-                } else {
-                    showAuthError('This email is already registered with a password. Please use your password to log in.');
-                }
+        })    .catch(error => {
+        console.error('Backend authentication error:', error);
+        
+        // Handle specific HTTP status code errors
+        if (error.message && error.message.includes('404')) {
+            showAuthError('Backend service not found. This may be a configuration issue. Please try again later.');
+            console.error('API endpoint not found. Check your apiBaseUrl and network configuration.');
+        } else if (error.message && error.message.includes('401')) {
+            showAuthError('Authentication failed. Please try again or use regular login.');
+        } else if (error.message && error.message.includes('400')) {
+            // Handle case where user tries to use Google OAuth but has a regular account
+            const activePopup = document.querySelector('.popup-overlay[style*="flex"]');
+            const isRegisterPopup = activePopup && activePopup.id === 'registerPopup';
+            
+            if (isRegisterPopup) {
+                showAuthError('An account with this email already exists. Please log in instead.');
             } else {
-                showAuthError('Server error. Please try again later.');
+                showAuthError('This email is already registered with a password. Please use your password to log in.');
             }
-        });
-    })
-    .catch(error => {
+        } else if (error.message && error.message.includes('Failed to fetch') || error.message.includes('Network Error')) {
+            showAuthError('Network error. Please check your internet connection and try again.');
+            console.error('Network error when contacting the backend API. Check CORS settings and network connectivity.');
+        } else {
+            showAuthError('Server error. Please try again later.');
+        }
+        
+        // Reset UI state for retry
+        const activePopup = document.querySelector('.popup-overlay[style*="flex"]');
+        if (activePopup) {
+            const form = activePopup.querySelector('.popup-form');
+            const loading = activePopup.querySelector('.loading-popup');
+            
+            form.style.display = 'block';
+            loading.style.display = 'none';
+        }
+    });
+    })    .catch(error => {
         console.error('Error fetching Google user info:', error);
-        showAuthError('Could not retrieve your Google account information. Please try again.');
+        
+        // Handle specific errors
+        if (error.message && error.message.includes('Failed to fetch')) {
+            showAuthError('Network error when retrieving your Google account information. Please check your internet connection and try again.');
+        } else if (error.message && error.message.includes('invalid_token')) {
+            showAuthError('Your Google authentication session has expired. Please try again.');
+        } else {
+            showAuthError('Could not retrieve your Google account information. Please try again.');
+        }
+        
+        // Reset UI state for retry
+        const activePopup = document.querySelector('.popup-overlay[style*="flex"]');
+        if (activePopup) {
+            const form = activePopup.querySelector('.popup-form');
+            const loading = activePopup.querySelector('.loading-popup');
+            
+            form.style.display = 'block';
+            loading.style.display = 'none';
+        }
     });
 }
 
@@ -320,6 +387,5 @@ if (typeof module !== 'undefined') {
         handleGoogleOAuthResponse,
         showAuthError,
         setupGoogleButtons,
-        handleGoogleLibLoad
-    };
+        handleGoogleLibLoad    };
 }

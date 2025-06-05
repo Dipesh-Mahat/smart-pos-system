@@ -4,28 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeoPOS - Settings</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../css/styles.css">
     <style>
         .settings-container {
-            padding: 20px;
+            padding: 24px;
             max-width: 800px;
             margin: 0 auto;
         }
 
         .settings-group {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+            overflow: hidden;
         }
 
         .settings-item {
             display: flex;
             align-items: center;
-            padding: 16px 20px;
+            padding: 20px;
             border-bottom: 1px solid #eee;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
         }
 
         .settings-item:last-child {
@@ -34,18 +37,25 @@
 
         .settings-item:hover {
             background-color: #f8f9fa;
+            transform: translateX(8px);
         }
 
         .settings-icon {
-            width: 40px;
-            height: 40px;
-            background: #f1f3f5;
-            border-radius: 8px;
+            width: 48px;
+            height: 48px;
+            background: #f8f9fa;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 16px;
-            font-size: 20px;
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .settings-item:hover .settings-icon {
+            background: #e9ecef;
+            transform: scale(1.1);
         }
 
         .settings-content {
@@ -53,20 +63,26 @@
         }
 
         .settings-title {
-            font-size: 16px;
-            font-weight: 500;
-            color: #333;
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
             margin-bottom: 4px;
         }
 
         .settings-description {
             font-size: 14px;
-            color: #666;
+            color: #6c757d;
         }
 
         .settings-arrow {
-            color: #aaa;
-            font-size: 20px;
+            color: #adb5bd;
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .settings-item:hover .settings-arrow {
+            transform: translateX(4px);
+            color: #007bff;
         }
 
         .main-content {
@@ -77,9 +93,242 @@
         }
 
         .profile-icon img {
-            width: 24px;
-            height: 24px;
-            object-fit: contain;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .profile-icon img:hover {
+            border-color: #007bff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 12px;
+            margin: -12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            color: #2c3e50;
+        }
+
+        .menu-icon:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.05);
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .side-menu.open {
+            left: 0;
+            box-shadow: 8px 0 24px rgba(0,0,0,0.15);
+        }
+
+        .side-menu.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .menu-items {
+            padding: 16px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .menu-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(8px);
+        }
+
+        .menu-icon-folder {
+            margin-right: 16px;
+            font-size: 22px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item:hover .menu-icon-folder {
+            transform: scale(1.1);
+        }
+
+        .menu-text {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .menu-text a {
+            color: #2c3e50;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .menu-item:hover .menu-text a {
+            color: #007bff;
+        }
+
+        @media screen and (min-width: 1024px) {
+            .side-menu {
+                left: 0;
+                box-shadow: none;
+                border-right: 1px solid #e9ecef;
+                transition: transform 0.3s ease;
+            }
+
+            .side-menu.collapsed {
+                transform: translateX(-100%);
+            }
+
+            .menu-icon {
+                display: flex !important;
+                position: fixed;
+                top: 16px;
+                left: 16px;
+                z-index: 1002;
+            }
+
+            .menu-overlay {
+                display: none !important;
+            }
+
+            .close-menu {
+                display: flex !important;
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                z-index: 1002;
+            }
+
+            .main-content {
+                margin-left: 300px;
+                transition: margin-left 0.3s ease;
+            }
+
+            .main-content.expanded {
+                margin-left: 0;
+            }
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .menu-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .close-menu {
+            font-size: 24px;
+            color: #6c757d;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-menu:hover {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            transform: scale(1.1);
+        }
+
+        .header {
+            background: linear-gradient(to right, #ffffff, #f8f9fa);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .app-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: 0.5px;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .notification-icon {
+            font-size: 20px;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            padding: 8px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .notification-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -90,14 +339,14 @@
             <div class="app-title">Settings</div>
             <div class="header-icons">
                 <div class="notification-icon">🔔</div>
-                <div class="profile-icon"><img src="photo/Profile.png" alt="Profile"></div>
+                <div class="profile-icon"><img src="../images/user-avatar.png" alt="Profile"></div>
             </div>
         </div>
 
         <div class="main-content">
             <div class="settings-container">
                 <div class="settings-group">
-                    <a href="profile.html" class="settings-item">
+                    <a href="user-profile.html" class="settings-item">
                         <div class="settings-icon">👤</div>
                         <div class="settings-content">
                             <div class="settings-title">Account Settings</div>
@@ -139,6 +388,10 @@
 
     <!-- Side Menu -->
     <div class="side-menu" id="sideMenu">
+        <div class="menu-header">
+            <div class="menu-title">Menu</div>
+            <div class="close-menu" id="closeMenu">×</div>
+        </div>
         <div class="menu-items">
             <div class="menu-item">
                 <div class="menu-icon-folder">📊</div>
@@ -166,7 +419,7 @@
             </div>
             <div class="menu-item">
                 <div class="menu-icon-folder">💸</div>
-                <div class="menu-text"><a href="addExpense.html">Add Expense</a></div>
+                <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
             </div>
         </div>
     </div>
@@ -174,6 +427,70 @@
     <!-- Overlay for menu -->
     <div class="menu-overlay" id="menuOverlay"></div>
 
-    <script src="sidebar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuIcon = document.getElementById('menuIcon');
+            const sideMenu = document.getElementById('sideMenu');
+            const menuOverlay = document.getElementById('menuOverlay');
+            const closeMenu = document.getElementById('closeMenu');
+            const mainContent = document.querySelector('.main-content');
+            
+            function openMenu() {
+                sideMenu.classList.add('open');
+                sideMenu.classList.remove('collapsed');
+                menuOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                if (window.innerWidth >= 1024) {
+                    mainContent.classList.remove('expanded');
+                }
+            }
+
+            function closeMenuHandler() {
+                if (window.innerWidth >= 1024) {
+                    sideMenu.classList.add('collapsed');
+                    mainContent.classList.add('expanded');
+                } else {
+                    sideMenu.classList.remove('open');
+                    menuOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }
+            
+            menuIcon.addEventListener('click', openMenu);
+            closeMenu.addEventListener('click', closeMenuHandler);
+            menuOverlay.addEventListener('click', closeMenuHandler);
+
+            // Handle window resize
+            function handleResize() {
+                if (window.innerWidth >= 1024) {
+                    sideMenu.classList.add('open');
+                    menuOverlay.classList.remove('active');
+                    menuIcon.style.display = 'flex';
+                    closeMenu.style.display = 'flex';
+                    
+                    // Reset mobile-specific classes
+                    sideMenu.classList.remove('collapsed');
+                    mainContent.classList.remove('expanded');
+                } else {
+                    if (!sideMenu.classList.contains('open')) {
+                        sideMenu.classList.remove('open');
+                        menuIcon.style.display = 'flex';
+                        closeMenu.style.display = 'flex';
+                    }
+                    // Reset desktop-specific classes
+                    sideMenu.classList.remove('collapsed');
+                    mainContent.classList.remove('expanded');
+                }
+            }
+
+            handleResize();
+            window.addEventListener('resize', handleResize);
+        });
+    </script>
 </body>
-</html>
+</html> 
+
+
+
+
+

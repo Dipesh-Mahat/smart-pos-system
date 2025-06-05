@@ -6,10 +6,10 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 // Import middleware
-const helmetConfig = require('../backend/middleware/helmetConfig');
-const { identifyDevice, apiLimiter, authLimiter, registerLimiter, adminLimiter } = require('../backend/middleware/rateLimiter');
-const authenticateJWT = require('../backend/middleware/authJWT');
-const { csrfProtection, handleCsrfError } = require('../backend/middleware/csrfProtection');
+const helmetConfig = require('./middleware/helmetConfig');
+const { identifyDevice, apiLimiter, authLimiter, registerLimiter, adminLimiter } = require('./middleware/rateLimiter');
+const authenticateJWT = require('./middleware/authJWT');
+const { csrfProtection, handleCsrfError } = require('./middleware/csrfProtection');
 
 // Create an Express app (This should come first)
 const app = express();
@@ -20,24 +20,27 @@ app.use(cors({
   origin: function(origin, callback) {
     // Allow requests with no origin (like mobile apps, curl requests)
     if(!origin) return callback(null, true);
-    
-    // Define allowed origins
+      // Define allowed origins - only production URLs
     const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:5000',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:5000',
-      'http://127.0.0.1:5500'
+      'https://smart-pos-system-lime.vercel.app',  // Frontend Vercel deployment
+      'https://smart-pos-system.onrender.com'      // Backend Render deployment
     ];
+    
+    // For development and debugging - uncomment this to see the actual origin
+    // console.log('Request origin:', origin);
     
     // Check if the origin is allowed
     if(allowedOrigins.indexOf(origin) === -1){
-      return callback(new Error('CORS policy violation'), false);
+      // In production, we still want to allow the request but log the violation
+      console.warn(`CORS policy warning: Origin ${origin} not in allowedOrigins`);
+      return callback(null, true); // Allow request anyway instead of blocking
     }
     
     return callback(null, true);
   },
-  credentials: true // Allow cookies to be sent with requests
+  credentials: true, // Allow cookies to be sent with requests
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Explicitly list allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'] // Explicitly list allowed headers
 }));
 app.use(express.json()); // Parse JSON requests
 app.use(cookieParser()); // Parse cookies
@@ -45,32 +48,32 @@ app.use(cookieParser()); // Parse cookies
 // Apply Helmet security headers
 app.use(helmetConfig());
 
-// Apply CSRF protection middleware
-app.use(csrfProtection);
-
-// Handle CSRF errors
-app.use(handleCsrfError);
-
-// Apply device identification middleware
-app.use(identifyDevice);
-
-// Apply rate-limiting to specific routes
-app.use('/api/auth/login', authLimiter); // Rate limiting for login
-app.use('/api/auth/register', registerLimiter); // Rate limiting for registration
-app.use('/api/admin', adminLimiter); // Rate limiting for admin actions
-app.use('/api', apiLimiter); // General API rate limiting
-
-// Apply CSRF protection to state-changing routes
-app.use('/api/auth/register', csrfProtection);
-app.use('/api/users', csrfProtection);
-// GET requests typically don't need CSRF protection
-app.post('/api/*', csrfProtection);
-app.put('/api/*', csrfProtection);
-app.delete('/api/*', csrfProtection);
+// In production, enable CSRF protection
+if (process.env.NODE_ENV === 'production') {
+  // Apply CSRF protection middleware
+  app.use(csrfProtection);
+  
+  // Handle CSRF errors
+  app.use(handleCsrfError);
+  
+  // Apply CSRF protection to state-changing routes
+  app.use('/api/auth/register', csrfProtection);
+  app.use('/api/users', csrfProtection);
+  app.post('/api/*', csrfProtection);
+  app.put('/api/*', csrfProtection);
+  app.delete('/api/*', csrfProtection);
+  
+  // CSRF token endpoint
+  app.get('/api/csrf-token', csrfProtection, (req, res) => {
+    res.json({ csrfToken: req.csrfToken() });
+  });
+} else {
+  console.log('CSRF protection is disabled in development mode');
+}
 
 // Import routes
-const authRoutes = require('../backend/routes/authRoutes');
-const routes = require('../backend/routes/index');
+const authRoutes = require('./routes/authRoutes');
+const routes = require('./routes/index');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -81,18 +84,14 @@ app.get('/', (req, res) => {
   res.send('Smart POS System Backend is running');
 });
 
-// CSRF token endpoint
-app.get('/api/csrf-token', csrfProtection, (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
-});
+// Apply device identification middleware
+app.use(identifyDevice);
 
-// Example protected route
-app.post('/api/protected-route', csrfProtection, (req, res) => {
-  res.json({ success: true, message: 'CSRF-protected route accessed!' });
-});
-
-// Error handling for CSRF token failures
-app.use(handleCsrfError);
+// Apply rate-limiting to specific routes
+app.use('/api/auth/login', authLimiter); // Rate limiting for login
+app.use('/api/auth/register', registerLimiter); // Rate limiting for registration
+app.use('/api/admin', adminLimiter); // Rate limiting for admin actions
+app.use('/api', apiLimiter); // General API rate limiting
 
 // Graceful shutdown for the server
 process.on('SIGINT', () => {
@@ -110,10 +109,7 @@ if (!process.env.MONGODB_URI) {
 }
 
 mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGODB_URI)
   .then(() => console.log('Database connected successfully'))
   .catch((err) => {
     console.error('Error connecting to MongoDB:', err);
