@@ -4,7 +4,7 @@ const navigationLinks = [
     { name: 'Store Management', url: 'store-management.html', icon: '🏪' },
     { name: 'Inventory', url: 'inventory.html', icon: '📦' },
     { name: 'Transactions', url: 'transactions.html', icon: '🔄' },
-    { name: 'Analytics & Report', url: 'analytics.html', icon: '📈' },
+    { name: 'Analytics & Report', url: 'report.html', icon: '📈' },
     { name: 'Suppliers', url: 'suppliers.html', icon: '🤝' },
     { name: 'Settings', url: 'settings.html', icon: '⚙️' },
     { name: 'Add Expense', url: 'add-expense.html', icon: '💸' }
@@ -17,7 +17,7 @@ function initializeSidebar() {
     sidebar.className = 'sidebar';
     sidebar.innerHTML = `
         <div class="sidebar-header">
-            <div class="sidebar-title">NeoPOS Menu</div>
+            <div class="sidebar-title">Smart POS Menu</div>
             <div class="close-sidebar">×</div>
         </div>
         <div class="sidebar-content">

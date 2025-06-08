@@ -1,10 +1,10 @@
-# NeoPOS - Smart Point of Sale System
+# Smart POS - Smart Point of Sale System
 
 A modern, secure, and feature-rich point of sale system designed for businesses of all sizes.
 
 ## Project Overview
 
-NeoPOS is a comprehensive point of sale solution that includes:
+Smart POS is a comprehensive point of sale solution that includes:
 
 - Intuitive and responsive frontend interface
 - Secure backend with OAuth authentication
@@ -17,13 +17,17 @@ NeoPOS is a comprehensive point of sale solution that includes:
 
 This repository is organized into the following main directories:
 
-- **frontend/**: Contains all frontend code
+- **frontend/**: Contains all frontend code (Static HTML/CSS/JS)
   - **public/**: Static assets and HTML pages
     - **css/**: Stylesheets (using standard naming conventions)
-    - **js/**: JavaScript files
-    - **images/**: Image assets for UI elements and icons
+    - **js/**: JavaScript files for client-side functionality
+    - **images/**: Organized image assets
+      - **logos/**: Brand logos and favicons
+      - **icons/**: UI icons and feature illustrations
+      - **avatars/**: User profile and testimonial images
+      - **screenshots/**: Product showcase images
     - **pages/**: HTML pages for different sections of the application
-  - **src/**: React components and source code (for future development)
+  - **package.json**: Frontend dependencies (minimal for static site)
 
 - **backend/**: Contains all server-side code
   - **config/**: Configuration files including OAuth settings
@@ -34,9 +38,23 @@ This repository is organized into the following main directories:
   - **utils/**: Utility functions
   - **logs/**: System and security logs
 
+## Technology Stack
+
+### Frontend
+- **HTML5/CSS3/JavaScript**: Core frontend technologies
+- **Static Site**: No framework dependencies for optimal performance
+- **Responsive Design**: Mobile-first approach
+
+### Backend
+- **Node.js**: Server runtime
+- **Express.js**: Web framework
+- **MongoDB**: Database with Atlas cloud hosting
+- **JWT**: Authentication tokens
+- **Google OAuth**: Third-party authentication
+
 ## Security Features
 
-NeoPOS implements multiple layers of security:
+Smart POS implements multiple layers of security:
 
 - JWT authentication
 - Google OAuth integration

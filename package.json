@@ -1,24 +1,20 @@
 {
-  "scripts": {
-    "start": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "cd Backend && node server.js",
-    "client": "cd Frontend && npm start"
-  },
-  "dependencies": {
-    "bcryptjs": "^3.0.2",
-    "cookie-parser": "^1.4.7",
-    "express": "^5.1.0",
-    "express-rate-limit": "^7.5.0",
-    "helmet": "^8.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "winston": "^3.17.0"
-  },
   "name": "smart-pos-system",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Smart Point of Sale System - A modern POS solution for retail businesses",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && node server.js",
+    "client": "cd frontend && npm start",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "install-deps": "npm install && cd backend && npm install && cd ../frontend && npm install"
+  },
+  "dependencies": {
+    "concurrently": "^9.1.0"
+  },
   "devDependencies": {},
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "keywords": ["pos", "point-of-sale", "retail", "inventory", "sales"],
+  "author": "Dipesh Mahat",
+  "license": "MIT"
 }
