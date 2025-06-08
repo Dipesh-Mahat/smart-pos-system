@@ -127,9 +127,8 @@ function addBackButton() {
 
 // Update profile icon
 function updateProfileIcon() {
-    const profileIcon = document.querySelector('.profile-icon');
-    if (profileIcon) {
-        profileIcon.innerHTML = '<img src="images/profile.png" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">';
+    const profileIcon = document.querySelector('.profile-icon');    if (profileIcon) {
+        profileIcon.innerHTML = '<img src="images/avatars/user-avatar.png" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">';
     }
 }
 
