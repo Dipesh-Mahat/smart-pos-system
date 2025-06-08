@@ -129,7 +129,7 @@ function addBackButton() {
 function updateProfileIcon() {
     const profileIcon = document.querySelector('.profile-icon');
     if (profileIcon) {
-        profileIcon.innerHTML = '<img src="images/user-avatar.png" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">';
+        profileIcon.innerHTML = '<img src="images/profile.png" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">';
     }
 }
 
@@ -151,4 +151,3 @@ document.addEventListener('DOMContentLoaded', () => {
         addBackButton();
     }
 }); 
-
