@@ -3,261 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoPOS - Add Item</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Smart POS - Add Item</title>
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Form styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 300px;
+            padding: 30px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+
+        .content-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .page-title i {
+            color: #667eea;
+        }
+
         .form-container {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
-            background: #f8f9fa;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
         }
 
         .form-group {
-            margin-bottom: 24px;
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
+            margin-bottom: 25px;
         }
 
-        .form-group:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
+        .form-group.full-width {
+            grid-column: 1 / -1;
         }
 
         .form-group label {
             display: block;
             font-size: 16px;
             font-weight: 600;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             color: #2c3e50;
         }
 
-        .form-group input {
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
             width: 100%;
-            padding: 12px 16px;
+            padding: 15px;
             border: 2px solid #e9ecef;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 16px;
             transition: all 0.3s ease;
-            background-color: #f8f9fa;
+            background: rgba(255, 255, 255, 0.9);
+            box-sizing: border-box;
         }
 
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
             outline: none;
-            border-color: #007bff;
-            background-color: white;
-            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .form-group .input-group {
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon input {
+            padding-right: 50px;
+        }
+
+        .input-with-icon .icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .input-with-icon .icon:hover {
+            color: #5a6fd8;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .image-upload-container {
+            border: 2px dashed #e9ecef;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-upload-container:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .image-upload-container.has-image {
+            padding: 0;
+            border-style: solid;
+        }
+
+        .image-upload-container img {
+            max-width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .upload-placeholder {
+            color: #6c757d;
+        }
+
+        .upload-placeholder i {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .upload-placeholder h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+
+        .upload-placeholder p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .toggle-switch {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
+            margin-top: 10px;
         }
 
-        .form-group .input-group input {
-            flex: 1;
-        }
-
-        .form-group .input-group .toggle {
+        .toggle {
             position: relative;
-            width: 50px;
-            height: 26px;
+            width: 60px;
+            height: 30px;
         }
 
-        .form-group .input-group .toggle input {
+        .toggle input {
             opacity: 0;
             width: 0;
             height: 0;
         }
 
-        .form-group .input-group .toggle .slider {
+        .slider {
             position: absolute;
             cursor: pointer;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #e9ecef;
-            transition: .4s;
-            border-radius: 34px;
+            background: #e9ecef;
+            transition: 0.4s;
+            border-radius: 30px;
         }
 
-        .form-group .input-group .toggle .slider:before {
+        .slider:before {
             position: absolute;
             content: "";
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background: white;
+            transition: 0.4s;
             border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        .form-group .input-group .toggle input:checked + .slider {
-            background-color: #007bff;
+        .toggle input:checked + .slider {
+            background: #667eea;
         }
 
-        .form-group .input-group .toggle input:checked + .slider:before {
-            transform: translateX(24px);
+        .toggle input:checked + .slider:before {
+            transform: translateX(30px);
         }
 
-        .barcode-group {
-            position: relative;
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
         }
 
-        .barcode-icon {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .barcode-icon:hover {
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .save-button {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
+        .btn {
+            padding: 15px 40px;
             border: none;
-            padding: 16px 64px;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,123,255,0.2);
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
         }
 
-        .save-button:hover {
-            transform: translateX(-50%) translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,123,255,0.3);
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
-        .save-button:active {
-            transform: translateX(-50%) translateY(0);
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .page-title {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 32px;
-            color: #2c3e50;
-            text-align: center;
+        .btn-secondary {
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(108, 117, 125, 0.2);
+            border-color: #6c757d;
         }
 
         .form-description {
             font-size: 14px;
             color: #6c757d;
-            margin-top: 4px;
-        }
-
-        /* Image upload styles */
-        .image-upload-container {
-            position: relative;
-            width: 100%;
-            height: 200px;
-            border: 2px dashed #e9ecef;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-            overflow: hidden;
-        }
-
-        .image-upload-container:hover {
-            border-color: #007bff;
-            background: #f1f8ff;
-        }
-
-        .image-upload-container img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-
-        .image-upload-placeholder {
-            text-align: center;
-            color: #6c757d;
-        }
-
-        .image-upload-placeholder svg {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 12px;
-            color: #007bff;
-        }
-
-        .image-upload-text {
-            font-size: 14px;
             margin-top: 8px;
+            font-style: italic;
         }
 
-        .image-options {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            padding: 24px;
-            border-radius: 24px 24px 0 0;
-            box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
+        .price-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
 
-        .image-options.active {
-            transform: translateY(0);
-        }
-
-        .image-option {
-            display: flex;
-            align-items: center;
-            padding: 16px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 12px;
-        }
-
-        .image-option:last-child {
-            margin-bottom: 0;
-        }
-
-        .image-option:hover {
-            background: #f8f9fa;
-        }
-
-        .image-option-icon {
-            width: 24px;
-            height: 24px;
-            margin-right: 16px;
-            color: #007bff;
-        }
-
-        .image-option-text {
-            font-size: 16px;
-            font-weight: 500;
-            color: #2c3e50;
+        @media (max-width: 480px) {
+            .price-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
 
         .overlay {
@@ -266,160 +313,343 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.7);
             display: none;
-            z-index: 999;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
         }
 
         .overlay.active {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-options {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .options-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .image-option {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .image-option:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .image-option i {
+            font-size: 24px;
+            color: #667eea;
+            width: 30px;
+        }
+
+        .image-option span {
+            font-size: 16px;
+            font-weight: 500;
+            color: #2c3e50;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="menu-icon" id="menuIcon">☰</div>
-            <div class="app-title">NeoPOS</div>
-            <div class="header-icons">
-                <div class="notification-icon">🔔</div>
-                <div class="profile-icon" onclick="window.location.href='profile.html'">👤</div>
-            </div>
+    <div class="main-content">
+        <div class="content-header">
+            <h1 class="page-title">
+                <i class="fas fa-plus-circle"></i>
+                Add New Item
+            </h1>
         </div>
 
         <div class="form-container">
-            <div class="page-title">Add New Item</div>
-            <form>
-                <div class="form-group">
-                    <label>Product Image (Optional)</label>
+            <form id="addItemForm">
+                <div class="form-group full-width">
+                    <label>Product Image</label>
                     <div class="image-upload-container" id="imageUpload">
-                        <div class="image-upload-placeholder">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                <polyline points="21 15 16 10 5 21"></polyline>
-                            </svg>
-                            <div class="image-upload-text">Click to add product image</div>
+                        <div class="upload-placeholder">
+                            <i class="fas fa-image"></i>
+                            <h4>Upload Product Image</h4>
+                            <p>Click to add an image of your product</p>
                         </div>
+                    </div>
+                    <div class="form-description">Optional: Add a product image for better identification</div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="itemName">Item Name *</label>
+                        <input type="text" id="itemName" placeholder="Enter item name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category">
+                            <option value="">Select category</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="clothing">Clothing</option>
+                            <option value="food">Food & Beverages</option>
+                            <option value="books">Books</option>
+                            <option value="health">Health & Beauty</option>
+                            <option value="home">Home & Garden</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quantity">Initial Quantity *</label>
+                        <input type="number" id="quantity" placeholder="Enter quantity" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="unit">Unit of Measurement</label>
+                        <select id="unit">
+                            <option value="pieces">Pieces</option>
+                            <option value="kg">Kilograms</option>
+                            <option value="grams">Grams</option>
+                            <option value="liters">Liters</option>
+                            <option value="ml">Milliliters</option>
+                            <option value="meters">Meters</option>
+                            <option value="cm">Centimeters</option>
+                        </select>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="itemName">Item Name</label>
-                    <input type="text" id="itemName" placeholder="Enter item name" required>
+                    <label>Pricing Information</label>
+                    <div class="price-group">
+                        <div>
+                            <label for="costPrice">Cost Price *</label>
+                            <input type="number" id="costPrice" placeholder="0.00" step="0.01" min="0" required>
+                        </div>
+                        <div>
+                            <label for="sellPrice">Selling Price *</label>
+                            <input type="number" id="sellPrice" placeholder="0.00" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="discount">Discount (%)</label>
+                        <input type="number" id="discount" placeholder="0" min="0" max="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expDate">Expiration Date</label>
+                        <input type="date" id="expDate">
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="quantity">Quantity</label>
-                    <input type="number" id="quantity" placeholder="Enter quantity" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="costPrice">Cost Price</label>
-                    <input type="number" id="costPrice" placeholder="Enter cost price" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="sellPrice">Sell Price</label>
-                    <input type="number" id="sellPrice" placeholder="Enter sell price" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="discount">Discount (%)</label>
-                    <input type="number" id="discount" placeholder="Enter discount percentage">
-                </div>
-
-                <div class="form-group">
-                    <label for="expDate">Expiration Date</label>
-                    <input type="date" id="expDate" placeholder="Select expiration date">
+                    <label for="barCode">Barcode</label>
+                    <div class="input-with-icon">
+                        <input type="text" id="barCode" placeholder="Enter or scan barcode">
+                        <i class="fas fa-barcode icon" title="Scan barcode"></i>
+                    </div>
+                    <div class="form-description">Enter manually or click the barcode icon to scan</div>
                 </div>
 
                 <div class="form-group">
                     <label>Low Stock Alert</label>
-                    <div class="input-group">
-                        <input type="number" id="lowStockThreshold" placeholder="Enter low stock threshold">
+                    <div class="input-with-icon">
+                        <input type="number" id="lowStockThreshold" placeholder="Enter minimum quantity" min="0">
+                    </div>
+                    <div class="toggle-switch">
+                        <span>Enable notifications</span>
                         <label class="toggle">
                             <input type="checkbox" id="enableLowStock">
                             <span class="slider"></span>
                         </label>
                     </div>
-                    <div class="form-description">Enable to receive notifications when stock falls below this threshold</div>
+                    <div class="form-description">Get notified when stock falls below the threshold</div>
                 </div>
 
-                <div class="form-group barcode-group">
-                    <label for="barCode">Barcode</label>
-                    <input type="text" id="barCode" placeholder="Enter barcode">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAEMSURBVDiNldMxS0JRGMbx/3tvdnOQIHAxIVqiwaYQxKBFaGpwCcKlrU/QJ2hqcG9w9BsULU3NFg0RQaOLBEEhJTQ4qPc0qFd7r3qmc877Puc5nPOKqtLaBd6BPCCt0wBWVDXyAcrlchaRfaCgqq5tEwFE5NI0zQUfOABuWkASqAG5/4ACOFbVqg+EQBmoAQsWgQ1V/fIBN5lcxqYFkZ6q/vw5kU2gCixZBLZV9d0Hwp9ayRZwCKxYBA5U9dEHasAGkLAEHKvqkw8kgBMgZwk4V9VnH0gBZ8C6BeBSVV98wAHOgU0LwI2qvvpAGrgAti0AZRFxW0AY2AV2/jF+qKqvzZU+gCwwsYQNgTdVHf8CRyiV7KLvQEAAAAAASUVORK5CYII=" alt="Barcode" class="barcode-icon">
+                <div class="form-group full-width">
+                    <label for="description">Description</label>
+                    <textarea id="description" rows="4" placeholder="Enter product description (optional)"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Save Item
+                    </button>
                 </div>
             </form>
-
-            <button class="save-button">Save Item</button>
         </div>
-
-        <!-- Image Options Overlay -->
-        <div class="overlay" id="overlay"></div>
-        <div class="image-options" id="imageOptions">
-            <div class="image-option" id="cameraOption">
-                <svg class="image-option-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                    <circle cx="12" cy="13" r="4"></circle>
-                </svg>
-                <span class="image-option-text">Take Photo</span>
-            </div>
-            <div class="image-option" id="galleryOption">
-                <svg class="image-option-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                    <polyline points="21 15 16 10 5 21"></polyline>
-                </svg>
-                <span class="image-option-text">Choose from Gallery</span>
-            </div>
-        </div>
-
-        <!-- Side Menu -->
-        <div class="side-menu" id="sideMenu">
-            <div class="menu-items">
-                <div class="menu-item">
-                    <div class="menu-icon-folder">📁</div>
-                    <div class="menu-text">Dashboard</div>
-                </div>
-                <div class="menu-item">
-                    <div class="menu-icon-folder">📁</div>
-                    <div class="menu-text"><a href="store-management.html">Store Management</a></div>
-                </div>
-                <div class="menu-item">
-                    <div class="menu-icon-folder">📁</div>
-                    <div class="menu-text">Inventory</div>
-                </div>
-                <div class="menu-item">
-                    <div class="menu-icon-folder">📁</div>
-                    <div class="menu-text">Transactions</div>
-                </div>
-                <div class="menu-item">
-                    <div class="menu-icon-folder">📁</div>
-                    <div class="menu-text">Analytics & Report</div>
-                </div>
-                <div class="menu-item">
-                    <div class="menu-icon-folder">📁</div>
-                    <div class="menu-text">Suppliers</div>
-                </div>
-                <div class="menu-item">
-                    <div class="menu-icon-folder">📁</div>
-                    <div class="menu-text">Settings</div>
-                </div>
-                <div class="menu-item">
-                    <div class="menu-icon-folder">📁</div>
-                    <div class="menu-text">Add Expense</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Overlay for menu -->
-        <div class="menu-overlay" id="menuOverlay"></div>
     </div>
 
-    <script src="sidebar.js"></script>
+    <!-- Image Options Modal -->
+    <div class="overlay" id="overlay">
+        <div class="image-options">
+            <h3 class="options-title">Select Image Source</h3>
+            <div class="image-option" id="cameraOption">
+                <i class="fas fa-camera"></i>
+                <span>Take Photo</span>
+            </div>
+            <div class="image-option" id="galleryOption">
+                <i class="fas fa-image"></i>
+                <span>Choose from Gallery</span>
+            </div>
+            <div class="image-option" onclick="closeImageOptions()">
+                <i class="fas fa-times"></i>
+                <span>Cancel</span>
+            </div>
+        </div>
+    </div>    <script src="../js/menu.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageUpload = document.getElementById('imageUpload');
+            const overlay = document.getElementById('overlay');
+            const cameraOption = document.getElementById('cameraOption');
+            const galleryOption = document.getElementById('galleryOption');
+            const addItemForm = document.getElementById('addItemForm');
+            
+            // Image upload functionality
+            imageUpload.addEventListener('click', function() {
+                overlay.classList.add('active');
+            });
+
+            // Camera option
+            cameraOption.addEventListener('click', function() {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(stream) {
+                        // Camera functionality would be implemented here
+                        alert('Camera functionality would be implemented here');
+                        stream.getTracks().forEach(track => track.stop());
+                    })
+                    .catch(function(err) {
+                        alert('Camera access denied or not available');
+                    });
+                closeImageOptions();
+            });
+
+            // Gallery option
+            galleryOption.addEventListener('click', function() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            imageUpload.innerHTML = `<img src="${e.target.result}" alt="Product Image">`;
+                            imageUpload.classList.add('has-image');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+                input.click();
+                closeImageOptions();
+            });
+
+            // Barcode scanner simulation
+            document.querySelector('.fa-barcode').addEventListener('click', function() {
+                // Simulate barcode scanning
+                const randomBarcode = Math.floor(Math.random() * 1000000000000);
+                document.getElementById('barCode').value = randomBarcode;
+                
+                // Show success message
+                const icon = this;
+                icon.classList.remove('fa-barcode');
+                icon.classList.add('fa-check');
+                icon.style.color = '#28a745';
+                
+                setTimeout(() => {
+                    icon.classList.remove('fa-check');
+                    icon.classList.add('fa-barcode');
+                    icon.style.color = '#667eea';
+                }, 2000);
+            });
+
+            // Form submission
+            addItemForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form data
+                const formData = {
+                    itemName: document.getElementById('itemName').value,
+                    category: document.getElementById('category').value,
+                    quantity: document.getElementById('quantity').value,
+                    unit: document.getElementById('unit').value,
+                    costPrice: document.getElementById('costPrice').value,
+                    sellPrice: document.getElementById('sellPrice').value,
+                    discount: document.getElementById('discount').value,
+                    expDate: document.getElementById('expDate').value,
+                    barCode: document.getElementById('barCode').value,
+                    lowStockThreshold: document.getElementById('lowStockThreshold').value,
+                    enableLowStock: document.getElementById('enableLowStock').checked,
+                    description: document.getElementById('description').value
+                };
+
+                // Validate required fields
+                if (!formData.itemName || !formData.quantity || !formData.costPrice || !formData.sellPrice) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+
+                // Show success message
+                alert('Item added successfully!');
+                
+                // Redirect to inventory page
+                window.location.href = 'inventory.html';
+            });
+
+            // Auto-calculate profit margin
+            const costPrice = document.getElementById('costPrice');
+            const sellPrice = document.getElementById('sellPrice');
+            
+            function updateProfitInfo() {
+                const cost = parseFloat(costPrice.value) || 0;
+                const sell = parseFloat(sellPrice.value) || 0;
+                
+                if (cost > 0 && sell > 0) {
+                    const profit = sell - cost;
+                    const margin = ((profit / sell) * 100).toFixed(1);
+                    
+                    // You could display this information somewhere in the UI
+                    console.log(`Profit: $${profit.toFixed(2)}, Margin: ${margin}%`);
+                }
+            }
+            
+            costPrice.addEventListener('input', updateProfitInfo);
+            sellPrice.addEventListener('input', updateProfitInfo);
+        });
+
+        function closeImageOptions() {
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('overlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeImageOptions();
+            }
+        });
+    </script>
         document.addEventListener('DOMContentLoaded', function() {
             const imageUpload = document.getElementById('imageUpload');
             const imageOptions = document.getElementById('imageOptions');

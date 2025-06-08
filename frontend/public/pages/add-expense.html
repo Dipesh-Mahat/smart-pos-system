@@ -3,318 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoPOS - Add Expense</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Smart POS - Add Expense</title>
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
         .main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background-color: #fff;
+            margin-left: 300px;
+            padding: 40px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
         }
 
-        .profile-icon img {
-            width: 24px;
-            height: 24px;
-            object-fit: contain;
-        }
-
-        .expense-form {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #333;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-
-        .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .submit-button {
-            background-color: #007bff;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.2s;
-        }
-
-        .submit-button:hover {
-            background-color: #0056b3;
-        }
-
-        .page-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .menu-icon {
-            font-size: 24px;
-            cursor: pointer;
-            padding: 12px;
-            margin: -12px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            color: #2c3e50;
-        }
-
-        .menu-icon:hover {
-            background-color: #f8f9fa;
-            transform: scale(1.05);
-        }
-
-        .side-menu {
-            position: fixed;
-            top: 0;
-            left: -300px;
-            width: 300px;
-            height: 100vh;
-            background: white;
-            z-index: 1000;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 4px 0 16px rgba(0,0,0,0.1);
-            overflow-y: auto;
-        }
-
-        .side-menu.open {
-            left: 0;
-            box-shadow: 8px 0 24px rgba(0,0,0,0.15);
-        }
-
-        .side-menu.collapsed {
-            transform: translateX(-100%);
-        }
-
-        .menu-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(4px);
-        }
-
-        .menu-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .menu-items {
-            padding: 16px;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
-            color: #2c3e50;
-            text-decoration: none;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .menu-item:hover {
-            background-color: #f8f9fa;
-            transform: translateX(8px);
-        }
-
-        .menu-icon-folder {
-            margin-right: 16px;
-            font-size: 22px;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.3s ease;
-        }
-
-        .menu-item:hover .menu-icon-folder {
-            transform: scale(1.1);
-        }
-
-        .menu-text {
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .menu-text a {
-            color: #2c3e50;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .menu-item:hover .menu-text a {
-            color: #007bff;
-        }
-
-        @media screen and (min-width: 1024px) {
-            .side-menu {
-                left: 0;
-                box-shadow: none;
-                border-right: 1px solid #e9ecef;
-                transition: transform 0.3s ease;
-            }
-
-            .side-menu.collapsed {
-                transform: translateX(-100%);
-            }
-
-            .menu-icon {
-                display: flex !important;
-                position: fixed;
-                top: 16px;
-                left: 16px;
-                z-index: 1002;
-            }
-
-            .menu-overlay {
-                display: none !important;
-            }
-
-            .close-menu {
-                display: flex !important;
-                position: absolute;
-                top: 16px;
-                right: 16px;
-                z-index: 1002;
-            }
-
+        @media (max-width: 768px) {
             .main-content {
-                margin-left: 300px;
-                transition: margin-left 0.3s ease;
-            }
-
-            .main-content.expanded {
                 margin-left: 0;
+                padding: 20px;
             }
         }
 
-        .menu-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .menu-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .close-menu {
-            font-size: 24px;
-            color: #6c757d;
-            cursor: pointer;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .close-menu:hover {
-            background-color: #f8f9fa;
-            color: #2c3e50;
-            transform: scale(1.1);
-        }
-
-        /* Enhanced form styles */
-        .expense-form {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 32px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .page-title {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 32px;
-            color: #2c3e50;
+        .page-header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
             text-align: center;
         }
 
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .page-subtitle {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+        }
+
+        .expense-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .expense-form-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .expense-form-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .form-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .form-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .form-icon i {
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .form-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
         .form-group {
-            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: 600;
-            color: #2c3e50;
-            font-size: 16px;
+            color: #333;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
         }
 
-        .form-group input, 
+        .form-group label i {
+            margin-right: 8px;
+            color: #667eea;
+            width: 16px;
+        }
+
+        .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 12px 16px;
+            padding: 15px 20px;
             border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 12px;
+            font-size: 1rem;
             transition: all 0.3s ease;
-            background-color: #f8f9fa;
+            background: rgba(255, 255, 255, 0.8);
+            box-sizing: border-box;
         }
 
-        .form-group input:focus, 
+        .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
-            border-color: #007bff;
-            background-color: white;
-            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
             outline: none;
+            transform: translateY(-1px);
         }
 
         .form-group textarea {
@@ -322,237 +164,587 @@
             resize: vertical;
         }
 
-        .submit-button {
-            background: linear-gradient(135deg, #007bff, #0056b3);
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .expense-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .category-option {
+            position: relative;
+        }
+
+        .category-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .category-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .category-label:hover {
+            background: rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .category-option input[type="radio"]:checked + .category-label {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 14px 28px;
+            border-color: #667eea;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .category-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .category-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .submit-section {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .submit-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 18px 40px;
+            border-radius: 12px;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            width: 100%;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,123,255,0.2);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 180px;
+            justify-content: center;
         }
 
         .submit-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,123,255,0.3);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
         }
 
         .submit-button:active {
             transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
         }
 
-        /* Enhanced header styles */
-        .header {
-            background: linear-gradient(to right, #ffffff, #f8f9fa);
-            padding: 16px 20px;
+        .cancel-button {
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+            border: 2px solid rgba(108, 117, 125, 0.2);
+            padding: 18px 40px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 180px;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .cancel-button:hover {
+            background: rgba(108, 117, 125, 0.15);
+            color: #495057;
+            transform: translateY(-1px);
+        }
+
+        .quick-amounts {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .quick-amount {
+            padding: 8px 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .quick-amount:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: scale(1.05);
+        }
+
+        .recent-expenses {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .recent-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .recent-header i {
+            font-size: 1.5rem;
+            color: #667eea;
+            margin-right: 10px;
+        }
+
+        .recent-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .recent-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .recent-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .app-title {
-            font-size: 24px;
+        .recent-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(5px);
+        }
+
+        .recent-info h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .recent-info p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .recent-amount {
             font-weight: 700;
-            color: #1a1a1a;
-            letter-spacing: 0.5px;
+            color: #667eea;
+            font-size: 1.1rem;
         }
 
-        .header-icons {
+        .form-helper {
+            background: rgba(255, 243, 205, 0.3);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
             display: flex;
-            gap: 16px;
             align-items: center;
         }
 
-        .notification-icon {
-            font-size: 20px;
-            color: #2c3e50;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-            padding: 8px;
-            border-radius: 50%;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        .form-helper i {
+            color: #ffc107;
+            margin-right: 10px;
+            font-size: 1.2rem;
         }
 
-        .notification-icon:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .form-helper-text {
+            color: #856404;
+            font-size: 0.95rem;
         }
 
-        .profile-icon img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #e9ecef;
-            transition: border-color 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
 
-        .profile-icon img:hover {
-            border-color: #007bff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .expense-categories {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .submit-section {
+                flex-direction: column;
+            }
+
+            .submit-button,
+            .cancel-button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="menu-icon" id="menuIcon">☰</div>
-            <div class="app-title">Add Expense</div>
-            <div class="header-icons">
-                <div class="notification-icon">🔔</div>
-                <div class="profile-icon"><img src="photo/Profile.png" alt="Profile"></div>
-            </div>
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-plus-circle"></i>
+                Add Expense
+            </h1>
+            <p class="page-subtitle">Record and track your business expenses efficiently</p>
         </div>
 
-        <div class="main-content">
-            <div class="expense-form">
-                <div class="page-title">Add New Expense</div>
-                <form>
-                    <div class="form-group">
-                        <label for="expense-title">Expense Title</label>
-                        <input type="text" id="expense-title" placeholder="Enter expense title" required>
+        <div class="expense-container">
+            <div class="expense-form-container">
+                <div class="form-header">
+                    <div class="form-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <h2 class="form-title">New Expense Entry</h2>
+                </div>
+
+                <div class="form-helper">
+                    <i class="fas fa-lightbulb"></i>
+                    <div class="form-helper-text">
+                        Fill in all required fields to accurately track your business expenses. This helps with financial reporting and tax preparation.
+                    </div>
+                </div>
+
+                <form id="expenseForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="expense-title">
+                                <i class="fas fa-tag"></i>
+                                Expense Title *
+                            </label>
+                            <input type="text" id="expense-title" placeholder="e.g., Office rent payment" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="expense-amount">
+                                <i class="fas fa-dollar-sign"></i>
+                                Amount *
+                            </label>
+                            <div class="quick-amounts">                                <span class="quick-amount" onclick="setAmount(5500)">NPR 5,500</span>
+                                <span class="quick-amount" onclick="setAmount(11000)">NPR 11,000</span>
+                                <span class="quick-amount" onclick="setAmount(27500)">NPR 27,500</span>
+                                <span class="quick-amount" onclick="setAmount(55000)">NPR 55,000</span>
+                            </div>
+                            <input type="number" id="expense-amount" placeholder="0.00" step="0.01" min="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="expense-date">
+                                <i class="fas fa-calendar"></i>
+                                Date *
+                            </label>
+                            <input type="date" id="expense-date" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="payment-method">
+                                <i class="fas fa-credit-card"></i>
+                                Payment Method
+                            </label>
+                            <select id="payment-method">
+                                <option value="">Select payment method</option>
+                                <option value="cash">Cash</option>
+                                <option value="credit-card">Credit Card</option>
+                                <option value="debit-card">Debit Card</option>
+                                <option value="bank-transfer">Bank Transfer</option>
+                                <option value="check">Check</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="expense-amount">Amount</label>
-                        <input type="number" id="expense-amount" placeholder="Enter amount" required>
+                    <div class="form-group full-width">
+                        <label>
+                            <i class="fas fa-list"></i>
+                            Expense Category *
+                        </label>
+                        <div class="expense-categories">
+                            <div class="category-option">
+                                <input type="radio" id="utilities" name="category" value="utilities" required>
+                                <label for="utilities" class="category-label">
+                                    <div class="category-icon">⚡</div>
+                                    <div class="category-name">Utilities</div>
+                                </label>
+                            </div>
+                            <div class="category-option">
+                                <input type="radio" id="rent" name="category" value="rent" required>
+                                <label for="rent" class="category-label">
+                                    <div class="category-icon">🏢</div>
+                                    <div class="category-name">Rent</div>
+                                </label>
+                            </div>
+                            <div class="category-option">
+                                <input type="radio" id="supplies" name="category" value="supplies" required>
+                                <label for="supplies" class="category-label">
+                                    <div class="category-icon">📦</div>
+                                    <div class="category-name">Supplies</div>
+                                </label>
+                            </div>
+                            <div class="category-option">
+                                <input type="radio" id="maintenance" name="category" value="maintenance" required>
+                                <label for="maintenance" class="category-label">
+                                    <div class="category-icon">🔧</div>
+                                    <div class="category-name">Maintenance</div>
+                                </label>
+                            </div>
+                            <div class="category-option">
+                                <input type="radio" id="marketing" name="category" value="marketing" required>
+                                <label for="marketing" class="category-label">
+                                    <div class="category-icon">📢</div>
+                                    <div class="category-name">Marketing</div>
+                                </label>
+                            </div>
+                            <div class="category-option">
+                                <input type="radio" id="travel" name="category" value="travel" required>
+                                <label for="travel" class="category-label">
+                                    <div class="category-icon">✈️</div>
+                                    <div class="category-name">Travel</div>
+                                </label>
+                            </div>
+                            <div class="category-option">
+                                <input type="radio" id="other" name="category" value="other" required>
+                                <label for="other" class="category-label">
+                                    <div class="category-icon">📝</div>
+                                    <div class="category-name">Other</div>
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="expense-category">Category</label>
-                        <select id="expense-category" required>
-                            <option value="">Select category</option>
-                            <option value="utilities">Utilities</option>
-                            <option value="rent">Rent</option>
-                            <option value="supplies">Supplies</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="other">Other</option>
-                        </select>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="vendor">
+                                <i class="fas fa-store"></i>
+                                Vendor/Supplier
+                            </label>
+                            <input type="text" id="vendor" placeholder="e.g., Electric Company">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reference">
+                                <i class="fas fa-hashtag"></i>
+                                Reference Number
+                            </label>
+                            <input type="text" id="reference" placeholder="Invoice/Receipt number">
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="expense-date">Date</label>
-                        <input type="date" id="expense-date" required>
+                    <div class="form-group full-width">
+                        <label for="expense-description">
+                            <i class="fas fa-align-left"></i>
+                            Description/Notes
+                        </label>
+                        <textarea id="expense-description" placeholder="Additional details about this expense..."></textarea>
                     </div>
 
-                    <div class="form-group">
-                        <label for="expense-description">Description</label>
-                        <textarea id="expense-description" placeholder="Enter expense description"></textarea>
+                    <div class="submit-section">
+                        <button type="submit" class="submit-button">
+                            <i class="fas fa-save"></i>
+                            Add Expense
+                        </button>
+                        <a href="dashboard.html" class="cancel-button">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </a>
                     </div>
-
-                    <button type="submit" class="submit-button">Add Expense</button>
                 </form>
             </div>
-        </div>
-    </div>
 
-    <!-- Side Menu -->
-    <div class="side-menu" id="sideMenu">
-        <div class="menu-header">
-            <div class="menu-title">Menu</div>
-            <div class="close-menu" id="closeMenu">×</div>
-        </div>
-        <div class="menu-items">
-            <div class="menu-item">
-                <div class="menu-icon-folder">📊</div>
-                <div class="menu-text"><a href="index.html">Dashboard</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">📦</div>
-                <div class="menu-text"><a href="inventory.html">Inventory</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">🔄</div>
-                <div class="menu-text"><a href="transactions.html">Transactions</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">📈</div>
-                <div class="menu-text"><a href="report.html">Analytics & Report</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">🤝</div>
-                <div class="menu-text"><a href="suppliers.html">Suppliers</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">⚙️</div>
-                <div class="menu-text"><a href="settings.html">Settings</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">💸</div>
-                <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
+            <!-- Recent Expenses -->
+            <div class="recent-expenses">
+                <div class="recent-header">
+                    <i class="fas fa-history"></i>
+                    <h3 class="recent-title">Recent Expenses</h3>
+                </div>
+                <div class="recent-list">
+                    <div class="recent-item" onclick="fillFromRecent('Office Rent', 2500, 'rent')">
+                        <div class="recent-info">
+                            <h4>Office Rent</h4>
+                            <p>Monthly office rental payment</p>
+                        </div>
+                        <div class="recent-amount">NPR 2,500.00</div>
+                    </div>
+                    <div class="recent-item" onclick="fillFromRecent('Electricity Bill', 180, 'utilities')">
+                        <div class="recent-info">
+                            <h4>Electricity Bill</h4>
+                            <p>Monthly electricity payment</p>
+                        </div>
+                        <div class="recent-amount">NPR 180.00</div>
+                    </div>
+                    <div class="recent-item" onclick="fillFromRecent('Office Supplies', 65, 'supplies')">
+                        <div class="recent-info">
+                            <h4>Office Supplies</h4>
+                            <p>Stationery and printing materials</p>
+                        </div>
+                        <div class="recent-amount">NPR 65.00</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Overlay for menu -->
-    <div class="menu-overlay" id="menuOverlay"></div>
-
+    <script src="../js/menu.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuIcon = document.getElementById('menuIcon');
-            const sideMenu = document.getElementById('sideMenu');
-            const menuOverlay = document.getElementById('menuOverlay');
-            const closeMenu = document.getElementById('closeMenu');
-            const mainContent = document.querySelector('.main-content');
-            
-            function openMenu() {
-                sideMenu.classList.add('open');
-                sideMenu.classList.remove('collapsed');
-                menuOverlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                if (window.innerWidth >= 1024) {
-                    mainContent.classList.remove('expanded');
-                }
-            }
+        // Set today's date as default
+        document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
 
-            function closeMenuHandler() {
-                if (window.innerWidth >= 1024) {
-                    sideMenu.classList.add('collapsed');
-                    mainContent.classList.add('expanded');
-                } else {
-                    sideMenu.classList.remove('open');
-                    menuOverlay.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            }
-            
-            menuIcon.addEventListener('click', openMenu);
-            closeMenu.addEventListener('click', closeMenuHandler);
-            menuOverlay.addEventListener('click', closeMenuHandler);
+        function setAmount(amount) {
+            document.getElementById('expense-amount').value = amount;
+            document.getElementById('expense-amount').focus();
+        }
 
-            // Handle window resize
-            function handleResize() {
-                if (window.innerWidth >= 1024) {
-                    sideMenu.classList.add('open');
-                    menuOverlay.classList.remove('active');
-                    menuIcon.style.display = 'flex';
-                    closeMenu.style.display = 'flex';
+        function fillFromRecent(title, amount, category) {
+            document.getElementById('expense-title').value = title;
+            document.getElementById('expense-amount').value = amount;
+            document.getElementById(category).checked = true;
+            
+            // Scroll to top of form
+            document.querySelector('.expense-form-container').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+
+        document.getElementById('expenseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                title: document.getElementById('expense-title').value,
+                amount: parseFloat(document.getElementById('expense-amount').value),
+                category: document.querySelector('input[name="category"]:checked').value,
+                date: document.getElementById('expense-date').value,
+                paymentMethod: document.getElementById('payment-method').value,
+                vendor: document.getElementById('vendor').value,
+                reference: document.getElementById('reference').value,
+                description: document.getElementById('expense-description').value
+            };
+
+            // Show loading state
+            const submitButton = document.querySelector('.submit-button');
+            const originalText = submitButton.innerHTML;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding Expense...';
+            submitButton.disabled = true;
+
+            // Simulate API call
+            setTimeout(() => {
+                submitButton.innerHTML = '<i class="fas fa-check"></i> Expense Added!';
+                submitButton.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+                
+                setTimeout(() => {
+                    // Reset form
+                    document.getElementById('expenseForm').reset();
+                    document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
                     
-                    // Reset mobile-specific classes
-                    sideMenu.classList.remove('collapsed');
-                    mainContent.classList.remove('expanded');
-                } else {
-                    if (!sideMenu.classList.contains('open')) {
-                        sideMenu.classList.remove('open');
-                        menuIcon.style.display = 'flex';
-                        closeMenu.style.display = 'flex';
-                    }
-                    // Reset desktop-specific classes
-                    sideMenu.classList.remove('collapsed');
-                    mainContent.classList.remove('expanded');
-                }
-            }
+                    // Reset button
+                    submitButton.innerHTML = originalText;
+                    submitButton.style.background = '';
+                    submitButton.disabled = false;
+                    
+                    // Show success notification
+                    showNotification('Expense added successfully!', 'success');
+                }, 2000);
+            }, 1500);
+        });
 
-            handleResize();
-            window.addEventListener('resize', handleResize);
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 1000;
+                font-weight: 500;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+
+            // Add animation styles
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+
+            document.body.appendChild(notification);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+                style.remove();
+            }, 3000);
+        }
+
+        // Auto-format amount input
+        document.getElementById('expense-amount').addEventListener('input', function(e) {
+            let value = e.target.value;
+            if (value && !isNaN(value)) {
+                e.target.value = parseFloat(value).toFixed(2);
+            }
+        });
+
+        // Add hover effects to form inputs
+        document.querySelectorAll('input, select, textarea').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
         });
     </script>
 </body>
-</html> 
+</html>

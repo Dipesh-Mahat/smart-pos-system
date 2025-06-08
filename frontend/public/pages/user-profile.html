@@ -3,421 +3,608 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoPOS - Profile</title>
+    <title>Smart POS - User Profile</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .profile-container {
+        .main-content {
+            margin-left: 300px;
             padding: 20px;
-            max-width: 800px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+        }
+
+        .profile-container {
+            max-width: 900px;
             margin: 0 auto;
         }
 
         .profile-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
-            margin-bottom: 24px;
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            gap: 30px;
         }
 
         .profile-avatar {
-            width: 100px;
-            height: 100px;
+            position: relative;
+        }
+
+        .avatar-image {
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
-            background: #f1f3f5;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .avatar-upload {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #007bff;
+            color: white;
+            border: 3px solid white;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
-            margin-right: 24px;
-            border: 2px solid #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
+            font-size: 14px;
             transition: all 0.3s ease;
         }
 
-        .profile-avatar:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        .avatar-upload:hover {
+            background: #0056b3;
+            transform: scale(1.1);
         }
 
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .profile-info {
-            flex: 1;
-        }
-
-        .profile-name {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 4px;
+        .profile-info h1 {
+            font-size: 32px;
+            font-weight: 700;
             color: #2c3e50;
+            margin: 0 0 8px 0;
         }
 
         .profile-role {
-            color: #6c757d;
             font-size: 16px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 15px;
         }
 
-        .profile-section {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-            padding: 24px;
-            transition: all 0.3s ease;
+        .profile-stats {
+            display: flex;
+            gap: 30px;
         }
 
-        .profile-section:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+
+            .profile-sections {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .profile-stats {
+                justify-content: center;
+            }
+        }
+
+        .section-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .section-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             color: #2c3e50;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .edit-button {
-            padding: 8px 16px;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
+        .section-title i {
+            color: #667eea;
         }
 
-        .edit-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,123,255,0.2);
-        }
-
-        .info-group {
+        .form-group {
             margin-bottom: 20px;
-            padding-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-input:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
             border-bottom: 1px solid #e9ecef;
         }
 
-        .info-group:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
+        .activity-item:last-child {
             border-bottom: none;
         }
 
-        .info-label {
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            margin-right: 15px;
+        }
+
+        .activity-icon.login {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .activity-icon.sale {
+            background: linear-gradient(135deg, #007bff, #6610f2);
+        }
+
+        .activity-icon.update {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 2px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .setting-info p {
             font-size: 14px;
             color: #6c757d;
-            margin-bottom: 8px;
-            font-weight: 500;
+            margin: 0;
         }
 
-        .info-value {
-            font-size: 16px;
-            color: #2c3e50;
-            font-weight: 500;
-        }
-
-        .info-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 16px;
-            margin-top: 4px;
-            display: none;
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 25px;
+            background: #ccc;
+            border-radius: 25px;
+            cursor: pointer;
             transition: all 0.3s ease;
-            background: #f8f9fa;
         }
 
-        .info-input:focus {
-            outline: none;
-            border-color: #007bff;
+        .toggle-switch.active {
+            background: #667eea;
+        }
+
+        .toggle-switch::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 21px;
+            height: 21px;
             background: white;
-            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
-        }
-
-        .save-button {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #28a745, #1e7e34);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            margin-right: 12px;
-            display: none;
+            border-radius: 50%;
             transition: all 0.3s ease;
         }
 
-        .save-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(40,167,69,0.2);
+        .toggle-switch.active::before {
+            transform: translateX(25px);
         }
 
-        .cancel-button {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            display: none;
-            transition: all 0.3s ease;
-        }
-
-        .cancel-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(220,53,69,0.2);
-        }
-
-        .button-group {
+        .two-factor-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #ffc107;
             margin-top: 20px;
+        }
+
+        .two-factor-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
             display: flex;
-            gap: 12px;
+            align-items: center;
+            gap: 8px;
         }
 
-        .header-icons .profile-icon {
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .header-icons .profile-icon:hover {
-            transform: scale(1.1);
+        .two-factor-title i {
+            color: #ffc107;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="back-button" onclick="window.location.href='settings.html'">
-                ← <span style="font-size: 18px;">Back</span>
-            </div>
-            <div class="app-title">Profile</div>
-            <div class="header-icons">
-                <div class="notification-icon">🔔</div>
-                <div class="profile-icon" onclick="window.location.href='profile.html'">
-                    <img src="../images/avatars/user-avatar.png" alt="profile icon" style="width: 20px; height: 20px;">
+    <div class="main-content">
+        <div class="profile-container">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <img src="../images/avatars/user-avatar.png" alt="Profile Picture" class="avatar-image" id="avatarImage">
+                    <div class="avatar-upload" onclick="document.getElementById('avatarInput').click()">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
+                </div>
+                <div class="profile-info">
+                    <h1>John Anderson</h1>
+                    <div class="profile-role">Store Manager</div>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">247</div>
+                            <div class="stat-label">Sales Made</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">89</div>
+                            <div class="stat-label">Days Active</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">4.8</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="main-content">
-            <div class="profile-container">                <div class="profile-header">
-                    <div class="profile-avatar" onclick="document.getElementById('avatarInput').click()">
-                        <img src="../images/avatars/user-avatar.png" alt="profile icon">
-                        <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="handleAvatarChange(event)">
-                    </div>
-                    <div class="profile-info">
-                        <div class="profile-name">Dipesh mahat</div>
-                        <div class="profile-role">Store Manager</div>
-                    </div>
-                </div>
-
-                <div class="profile-section">
-                    <div class="section-title">
+            <!-- Profile Sections -->
+            <div class="profile-sections">
+                <!-- Personal Information -->
+                <div class="section-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-user"></i>
                         Personal Information
-                        <button class="edit-button" onclick="toggleEdit('personal')">Edit</button>
+                    </h2>
+                    <form id="personalInfoForm">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-input" value="John Anderson" id="fullName">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-input" value="john.anderson@smartpos.com" id="email">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-input" value="+1 (555) 123-4567" id="phone">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Employee ID</label>
+                            <input type="text" class="form-input" value="EMP-2024-001" id="employeeId" disabled>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="updatePersonalInfo()">
+                            <i class="fas fa-save"></i>
+                            Update Information
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Security Settings -->
+                <div class="section-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-shield-alt"></i>
+                        Security Settings
+                    </h2>
+                    <div class="settings-item">
+                        <div class="setting-info">
+                            <h4>Email Notifications</h4>
+                            <p>Receive security alerts via email</p>
+                        </div>
+                        <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
                     </div>
-                    <div class="info-group">
-                        <div class="info-label">Full Name</div>
-                        <div class="info-value" id="name-value">Dipesh mahat</div>
-                        <input type="text" class="info-input" id="name-input" value="Dipesh mahat">
+                    <div class="settings-item">
+                        <div class="setting-info">
+                            <h4>Login Alerts</h4>
+                            <p>Get notified of new login attempts</p>
+                        </div>
+                        <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
                     </div>
-                    <div class="info-group">
-                        <div class="info-label">Email</div>
-                        <div class="info-value" id="email-value">john.doe@neopos.com</div>
-                        <input type="email" class="info-input" id="email-input" value="john.doe@neopos.com">
+                    <div class="settings-item">
+                        <div class="setting-info">
+                            <h4>SMS Notifications</h4>
+                            <p>Receive important updates via SMS</p>
+                        </div>
+                        <div class="toggle-switch" onclick="toggleSetting(this)"></div>
                     </div>
-                    <div class="info-group">
-                        <div class="info-label">Phone</div>
-                        <div class="info-value" id="phone-value">+977 9841234567</div>
-                        <input type="tel" class="info-input" id="phone-input" value="+977 9841234567">
+
+                    <div class="two-factor-section">
+                        <div class="two-factor-title">
+                            <i class="fas fa-key"></i>
+                            Two-Factor Authentication
+                        </div>
+                        <p style="color: #6c757d; margin-bottom: 15px;">Add an extra layer of security to your account</p>
+                        <button class="btn btn-primary" onclick="setup2FA()">
+                            <i class="fas fa-mobile-alt"></i>
+                            Setup 2FA
+                        </button>
                     </div>
-                    <div class="button-group" id="personal-buttons">
-                        <button class="save-button" onclick="saveChanges('personal')">Save Changes</button>
-                        <button class="cancel-button" onclick="cancelEdit('personal')">Cancel</button>
+
+                    <div style="margin-top: 25px;">
+                        <button class="btn btn-secondary" onclick="changePassword()">
+                            <i class="fas fa-lock"></i>
+                            Change Password
+                        </button>
                     </div>
                 </div>
 
-                <div class="profile-section">
-                    <div class="section-title">
-                        Business Information
-                        <button class="edit-button" onclick="toggleEdit('business')">Edit</button>
+                <!-- Recent Activity -->
+                <div class="section-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-history"></i>
+                        Recent Activity
+                    </h2>
+                    <div class="activity-item">
+                        <div class="activity-icon login">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Logged in from Chrome</div>
+                            <div class="activity-time">2 hours ago</div>
+                        </div>
                     </div>
-                    <div class="info-group">
-                        <div class="info-label">Store Name</div>
-                        <div class="info-value" id="store-value">NeoPOS Store</div>
-                        <input type="text" class="info-input" id="store-input" value="NeoPOS Store">
+                    <div class="activity-item">
+                        <div class="activity-icon sale">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Processed sale TXN-2024-247</div>
+                            <div class="activity-time">4 hours ago</div>
+                        </div>
                     </div>
-                    <div class="info-group">
-                        <div class="info-label">Business Type</div>
-                        <div class="info-value" id="business-value">Retail</div>
-                        <input type="text" class="info-input" id="business-input" value="Retail">
+                    <div class="activity-item">
+                        <div class="activity-icon update">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Updated product inventory</div>
+                            <div class="activity-time">6 hours ago</div>
+                        </div>
                     </div>
-                    <div class="info-group">
-                        <div class="info-label">Address</div>
-                        <div class="info-value" id="address-value">123 Main Street, Kathmandu</div>
-                        <input type="text" class="info-input" id="address-input" value="123 Main Street, Kathmandu">
+                    <div class="activity-item">
+                        <div class="activity-icon login">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Logged out</div>
+                            <div class="activity-time">Yesterday</div>
+                        </div>
                     </div>
-                    <div class="button-group" id="business-buttons">
-                        <button class="save-button" onclick="saveChanges('business')">Save Changes</button>
-                        <button class="cancel-button" onclick="cancelEdit('business')">Cancel</button>
+                </div>
+
+                <!-- Account Actions -->
+                <div class="section-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-cog"></i>
+                        Account Actions
+                    </h2>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <button class="btn btn-secondary" onclick="exportData()">
+                            <i class="fas fa-download"></i>
+                            Export My Data
+                        </button>
+                        <button class="btn btn-secondary" onclick="viewLoginHistory()">
+                            <i class="fas fa-history"></i>
+                            View Login History
+                        </button>
+                        <button class="btn btn-secondary" onclick="managePermissions()">
+                            <i class="fas fa-user-shield"></i>
+                            Manage Permissions
+                        </button>
+                        <hr style="margin: 10px 0; border: none; border-top: 1px solid #e9ecef;">
+                        <button class="btn btn-danger" onclick="deactivateAccount()">
+                            <i class="fas fa-user-times"></i>
+                            Deactivate Account
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="../js/menu.js"></script>
     <script>
-        function toggleEdit(section) {
-            const container = document.querySelector(`.profile-section:${section === 'personal' ? 'first-of-type' : 'last-of-type'}`);
-            const inputs = container.querySelectorAll('.info-input');
-            const values = container.querySelectorAll('.info-value');
-            const buttons = container.querySelector('.button-group');
-            const editButton = container.querySelector('.edit-button');
-
-            // Store original values
-            inputs.forEach((input, index) => {
-                input.dataset.originalValue = input.value;
-            });
-
-            inputs.forEach(input => {
-                input.style.display = 'block';
-                input.focus();
-            });
-            values.forEach(value => value.style.display = 'none');
-            buttons.querySelector('.save-button').style.display = 'inline-block';
-            buttons.querySelector('.cancel-button').style.display = 'inline-block';
-            editButton.style.display = 'none';
-        }
-
-        function saveChanges(section) {
-            const container = document.querySelector(`.profile-section:${section === 'personal' ? 'first-of-type' : 'last-of-type'}`);
-            const inputs = container.querySelectorAll('.info-input');
-            const values = container.querySelectorAll('.info-value');
-            const buttons = container.querySelector('.button-group');
-            const editButton = container.querySelector('.edit-button');
-
-            // Validate inputs
-            let isValid = true;
-            inputs.forEach(input => {
-                if (!input.value.trim()) {
-                    isValid = false;
-                    input.style.borderColor = '#dc3545';
-                } else {
-                    input.style.borderColor = '#e9ecef';
-                }
-            });
-
-            if (!isValid) {
-                alert('Please fill in all fields');
-                return;
-            }
-
-            inputs.forEach((input, index) => {
-                values[index].textContent = input.value;
-                input.style.display = 'none';
-            });
-            values.forEach(value => value.style.display = 'block');
-            buttons.querySelector('.save-button').style.display = 'none';
-            buttons.querySelector('.cancel-button').style.display = 'none';
-            editButton.style.display = 'block';
-
-            // Show success message
-            const successMessage = document.createElement('div');
-            successMessage.textContent = 'Changes saved successfully!';
-            successMessage.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #28a745;
-                color: white;
-                padding: 12px 24px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                z-index: 1000;
-                animation: slideIn 0.3s ease;
-            `;
-            document.body.appendChild(successMessage);
-            setTimeout(() => {
-                successMessage.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => successMessage.remove(), 300);
-            }, 2000);
-        }
-
-        function cancelEdit(section) {
-            const container = document.querySelector(`.profile-section:${section === 'personal' ? 'first-of-type' : 'last-of-type'}`);
-            const inputs = container.querySelectorAll('.info-input');
-            const values = container.querySelectorAll('.info-value');
-            const buttons = container.querySelector('.button-group');
-            const editButton = container.querySelector('.edit-button');
-
-            inputs.forEach((input, index) => {
-                input.value = input.dataset.originalValue || values[index].textContent;
-                input.style.display = 'none';
-                input.style.borderColor = '#e9ecef';
-            });
-            values.forEach(value => value.style.display = 'block');
-            buttons.querySelector('.save-button').style.display = 'none';
-            buttons.querySelector('.cancel-button').style.display = 'none';
-            editButton.style.display = 'block';
-        }
-
-        function handleAvatarChange(event) {
+        function handleAvatarUpload(event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const avatarImg = document.querySelector('.profile-avatar img');
-                    avatarImg.src = e.target.result;
+                    document.getElementById('avatarImage').src = e.target.result;
                 };
                 reader.readAsDataURL(file);
             }
         }
 
-        // Add keydown event listener for Enter key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && document.querySelector('.save-button').style.display === 'inline-block') {
-                const activeSection = document.querySelector('.info-input:focus').closest('.profile-section');
-                const section = activeSection.classList.contains('personal') ? 'personal' : 'business';
-                saveChanges(section);
+        function toggleSetting(toggle) {
+            toggle.classList.toggle('active');
+        }
+
+        function updatePersonalInfo() {
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            
+            // Here you would typically send this data to your backend
+            alert('Personal information updated successfully!');
+        }
+
+        function setup2FA() {
+            alert('Redirecting to 2FA setup...');
+            // Here you would redirect to 2FA setup page
+        }
+
+        function changePassword() {
+            window.location.href = 'change-password.html';
+        }
+
+        function exportData() {
+            alert('Preparing data export...');
+            // Here you would implement data export functionality
+        }
+
+        function viewLoginHistory() {
+            alert('Opening login history...');
+            // Here you would show login history modal or page
+        }
+
+        function managePermissions() {
+            alert('Opening permissions management...');
+            // Here you would show permissions interface
+        }
+
+        function deactivateAccount() {
+            if (confirm('Are you sure you want to deactivate your account? This action cannot be undone.')) {
+                alert('Account deactivation process initiated...');
+                // Here you would implement account deactivation
             }
-        });
+        }
     </script>
-
-    <style>
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-    </style>
 </body>
-</html> 
-
-
-
-
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart POS - Point of Sale</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>        /* POS Specific Styles */
+        .pos-container {
+            display: flex;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }        .pos-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }        .search-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .scan-btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .scan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+        }
+
+        .pos-content {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .products-grid {
+            flex: 2;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow-y: auto;
+        }
+
+        .products-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .product-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .product-card:hover {
+            background: #e9ecef;
+            border-color: #007bff;
+            transform: translateY(-2px);
+        }
+
+        .product-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            font-weight: 700;
+            font-size: 16px;
+            color: #28a745;
+        }
+
+        .cart-panel {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .cart-items {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .item-quantity {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: #28a745;
+        }
+
+        .cart-total {
+            border-top: 2px solid #007bff;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .total-final {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .checkout-btn {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+        }
+
+        /* Responsive adjustments for menu */
+        @media screen and (min-width: 1024px) {
+            .pos-main {
+                margin-left: 300px;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .pos-content {
+                flex-direction: column;
+            }
+            
+            .products-list {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>    <div class="pos-container">
+        <div class="pos-main">
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="Search products or scan barcode...">
+                <button class="scan-btn">
+                    <i class="fas fa-qrcode"></i> Scan
+                </button>
+            </div>
+
+            <div class="pos-content">
+                <div class="products-grid">
+                    <div class="products-list">                        <div class="product-card" onclick="addToCart('Coca Cola 500ml', 275)">
+                            <div class="product-name">Coca Cola 500ml</div>
+                            <div class="product-price">NPR 275</div>
+                        </div>
+                        
+                        <div class="product-card" onclick="addToCart('Potato Chips', 219)">
+                            <div class="product-name">Potato Chips</div>
+                            <div class="product-price">NPR 219</div>
+                        </div>
+                        
+                        <div class="product-card" onclick="addToCart('Water Bottle 1L', 138)">
+                            <div class="product-name">Water Bottle 1L</div>
+                            <div class="product-price">NPR 138</div>
+                        </div>
+                        
+                        <div class="product-card" onclick="addToCart('Chocolate Bar', 330)">
+                            <div class="product-name">Chocolate Bar</div>
+                            <div class="product-price">NPR 330</div>
+                        </div>
+                        
+                        <div class="product-card" onclick="addToCart('Energy Drink', 495)">
+                            <div class="product-name">Energy Drink</div>
+                            <div class="product-price">NPR 495</div>
+                        </div>
+                        
+                        <div class="product-card" onclick="addToCart('Sandwich', 659)">
+                            <div class="product-name">Sandwich</div>
+                            <div class="product-price">NPR 659</div>
+                        </div>
+                        
+                        <div class="product-card" onclick="addToCart('Coffee', 248)">
+                            <div class="product-name">Coffee</div>
+                            <div class="product-price">NPR 248</div>
+                        </div>
+                        
+                        <div class="product-card" onclick="addToCart('Fruit Juice', 413)">
+                            <div class="product-name">Fruit Juice</div>
+                            <div class="product-price">NPR 413</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cart-panel">
+                    <div class="cart-title">Cart</div>
+                    <div class="cart-items" id="cartItems">
+                        <div style="text-align: center; color: #6c757d; padding: 40px;">
+                            Cart is empty
+                        </div>
+                    </div>
+                    
+                    <div class="cart-total">                        <div class="total-row">
+                            <span>Subtotal:</span>
+                            <span id="subtotal">NPR 0</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Tax (8%):</span>
+                            <span id="tax">NPR 0</span>
+                        </div>
+                        <div class="total-row total-final">
+                            <span>Total:</span>
+                            <span id="total">NPR 0</span>
+                        </div>
+                    </div>
+                    
+                    <button class="checkout-btn" onclick="checkout()">
+                        <i class="fas fa-credit-card"></i> Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Professional Reusable Menu Component -->
+    <script src="../js/menu.js"></script>
+    
+    <script>
+        let cart = [];
+        let cartTotal = 0;
+
+        function addToCart(name, price) {
+            // Check if item already exists in cart
+            const existingItem = cart.find(item => item.name === name);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    name: name,
+                    price: price,
+                    quantity: 1
+                });
+            }
+            
+            updateCartDisplay();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartDisplay();
+        }
+
+        function updateCartDisplay() {
+            const cartItemsContainer = document.getElementById('cartItems');
+            const subtotalElement = document.getElementById('subtotal');
+            const taxElement = document.getElementById('tax');
+            const totalElement = document.getElementById('total');
+              if (cart.length === 0) {
+                cartItemsContainer.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 40px;">Cart is empty</div>';
+                subtotalElement.textContent = 'NPR 0';
+                taxElement.textContent = 'NPR 0';
+                totalElement.textContent = 'NPR 0';
+                return;
+            }
+            
+            let subtotal = 0;
+            cartItemsContainer.innerHTML = '';
+            
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                
+                const cartItemElement = document.createElement('div');
+                cartItemElement.className = 'cart-item';                cartItemElement.innerHTML = `
+                    <div class="item-details">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-quantity">Qty: ${item.quantity} × NPR ${item.price}</div>
+                    </div>
+                    <div class="item-price">NPR ${itemTotal}</div>
+                    <button onclick="removeFromCart(${index})" style="background: none; border: none; color: #dc3545; cursor: pointer; margin-left: 8px;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                cartItemsContainer.appendChild(cartItemElement);
+            });            const tax = subtotal * 0.08;
+            const total = subtotal + tax;
+            
+            subtotalElement.textContent = `NPR ${Math.round(subtotal)}`;
+            taxElement.textContent = `NPR ${Math.round(tax)}`;
+            totalElement.textContent = `NPR ${Math.round(total)}`;
+        }
+
+        function checkout() {
+            if (cart.length === 0) {
+                alert('Cart is empty!');
+                return;
+            }            const total = parseFloat(document.getElementById('total').textContent.replace('NPR ', '').replace(',', ''));
+            
+            if (confirm(`Process payment of NPR ${total}?`)) {
+                // Process payment here
+                alert('Payment processed successfully!');
+                cart = [];                updateCartDisplay();
+            }
+        }
+    </script>
+
+    <!-- Navbar and Menu Scripts -->
+    <script src="../js/navbar.js"></script>
+    <script src="../js/menu.js"></script>
+    <script>
+        // Initialize navbar with custom actions
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = new SmartPOSNavbar();
+            
+            // Add custom navbar actions for POS
+            navbar.addAction('clear-cart', 'Clear Cart', 'fas fa-trash', 'btn-secondary');
+            navbar.addAction('hold-transaction', 'Hold', 'fas fa-pause', 'btn-secondary');
+            navbar.addAction('print-receipt', 'Print', 'fas fa-print', 'btn-secondary');
+            
+            // Handle navbar action clicks
+            document.addEventListener('navbar-action', function(e) {
+                switch(e.detail.action) {
+                    case 'clear-cart':
+                        if (confirm('Clear all items from cart?')) {
+                            cart = [];
+                            updateCartDisplay();
+                        }
+                        break;
+                    case 'hold-transaction':
+                        console.log('Holding transaction...');
+                        alert('Hold transaction functionality will be implemented');
+                        break;
+                    case 'print-receipt':
+                        console.log('Printing receipt...');
+                        alert('Print receipt functionality will be implemented');
+                        break;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

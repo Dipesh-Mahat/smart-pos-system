@@ -3,593 +3,600 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoPOS - Report</title>
-    <link rel="stylesheet" href="css/navigation.css">
+    <title>Smart POS - Reports & Analytics</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
+        .main-content {
+            margin-left: 300px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
 
-        body {
-            background-color: #f8f9fa;
-            max-width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
         }
 
-        .container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
+        .page-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* Header styles */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 2;
-        }
-
-        .menu-icon {
-            font-size: 24px;
-            cursor: pointer;
-            color: #444;
-        }
-
-        .app-title {
-            font-weight: bold;
-            font-size: 18px;
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
             color: #2c3e50;
-        }
-
-        .header-icons {
+            margin: 0;
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 15px;
         }
 
-        .profile-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            cursor: pointer;
+        .page-title i {
+            color: #667eea;
         }
 
-        /* Date selector styles */
-        .date-selector {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            background-color: #fff;
-            margin: 16px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .date-nav {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .date-arrow {
-            cursor: pointer;
-            font-size: 20px;
+        .page-subtitle {
+            font-size: 16px;
             color: #6c757d;
-            width: 32px;
-            height: 32px;
+            margin-top: 8px;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .analytics-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .analytics-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s;
+            font-size: 24px;
+            color: white;
         }
 
-        .date-arrow:hover {
-            background-color: #f8f9fa;
-            color: #007bff;
+        .revenue-icon {
+            background: linear-gradient(135deg, #28a745, #20c997);
         }
 
-        .date-text {
-            font-size: 16px;
-            font-weight: 500;
+        .sales-icon {
+            background: linear-gradient(135deg, #007bff, #6610f2);
+        }
+
+        .customers-icon {
+            background: linear-gradient(135deg, #fd7e14, #e83e8c);
+        }
+
+        .products-icon {
+            background: linear-gradient(135deg, #6f42c1, #e83e8c);
+        }
+
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
             color: #2c3e50;
+            margin-bottom: 8px;
         }
 
-        .date-range-selector {
-            padding: 8px 16px;
-            border: 1px solid #dee2e6;
-            border-radius: 20px;
-            color: #6c757d;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .date-range-selector:hover {
-            border-color: #007bff;
-            color: #007bff;
-        }
-
-        /* Report content styles */
-        .main-content {
-            flex: 1;
-            padding: 0 16px;
-            overflow-y: auto;
-        }
-
-        .report-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .report-section {
-            background-color: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .report-section.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .report-title {
+        .metric-change {
+            font-size: 14px;
             font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .metric-change.positive {
+            color: #28a745;
+        }
+
+        .metric-change.negative {
+            color: #dc3545;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .chart-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .chart-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .chart-filters {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #6c757d;
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .chart-placeholder {
+            height: 300px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 18px;
+            font-weight: 500;
+            border: 2px dashed #dee2e6;
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .report-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .report-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
         }
 
         .report-icon {
-            width: 32px;
-            height: 32px;
-            background: #e9ecef;
-            border-radius: 8px;
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 28px;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .report-title {
             font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
         }
 
-        .item-list {
-            list-style: none;
-            margin: 0;
-            padding: 0;
+        .report-description {
+            font-size: 14px;
+            color: #6c757d;
+            line-height: 1.4;
         }
 
-        .item-list li {
+        .quick-actions {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .actions-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .action-buttons {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #e9ecef;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
-        .item-list li:last-child {
-            border-bottom: none;
-        }
-
-        .item-name {
-            display: flex;
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
-        .item-rank {
-            width: 24px;
-            height: 24px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: #6c757d;
-        }
-
-        .item-value {
-            font-weight: 500;
-            color: #2c3e50;
-        }
-
-        .report-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin: 8px 0;
-        }
-
-        .value-change {
-            font-size: 14px;
-            color: #28a745;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .value-change.negative {
-            color: #dc3545;
-        }
-
-        /* Bottom navigation */
-        .bottom-nav {
-            display: flex;
-            justify-content: space-between;
-            background-color: white;
-            padding: 12px 0;
-            box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            padding: 8px 0;
-            font-size: 12px;
-            color: #6c757d;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .nav-icon {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-
-        .nav-item.active {
-            color: #007bff;
-        }
-
-        .nav-item:hover {
-            color: #007bff;
-        }
-
-        .invoice-icon {
-            position: fixed;
-            right: 24px;
-            bottom: 80px;
-            width: 56px;
-            height: 56px;
-            background: #007bff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            font-size: 24px;
-            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
-            cursor: pointer;
-            transition: transform 0.3s;
         }
 
-        .invoice-icon:hover {
-            transform: scale(1.1);
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
 
-        /* Side Menu styles */
-        .side-menu {
-            position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100vh;
-            background: white;
-            z-index: 1000;
-            transition: left 0.3s ease;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
         }
 
-        .side-menu.open {
-            left: 0;
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
         }
 
-        .menu-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            display: none;
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #6610f2);
+            color: white;
         }
 
-        .menu-overlay.active {
-            display: block;
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(23, 162, 184, 0.3);
         }
 
-        .menu-items {
-            padding: 20px;
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: white;
         }
 
-        .menu-item {
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 193, 7, 0.3);
+        }
+
+        .recent-activity {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 30px;
+        }
+
+        .activity-item {
             display: flex;
             align-items: center;
-            padding: 12px;
+            padding: 15px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            margin-right: 15px;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
             color: #2c3e50;
-            text-decoration: none;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            transition: background-color 0.3s;
-            cursor: pointer;
+            margin-bottom: 2px;
         }
 
-        .menu-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .menu-icon-folder {
-            margin-right: 12px;
-            font-size: 20px;
-        }
-
-        .menu-text a {
-            color: #2c3e50;
-            text-decoration: none;
+        .activity-time {
+            font-size: 12px;
+            color: #6c757d;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="menu-icon" id="menuIcon">☰</div>
-            <div class="app-title">Reports</div>
-            <div class="header-icons">
-                <div class="profile-icon"><img src="photo/Profile.png" alt="Profile" style="width: 24px; height: 24px; border-radius: 50%;"></div>
-            </div>
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-chart-bar"></i>
+                Reports & Analytics
+            </h1>
+            <p class="page-subtitle">Comprehensive business insights and performance metrics</p>
         </div>
 
-        <div class="date-selector">
-            <div class="date-nav">
-                <div class="date-arrow">←</div>
-                <div class="date-text">February 2024</div>
-                <div class="date-arrow">→</div>
+        <!-- Key Metrics -->
+        <div class="analytics-grid">
+            <div class="analytics-card">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Total Revenue</h3>
+                        <div class="metric-value">NPR 24,589</div>
+                        <div class="metric-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            +12.5% vs last month
+                        </div>
+                    </div>
+                    <div class="card-icon revenue-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
             </div>
-            <div class="date-range-selector">Custom Range</div>
-        </div>
 
-        <div class="main-content">
-            <div class="report-grid">
-                <div class="report-section">
-                    <div class="report-title">
-                        <span>Total Sales</span>
-                        <div class="report-icon">💰</div>
+            <div class="analytics-card">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Total Sales</h3>
+                        <div class="metric-value">1,247</div>
+                        <div class="metric-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            +8.3% vs last month
+                        </div>
                     </div>
-                    <div class="report-value">₹1,25,480</div>
-                    <div class="value-change">↑ 15% from last month</div>
-                </div>
-                
-                <div class="report-section">
-                    <div class="report-title">
-                        <span>Net Profit</span>
-                        <div class="report-icon">📈</div>
+                    <div class="card-icon sales-icon">
+                        <i class="fas fa-shopping-cart"></i>
                     </div>
-                    <div class="report-value">₹32,750</div>
-                    <div class="value-change">↑ 8% from last month</div>
                 </div>
-                
-                <div class="report-section">
-                    <div class="report-title">
-                        <span>Total Expenses</span>
-                        <div class="report-icon">💸</div>
-                    </div>
-                    <div class="report-value">₹15,230</div>
-                    <div class="value-change negative">↑ 5% from last month</div>
-                </div>
-                
-                <div class="report-section">
-                    <div class="report-title">
-                        <span>Total Discounts</span>
-                        <div class="report-icon">🏷️</div>
-                    </div>
-                    <div class="report-value">₹8,450</div>
-                    <div class="value-change">↓ 12% from last month</div>
-                </div>
+            </div>
 
-                <div class="report-section full-width">
-                    <div class="report-title">
-                        <span>Top Selling Items</span>
-                        <div class="report-icon">🌟</div>
+            <div class="analytics-card">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">New Customers</h3>
+                        <div class="metric-value">89</div>
+                        <div class="metric-change negative">
+                            <i class="fas fa-arrow-down"></i>
+                            -3.2% vs last month
+                        </div>
                     </div>
-                    <ul class="item-list">
-                        <li>
-                            <div class="item-name">
-                                <div class="item-rank">1</div>
-                                <span>Basmati Rice Premium</span>
-                            </div>
-                            <div class="item-value">₹45,200</div>
-                        </li>
-                        <li>
-                            <div class="item-name">
-                                <div class="item-rank">2</div>
-                                <span>Toned Milk 1L</span>
-                            </div>
-                            <div class="item-value">₹32,150</div>
-                        </li>
-                        <li>
-                            <div class="item-name">
-                                <div class="item-rank">3</div>
-                                <span>Whole Wheat Atta</span>
-                            </div>
-                            <div class="item-value">₹28,900</div>
-                        </li>
-                        <li>
-                            <div class="item-name">
-                                <div class="item-rank">4</div>
-                                <span>Refined Oil 5L</span>
-                            </div>
-                            <div class="item-value">₹25,600</div>
-                        </li>
-                        <li>
-                            <div class="item-name">
-                                <div class="item-rank">5</div>
-                                <span>Sugar</span>
-                            </div>
-                            <div class="item-value">₹22,300</div>
-                        </li>
-                    </ul>
+                    <div class="card-icon customers-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analytics-card">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Products Sold</h3>
+                        <div class="metric-value">3,456</div>
+                        <div class="metric-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            +15.7% vs last month
+                        </div>
+                    </div>
+                    <div class="card-icon products-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="invoice-icon" title="Download Report">📊</div>
+        <!-- Sales Chart -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title">Sales Overview</h3>
+                <div class="chart-filters">
+                    <button class="filter-btn active">7 Days</button>
+                    <button class="filter-btn">30 Days</button>
+                    <button class="filter-btn">90 Days</button>
+                    <button class="filter-btn">1 Year</button>
+                </div>
+            </div>
+            <div class="chart-placeholder">
+                <i class="fas fa-chart-line" style="font-size: 48px; margin-right: 15px;"></i>
+                Sales Chart (Chart.js integration would go here)
+            </div>
+        </div>
 
-        <div class="bottom-nav">
-            <a href="report.html" class="nav-item active">
-                <div class="nav-icon">📊</div>
-                <div>Report</div>
-            </a>
-            <a href="today.html" class="nav-item">
-                <div class="nav-icon">📅</div>
-                <div>Today</div>
-            </a>
-            <a href="index.html" class="nav-item">
-                <div class="nav-icon">🏪</div>
-                <div>Counter</div>
-            </a>
-            <a href="item.html" class="nav-item">
-                <div class="nav-icon">📦</div>
-                <div>Items</div>
-            </a>
-            <a href="more.html" class="nav-item">
-                <div class="nav-icon">⚙️</div>
-                <div>More</div>
-            </a>
+        <!-- Report Categories -->
+        <div class="reports-grid">
+            <div class="report-card" onclick="generateReport('sales')">
+                <div class="report-icon revenue-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h4 class="report-title">Sales Report</h4>
+                <p class="report-description">Detailed analysis of sales performance, trends, and patterns</p>
+            </div>
+
+            <div class="report-card" onclick="generateReport('inventory')">
+                <div class="report-icon products-icon">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <h4 class="report-title">Inventory Report</h4>
+                <p class="report-description">Stock levels, movement, and inventory optimization insights</p>
+            </div>
+
+            <div class="report-card" onclick="generateReport('customers')">
+                <div class="report-icon customers-icon">
+                    <i class="fas fa-user-friends"></i>
+                </div>
+                <h4 class="report-title">Customer Report</h4>
+                <p class="report-description">Customer behavior, preferences, and loyalty analytics</p>
+            </div>
+
+            <div class="report-card" onclick="generateReport('financial')">
+                <div class="report-icon sales-icon">
+                    <i class="fas fa-calculator"></i>
+                </div>
+                <h4 class="report-title">Financial Report</h4>
+                <p class="report-description">Profit margins, expenses, and financial performance metrics</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <h3 class="actions-title">Quick Actions</h3>
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="exportData('all')">
+                    <i class="fas fa-download"></i>
+                    Export All Data
+                </button>
+                <button class="btn btn-success" onclick="generateCustomReport()">
+                    <i class="fas fa-plus"></i>
+                    Custom Report
+                </button>
+                <button class="btn btn-info" onclick="scheduleReport()">
+                    <i class="fas fa-clock"></i>
+                    Schedule Report
+                </button>
+                <button class="btn btn-warning" onclick="emailReport()">
+                    <i class="fas fa-envelope"></i>
+                    Email Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="recent-activity">
+            <h3 class="actions-title">Recent Activity</h3>
+            <div class="activity-item">
+                <div class="activity-icon revenue-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">Sales Report Generated</div>
+                    <div class="activity-time">2 hours ago</div>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon sales-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">Monthly Analytics Updated</div>
+                    <div class="activity-time">6 hours ago</div>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon customers-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">Customer Report Exported</div>
+                    <div class="activity-time">1 day ago</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Side Menu (Hamburger Menu) -->
-    <div id="sideMenu" class="side-menu">
-        <div class="menu-items">
-            <div class="menu-item">
-                <div class="menu-icon-folder">📊</div>
-                <div class="menu-text"><a href="index.html">Dashboard</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">📦</div>
-                <div class="menu-text"><a href="inventory.html">Inventory</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">🔄</div>
-                <div class="menu-text"><a href="transactions.html">Transactions</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">📈</div>
-                <div class="menu-text"><a href="report.html">Analytics & Report</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">🤝</div>
-                <div class="menu-text"><a href="suppliers.html">Suppliers</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">⚙️</div>
-                <div class="menu-text"><a href="settings.html">Settings</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">💸</div>
-                <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Overlay for when menu is open -->
-    <div class="menu-overlay" id="menuOverlay"></div>
-
+    <script src="../js/menu.js"></script>
     <script>
+        // Chart filter functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const menuIcon = document.getElementById('menuIcon');
-            const sideMenu = document.getElementById('sideMenu');
-            const menuOverlay = document.getElementById('menuOverlay');
+            const filterBtns = document.querySelectorAll('.filter-btn');
             
-            // Menu icon click event - toggle side menu
-            menuIcon.addEventListener('click', function() {
-                sideMenu.classList.toggle('open');
-                menuOverlay.classList.toggle('active');
-            });
-            
-            // Close menu when clicking outside
-            menuOverlay.addEventListener('click', function() {
-                sideMenu.classList.remove('open');
-                menuOverlay.classList.remove('active');
-            });
-
-            // Menu item click events
-            document.querySelectorAll('.menu-item').forEach(function(item) {
-                item.addEventListener('click', function() {
-                    const menuText = this.querySelector('.menu-text').textContent;
-                    console.log(menuText + ' clicked');
-                    // Add functionality for each menu item here
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
                     
-                    // Close the menu after clicking an item
-                    sideMenu.classList.remove('open');
-                    menuOverlay.classList.remove('active');
-                });
-            });
-
-            // Date navigation
-            const dateArrows = document.querySelectorAll('.date-arrow');
-            const dateText = document.querySelector('.date-text');
-            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            let currentDate = new Date();
-
-            function updateDateText() {
-                dateText.textContent = `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
-            }
-
-            dateArrows.forEach((arrow, index) => {
-                arrow.addEventListener('click', () => {
-                    if (index === 0) {
-                        // Previous month
-                        currentDate.setMonth(currentDate.getMonth() - 1);
-                    } else {
-                        // Next month
-                        currentDate.setMonth(currentDate.getMonth() + 1);
-                    }
-                    updateDateText();
-                    // Here you would typically fetch new data for the selected month
-                });
-            });
-
-            // Custom range selector
-            document.querySelector('.date-range-selector').addEventListener('click', () => {
-                // Here you would typically show a date range picker
-                alert('Date range picker coming soon!');
-            });
-
-            // Download report
-            document.querySelector('.invoice-icon').addEventListener('click', () => {
-                // Here you would typically trigger report download
-                alert('Downloading report...');
-            });
-
-            // Add hover effects
-            const reportSections = document.querySelectorAll('.report-section');
-            reportSections.forEach(section => {
-                section.addEventListener('mouseenter', () => {
-                    section.style.transform = 'translateY(-2px)';
-                    section.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                });
-                section.addEventListener('mouseleave', () => {
-                    section.style.transform = 'translateY(0)';
-                    section.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+                    // Here you would update the chart based on the selected filter
+                    console.log('Updating chart for:', this.textContent);
                 });
             });
         });
+
+        function generateReport(type) {
+            alert(`Generating ${type} report...`);
+            // Here you would implement the actual report generation logic
+        }
+
+        function exportData(type) {
+            alert(`Exporting ${type} data...`);
+            // Here you would implement the data export functionality
+        }
+
+        function generateCustomReport() {
+            alert('Opening custom report builder...');
+            // Here you would open a custom report configuration modal
+        }
+
+        function scheduleReport() {
+            alert('Opening report scheduler...');
+            // Here you would open a report scheduling interface
+        }
+
+        function emailReport() {
+            alert('Opening email report interface...');
+            // Here you would open an email configuration modal
+        }
     </script>
 </body>
 </html>

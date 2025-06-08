@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoPOS - Supplier Details</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Smart POS - Supplier Details</title>    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
     <style>
         /* Header modifications */
         .back-button {
@@ -463,11 +463,12 @@
             // Update location title
             const locationTitle = document.getElementById('locationTitle');
             locationTitle.textContent = location.charAt(0).toUpperCase() + location.slice(1);
-            
-            // Set current suppliers and display them
+              // Set current suppliers and display them
             currentSuppliers = supplierData[location];
             displaySuppliers(currentSuppliers);
         });
     </script>
+
+    <script src="../js/menu.js"></script>
 </body>
-</html> 
+</html>

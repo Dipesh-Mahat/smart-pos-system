@@ -75,7 +75,7 @@ function initializeNotifications() {
             <div class="notification-item">
                 <div class="notification-icon">💰</div>
                 <div class="notification-text">
-                    <div class="notification-message">High value transaction completed: RS 15,000</div>
+                    <div class="notification-message">High value transaction completed: NPR 15,000</div>
                     <div class="notification-time">1 hour ago</div>
                 </div>
             </div>

@@ -3,492 +3,593 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoPOS - Transactions</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        /* Enhanced header styles */
-        .header {
-            background: linear-gradient(to right, #ffffff, #f8f9fa);
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .app-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1a1a1a;
-            letter-spacing: 0.5px;
-        }
-
-        .header-icons {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .notification-icon {
-            font-size: 20px;
-            color: #2c3e50;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-            padding: 8px;
-            border-radius: 50%;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .notification-icon:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .profile-icon img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #e9ecef;
-            transition: border-color 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .profile-icon img:hover {
-            border-color: #007bff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        /* Enhanced search bar styles */
-        .search-container {
+    <title>Smart POS - Transactions</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>        .main-content {
             padding: 20px;
-            background-color: #ffffff;
-            border-bottom: 1px solid #e9ecef;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+        }
+
+        .search-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
         }
 
         .search-box {
-            display: flex;
-            align-items: center;
-            background-color: #f8f9fa;
-            padding: 12px 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .search-box:focus-within {
-            background-color: white;
-            border-color: #007bff;
-            box-shadow: 0 4px 12px rgba(0,123,255,0.1);
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
         .search-box input {
-            flex: 1;
-            border: none;
-            padding: 8px;
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 50px;
             font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .search-box input:focus {
             outline: none;
-            background: transparent;
-            color: #2c3e50;
+            border-color: #007bff;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
         }
 
-        .search-box input::placeholder {
-            color: #adb5bd;
-        }
-
-        .search-icon {
+        .search-box .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
             color: #6c757d;
-            margin-right: 12px;
             font-size: 18px;
         }
 
-        /* Enhanced receipt list styles */
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0;
-            background-color: #f8f9fa;
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
-        .page-title {
-            font-size: 24px;
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid #007bff;
+        }
+
+        .stat-card.success {
+            border-top-color: #28a745;
+        }
+
+        .stat-card.warning {
+            border-top-color: #ffc107;
+        }
+
+        .stat-card.info {
+            border-top-color: #17a2b8;
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: #007bff;
+        }
+
+        .stat-card.success .stat-icon {
+            color: #28a745;
+        }
+
+        .stat-card.warning .stat-icon {
+            color: #ffc107;
+        }
+
+        .stat-card.info .stat-icon {
+            color: #17a2b8;
+        }
+
+        .stat-value {
+            font-size: 28px;
             font-weight: 700;
-            padding: 24px;
-            background-color: white;
             color: #2c3e50;
-            border-bottom: 1px solid #e9ecef;
-            margin-bottom: 16px;
+            margin-bottom: 5px;
         }
 
-        .receipt-item {
-            display: block;
-            padding: 20px;
-            background-color: white;
-            margin: 0 16px 16px;
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .transactions-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .transaction-item {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
             text-decoration: none;
             color: inherit;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
+            border-left: 5px solid #28a745;
         }
 
-        .receipt-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .transaction-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            color: inherit;
+            text-decoration: none;
         }
 
-        .receipt-item:active {
-            transform: translateY(0);
+        .transaction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
 
         .receipt-number {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 700;
             color: #2c3e50;
             display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .receipt-number i {
+            color: #28a745;
+            font-size: 24px;
+        }
+
+        .transaction-amount {
+            font-size: 18px;
+            font-weight: 600;
+            color: #28a745;
+        }
+
+        .transaction-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .filters-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #6c757d;
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            border-color: #007bff;
+            background: #007bff;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #dee2e6;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
-        .receipt-number::before {
-            content: "📄";
-            font-size: 20px;
+        .btn-primary {
+            background: #007bff;
+            color: white;
         }
 
-        /* Enhanced menu styles */
-        .menu-icon {
-            font-size: 24px;
-            cursor: pointer;
-            padding: 12px;
-            margin: -12px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            color: #2c3e50;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
         }
 
-        .menu-icon:hover {
-            background-color: #f8f9fa;
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
         }
 
-        .side-menu {
-            position: fixed;
-            top: 0;
-            left: -300px;
-            width: 300px;
-            height: 100vh;
-            background: white;
-            z-index: 1000;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 4px 0 16px rgba(0,0,0,0.1);
-            overflow-y: auto;
-        }
-
-        .side-menu.open {
-            left: 0;
-            box-shadow: 8px 0 24px rgba(0,0,0,0.15);
-        }
-
-        .side-menu.collapsed {
-            transform: translateX(-100%);
-        }
-
-        .menu-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(4px);
-        }
-
-        .menu-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .menu-items {
-            padding: 16px;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
-            color: #2c3e50;
-            text-decoration: none;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .menu-item:hover {
-            background-color: #f8f9fa;
-            transform: translateX(8px);
-        }
-
-        .menu-icon-folder {
-            margin-right: 16px;
-            font-size: 22px;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.3s ease;
-        }
-
-        .menu-item:hover .menu-icon-folder {
-            transform: scale(1.1);
-        }
-
-        .menu-text {
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .menu-text a {
-            color: #2c3e50;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .menu-item:hover .menu-text a {
-            color: #007bff;
-        }
-
-        .menu-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .menu-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .close-menu {
-            font-size: 24px;
-            color: #6c757d;
-            cursor: pointer;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .close-menu:hover {
-            background-color: #f8f9fa;
-            color: #2c3e50;
-            transform: scale(1.1);
-        }
-
-        @media screen and (min-width: 1024px) {
-            .side-menu {
-                left: 0;
-                box-shadow: none;
-                border-right: 1px solid #e9ecef;
-                transition: transform 0.3s ease;
-            }
-
-            .side-menu.collapsed {
-                transform: translateX(-100%);
-            }
-
-            .menu-icon {
-                display: flex !important;
-                position: fixed;
-                top: 16px;
-                left: 16px;
-                z-index: 1002;
-            }
-
-            .menu-overlay {
-                display: none !important;
-            }
-
-            .close-menu {
-                display: flex !important;
-                position: absolute;
-                top: 16px;
-                right: 16px;
-                z-index: 1002;
-            }
-
-            .main-content {
-                margin-left: 300px;
-                transition: margin-left 0.3s ease;
-            }
-
-            .main-content.expanded {
-                margin-left: 0;
-            }
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="menu-icon" id="menuIcon">☰</div>
-            <div class="app-title">NeoPOS</div>
-            <div class="header-icons">
-                <div class="notification-icon">🔔</div>
-                <div class="profile-icon"><img src="photo/Profile.png" alt="Profile"></div>
+<body>    <div class="main-content">
+        <!-- Statistics Cards -->
+        <div class="stats-container">
+            <div class="stat-card success">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-value">247</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-value">12</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-value">NPR 15,240</div>
+                <div class="stat-label">Total Sales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-value">48</div>
+                <div class="stat-label">Today</div>
             </div>
         </div>
 
+        <!-- Search Container -->
         <div class="search-container">
             <div class="search-box">
-                <span class="search-icon">🔍</span>
-                <input type="text" placeholder="Search by RECEIPT number">
+                <input type="text" placeholder="Search by receipt number, customer, or amount..." id="searchInput">
+                <i class="fas fa-search search-icon"></i>
             </div>
         </div>
 
-        <div class="main-content">
-            <div class="page-title">RECEIPTS</div>
-            
-            <a href="receipt-detail.html?id=1" class="receipt-item">
-                <div class="receipt-number">RECEIPT: 1</div>
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="pos.html" class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                New Transaction
+            </a>
+            <button class="btn btn-secondary" onclick="exportTransactions()">
+                <i class="fas fa-download"></i>
+                Export
+            </button>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="filters-container">
+            <button class="filter-btn active" data-filter="all">All Transactions</button>
+            <button class="filter-btn" data-filter="today">Today</button>
+            <button class="filter-btn" data-filter="week">This Week</button>
+            <button class="filter-btn" data-filter="month">This Month</button>
+            <button class="filter-btn" data-filter="completed">Completed</button>
+            <button class="filter-btn" data-filter="pending">Pending</button>
+        </div>
+
+        <!-- Transactions Grid -->
+        <div class="transactions-grid" id="transactionsGrid">
+            <a href="receipt-detail.html?id=TXN-2024-001" class="transaction-item">
+                <div class="transaction-header">
+                    <div class="receipt-number">
+                        <i class="fas fa-receipt"></i>
+                        TXN-2024-001
+                    </div>
+                    <div class="transaction-amount">NPR 124.50</div>
+                </div>
+                <div class="transaction-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Date</div>
+                        <div class="detail-value">Jan 15, 2024</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Time</div>
+                        <div class="detail-value">14:30</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Items</div>
+                        <div class="detail-value">5</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value">
+                            <span class="status-badge status-completed">Completed</span>
+                        </div>
+                    </div>
+                </div>
             </a>
 
-            <a href="receipt-detail.html?id=2" class="receipt-item">
-                <div class="receipt-number">RECEIPT: 2</div>
+            <a href="receipt-detail.html?id=TXN-2024-002" class="transaction-item">
+                <div class="transaction-header">
+                    <div class="receipt-number">
+                        <i class="fas fa-receipt"></i>
+                        TXN-2024-002
+                    </div>
+                    <div class="transaction-amount">NPR 89.25</div>
+                </div>
+                <div class="transaction-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Date</div>
+                        <div class="detail-value">Jan 15, 2024</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Time</div>
+                        <div class="detail-value">13:15</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Items</div>
+                        <div class="detail-value">3</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value">
+                            <span class="status-badge status-completed">Completed</span>
+                        </div>
+                    </div>
+                </div>
             </a>
 
-            <a href="receipt-detail.html?id=3" class="receipt-item">
-                <div class="receipt-number">RECEIPT: 3</div>
+            <a href="receipt-detail.html?id=TXN-2024-003" class="transaction-item">
+                <div class="transaction-header">
+                    <div class="receipt-number">
+                        <i class="fas fa-receipt"></i>
+                        TXN-2024-003
+                    </div>
+                    <div class="transaction-amount">NPR 256.75</div>
+                </div>
+                <div class="transaction-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Date</div>
+                        <div class="detail-value">Jan 15, 2024</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Time</div>
+                        <div class="detail-value">12:45</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Items</div>
+                        <div class="detail-value">8</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value">
+                            <span class="status-badge status-pending">Pending</span>
+                        </div>
+                    </div>
+                </div>
             </a>
 
-            <a href="receipt-detail.html?id=4" class="receipt-item">
-                <div class="receipt-number">RECEIPT: 4</div>
+            <a href="receipt-detail.html?id=TXN-2024-004" class="transaction-item">
+                <div class="transaction-header">
+                    <div class="receipt-number">
+                        <i class="fas fa-receipt"></i>
+                        TXN-2024-004
+                    </div>
+                    <div class="transaction-amount">NPR 45.00</div>
+                </div>
+                <div class="transaction-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Date</div>
+                        <div class="detail-value">Jan 14, 2024</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Time</div>
+                        <div class="detail-value">16:20</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Items</div>
+                        <div class="detail-value">2</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value">
+                            <span class="status-badge status-completed">Completed</span>
+                        </div>
+                    </div>
+                </div>
             </a>
         </div>
     </div>
 
-    <!-- Side Menu -->
-    <div class="side-menu" id="sideMenu">
-        <div class="menu-header">
-            <div class="menu-title">Menu</div>
-            <div class="close-menu" id="closeMenu">×</div>
-        </div>
-        <div class="menu-items">
-            <div class="menu-item">
-                <div class="menu-icon-folder">📊</div>
-                <div class="menu-text"><a href="index.html">Dashboard</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">📦</div>
-                <div class="menu-text"><a href="inventory.html">Inventory</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">🔄</div>
-                <div class="menu-text"><a href="transactions.html">Transactions</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">📈</div>
-                <div class="menu-text"><a href="report.html">Analytics & Report</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">🤝</div>
-                <div class="menu-text"><a href="suppliers.html">Suppliers</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">⚙️</div>
-                <div class="menu-text"><a href="settings.html">Settings</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">💸</div>
-                <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Overlay for menu -->
-    <div class="menu-overlay" id="menuOverlay"></div>
-
+    <script src="../js/menu.js"></script>
     <script>
+        // Filter functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const menuIcon = document.getElementById('menuIcon');
-            const sideMenu = document.getElementById('sideMenu');
-            const menuOverlay = document.getElementById('menuOverlay');
-            const closeMenu = document.getElementById('closeMenu');
-            const mainContent = document.querySelector('.main-content');
-            
-            function openMenu() {
-                sideMenu.classList.add('open');
-                sideMenu.classList.remove('collapsed');
-                menuOverlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                if (window.innerWidth >= 1024) {
-                    mainContent.classList.remove('expanded');
-                }
-            }
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const transactions = document.querySelectorAll('.transaction-item');
+            const searchInput = document.getElementById('searchInput');
 
-            function closeMenuHandler() {
-                if (window.innerWidth >= 1024) {
-                    sideMenu.classList.add('collapsed');
-                    mainContent.classList.add('expanded');
-                } else {
-                    sideMenu.classList.remove('open');
-                    menuOverlay.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            }
-            
-            menuIcon.addEventListener('click', openMenu);
-            closeMenu.addEventListener('click', closeMenuHandler);
-            menuOverlay.addEventListener('click', closeMenuHandler);
-
-            // Handle window resize
-            function handleResize() {
-                if (window.innerWidth >= 1024) {
-                    sideMenu.classList.add('open');
-                    menuOverlay.classList.remove('active');
-                    menuIcon.style.display = 'flex';
-                    closeMenu.style.display = 'flex';
+            // Filter button functionality
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
                     
-                    // Reset mobile-specific classes
-                    sideMenu.classList.remove('collapsed');
-                    mainContent.classList.remove('expanded');
-                } else {
-                    if (!sideMenu.classList.contains('open')) {
-                        sideMenu.classList.remove('open');
-                        menuIcon.style.display = 'flex';
-                        closeMenu.style.display = 'flex';
-                    }
-                    // Reset desktop-specific classes
-                    sideMenu.classList.remove('collapsed');
-                    mainContent.classList.remove('expanded');
-                }
-            }
+                    const filter = this.getAttribute('data-filter');
+                    filterTransactions(filter);
+                });
+            });
 
-            handleResize();
-            window.addEventListener('resize', handleResize);
+            // Search functionality
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                transactions.forEach(transaction => {
+                    const text = transaction.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        transaction.style.display = 'block';
+                    } else {
+                        transaction.style.display = 'none';
+                    }
+                });
+            });
+
+            function filterTransactions(filter) {
+                transactions.forEach(transaction => {
+                    const statusBadge = transaction.querySelector('.status-badge');
+                    const status = statusBadge ? statusBadge.textContent.toLowerCase() : '';
+                    
+                    switch(filter) {
+                        case 'all':
+                            transaction.style.display = 'block';
+                            break;
+                        case 'completed':
+                            transaction.style.display = status.includes('completed') ? 'block' : 'none';
+                            break;
+                        case 'pending':
+                            transaction.style.display = status.includes('pending') ? 'block' : 'none';
+                            break;
+                        case 'today':
+                            // You would implement actual date filtering here
+                            const dateText = transaction.querySelector('.detail-value').textContent;
+                            transaction.style.display = dateText.includes('Jan 15') ? 'block' : 'none';
+                            break;
+                        default:
+                            transaction.style.display = 'block';
+                    }
+                });
+            }
+        });        function exportTransactions() {
+            // Implement export functionality
+            alert('Export functionality would be implemented here');
+        }
+    </script>
+
+    <!-- Navbar and Menu Scripts -->
+    <script src="../js/navbar.js"></script>
+    <script src="../js/menu.js"></script>
+    <script>
+        // Initialize navbar with custom actions
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = new SmartPOSNavbar();
+            
+            // Add custom navbar actions for transactions
+            navbar.addAction('export-transactions', 'Export', 'fas fa-download', 'btn-secondary');
+            navbar.addAction('print-report', 'Print Report', 'fas fa-print', 'btn-secondary');
+            navbar.addAction('filter-transactions', 'Filter', 'fas fa-filter', 'btn-secondary');
+            
+            // Handle navbar action clicks
+            document.addEventListener('navbar-action', function(e) {
+                switch(e.detail.action) {
+                    case 'export-transactions':
+                        exportTransactions();
+                        break;
+                    case 'print-report':
+                        console.log('Printing transaction report...');
+                        alert('Print report functionality will be implemented');
+                        break;
+                    case 'filter-transactions':
+                        console.log('Opening filter options...');
+                        alert('Advanced filter functionality will be implemented');
+                        break;
+                }
+            });
         });
     </script>
 </body>
-</html> 
+</html>

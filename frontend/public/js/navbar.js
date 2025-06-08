@@ -1,0 +1,774 @@
+/**
+ * Professional Reusable Navbar Component
+ * Smart POS System - Nepal
+ * 
+ * This component provides:
+ * - Consistent header/navbar across all pages
+ * - Dynamic page titles
+ * - Notification system integration
+ * - Profile menu functionality
+ * - Responsive design
+ * - Professional UI/UX
+ */
+
+class SmartPOSNavbar {
+    constructor(options = {}) {
+        this.options = {
+            title: options.title || 'Smart POS - Nepal',
+            showBackButton: options.showBackButton || false,
+            backUrl: options.backUrl || null,
+            showNotifications: options.showNotifications !== false,
+            showProfile: options.showProfile !== false,
+            customActions: options.customActions || [],
+            ...options
+        };
+        this.notificationCount = 3; // Default notification count
+        this.init();
+    }
+
+    init() {
+        this.createNavbarHTML();
+        this.attachEventListeners();
+        this.loadNotifications();
+    }
+
+    createNavbarHTML() {
+        // Find or create navbar container
+        let navbarContainer = document.getElementById('navbarContainer');
+        if (!navbarContainer) {
+            navbarContainer = document.createElement('div');
+            navbarContainer.id = 'navbarContainer';
+            document.body.insertBefore(navbarContainer, document.body.firstChild);
+        }
+
+        // Create navbar HTML structure
+        const navbarHTML = this.generateNavbarHTML();
+        navbarContainer.innerHTML = navbarHTML;
+
+        // Add navbar styles if not already present
+        this.addNavbarStyles();
+    }
+
+    generateNavbarHTML() {
+        const backButton = this.options.showBackButton ? 
+            `<div class="back-button" id="navbarBackButton">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back</span>
+            </div>` : '';
+
+        const customActions = this.options.customActions.map(action => 
+            `<div class="custom-action" data-action="${action.id}" title="${action.title}">
+                <i class="fas fa-${action.icon}"></i>
+            </div>`
+        ).join('');
+
+        const notifications = this.options.showNotifications ? 
+            `<div class="navbar-notification-icon" id="navbarNotificationIcon">
+                <i class="fas fa-bell"></i>
+                <span class="navbar-notification-badge" id="navbarNotificationBadge">${this.notificationCount}</span>
+            </div>` : '';
+
+        const profile = this.options.showProfile ? 
+            `<div class="navbar-profile-icon" id="navbarProfileIcon">
+                <img src="../images/avatars/user-avatar.png" alt="Profile" id="navbarProfileImage">
+                <div class="profile-dropdown" id="navbarProfileDropdown">
+                    <div class="profile-dropdown-header">
+                        <div class="profile-info">
+                            <div class="profile-name">Store Manager</div>
+                            <div class="profile-email">admin@smartpos.np</div>
+                        </div>
+                    </div>
+                    <div class="profile-dropdown-menu">
+                        <a href="user-profile.html" class="profile-menu-item">
+                            <i class="fas fa-user"></i>
+                            <span>My Profile</span>
+                        </a>
+                        <a href="settings.html" class="profile-menu-item">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                        <a href="notifications.html" class="profile-menu-item">
+                            <i class="fas fa-bell"></i>
+                            <span>Notifications</span>
+                        </a>
+                        <div class="profile-menu-divider"></div>
+                        <a href="support.html" class="profile-menu-item">
+                            <i class="fas fa-life-ring"></i>
+                            <span>Help & Support</span>
+                        </a>
+                        <a href="#" class="profile-menu-item" onclick="smartPOSNavbar.logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>` : '';
+
+        return `
+            <header class="smart-pos-navbar" id="smartPOSNavbar">
+                <div class="navbar-left">
+                    ${backButton}
+                    <div class="navbar-title" id="navbarTitle">${this.options.title}</div>
+                </div>
+                <div class="navbar-right">
+                    ${customActions}
+                    ${notifications}
+                    ${profile}
+                </div>
+            </header>
+            
+            <!-- Notification Panel -->
+            <div class="navbar-notification-panel" id="navbarNotificationPanel">
+                <div class="notification-panel-header">
+                    <div class="notification-panel-title">Notifications</div>
+                    <div class="close-notification-panel" id="closeNotificationPanel">
+                        <i class="fas fa-times"></i>
+                    </div>
+                </div>
+                <div class="notification-panel-content" id="notificationPanelContent">
+                    <!-- Notifications will be loaded here -->
+                </div>
+                <div class="notification-panel-footer">
+                    <a href="notifications.html">View All Notifications</a>
+                </div>
+            </div>
+            
+            <!-- Notification Overlay -->
+            <div class="navbar-notification-overlay" id="navbarNotificationOverlay"></div>
+        `;
+    }
+
+    addNavbarStyles() {
+        if (document.getElementById('smartPOSNavbarStyles')) return;
+
+        const styles = document.createElement('style');
+        styles.id = 'smartPOSNavbarStyles';
+        styles.textContent = `
+            /* Smart POS Navbar Styles */
+            .smart-pos-navbar {
+                background: linear-gradient(to right, #ffffff, #f8f9fa);
+                padding: 16px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                position: relative;
+                z-index: 100;
+                border-bottom: 1px solid #e9ecef;
+            }
+
+            .navbar-left {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .navbar-right {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .back-button {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 12px;
+                background: #f8f9fa;
+                border: 1px solid #e9ecef;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                color: #2c3e50;
+                font-size: 14px;
+                font-weight: 500;
+            }
+
+            .back-button:hover {
+                background: #e9ecef;
+                transform: translateX(-2px);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+
+            .navbar-title {
+                font-size: 24px;
+                font-weight: 700;
+                color: #1a1a1a;
+                letter-spacing: 0.5px;
+            }
+
+            .custom-action {
+                width: 40px;
+                height: 40px;
+                background: #f8f9fa;
+                border: 1px solid #e9ecef;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                color: #2c3e50;
+            }
+
+            .custom-action:hover {
+                background: #007bff;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,123,255,0.2);
+            }
+
+            .navbar-notification-icon {
+                position: relative;
+                width: 40px;
+                height: 40px;
+                background: #f8f9fa;
+                border: 1px solid #e9ecef;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                color: #2c3e50;
+            }
+
+            .navbar-notification-icon:hover {
+                background: #007bff;
+                color: white;
+                transform: scale(1.05);
+            }
+
+            .navbar-notification-badge {
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                background: #dc3545;
+                color: white;
+                border-radius: 50%;
+                width: 18px;
+                height: 18px;
+                font-size: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                border: 2px solid white;
+            }
+
+            .navbar-profile-icon {
+                position: relative;
+                cursor: pointer;
+            }
+
+            .navbar-profile-icon img {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2px solid #e9ecef;
+                transition: all 0.3s ease;
+            }
+
+            .navbar-profile-icon:hover img {
+                border-color: #007bff;
+                transform: scale(1.05);
+            }
+
+            .profile-dropdown {
+                position: absolute;
+                top: 50px;
+                right: 0;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                border: 1px solid #e9ecef;
+                min-width: 250px;
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(-10px);
+                transition: all 0.3s ease;
+                z-index: 1000;
+            }
+
+            .profile-dropdown.active {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+            }
+
+            .profile-dropdown-header {
+                padding: 20px;
+                background: linear-gradient(135deg, #007bff, #0056b3);
+                color: white;
+                border-radius: 12px 12px 0 0;
+            }
+
+            .profile-name {
+                font-weight: 600;
+                font-size: 16px;
+                margin-bottom: 4px;
+            }
+
+            .profile-email {
+                font-size: 12px;
+                opacity: 0.9;
+            }
+
+            .profile-dropdown-menu {
+                padding: 8px 0;
+            }
+
+            .profile-menu-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 20px;
+                color: #2c3e50;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                font-size: 14px;
+            }
+
+            .profile-menu-item:hover {
+                background: #f8f9fa;
+                color: #007bff;
+            }
+
+            .profile-menu-item i {
+                width: 16px;
+                color: #6c757d;
+            }
+
+            .profile-menu-item:hover i {
+                color: #007bff;
+            }
+
+            .profile-menu-divider {
+                height: 1px;
+                background: #e9ecef;
+                margin: 8px 0;
+            }
+
+            /* Notification Panel */
+            .navbar-notification-panel {
+                position: fixed;
+                top: 0;
+                right: -400px;
+                width: 400px;
+                height: 100vh;
+                background: white;
+                box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+                z-index: 1001;
+                transition: right 0.3s ease;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .navbar-notification-panel.active {
+                right: 0;
+            }
+
+            .notification-panel-header {
+                padding: 20px;
+                background: linear-gradient(135deg, #007bff, #0056b3);
+                color: white;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .notification-panel-title {
+                font-size: 18px;
+                font-weight: 600;
+            }
+
+            .close-notification-panel {
+                width: 32px;
+                height: 32px;
+                background: rgba(255,255,255,0.2);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .close-notification-panel:hover {
+                background: rgba(255,255,255,0.3);
+                transform: scale(1.1);
+            }
+
+            .notification-panel-content {
+                flex: 1;
+                overflow-y: auto;
+                padding: 16px;
+            }
+
+            .notification-panel-footer {
+                padding: 16px 20px;
+                border-top: 1px solid #e9ecef;
+                text-align: center;
+            }
+
+            .notification-panel-footer a {
+                color: #007bff;
+                text-decoration: none;
+                font-weight: 500;
+            }
+
+            .navbar-notification-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 1000;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+            }
+
+            .navbar-notification-overlay.active {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            /* Notification Items */
+            .notification-item {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 16px;
+                border-bottom: 1px solid #f1f3f4;
+                transition: all 0.3s ease;
+            }
+
+            .notification-item:hover {
+                background: #f8f9fa;
+            }
+
+            .notification-item.unread {
+                background: #fff3cd;
+                border-left: 4px solid #ffc107;
+            }
+
+            .notification-item.critical {
+                background: #f8d7da;
+                border-left: 4px solid #dc3545;
+            }
+
+            .notification-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 14px;
+                flex-shrink: 0;
+            }
+
+            .notification-icon.warning {
+                background: #ffc107;
+            }
+
+            .notification-icon.critical {
+                background: #dc3545;
+            }
+
+            .notification-icon.info {
+                background: #17a2b8;
+            }
+
+            .notification-icon.success {
+                background: #28a745;
+            }
+
+            .notification-content {
+                flex: 1;
+            }
+
+            .notification-title {
+                font-weight: 600;
+                color: #2c3e50;
+                margin-bottom: 4px;
+                font-size: 14px;
+            }
+
+            .notification-message {
+                color: #6c757d;
+                font-size: 13px;
+                line-height: 1.4;
+                margin-bottom: 4px;
+            }
+
+            .notification-time {
+                color: #999;
+                font-size: 11px;
+            }
+
+            /* Responsive Design */
+            @media screen and (max-width: 768px) {
+                .navbar-title {
+                    font-size: 18px;
+                }
+
+                .back-button span {
+                    display: none;
+                }
+
+                .navbar-notification-panel {
+                    width: 100%;
+                    right: -100%;
+                }
+
+                .profile-dropdown {
+                    right: -20px;
+                    min-width: 220px;
+                }
+            }
+
+            @media screen and (min-width: 1024px) {
+                .smart-pos-navbar {
+                    margin-left: 300px;
+                }
+            }
+        `;
+        document.head.appendChild(styles);
+    }
+
+    attachEventListeners() {
+        // Back button
+        const backButton = document.getElementById('navbarBackButton');
+        if (backButton) {
+            backButton.addEventListener('click', () => {
+                if (this.options.backUrl) {
+                    window.location.href = this.options.backUrl;
+                } else {
+                    window.history.back();
+                }
+            });
+        }
+
+        // Notification icon
+        const notificationIcon = document.getElementById('navbarNotificationIcon');
+        const notificationPanel = document.getElementById('navbarNotificationPanel');
+        const notificationOverlay = document.getElementById('navbarNotificationOverlay');
+        const closeNotificationPanel = document.getElementById('closeNotificationPanel');
+
+        if (notificationIcon && notificationPanel) {
+            notificationIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleNotificationPanel();
+            });
+
+            closeNotificationPanel?.addEventListener('click', () => {
+                this.closeNotificationPanel();
+            });
+
+            notificationOverlay?.addEventListener('click', () => {
+                this.closeNotificationPanel();
+            });
+        }
+
+        // Profile dropdown
+        const profileIcon = document.getElementById('navbarProfileIcon');
+        const profileDropdown = document.getElementById('navbarProfileDropdown');
+
+        if (profileIcon && profileDropdown) {
+            profileIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleProfileDropdown();
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!profileIcon.contains(e.target)) {
+                    this.closeProfileDropdown();
+                }
+            });
+        }
+
+        // Custom actions
+        document.querySelectorAll('.custom-action').forEach(action => {
+            action.addEventListener('click', () => {
+                const actionId = action.dataset.action;
+                this.handleCustomAction(actionId);
+            });
+        });
+    }
+
+    loadNotifications() {
+        const content = document.getElementById('notificationPanelContent');
+        if (!content) return;
+
+        // Sample notifications for Nepali POS system
+        const notifications = [
+            {
+                type: 'critical',
+                icon: 'exclamation-circle',
+                title: 'Critical Stock Alert',
+                message: 'Wai Wai Noodles - Only 2 packets left in stock',
+                time: '2 minutes ago',
+                unread: true
+            },
+            {
+                type: 'warning',
+                icon: 'exclamation-triangle',
+                title: 'Low Stock Warning',
+                message: 'Dettol Soap - 8 units remaining, consider restocking',
+                time: '15 minutes ago',
+                unread: true
+            },
+            {
+                type: 'success',
+                icon: 'check-circle',
+                title: 'Sale Completed',
+                message: 'Transaction #TXN-2024-1125 - NPR 450 processed successfully',
+                time: '30 minutes ago',
+                unread: false
+            },
+            {
+                type: 'info',
+                icon: 'credit-card',
+                title: 'Mobile Recharge',
+                message: 'Ncell Recharge Card Rs.100 sold to customer',
+                time: '1 hour ago',
+                unread: false
+            },
+            {
+                type: 'warning',
+                icon: 'exclamation-triangle',
+                title: 'Daily Backup Reminder',
+                message: 'Remember to backup your sales data at end of day',
+                time: '2 hours ago',
+                unread: false
+            }
+        ];
+
+        content.innerHTML = notifications.map(notification => `
+            <div class="notification-item ${notification.unread ? 'unread' : ''} ${notification.type === 'critical' ? 'critical' : ''}">
+                <div class="notification-icon ${notification.type}">
+                    <i class="fas fa-${notification.icon}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${notification.title}</div>
+                    <div class="notification-message">${notification.message}</div>
+                    <div class="notification-time">${notification.time}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    toggleNotificationPanel() {
+        const panel = document.getElementById('navbarNotificationPanel');
+        const overlay = document.getElementById('navbarNotificationOverlay');
+        
+        panel?.classList.toggle('active');
+        overlay?.classList.toggle('active');
+        
+        if (panel?.classList.contains('active')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+
+    closeNotificationPanel() {
+        const panel = document.getElementById('navbarNotificationPanel');
+        const overlay = document.getElementById('navbarNotificationOverlay');
+        
+        panel?.classList.remove('active');
+        overlay?.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    toggleProfileDropdown() {
+        const dropdown = document.getElementById('navbarProfileDropdown');
+        dropdown?.classList.toggle('active');
+    }
+
+    closeProfileDropdown() {
+        const dropdown = document.getElementById('navbarProfileDropdown');
+        dropdown?.classList.remove('active');
+    }
+
+    handleCustomAction(actionId) {
+        // Emit custom event for handling by parent application
+        window.dispatchEvent(new CustomEvent('navbarAction', { 
+            detail: { actionId } 
+        }));
+    }
+
+    updateTitle(newTitle) {
+        this.options.title = newTitle;
+        const titleElement = document.getElementById('navbarTitle');
+        if (titleElement) {
+            titleElement.textContent = newTitle;
+        }
+    }
+
+    updateNotificationCount(count) {
+        this.notificationCount = count;
+        const badge = document.getElementById('navbarNotificationBadge');
+        if (badge) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'flex' : 'none';
+        }
+    }
+
+    logout() {
+        if (confirm('Are you sure you want to logout?')) {
+            // Clear any stored data
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Redirect to login/landing page
+            window.location.href = '../landing.html';
+        }
+    }
+
+    destroy() {
+        const container = document.getElementById('navbarContainer');
+        const styles = document.getElementById('smartPOSNavbarStyles');
+        
+        container?.remove();
+        styles?.remove();
+    }
+}
+
+// Global instance and convenience functions
+let smartPOSNavbar = null;
+
+function initSmartPOSNavbar(options = {}) {
+    // Destroy existing instance if any
+    if (smartPOSNavbar) {
+        smartPOSNavbar.destroy();
+    }
+    
+    // Create new instance
+    smartPOSNavbar = new SmartPOSNavbar(options);
+    
+    // Make it globally accessible
+    window.smartPOSNavbar = smartPOSNavbar;
+    
+    return smartPOSNavbar;
+}
+
+// Auto-initialize on DOM load if not manually initialized
+document.addEventListener('DOMContentLoaded', () => {
+    // Only auto-initialize if not already done
+    if (!smartPOSNavbar && !window.navbarManualInit) {
+        // Auto-detect page and set appropriate title
+        const pageTitle = document.title.replace('Smart POS - ', '') || 'Dashboard';
+        initSmartPOSNavbar({ title: pageTitle });
+    }
+});
+
+// Export for module systems
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { SmartPOSNavbar, initSmartPOSNavbar };
+}

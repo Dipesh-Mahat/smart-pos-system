@@ -3,384 +3,675 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoPOS - Suppliers</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            background-color: #fff;
+    <title>Smart POS - Suppliers</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>        .main-content {
+            padding: 20px;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            min-height: 100vh;
         }
 
-        .profile-icon img {
-            width: 24px;
-            height: 24px;
-            object-fit: contain;
-        }
-
-        .location-list {
-            list-style: none;
-        }
-
-        .location-item {
-            display: flex;
-            align-items: center;
-            padding: 16px;
-            margin-bottom: 1px;
-            background-color: #fff;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .location-item:hover {
-            background-color: #f5f5f5;
-        }
-
-        .folder-icon {
-            font-size: 24px;
-            margin-right: 12px;
-        }
-
-        .location-name {
-            font-size: 18px;
-            font-weight: 500;
-        }
-
-        .menu-icon {
-            font-size: 24px;
-            cursor: pointer;
-            padding: 12px;
-            margin: -12px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            color: #2c3e50;
-        }
-
-        .menu-icon:hover {
-            background-color: #f8f9fa;
-            transform: scale(1.05);
-        }
-
-        .side-menu {
-            position: fixed;
-            top: 0;
-            left: -300px;
-            width: 300px;
-            height: 100vh;
-            background: white;
-            z-index: 1000;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 4px 0 16px rgba(0,0,0,0.1);
-            overflow-y: auto;
-        }
-
-        .side-menu.open {
-            left: 0;
-            box-shadow: 8px 0 24px rgba(0,0,0,0.15);
-        }
-
-        .side-menu.collapsed {
-            transform: translateX(-100%);
-        }
-
-        .menu-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(4px);
-        }
-
-        .menu-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .menu-items {
-            padding: 16px;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
-            color: #2c3e50;
-            text-decoration: none;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .menu-item:hover {
-            background-color: #f8f9fa;
-            transform: translateX(8px);
-        }
-
-        .menu-icon-folder {
-            margin-right: 16px;
-            font-size: 22px;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.3s ease;
-        }
-
-        .menu-item:hover .menu-icon-folder {
-            transform: scale(1.1);
-        }
-
-        .menu-text {
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .menu-text a {
-            color: #2c3e50;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .menu-item:hover .menu-text a {
-            color: #007bff;
-        }
-
-        @media screen and (min-width: 1024px) {
-            .side-menu {
-                left: 0;
-                box-shadow: none;
-                border-right: 1px solid #e9ecef;
-                transition: transform 0.3s ease;
-            }
-
-            .side-menu.collapsed {
-                transform: translateX(-100%);
-            }
-
-            .menu-icon {
-                display: flex !important;
-                position: fixed;
-                top: 16px;
-                left: 16px;
-                z-index: 1002;
-            }
-
-            .menu-overlay {
-                display: none !important;
-            }
-
-            .close-menu {
-                display: flex !important;
-                position: absolute;
-                top: 16px;
-                right: 16px;
-                z-index: 1002;
-            }
-
+        @media (max-width: 768px) {
             .main-content {
-                margin-left: 300px;
-                transition: margin-left 0.3s ease;
-            }
-
-            .main-content.expanded {
                 margin-left: 0;
+                padding: 15px;
             }
         }
 
-        .menu-header {
+        .page-title i {
+            color: #74b9ff;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 50px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #74b9ff;
+            box-shadow: 0 0 0 3px rgba(116, 185, 255, 0.1);
+        }
+
+        .search-box .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 18px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid #74b9ff;
+        }
+
+        .stat-card.active {
+            border-top-color: #00b894;
+        }
+
+        .stat-card.inactive {
+            border-top-color: #e17055;
+        }
+
+        .stat-card.pending {
+            border-top-color: #fdcb6e;
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: #74b9ff;
+        }
+
+        .stat-card.active .stat-icon {
+            color: #00b894;
+        }
+
+        .stat-card.inactive .stat-icon {
+            color: #e17055;
+        }
+
+        .stat-card.pending .stat-icon {
+            color: #fdcb6e;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .suppliers-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .supplier-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .supplier-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .supplier-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            border-bottom: 1px solid #e9ecef;
+            align-items: flex-start;
+            margin-bottom: 20px;
         }
 
-        .menu-title {
-            font-size: 18px;
+        .supplier-info h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0 0 8px 0;
+        }
+
+        .supplier-contact {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+
+        .supplier-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-active {
+            background: #d1f2eb;
+            color: #00b894;
+        }
+
+        .status-inactive {
+            background: #fadbd8;
+            color: #e17055;
+        }
+
+        .status-pending {
+            background: #fef9e7;
+            color: #fdcb6e;
+        }
+
+        .supplier-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 14px;
             font-weight: 600;
             color: #2c3e50;
         }
 
-        .close-menu {
-            font-size: 24px;
-            color: #6c757d;
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
-            width: 32px;
-            height: 32px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(116, 185, 255, 0.3);
+        }
+
+        .btn-success {
+            background: #00b894;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #00a085;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+
+        .filters-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #e9ecef;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #6c757d;
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            border-color: #74b9ff;
+            background: #74b9ff;
+            color: white;
+        }
+
+        .supplier-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .supplier-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s ease;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 15px;
         }
 
-        .close-menu:hover {
-            background-color: #f8f9fa;
-            color: #2c3e50;
+        .quick-add {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(116, 185, 255, 0.3);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .quick-add:hover {
             transform: scale(1.1);
+            box-shadow: 0 15px 35px rgba(116, 185, 255, 0.4);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #dee2e6;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            max-width: 400px;
+            margin: 0 auto 20px;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="menu-icon" id="menuIcon">☰</div>
-            <div class="app-title">Suppliers</div>
-            <div class="header-icons">
-                <div class="notification-icon">🔔</div>
-                <div class="profile-icon"><img src="photo/Profile.png" alt="Profile"></div>
+<body>    <div class="main-content">
+        <!-- Statistics -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="stat-value">47</div>
+                <div class="stat-label">Total Suppliers</div>
+            </div>
+            <div class="stat-card active">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-value">42</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-card pending">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-value">3</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card inactive">
+                <div class="stat-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="stat-value">2</div>
+                <div class="stat-label">Inactive</div>
             </div>
         </div>
 
-        <div class="main-content">
-            <div class="location-list">
-                <a href="supplier-details.html?location=kathmandu" class="location-item">
-                    <span class="folder-icon">📁</span>
-                    <span class="location-name">Kathmandu</span>
-                </a>
-                
-                <a href="supplier-details.html?location=lalitpur" class="location-item">
-                    <span class="folder-icon">📁</span>
-                    <span class="location-name">Lalitpur</span>
-                </a>
-                
-                <a href="supplier-details.html?location=bhaktapur" class="location-item">
-                    <span class="folder-icon">📁</span>
-                    <span class="location-name">Bhaktapur</span>
-                </a>
-                
-                <a href="supplier-details.html?location=pokhara" class="location-item">
-                    <span class="folder-icon">📁</span>
-                    <span class="location-name">Pokhara</span>
-                </a>
-
-                <a href="supplier-details.html?location=biratnagar" class="location-item">
-                    <span class="folder-icon">📁</span>
-                    <span class="location-name">Biratnagar</span>
-                </a>
-
-                <a href="supplier-details.html?location=butwal" class="location-item">
-                    <span class="folder-icon">📁</span>
-                    <span class="location-name">Butwal</span>
-                </a>
+        <!-- Search -->
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" placeholder="Search suppliers by name, contact, or location..." id="searchInput">
+                <i class="fas fa-search search-icon"></i>
             </div>
         </div>
+
+        <!-- Filters -->
+        <div class="filters-container">
+            <button class="filter-btn active" data-filter="all">All Suppliers</button>
+            <button class="filter-btn" data-filter="active">Active</button>
+            <button class="filter-btn" data-filter="pending">Pending</button>
+            <button class="filter-btn" data-filter="inactive">Inactive</button>
+            <button class="filter-btn" data-filter="local">Local</button>
+            <button class="filter-btn" data-filter="international">International</button>
+        </div>
+
+        <!-- Suppliers Grid -->
+        <div class="suppliers-grid" id="suppliersGrid">
+            <div class="supplier-card" onclick="viewSupplier('SUP001')">
+                <div class="supplier-header">
+                    <div class="supplier-info">
+                        <div class="supplier-avatar">AC</div>
+                        <h3>ACME Corporation</h3>
+                        <div class="supplier-contact">
+                            <i class="fas fa-envelope"></i> contact@acme.com
+                        </div>
+                        <div class="supplier-contact">
+                            <i class="fas fa-phone"></i> +1 (555) 123-4567
+                        </div>
+                        <div class="supplier-contact">
+                            <i class="fas fa-map-marker-alt"></i> New York, USA
+                        </div>
+                    </div>
+                    <div class="supplier-status status-active">Active</div>
+                </div>
+                <div class="supplier-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Products</div>
+                        <div class="detail-value">45</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Orders</div>
+                        <div class="detail-value">126</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Rating</div>
+                        <div class="detail-value">4.8/5</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Last Order</div>
+                        <div class="detail-value">2 days ago</div>
+                    </div>
+                </div>
+                <div class="supplier-actions">
+                    <button class="btn btn-success" onclick="event.stopPropagation(); createOrder('SUP001')">
+                        <i class="fas fa-plus"></i>
+                        New Order
+                    </button>
+                    <button class="btn btn-secondary" onclick="event.stopPropagation(); editSupplier('SUP001')">
+                        <i class="fas fa-edit"></i>
+                        Edit
+                    </button>
+                </div>
+            </div>
+
+            <div class="supplier-card" onclick="viewSupplier('SUP002')">
+                <div class="supplier-header">
+                    <div class="supplier-info">
+                        <div class="supplier-avatar">GL</div>
+                        <h3>Global Logistics Ltd</h3>
+                        <div class="supplier-contact">
+                            <i class="fas fa-envelope"></i> info@globallogistics.com
+                        </div>
+                        <div class="supplier-contact">
+                            <i class="fas fa-phone"></i> +44 20 7946 0958
+                        </div>
+                        <div class="supplier-contact">
+                            <i class="fas fa-map-marker-alt"></i> London, UK
+                        </div>
+                    </div>
+                    <div class="supplier-status status-active">Active</div>
+                </div>
+                <div class="supplier-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Products</div>
+                        <div class="detail-value">78</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Orders</div>
+                        <div class="detail-value">89</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Rating</div>
+                        <div class="detail-value">4.6/5</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Last Order</div>
+                        <div class="detail-value">1 week ago</div>
+                    </div>
+                </div>
+                <div class="supplier-actions">
+                    <button class="btn btn-success" onclick="event.stopPropagation(); createOrder('SUP002')">
+                        <i class="fas fa-plus"></i>
+                        New Order
+                    </button>
+                    <button class="btn btn-secondary" onclick="event.stopPropagation(); editSupplier('SUP002')">
+                        <i class="fas fa-edit"></i>
+                        Edit
+                    </button>
+                </div>
+            </div>
+
+            <div class="supplier-card" onclick="viewSupplier('SUP003')">
+                <div class="supplier-header">
+                    <div class="supplier-info">
+                        <div class="supplier-avatar">TS</div>
+                        <h3>Tech Solutions Inc</h3>
+                        <div class="supplier-contact">
+                            <i class="fas fa-envelope"></i> sales@techsolutions.com
+                        </div>
+                        <div class="supplier-contact">
+                            <i class="fas fa-phone"></i> +1 (650) 555-0123
+                        </div>
+                        <div class="supplier-contact">
+                            <i class="fas fa-map-marker-alt"></i> San Francisco, USA
+                        </div>
+                    </div>
+                    <div class="supplier-status status-pending">Pending</div>
+                </div>
+                <div class="supplier-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Products</div>
+                        <div class="detail-value">23</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Orders</div>
+                        <div class="detail-value">12</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Rating</div>
+                        <div class="detail-value">4.2/5</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Last Order</div>
+                        <div class="detail-value">3 weeks ago</div>
+                    </div>
+                </div>
+                <div class="supplier-actions">
+                    <button class="btn btn-success" onclick="event.stopPropagation(); createOrder('SUP003')">
+                        <i class="fas fa-plus"></i>
+                        New Order
+                    </button>
+                    <button class="btn btn-secondary" onclick="event.stopPropagation(); editSupplier('SUP003')">
+                        <i class="fas fa-edit"></i>
+                        Edit
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Add Button -->
+        <button class="quick-add" onclick="addSupplier()" title="Add New Supplier">
+            <i class="fas fa-plus"></i>
+        </button>
     </div>
 
-    <!-- Side Menu -->
-    <div class="side-menu" id="sideMenu">
-        <div class="menu-header">
-            <div class="menu-title">Menu</div>
-            <div class="close-menu" id="closeMenu">×</div>
-        </div>
-        <div class="menu-items">
-            <div class="menu-item">
-                <div class="menu-icon-folder">📊</div>
-                <div class="menu-text"><a href="index.html">Dashboard</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">📦</div>
-                <div class="menu-text"><a href="inventory.html">Inventory</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">🔄</div>
-                <div class="menu-text"><a href="transactions.html">Transactions</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">📈</div>
-                <div class="menu-text"><a href="report.html">Analytics & Report</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">🤝</div>
-                <div class="menu-text"><a href="suppliers.html">Suppliers</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">⚙️</div>
-                <div class="menu-text"><a href="settings.html">Settings</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">💸</div>
-                <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Overlay for menu -->
-    <div class="menu-overlay" id="menuOverlay"></div>
-
+    <script src="../js/menu.js"></script>
     <script>
+        // Filter functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const menuIcon = document.getElementById('menuIcon');
-            const sideMenu = document.getElementById('sideMenu');
-            const menuOverlay = document.getElementById('menuOverlay');
-            const closeMenu = document.getElementById('closeMenu');
-            const mainContent = document.querySelector('.main-content');
-            
-            function openMenu() {
-                sideMenu.classList.add('open');
-                sideMenu.classList.remove('collapsed');
-                menuOverlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                if (window.innerWidth >= 1024) {
-                    mainContent.classList.remove('expanded');
-                }
-            }
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const suppliers = document.querySelectorAll('.supplier-card');
+            const searchInput = document.getElementById('searchInput');
 
-            function closeMenuHandler() {
-                if (window.innerWidth >= 1024) {
-                    sideMenu.classList.add('collapsed');
-                    mainContent.classList.add('expanded');
-                } else {
-                    sideMenu.classList.remove('open');
-                    menuOverlay.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            }
-            
-            menuIcon.addEventListener('click', openMenu);
-            closeMenu.addEventListener('click', closeMenuHandler);
-            menuOverlay.addEventListener('click', closeMenuHandler);
-
-            // Handle window resize
-            function handleResize() {
-                if (window.innerWidth >= 1024) {
-                    sideMenu.classList.add('open');
-                    menuOverlay.classList.remove('active');
-                    menuIcon.style.display = 'flex';
-                    closeMenu.style.display = 'flex';
+            // Filter button functionality
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
                     
-                    // Reset mobile-specific classes
-                    sideMenu.classList.remove('collapsed');
-                    mainContent.classList.remove('expanded');
-                } else {
-                    if (!sideMenu.classList.contains('open')) {
-                        sideMenu.classList.remove('open');
-                        menuIcon.style.display = 'flex';
-                        closeMenu.style.display = 'flex';
-                    }
-                    // Reset desktop-specific classes
-                    sideMenu.classList.remove('collapsed');
-                    mainContent.classList.remove('expanded');
-                }
-            }
+                    const filter = this.getAttribute('data-filter');
+                    filterSuppliers(filter);
+                });
+            });
 
-            handleResize();
-            window.addEventListener('resize', handleResize);
+            // Search functionality
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                suppliers.forEach(supplier => {
+                    const text = supplier.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        supplier.style.display = 'block';
+                    } else {
+                        supplier.style.display = 'none';
+                    }
+                });
+            });
+
+            function filterSuppliers(filter) {
+                suppliers.forEach(supplier => {
+                    const statusElement = supplier.querySelector('.supplier-status');
+                    const status = statusElement ? statusElement.textContent.toLowerCase() : '';
+                    
+                    switch(filter) {
+                        case 'all':
+                            supplier.style.display = 'block';
+                            break;
+                        case 'active':
+                            supplier.style.display = status.includes('active') ? 'block' : 'none';
+                            break;
+                        case 'pending':
+                            supplier.style.display = status.includes('pending') ? 'block' : 'none';
+                            break;
+                        case 'inactive':
+                            supplier.style.display = status.includes('inactive') ? 'block' : 'none';
+                            break;
+                        default:
+                            supplier.style.display = 'block';
+                    }
+                });
+            }
+        });
+
+        function viewSupplier(supplierId) {
+            window.location.href = `supplier-details.html?id=${supplierId}`;
+        }
+
+        function addSupplier() {
+            alert('Opening new supplier form...');
+            // Here you would open a modal or redirect to add supplier form
+        }
+
+        function editSupplier(supplierId) {
+            alert(`Editing supplier ${supplierId}...`);
+            // Here you would open edit form for the supplier
+        }
+
+        function createOrder(supplierId) {
+            alert(`Creating new order for supplier ${supplierId}...`);
+            // Here you would open order creation interface
+        }        function exportSuppliers() {
+            alert('Exporting suppliers data...');
+            // Here you would implement export functionality
+        }
+    </script>
+
+    <!-- Navbar and Menu Scripts -->
+    <script src="../js/navbar.js"></script>
+    <script src="../js/menu.js"></script>
+    <script>
+        // Initialize navbar with custom actions
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = new SmartPOSNavbar();
+            
+            // Add custom navbar actions for suppliers
+            navbar.addAction('add-supplier', 'Add Supplier', 'fas fa-plus', 'btn-primary');
+            navbar.addAction('export-suppliers', 'Export', 'fas fa-download', 'btn-secondary');
+            navbar.addAction('import-suppliers', 'Import', 'fas fa-upload', 'btn-secondary');
+            
+            // Handle navbar action clicks
+            document.addEventListener('navbar-action', function(e) {
+                switch(e.detail.action) {
+                    case 'add-supplier':
+                        addSupplier();
+                        break;
+                    case 'export-suppliers':
+                        exportSuppliers();
+                        break;
+                    case 'import-suppliers':
+                        console.log('Importing suppliers...');
+                        alert('Import suppliers functionality will be implemented');
+                        break;
+                }
+            });
         });
     </script>
 </body>
-</html> 
+</html>

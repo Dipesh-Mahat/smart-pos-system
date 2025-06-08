@@ -3,518 +3,710 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoPOS - Today</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
-
-        body {
-            background-color: #f8f9fa;
-            max-width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        /* Header styles */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 2;
-        }
-
-        .menu-icon {
-            font-size: 24px;
-            cursor: pointer;
-            color: #444;
-        }
-
-        .app-title {
-            font-weight: bold;
-            font-size: 18px;
-            color: #2c3e50;
-        }
-
-        .header-icons {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .notification-icon, .profile-icon {
-            font-size: 24px;
-            cursor: pointer;
-            color: #444;
-        }
-
-        /* Stats section */
-        .stats-section {
-            background: #fff;
+    <title>Smart POS - Daily Summary</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>        .main-content {
             padding: 20px;
-            margin: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+        }        .summary-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .date-selector {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .date-input {
+            padding: 12px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-        }
-
-        .stat-card {
-            background: #f8f9fa;
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
-        }
-
-        .stat-title {
-            color: #6c757d;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .stat-value {
-            color: #2c3e50;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-
-        .stat-change {
-            color: #28a745;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .stat-change.negative {
-            color: #dc3545;
-        }
-
-        /* Sale list styles */
-        .main-content {
-            flex: 1;
-            padding: 0 16px;
-            overflow-y: auto;
-        }
-
-        .section-title {
             font-size: 16px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin: 16px 0;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
         }
 
-        .sale-item {
-            background: #fff;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        .date-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .sale-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .sale-details {
-            flex: 1;
-        }
-
-        .sale-title {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 4px;
-        }
-
-        .sale-info {
-            color: #6c757d;
-            font-size: 14px;
-            display: flex;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
-        .sale-amount {
-            font-weight: bold;
-            color: #2c3e50;
-            font-size: 16px;
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
         }
 
-        .sale-status {
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 12px;
-            margin-left: 8px;
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
 
-        .status-completed {
-            background: #d4edda;
-            color: #155724;
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
         }
 
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* Bottom navigation */
-        .bottom-nav {
-            display: flex;
-            justify-content: space-between;
-            background-color: white;
-            padding: 12px 0;
-            box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
         }
 
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            padding: 8px 0;
-            font-size: 12px;
-            color: #6c757d;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .nav-icon {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-
-        .nav-item.active {
-            color: #007bff;
-        }
-
-        .nav-item:hover {
-            color: #007bff;
-        }
-
-        /* Sidebar styles */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100vh;
-            background: white;
-            z-index: 1000;
-            transition: left 0.3s ease;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
-        }
-
-        .sidebar.active {
-            left: 0;
-        }
-
-        .sidebar-overlay {
-            position: fixed;
+        .stat-card::before {
+            content: '';
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            display: none;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .sidebar-overlay.active {
-            display: block;
-        }
-
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .sidebar-title {
-            font-weight: bold;
-            font-size: 18px;
-            color: #2c3e50;
-        }
-
-        .close-sidebar {
-            font-size: 24px;
-            cursor: pointer;
-            color: #6c757d;
-        }
-
-        .sidebar-content {
-            padding: 20px;
-        }
-
-        .sidebar-item {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            color: #2c3e50;
-            text-decoration: none;
-            border-radius: 8px;
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
             margin-bottom: 8px;
-            transition: background-color 0.3s;
         }
 
-        .sidebar-item:hover {
-            background-color: #f8f9fa;
+        .stat-label {
+            color: #666;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
         }
 
-        .sidebar-icon {
-            margin-right: 12px;
-            font-size: 20px;
+        .stat-change {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .change-positive {
+            color: #22c55e;
+        }
+
+        .change-negative {
+            color: #ef4444;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chart-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .chart-placeholder {
+            height: 300px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+        }
+
+        .transactions-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .transactions-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .transaction-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .transaction-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .transaction-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .icon-sale {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .icon-refund {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .icon-expense {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .transaction-details h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .transaction-details p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .transaction-amount {
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .amount-positive {
+            color: #22c55e;
+        }
+
+        .amount-negative {
+            color: #ef4444;
+        }
+
+        .top-products-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .product-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .product-rank {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .product-info {
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .product-sales {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .product-revenue {
+            font-weight: 700;
+            color: #22c55e;
+            font-size: 1.1rem;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            color: #667eea;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .action-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        @media (max-width: 768px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header-top {
+                flex-direction: column;
+                gap: 20px;
+                align-items: stretch;
+            }
+
+            .date-selector {
+                justify-content: center;
+            }
+
+            .quick-actions {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                min-width: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .transaction-item {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .transaction-amount {
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="menu-icon" id="menuIcon">☰</div>
-            <div class="app-title">Today's Overview</div>
-            <div class="header-icons">
-                <div class="notification-icon">🔔</div>
-                <div class="profile-icon"><img src="../images/avatars/user-avatar.png" alt="Profile" style="width: 24px; height: 24px; border-radius: 50%;"></div>
+    <div class="main-content">        <div class="summary-container">
+            <div class="date-selector">
+                <input type="date" class="date-input" id="summaryDate" value="2025-06-08">
+                <button class="btn btn-primary" onclick="loadSummary()">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh
+                </button>
             </div>
-        </div>
 
-        <div class="stats-section">
-            <div class="stats-grid">
+            <!-- Summary Statistics -->
+            <div class="summary-stats">
                 <div class="stat-card">
-                    <div class="stat-title">Today's Sales</div>
-                    <div class="stat-value">₹25,480</div>
-                    <div class="stat-change">↑ 12% from yesterday</div>
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-number">NPR 2,847.50</div>
+                    <div class="stat-label">Total Revenue</div>
+                    <div class="stat-change change-positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +12.5% vs yesterday
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-title">Total Orders</div>
-                    <div class="stat-value">48</div>
-                    <div class="stat-change">↑ 8 more than yesterday</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Average Order</div>
-                    <div class="stat-value">₹530</div>
-                    <div class="stat-change negative">↓ 5% from average</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Net Profit</div>
-                    <div class="stat-value">₹6,370</div>
-                    <div class="stat-change">↑ 15% from yesterday</div>
-                </div>
-            </div>
-        </div>
 
-        <div class="main-content">
-            <div class="section-title">Recent Sales</div>
-            
-            <div class="sale-item">
-                <div class="sale-details">
-                    <div class="sale-title">Order #1234</div>
-                    <div class="sale-info">
-                        <span>5 items</span>
-                        <span>•</span>
-                        <span>15 minutes ago</span>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-number">127</div>
+                    <div class="stat-label">Total Transactions</div>
+                    <div class="stat-change change-positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +8.3% vs yesterday
                     </div>
                 </div>
-                <div class="sale-amount">
-                    ₹1,250
-                    <span class="sale-status status-completed">Completed</span>
-                </div>
-            </div>
-            
-            <div class="sale-item">
-                <div class="sale-details">
-                    <div class="sale-title">Order #1233</div>
-                    <div class="sale-info">
-                        <span>3 items</span>
-                        <span>•</span>
-                        <span>45 minutes ago</span>
-                    </div>
-                </div>
-                <div class="sale-amount">
-                    ₹850
-                    <span class="sale-status status-completed">Completed</span>
-                </div>
-            </div>
-            
-            <div class="sale-item">
-                <div class="sale-details">
-                    <div class="sale-title">Order #1232</div>
-                    <div class="sale-info">
-                        <span>2 items</span>
-                        <span>•</span>
-                        <span>1 hour ago</span>
-                    </div>
-                </div>
-                <div class="sale-amount">
-                    ₹450
-                    <span class="sale-status status-pending">Pending</span>
-                </div>
-            </div>
-            
-            <div class="sale-item">
-                <div class="sale-details">
-                    <div class="sale-title">Order #1231</div>
-                    <div class="sale-info">
-                        <span>7 items</span>
-                        <span>•</span>
-                        <span>2 hours ago</span>
-                    </div>
-                </div>
-                <div class="sale-amount">
-                    ₹2,100
-                    <span class="sale-status status-completed">Completed</span>
-                </div>
-            </div>
-        </div>
 
-        <div class="bottom-nav">
-            <a href="reports.html" class="nav-item">
-                <div class="nav-icon">📊</div>
-                <div>Report</div>
-            </a>
-            <a href="daily-summary.html" class="nav-item active">
-                <div class="nav-icon">📅</div>
-                <div>Today</div>
-            </a>
-            <a href="index.html" class="nav-item">
-                <div class="nav-icon">🏪</div>
-                <div>Counter</div>
-            </a>
-            <a href="item-management.html" class="nav-item">
-                <div class="nav-icon">📦</div>
-                <div>Items</div>
-            </a>
-            <a href="more.html" class="nav-item">
-                <div class="nav-icon">⚙️</div>
-                <div>More</div>
-            </a>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="stat-number">NPR 22.42</div>
+                    <div class="stat-label">Average Sale</div>
+                    <div class="stat-change change-positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +3.8% vs yesterday
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="stat-number">342</div>
+                    <div class="stat-label">Items Sold</div>
+                    <div class="stat-change change-negative">
+                        <i class="fas fa-arrow-down"></i>
+                        -2.1% vs yesterday
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="chart-card">
+                    <h3 class="chart-title">Sales Throughout the Day</h3>
+                    <div class="chart-placeholder">
+                        <i class="fas fa-chart-area"></i>
+                        Hourly Sales Chart
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3 class="chart-title">Payment Methods</h3>
+                    <div class="chart-placeholder">
+                        <i class="fas fa-chart-pie"></i>
+                        Payment Methods Chart
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="transactions-section">
+                <h2 class="section-title">
+                    <i class="fas fa-list-alt"></i>
+                    Recent Transactions
+                </h2>
+                <div class="transactions-grid">
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-icon icon-sale">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <h4>Sale #TXN-2025-001247</h4>
+                                <p>3 items • Cash Payment • 14:35</p>
+                            </div>
+                        </div>
+                        <div class="transaction-amount amount-positive">+NPR 67.89</div>
+                    </div>
+
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-icon icon-sale">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <h4>Sale #TXN-2025-001246</h4>
+                                <p>1 item • Card Payment • 14:28</p>
+                            </div>
+                        </div>
+                        <div class="transaction-amount amount-positive">+NPR 24.99</div>
+                    </div>
+
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-icon icon-refund">
+                                <i class="fas fa-undo"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <h4>Refund #REF-2025-000089</h4>
+                                <p>Return processed • Cash • 14:15</p>
+                            </div>
+                        </div>
+                        <div class="transaction-amount amount-negative">-NPR 19.99</div>
+                    </div>
+
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-icon icon-expense">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <h4>Expense #EXP-2025-000234</h4>
+                                <p>Office supplies • Cash • 13:45</p>
+                            </div>
+                        </div>
+                        <div class="transaction-amount amount-negative">-NPR 45.67</div>
+                    </div>
+
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-icon icon-sale">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <h4>Sale #TXN-2025-001245</h4>
+                                <p>5 items • Card Payment • 13:22</p>
+                            </div>
+                        </div>
+                        <div class="transaction-amount amount-positive">+NPR 123.45</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Products -->
+            <div class="top-products-section">
+                <h2 class="section-title">
+                    <i class="fas fa-star"></i>
+                    Top Selling Products Today
+                </h2>                <div class="product-list">
+                    <div class="product-item">
+                        <div class="product-rank">1</div>
+                        <div class="product-info">
+                            <div class="product-name">Wai Wai Noodles</div>
+                            <div class="product-sales">45 units sold</div>
+                        </div>
+                        <div class="product-revenue">NPR 1,125</div>
+                    </div>
+
+                    <div class="product-item">
+                        <div class="product-rank">2</div>
+                        <div class="product-info">
+                            <div class="product-name">Basmati Rice (1kg)</div>
+                            <div class="product-sales">18 units sold</div>
+                        </div>
+                        <div class="product-revenue">NPR 3,240</div>
+                    </div>                    <div class="product-item">
+                        <div class="product-rank">3</div>
+                        <div class="product-info">
+                            <div class="product-name">Parle-G Biscuits</div>
+                            <div class="product-sales">32 units sold</div>
+                        </div>
+                        <div class="product-revenue">NPR 1,120</div>
+                    </div>
+
+                    <div class="product-item">
+                        <div class="product-rank">4</div>
+                        <div class="product-info">
+                            <div class="product-name">Cooking Oil (1L)</div>
+                            <div class="product-sales">12 units sold</div>
+                        </div>
+                        <div class="product-revenue">NPR 3,360</div>
+                    </div>
+
+                    <div class="product-item">
+                        <div class="product-rank">5</div>
+                        <div class="product-info">
+                            <div class="product-name">Dettol Soap (75g)</div>
+                            <div class="product-sales">25 units sold</div>
+                        </div>
+                        <div class="product-revenue">NPR 1,125</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <a href="pos.html" class="action-btn">
+                    <i class="fas fa-cash-register"></i>
+                    New Sale
+                </a>
+                <a href="add-expense.html" class="action-btn">
+                    <i class="fas fa-plus"></i>
+                    Add Expense
+                </a>
+                <a href="inventory.html" class="action-btn">
+                    <i class="fas fa-boxes"></i>
+                    Check Inventory
+                </a>
+                <button class="action-btn" onclick="exportDailySummary()">
+                    <i class="fas fa-download"></i>
+                    Export Report
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Add sidebar elements -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-title">NeoPOS Menu</div>
-            <div class="close-sidebar">×</div>
-        </div>
-        <div class="sidebar-content">
-            <a href="index.html" class="sidebar-item">
-                <span class="sidebar-icon">🏪</span>
-                Counter
-            </a>
-            <a href="daily-summary.html" class="sidebar-item">
-                <span class="sidebar-icon">📅</span>
-                Today
-            </a>
-            <a href="reports.html" class="sidebar-item">
-                <span class="sidebar-icon">📊</span>
-                Reports
-            </a>
-            <a href="item-management.html" class="sidebar-item">
-                <span class="sidebar-icon">📦</span>
-                Items
-            </a>
-            <a href="inventory.html" class="sidebar-item">
-                <span class="sidebar-icon">🗂️</span>
-                Inventory
-            </a>
-            <a href="more.html" class="sidebar-item">
-                <span class="sidebar-icon">⚙️</span>
-                Settings
-            </a>
-        </div>
-    </div>
-    <div class="sidebar-overlay"></div>
-
-    <script src="../js/sidebar.js"></script>
+    <script src="../js/menu.js"></script>
     <script>
+        // Initialize date to today
         document.addEventListener('DOMContentLoaded', function() {
-            // Menu functionality
-            const menuIcon = document.getElementById('menuIcon');
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarOverlay = document.querySelector('.sidebar-overlay');
-            const closeSidebar = document.querySelector('.close-sidebar');
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('summaryDate').value = today;
+            loadSummary();
+        });
 
-            // Open menu
-            menuIcon.addEventListener('click', function(e) {
-                e.stopPropagation();
-                sidebar.classList.add('active');
-                sidebarOverlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            });
+        function loadSummary() {
+            const selectedDate = document.getElementById('summaryDate').value;
+            console.log('Loading summary for date:', selectedDate);
+            
+            // Here you would typically make an API call to load the summary data
+            // updateSummaryData(selectedDate);
+        }
 
-            // Close menu when clicking close button
-            closeSidebar.addEventListener('click', function() {
-                sidebar.classList.remove('active');
-                sidebarOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-            });
+        function exportDailySummary() {
+            const selectedDate = document.getElementById('summaryDate').value;
+            console.log('Exporting daily summary for:', selectedDate);
+            
+            // Here you would implement the export functionality
+            // This could generate a PDF, CSV, or Excel file
+            alert('Daily summary export feature will be implemented');
+        }
 
-            // Close menu when clicking overlay
-            sidebarOverlay.addEventListener('click', function() {
-                sidebar.classList.remove('active');
-                sidebarOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-            });
+        // Sample function to update summary data
+        function updateSummaryData(date) {
+            // This would typically fetch data from your backend
+            console.log('Updating summary data for:', date);
+        }        // Auto-refresh every 5 minutes
+        setInterval(loadSummary, 300000);
+    </script>
 
-            // Close menu when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!sidebar.contains(e.target) && !menuIcon.contains(e.target)) {
-                    sidebar.classList.remove('active');
-                    sidebarOverlay.classList.remove('active');
-                    document.body.style.overflow = '';
+    <!-- Navbar and Menu Scripts -->
+    <script src="../js/navbar.js"></script>
+    <script src="../js/menu.js"></script>
+    <script>
+        // Initialize navbar with custom actions
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = new SmartPOSNavbar();
+            
+            // Add custom navbar actions for daily summary
+            navbar.addAction('export-summary', 'Export Report', 'fas fa-download', 'btn-primary');
+            navbar.addAction('print-summary', 'Print', 'fas fa-print', 'btn-secondary');
+            navbar.addAction('email-summary', 'Email Report', 'fas fa-envelope', 'btn-secondary');
+            
+            // Handle navbar action clicks
+            document.addEventListener('navbar-action', function(e) {
+                switch(e.detail.action) {
+                    case 'export-summary':
+                        exportDailySummary();
+                        break;
+                    case 'print-summary':
+                        console.log('Printing daily summary...');
+                        alert('Print functionality will be implemented');
+                        break;
+                    case 'email-summary':
+                        console.log('Emailing daily summary...');
+                        alert('Email functionality will be implemented');
+                        break;
                 }
-            });
-
-            // Prevent menu from closing when clicking inside
-            sidebar.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-
-            // Add click handlers for sale items
-            document.querySelectorAll('.sale-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const orderId = this.querySelector('.sale-title').textContent;
-                    // Navigate to order details or show modal
-                    console.log('Viewing details for', orderId);
-                });
-            });
-
-            // Add hover effect for better interaction feedback
-            const saleItems = document.querySelectorAll('.sale-item');
-            saleItems.forEach(item => {
-                item.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-2px)';
-                });
-                item.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
-                });
             });
         });
     </script>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart POS - Products</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Products Page Specific Styles */
+        .products-container {
+            padding: 24px;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .search-filter {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .filter-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .filter-btn:hover {
+            border-color: #007bff;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .product-card:hover {
+            border-color: #007bff;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 120px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #6c757d;
+        }
+
+        .product-info {
+            margin-bottom: 16px;
+        }
+
+        .product-name {
+            font-weight: 700;
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .product-category {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            font-weight: 700;
+            font-size: 20px;
+            color: #28a745;
+            margin-bottom: 8px;
+        }
+
+        .product-stock {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .product-stock.low-stock {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .edit-btn:hover {
+            background: #e0a800;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .view-btn {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .view-btn:hover {
+            background: #138496;
+        }
+
+        .add-product-btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-product-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+        }
+
+        /* Responsive adjustments for menu */
+        @media screen and (min-width: 1024px) {
+            .products-container {
+                margin-left: 300px;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            
+            .search-bar {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navbar component will be loaded here automatically -->
+
+        <div class="products-container">
+            <div class="search-filter">
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="Search products..." id="searchInput">
+                    <button class="add-product-btn" onclick="searchProducts()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterProducts('all')">All Categories</button>
+                    <button class="filter-btn" onclick="filterProducts('groceries')">Groceries</button>
+                    <button class="filter-btn" onclick="filterProducts('snacks')">Snacks</button>
+                    <button class="filter-btn" onclick="filterProducts('beverages')">Beverages</button>
+                    <button class="filter-btn" onclick="filterProducts('personal-care')">Personal Care</button>
+                    <button class="filter-btn" onclick="filterProducts('mobile')">Mobile/Recharge</button>
+                    <button class="filter-btn" onclick="filterProducts('low-stock')">Low Stock</button>
+                </div>
+            </div>
+
+            <div class="products-grid" id="productsGrid">
+                <div class="product-card" data-category="groceries">
+                    <div class="product-image">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">Basmati Rice (1kg)</div>
+                        <div class="product-category">Groceries</div>
+                        <div class="product-price">NPR 180</div>
+                        <div class="product-stock">Stock: 45 units</div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+
+                <div class="product-card" data-category="snacks">
+                    <div class="product-image">
+                        <i class="fas fa-cookie-bite"></i>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">Wai Wai Noodles</div>
+                        <div class="product-category">Snacks</div>
+                        <div class="product-price">NPR 25</div>
+                        <div class="product-stock">Stock: 75 units</div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+
+                <div class="product-card" data-category="beverages">
+                    <div class="product-image">
+                        <i class="fas fa-glass-whiskey"></i>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">Bottled Water (1L)</div>
+                        <div class="product-category">Beverages</div>
+                        <div class="product-price">NPR 25</div>
+                        <div class="product-stock">Stock: 120 units</div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+
+                <div class="product-card" data-category="personal-care">
+                    <div class="product-image">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">Dettol Soap (75g)</div>
+                        <div class="product-category">Personal Care</div>
+                        <div class="product-price">NPR 45</div>
+                        <div class="product-stock low-stock">Stock: 8 units (Low)</div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+
+                <div class="product-card" data-category="groceries">
+                    <div class="product-image">
+                        <i class="fas fa-oil-can"></i>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">Cooking Oil (1L)</div>
+                        <div class="product-category">Groceries</div>
+                        <div class="product-price">NPR 280</div>
+                        <div class="product-stock">Stock: 32 units</div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+
+                <div class="product-card" data-category="snacks">
+                    <div class="product-image">
+                        <i class="fas fa-cookie-bite"></i>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">Parle-G Biscuits</div>
+                        <div class="product-category">Snacks</div>
+                        <div class="product-price">NPR 35</div>
+                        <div class="product-stock">Stock: 85 units</div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+
+                <div class="product-card" data-category="mobile">
+                    <div class="product-image">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">Ncell Recharge Card (Rs.100)</div>
+                        <div class="product-category">Mobile/Recharge</div>
+                        <div class="product-price">NPR 100</div>
+                        <div class="product-stock low-stock">Stock: 5 units (Low)</div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+
+                <div class="product-card" data-category="groceries">
+                    <div class="product-image">
+                        <i class="fas fa-pepper-hot"></i>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">Masala Dal (500g)</div>
+                        <div class="product-category">Groceries</div>
+                        <div class="product-price">NPR 120</div>
+                        <div class="product-stock">Stock: 28 units</div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+
+                <div class="product-card" data-category="mobile">
+                    <div class="product-image">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">NTC Recharge Card (Rs.50)</div>
+                        <div class="product-category">Mobile/Recharge</div>
+                        <div class="product-price">NPR 50</div>
+                        <div class="product-stock">Stock: 15 units</div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include JavaScript files -->
+    <script src="../js/menu.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+        // Initialize the navbar with products page configuration
+        new SmartPOSNavbar({
+            title: 'Products Management',
+            showBackButton: false,
+            customActions: [
+                {
+                    icon: 'fas fa-plus',
+                    text: 'Add Product',
+                    action: 'add-product',
+                    primary: true
+                },
+                {
+                    icon: 'fas fa-sync-alt',
+                    text: 'Refresh',
+                    action: 'refresh-products'
+                }
+            ]
+        });
+
+        // Handle custom navbar actions
+        document.addEventListener('navbar-action', function(e) {
+            const action = e.detail.action;
+            if (action === 'add-product') {
+                window.location.href = 'add-item.html';
+            } else if (action === 'refresh-products') {
+                location.reload();
+            }
+        });
+
+        function filterProducts(category) {
+            const products = document.querySelectorAll('.product-card');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            // Update active filter button
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Filter products
+            products.forEach(product => {
+                if (category === 'all') {
+                    product.style.display = 'block';
+                } else if (category === 'low-stock') {
+                    const hasLowStock = product.querySelector('.low-stock');
+                    product.style.display = hasLowStock ? 'block' : 'none';
+                } else {
+                    const productCategory = product.dataset.category;
+                    product.style.display = productCategory === category ? 'block' : 'none';
+                }
+            });
+        }
+
+        function searchProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const products = document.querySelectorAll('.product-card');
+            
+            products.forEach(product => {
+                const productName = product.querySelector('.product-name').textContent.toLowerCase();
+                const productCategory = product.querySelector('.product-category').textContent.toLowerCase();
+                
+                if (productName.includes(searchTerm) || productCategory.includes(searchTerm)) {
+                    product.style.display = 'block';
+                } else {
+                    product.style.display = 'none';
+                }
+            });
+        }
+
+        // Add search on enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchProducts();
+            }
+        });
+    </script>
+</body>
+</html>

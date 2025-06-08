@@ -3,560 +3,516 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoPOS</title>
+    <title>Smart POS - Dashboard</title>
     <link rel="stylesheet" href="../css/styles.css">
-    <style>
-        .menu-icon {
-            font-size: 24px;
-            cursor: pointer;
-            padding: 12px;
-            margin: -12px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            color: #2c3e50;
-            position: relative;
-            z-index: 1001;
-        }
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    <style>        /* Professional Dashboard Styles */
 
-        .menu-icon:hover {
+        .main-content {
+            padding: 24px;
             background-color: #f8f9fa;
-            transform: scale(1.05);
+            min-height: calc(100vh - 80px);
         }
 
-        .side-menu {
-            position: fixed;
-            top: 0;
-            left: -300px;
-            width: 300px;
-            height: 100vh;
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .dashboard-card {
             background: white;
-            z-index: 1000;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 4px 0 16px rgba(0,0,0,0.1);
-            overflow-y: auto;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .side-menu.open {
-            left: 0;
-            box-shadow: 8px 0 24px rgba(0,0,0,0.15);
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
 
-        .menu-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(4px);
-        }
-
-        .menu-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .menu-items {
-            padding: 16px;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
-            color: #2c3e50;
-            text-decoration: none;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .menu-item:hover {
-            background-color: #f8f9fa;
-            transform: translateX(8px);
-        }
-
-        .menu-icon-folder {
-            margin-right: 16px;
-            font-size: 22px;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.3s ease;
-        }
-
-        .menu-item:hover .menu-icon-folder {
-            transform: scale(1.1);
-        }
-
-        .menu-text {
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .menu-text a {
-            color: #2c3e50;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .menu-item:hover .menu-text a {
-            color: #007bff;
-        }
-
-        @media screen and (min-width: 1024px) {
-            .side-menu {
-                left: 0;
-                box-shadow: none;
-                border-right: 1px solid #e9ecef;
-            }
-
-            .menu-icon {
-                display: none;
-            }
-
-            .menu-overlay {
-                display: none !important;
-            }
-        }
-
-        .menu-header {
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px;
-            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 16px;
         }
 
-        .menu-title {
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .card-change {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        .card-change.positive {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .card-change.negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .sales-card { background: linear-gradient(135deg, #007bff, #0056b3); }
+        .orders-card { background: linear-gradient(135deg, #28a745, #1e7e34); }
+        .products-card { background: linear-gradient(135deg, #ffc107, #e0a800); }
+        .revenue-card { background: linear-gradient(135deg, #17a2b8, #138496); }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .action-button {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #2c3e50;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .action-button:hover {
+            border-color: #007bff;
+            background: #f8f9ff;
+            transform: translateY(-2px);
+            color: #007bff;
+        }
+
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .action-button:hover .action-icon {
+            background: linear-gradient(135deg, #0056b3, #004085);
+        }
+
+        .action-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .alerts-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 32px;
+        }
+
+        .alerts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .alerts-title {
             font-size: 18px;
             font-weight: 600;
             color: #2c3e50;
         }
 
-        .close-menu {
-            font-size: 24px;
-            color: #6c757d;
-            cursor: pointer;
-            width: 32px;
-            height: 32px;
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .alert-item.critical {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .alert-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s ease;
+            color: white;
+            font-size: 16px;
         }
 
-        .close-menu:hover {
-            background-color: #f8f9fa;
+        .alert-icon.warning {
+            background: #ffc107;
+        }
+
+        .alert-icon.critical {
+            background: #dc3545;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
             color: #2c3e50;
-            transform: scale(1.1);
-        }
-        
-        /* Menu Icon */
-.menu-icon {
-    font-size: 24px;
-    cursor: pointer;
-    color: #444;
-}
-
-/* Side Menu */
-.side-menu {
-    position: fixed;
-    top: 0;
-    left: -280px;
-    width: 280px;
-    height: 100vh;
-    background: white;
-    z-index: 1000;
-    transition: left 0.3s ease;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
-}
-
-.side-menu.open {
-    left: 0;
-}
-
-/* Menu Overlay */
-.menu-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 999;
-    display: none;
-}
-
-.menu-overlay.active {
-    display: block;
-}
-
-/* Menu Items */
-.menu-items {
-    padding: 20px;
-}
-
-.menu-item {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    color: #2c3e50;
-    text-decoration: none;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    transition: background-color 0.3s;
-    cursor: pointer;
-}
-
-.menu-item:hover {
-    background-color: #f8f9fa;
-}
-
-.menu-icon-folder {
-    margin-right: 12px;
-    font-size: 20px;
-}
-
-.menu-text a {
-    color: #2c3e50;
-    text-decoration: none;
-}
-
-        /* Enhanced text and layout styles */
-        .app-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1a1a1a;
-            letter-spacing: 0.5px;
+            margin-bottom: 4px;
         }
 
-        .header {
-            background: linear-gradient(to right, #ffffff, #f8f9fa);
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        .alert-message {
+            font-size: 14px;
+            color: #6c757d;
         }
 
-        .header-icons {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .notification-icon {
-            font-size: 20px;
-            color: #2c3e50;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .notification-icon:hover {
-            transform: scale(1.1);
-        }
-
-        .profile-icon img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #e9ecef;
-            transition: border-color 0.3s ease;
-        }
-
-        .profile-icon img:hover {
-            border-color: #007bff;
-        }
-
-        .main-content {
-            padding: 24px;
-            background-color: #f8f9fa;
-            min-height: calc(100vh - 180px);
-        }
-
-        .reminder-section {
+        .recent-activity {
             background: white;
             border-radius: 16px;
             padding: 24px;
-            margin: 0 auto 32px;
-            max-width: 600px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            text-align: center;
         }
 
-        .reminder-section h2 {
-            color: #2c3e50;
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-
-        .reminder-content {
-            color: #6c757d;
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        .new-sale-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            margin-top: 32px;
-        }
-
-        .circle-button {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .circle-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(0,123,255,0.4);
-        }
-
-        .plus-icon {
-            font-size: 32px;
-            color: white;
-            font-weight: 300;
-        }
-
-        .plus-icon a {
-            color: white;
-            text-decoration: none;
-        }
-
-        .new-sale-section div:last-child {
-            color: #2c3e50;
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .bottom-nav {
-            background: white;
-            padding: 12px 24px;
+        .activity-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
         }
 
-        .nav-item {
-            text-decoration: none;
-            color: #6c757d;
+        .activity-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .activity-item {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 4px;
-            transition: color 0.3s ease;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid #f1f3f4;
         }
 
-        .nav-item:hover {
-            color: #007bff;
+        .activity-item:last-child {
+            border-bottom: none;
         }
 
-        .nav-item.active {
-            color: #007bff;
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
         }
 
-        .nav-icon {
-            font-size: 20px;
+        .activity-icon.sale {
+            background: #28a745;
         }
 
-        .nav-item div:last-child {
-            font-size: 12px;
+        .activity-icon.stock {
+            background: #ffc107;
+        }
+
+        .activity-icon.payment {
+            background: #17a2b8;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-description {
             font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .activity-amount {
+            font-weight: 600;
+            color: #28a745;
+        }
+
+        /* Responsive adjustments for menu */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                margin-left: 300px;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="menu-icon" id="menuIcon">☰</div>            <div class="app-title">NeoPOS</div>
-            <div class="header-icons">
-                <div class="notification-icon">🔔</div>
-                <div class="profile-icon"><img src="../images/avatars/user-avatar.png" alt="profile icon"></div>
-            </div>
-        </div>
+<body>    <div class="container">
+        <!-- Navbar component will be loaded here automatically -->
 
         <div class="main-content">
-            <div class="reminder-section">
-                <h2>Reminder of Items</h2>
-                <div class="reminder-content">
-                    Check your inventory for items that need attention. Stay on top of your stock levels and never run out of essential items.
+            <!-- Key Metrics Dashboard -->
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-title">Today's Sales</div>
+                        <div class="card-icon sales-card">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                    <div class="card-value">NPR 12,450</div>
+                    <div class="card-subtitle">25 transactions</div>
+                    <div class="card-change positive">+15% from yesterday</div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-title">Total Orders</div>
+                        <div class="card-icon orders-card">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
+                    <div class="card-value">87</div>
+                    <div class="card-subtitle">Items sold today</div>
+                    <div class="card-change positive">+8 from yesterday</div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-title">Low Stock Items</div>
+                        <div class="card-icon products-card">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                    <div class="card-value">5</div>
+                    <div class="card-subtitle">Need restock</div>
+                    <div class="card-change negative">3 critical items</div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-title">Weekly Revenue</div>
+                        <div class="card-icon revenue-card">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                    </div>
+                    <div class="card-value">NPR 78,200</div>
+                    <div class="card-subtitle">Last 7 days</div>
+                    <div class="card-change positive">+12% from last week</div>
                 </div>
             </div>
-            
-            <div class="new-sale-section">
-                <div class="circle-button">
-                    <div class="plus-icon"><a href="item-management.html">+</a></div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <a href="pos.html" class="action-button">
+                    <div class="action-icon">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="action-title">New Sale</div>
+                </a>
+                <a href="products.html" class="action-button">
+                    <div class="action-icon">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="action-title">View Products</div>
+                </a>
+                <a href="inventory.html" class="action-button">
+                    <div class="action-icon">
+                        <i class="fas fa-warehouse"></i>
+                    </div>
+                    <div class="action-title">Check Inventory</div>
+                </a>
+                <a href="report.html" class="action-button">
+                    <div class="action-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="action-title">View Reports</div>
+                </a>
+            </div>
+
+            <!-- Inventory Alerts -->
+            <div class="alerts-section">
+                <div class="alerts-header">
+                    <div class="alerts-title">Inventory Alerts</div>
+                    <a href="inventory.html" style="color: #007bff; text-decoration: none; font-size: 14px;">View All</a>
                 </div>
-                <div>New Sale</div>
+                
+                <div class="alert-item critical">
+                    <div class="alert-icon critical">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">Critical Stock Alert</div>
+                        <div class="alert-message">Wai Wai Noodles - Only 2 packets left in stock</div>
+                    </div>
+                </div>
+
+                <div class="alert-item">
+                    <div class="alert-icon warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">Low Stock Warning</div>
+                        <div class="alert-message">Dettol Soap - 8 units remaining, consider restocking</div>
+                    </div>
+                </div>
+
+                <div class="alert-item">
+                    <div class="alert-icon warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">Low Stock Warning</div>
+                        <div class="alert-message">Parle-G Biscuits - 12 packets left in inventory</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+                <div class="activity-header">
+                    <div class="activity-title">Recent Activity</div>
+                    <a href="transactions.html" style="color: #007bff; text-decoration: none; font-size: 14px;">View All</a>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon sale">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-description">Sale completed - Basmati Rice (2kg)</div>
+                        <div class="activity-time">2 minutes ago</div>
+                    </div>
+                    <div class="activity-amount">+NPR 360</div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon payment">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-description">Ncell Recharge Card sold</div>
+                        <div class="activity-time">8 minutes ago</div>
+                    </div>
+                    <div class="activity-amount">+NPR 100</div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon sale">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-description">Multiple items - Wai Wai, Dettol Soap, Bottled Water</div>
+                        <div class="activity-time">15 minutes ago</div>
+                    </div>
+                    <div class="activity-amount">+NPR 95</div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon stock">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-description">Stock updated - Cooking Oil inventory increased</div>
+                        <div class="activity-time">1 hour ago</div>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon sale">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-description">Sale completed - Masala Dal (500g)</div>
+                        <div class="activity-time">1 hour ago</div>
+                    </div>
+                    <div class="activity-amount">+NPR 120</div>
+                </div>
             </div>
         </div>
-
-        <div class="bottom-nav">
-            <a href="reports.html" class="nav-item">
-                <div class="nav-icon">📄</div>
-                <div>Report</div>
-            </a>
-            <a href="daily-summary.html" class="nav-item">
-                <div class="nav-icon">💲</div>
-                <div>Today</div>
-            </a>
-            <a href="index.html" class="nav-item active">
-                <div class="nav-icon">👨‍💻</div>
-                <div>Counter</div>
-            </a>
-            <a href="item-management.html" class="nav-item">
-                <div class="nav-icon">☰</div>
-                <div>Item</div>
-            </a>
-            <a href="more.html" class="nav-item">
-                <div class="nav-icon">⋯</div>
-                <div>More</div>
-            </a>
-        </div>
-    </div>
-
-    <!-- Side Menu (Hamburger Menu) -->
-    <div id="sideMenu" class="side-menu">
-        <div class="menu-header">
-            <div class="menu-title">Menu</div>
-            <div class="close-menu" id="closeMenu">×</div>
-        </div>
-        <div class="menu-items">
-            <div class="menu-item">
-                <div class="menu-icon-folder">📊</div>
-                <div class="menu-text"><a href="index.html">Dashboard</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">📦</div>
-                <div class="menu-text"><a href="inventory.html">Inventory</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">🔄</div>
-                <div class="menu-text"><a href="transactions.html">Transactions</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">📈</div>
-                <div class="menu-text"><a href="reports.html">Analytics & Report</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">🤝</div>
-                <div class="menu-text"><a href="suppliers.html">Suppliers</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">⚙️</div>
-                <div class="menu-text"><a href="settings.html">Settings</a></div>
-            </div>
-            <div class="menu-item">
-                <div class="menu-icon-folder">💸</div>
-                <div class="menu-text"><a href="add-expense.html">Add Expense</a></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Overlay for when menu is open -->
-    <div class="menu-overlay" id="menuOverlay"></div>
-
+    </div>    <!-- Professional Reusable Menu Component -->
+    <script src="../js/menu.js"></script>
+    <!-- Professional Reusable Navbar Component -->
+    <script src="../js/navbar.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuIcon = document.getElementById('menuIcon');
-            const sideMenu = document.getElementById('sideMenu');
-            const menuOverlay = document.getElementById('menuOverlay');
-            const closeMenu = document.getElementById('closeMenu');
-            
-            function openMenu() {
-                sideMenu.classList.add('open');
-                menuOverlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
+        // Initialize navbar with dashboard-specific options
+        window.navbarManualInit = true; // Prevent auto-initialization
+        initSmartPOSNavbar({
+            title: 'Dashboard',
+            showNotifications: true,
+            showProfile: true,
+            customActions: [
+                { id: 'refresh', icon: 'sync-alt', title: 'Refresh Dashboard' }
+            ]
+        });
+
+        // Handle custom navbar actions
+        window.addEventListener('navbarAction', (event) => {
+            const { actionId } = event.detail;
+            if (actionId === 'refresh') {
+                location.reload();
             }
-
-            function closeMenuHandler() {
-                sideMenu.classList.remove('open');
-                menuOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-                menuIcon.style.display = 'flex';
-            }
-            
-            // Open menu when clicking hamburger icon
-            menuIcon.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                openMenu();
-            });
-            
-            // Close menu when clicking close button
-            closeMenu.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                closeMenuHandler();
-            });
-            
-            // Close menu when clicking overlay
-            menuOverlay.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                closeMenuHandler();
-            });
-
-            // Close menu when clicking menu items
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    closeMenuHandler();
-                });
-            });
-
-            // Close menu when pressing Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && sideMenu.classList.contains('open')) {
-                    closeMenuHandler();
-                }
-            });
-
-            // Handle window resize
-            function handleResize() {
-                if (window.innerWidth >= 1024) {
-                    // Large screen: menu always visible
-                    sideMenu.classList.add('open');
-                    menuOverlay.classList.remove('active');
-                    menuIcon.style.display = 'none';
-                } else {
-                    // Small screen: menu hidden by default
-                    if (!sideMenu.classList.contains('open')) {
-                        sideMenu.classList.remove('open');
-                        menuIcon.style.display = 'flex';
-                    }
-                }
-            }
-
-            // Initialize correct state on page load
-            handleResize();
-            
-            // Update on window resize
-            window.addEventListener('resize', handleResize);
         });
     </script>
 </body>

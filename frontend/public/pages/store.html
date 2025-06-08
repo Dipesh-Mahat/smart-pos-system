@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoPOS - Store Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Smart POS - Store Settings</title>
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary-color: #007bff;
@@ -213,7 +214,7 @@
     <div class="container">
         <div class="store-container">
             <div class="page-header">
-                <a href="more.html" class="back-button">← Back</a>
+                <a href="settings.html" class="back-button">← Back</a>
                 <h1 class="page-title">Store Management</h1>
             </div>
 
@@ -316,11 +317,12 @@
 
         // Add click handlers for add buttons
         document.querySelectorAll('.add-button').forEach(button => {
-            button.addEventListener('click', function() {
-                const section = this.closest('.store-section').querySelector('.section-title').textContent;
+            button.addEventListener('click', function() {                const section = this.closest('.store-section').querySelector('.section-title').textContent;
                 alert(`Add new item to ${section}`);
             });
         });
     </script>
+
+    <script src="../js/menu.js"></script>
 </body>
-</html> 
+</html>
