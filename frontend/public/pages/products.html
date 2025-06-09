@@ -7,8 +7,7 @@
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/menu.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Products Page Specific Styles */
+    <style>        /* Products Page Specific Styles */
         .products-container {
             padding: 24px;
             background-color: #f8f9fa;
@@ -193,14 +192,7 @@
             background: #0056b3;
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0,123,255,0.3);
-        }
-
-        /* Responsive adjustments for menu */
-        @media screen and (min-width: 1024px) {
-            .products-container {
-                margin-left: 300px;
-            }
-        }
+        }        /* Responsive adjustments for menu - handled by menu.css */
 
         @media screen and (max-width: 768px) {
             .products-grid {
@@ -217,7 +209,7 @@
     <div class="container">
         <!-- Navbar component will be loaded here automatically -->
 
-        <div class="products-container">
+        <div class="main-content products-container">
             <div class="search-filter">
                 <div class="search-bar">
                     <input type="text" class="search-input" placeholder="Search products..." id="searchInput">
@@ -439,14 +431,11 @@
                     product.style.display = 'none';
                 }
             });
-        }
-
-        // Add search on enter key
+        }        // Add search on enter key
         document.getElementById('searchInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 searchProducts();
-            }
-        });
+            }        });
     </script>
 </body>
 </html>

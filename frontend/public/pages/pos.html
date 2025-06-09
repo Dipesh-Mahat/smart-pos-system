@@ -210,8 +210,12 @@
         }
     </style>
 </head>
-<body>    <div class="pos-container">
-        <div class="pos-main">
+<body>
+    <div class="container">
+        <!-- Navbar component will be loaded here automatically -->
+        
+        <div class="pos-container">
+            <div class="pos-main">
             <div class="search-bar">
                 <input type="text" class="search-input" placeholder="Search products or scan barcode...">
                 <button class="scan-btn">
@@ -372,41 +376,41 @@
         }
     </script>    <!-- Navbar and Menu Scripts -->
     <script src="../js/navbar.js"></script>
-    <script src="../js/menu.js"></script>
-    <script>
+    <script src="../js/menu.js"></script>    <script>
         // Initialize navbar with pos-specific options
-        window.navbarManualInit = true; // Prevent auto-initialization
-        initSmartPOSNavbar({
-            title: 'Point of Sale',
-            showNotifications: true,
-            showProfile: true,
-            customActions: [
-                { id: 'clear-cart', icon: 'trash', title: 'Clear Cart' },
-                { id: 'hold', icon: 'pause', title: 'Hold' },
-                { id: 'print', icon: 'print', title: 'Print' }
-            ]
-        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = new SmartPOSNavbar({
+                title: 'Point of Sale',
+                showNotifications: true,
+                showProfile: true,
+                customActions: [
+                    { id: 'clear-cart', icon: 'trash', title: 'Clear Cart' },
+                    { id: 'hold', icon: 'pause', title: 'Hold' },
+                    { id: 'print', icon: 'print', title: 'Print' }
+                ]
+            });
 
-        // Handle custom navbar actions
-        window.addEventListener('navbarAction', (event) => {
-            const { actionId } = event.detail;
-            switch(actionId) {
-                case 'clear-cart':
-                    if (confirm('Clear all items from cart?')) {
-                        cart = [];
-                        updateCartDisplay();
-                    }
-                    break;
-                case 'hold':
-                    console.log('Holding transaction...');
-                    alert('Hold transaction functionality will be implemented');
-                    break;
-                case 'print':
-                    console.log('Printing receipt...');
-                    alert('Print receipt functionality will be implemented');
-                    break;
-            }
+            // Handle custom navbar actions
+            window.addEventListener('navbarAction', (event) => {
+                const { actionId } = event.detail;
+                switch(actionId) {
+                    case 'clear-cart':
+                        if (confirm('Clear all items from cart?')) {
+                            cart = [];
+                            updateCartDisplay();
+                        }
+                        break;
+                    case 'hold':
+                        console.log('Holding transaction...');
+                        alert('Hold transaction functionality will be implemented');
+                        break;
+                    case 'print':
+                        console.log('Printing receipt...');
+                        alert('Print receipt functionality will be implemented');
+                        break;
+                }            });
         });
     </script>
+    </div> <!-- End container -->
 </body>
 </html>

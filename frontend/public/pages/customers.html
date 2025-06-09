@@ -12,14 +12,7 @@
             padding: 24px;
             background-color: #f8f9fa;
             min-height: calc(100vh - 80px);
-        }
-
-        /* Responsive adjustments for menu */
-        @media screen and (min-width: 1024px) {
-            .main-content {
-                margin-left: 300px;
-            }
-        }        .customers-header {
+        }        /* Responsive adjustments for menu - handled by menu.css */.customers-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -267,9 +260,6 @@
 
         /* Responsive adjustments for menu */
         @media screen and (min-width: 1024px) {
-            .customers-container {
-                margin-left: 300px;
-            }
         }
 
         @media screen and (max-width: 768px) {
@@ -513,40 +503,39 @@
                 searchCustomers();
             }
         });
-    </script>
-
-    <!-- Professional Reusable Menu Component -->
+    </script>    <!-- Professional Reusable Menu Component -->
     <script src="../js/menu.js"></script>
     <!-- Professional Reusable Navbar Component -->
     <script src="../js/navbar.js"></script>
     <script>
         // Initialize navbar with customer-specific options
-        window.navbarManualInit = true; // Prevent auto-initialization
-        initSmartPOSNavbar({
-            title: 'Customer Management',
-            showNotifications: true,
-            showProfile: true,
-            customActions: [
-                { id: 'add-customer', icon: 'user-plus', title: 'Add Customer' },
-                { id: 'export-customers', icon: 'download', title: 'Export' },
-                { id: 'import-customers', icon: 'upload', title: 'Import' }
-            ]
-        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = new SmartPOSNavbar({
+                title: 'Customer Management',
+                showNotifications: true,
+                showProfile: true,
+                customActions: [
+                    { id: 'add-customer', icon: 'user-plus', title: 'Add Customer' },
+                    { id: 'export-customers', icon: 'download', title: 'Export' },
+                    { id: 'import-customers', icon: 'upload', title: 'Import' }
+                ]
+            });
 
-        // Handle custom navbar actions
-        window.addEventListener('navbarAction', (event) => {
-            const { actionId } = event.detail;
-            switch(actionId) {
-                case 'add-customer':
-                    addNewCustomer();
-                    break;
-                case 'export-customers':
-                    alert('Exporting customer data...');
-                    break;
-                case 'import-customers':
-                    alert('Import customers functionality will be implemented');
-                    break;
-            }
+            // Handle custom navbar actions
+            window.addEventListener('navbarAction', (event) => {
+                const { actionId } = event.detail;
+                switch(actionId) {
+                    case 'add-customer':
+                        addNewCustomer();
+                        break;
+                    case 'export-customers':
+                        alert('Exporting customer data...');
+                        break;
+                    case 'import-customers':
+                        alert('Import customers functionality will be implemented');
+                        break;
+                }
+            });
         });
     </script>
 </body>

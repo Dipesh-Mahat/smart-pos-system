@@ -11,14 +11,7 @@
             padding: 20px;
             background-color: #f8f9fa;
             min-height: calc(100vh - 80px);
-        }
-
-        /* Responsive adjustments for menu */
-        @media screen and (min-width: 1024px) {
-            .main-content {
-                margin-left: 300px;
-            }
-        }
+        }        /* Responsive adjustments for menu - handled by menu.css */
 
         @media (max-width: 768px) {
             .main-content {
@@ -563,40 +556,39 @@
             alert('Opening email report interface...');
             // Here you would open an email configuration modal
         }
-    </script>
-
-    <!-- Professional Reusable Menu Component -->
+    </script>    <!-- Professional Reusable Menu Component -->
     <script src="../js/menu.js"></script>
     <!-- Professional Reusable Navbar Component -->
     <script src="../js/navbar.js"></script>
     <script>
         // Initialize navbar with reports-specific options
-        window.navbarManualInit = true; // Prevent auto-initialization
-        initSmartPOSNavbar({
-            title: 'Reports & Analytics',
-            showNotifications: true,
-            showProfile: true,
-            customActions: [
-                { id: 'export-report', icon: 'download', title: 'Export Report' },
-                { id: 'custom-report', icon: 'chart-bar', title: 'Custom Report' },
-                { id: 'schedule-report', icon: 'calendar', title: 'Schedule' }
-            ]
-        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = new SmartPOSNavbar({
+                title: 'Reports & Analytics',
+                showNotifications: true,
+                showProfile: true,
+                customActions: [
+                    { id: 'export-report', icon: 'download', title: 'Export Report' },
+                    { id: 'custom-report', icon: 'chart-bar', title: 'Custom Report' },
+                    { id: 'schedule-report', icon: 'calendar', title: 'Schedule' }
+                ]
+            });
 
-        // Handle custom navbar actions
-        window.addEventListener('navbarAction', (event) => {
-            const { actionId } = event.detail;
-            switch(actionId) {
-                case 'export-report':
-                    exportData('all');
-                    break;
-                case 'custom-report':
-                    generateCustomReport();
-                    break;
-                case 'schedule-report':
-                    scheduleReport();
-                    break;
-            }
+            // Handle custom navbar actions
+            window.addEventListener('navbarAction', (event) => {
+                const { actionId } = event.detail;
+                switch(actionId) {
+                    case 'export-report':
+                        exportData('all');
+                        break;
+                    case 'custom-report':
+                        generateCustomReport();
+                        break;
+                    case 'schedule-report':
+                        scheduleReport();
+                        break;
+                }
+            });
         });
     </script>
         </div>

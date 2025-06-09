@@ -8,13 +8,17 @@ class SmartPOSMenu {
         this.isMenuOpen = false;
         this.isDesktop = window.innerWidth >= 1024;
         this.init();
-    }
-
-    init() {
+    }    init() {
         this.createMenuHTML();
         this.attachEventListeners();
         this.setActiveMenuItem();
         this.handleResponsive();
+        this.restoreMenuState(); // Restore previous menu state
+        
+        // Notify navbar that menu is ready
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('menuReady'));
+        }, 100);
     }
 
     createMenuHTML() {
@@ -159,66 +163,82 @@ class SmartPOSMenu {
             this.openMenu();        }
     }    // Public method to toggle menu from navbar
     toggleMenuFromNavbar() {
-        console.log('toggleMenuFromNavbar called, isMenuOpen:', this.isMenuOpen);
         if (this.isMenuOpen) {
             this.closeMenu();
         } else {
             this.openMenu();
         }
-    }    openMenu() {
-        console.log('Opening menu...');
+    }
+
+    openMenu() {
+        // Prevent multiple simultaneous calls
+        if (this.isMenuOpen) {
+            return;
+        }
+        
         const sideMenu = document.getElementById('sideMenu');
         const menuOverlay = document.getElementById('menuOverlay');
 
         if (sideMenu && menuOverlay) {
+            // Set state first to prevent race conditions
+            this.isMenuOpen = true;
+            
             sideMenu.classList.add('open');
             menuOverlay.classList.add('active');
-            this.isMenuOpen = true;
             document.body.style.overflow = 'hidden';
             
             // Adjust main content margin when menu opens
             this.adjustMainContentMargin();
             
-            // Notify navbar about menu state change
+            // Save state and notify navbar
+            this.saveMenuState();
             this.notifyNavbarStateChange();
-            console.log('Menu opened successfully');
         } else {
-            console.error('Menu elements not found:', { sideMenu, menuOverlay });
+            this.isMenuOpen = false; // Reset state on failure
         }
-    }
-
-    closeMenu() {
-        console.log('Closing menu...');
+    }    closeMenu() {
+        // Prevent multiple simultaneous calls
+        if (!this.isMenuOpen) {
+            return;
+        }
+        
         const sideMenu = document.getElementById('sideMenu');
         const menuOverlay = document.getElementById('menuOverlay');
 
         if (sideMenu && menuOverlay) {
+            // Set state first to prevent race conditions
+            this.isMenuOpen = false;
+            
             sideMenu.classList.remove('open');
             menuOverlay.classList.remove('active');
-            this.isMenuOpen = false;
             document.body.style.overflow = '';
             
             // Remove main content margin when menu closes
             this.adjustMainContentMargin();
             
-            // Notify navbar about menu state change
+            // Save state and notify navbar
+            this.saveMenuState();
             this.notifyNavbarStateChange();
-            console.log('Menu closed successfully');
         } else {
-            console.error('Menu elements not found:', { sideMenu, menuOverlay });
+            this.isMenuOpen = true; // Reset state on failure
         }
-    }
-
-    notifyNavbarStateChange() {
-        // Update hamburger menu visibility in navbar
-        const hamburgerMenu = document.getElementById('navbarHamburgerMenu');
-        if (hamburgerMenu) {
-            if (this.isMenuOpen) {
-                hamburgerMenu.style.display = 'none';
-            } else {
-                hamburgerMenu.style.display = 'flex';
-            }
+    }restoreMenuState() {
+        // Check if menu should be restored to open state
+        const savedState = localStorage.getItem('menuState');
+        if (savedState === 'open' && this.isDesktop) {
+            // Only restore open state on desktop
+            setTimeout(() => {
+                this.openMenu();
+            }, 100);
         }
+    }    saveMenuState() {
+        // Save current menu state for persistence across pages
+        localStorage.setItem('menuState', this.isMenuOpen ? 'open' : 'closed');
+    }    notifyNavbarStateChange() {
+        // Notify navbar about menu state change
+        window.dispatchEvent(new CustomEvent('menuStateChanged', { 
+            detail: { isOpen: this.isMenuOpen } 
+        }));
     }
 
     setActiveMenuItem() {

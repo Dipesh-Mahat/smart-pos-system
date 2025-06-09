@@ -491,69 +491,40 @@
                     <div class="activity-amount">+NPR 120</div>
                 </div>
             </div>
-        </div>
-    </div>    <!-- Professional Reusable Menu Component -->
-    <script src="../js/menu.js"></script>
-    <!-- Professional Reusable Navbar Component -->
-    <script src="../js/navbar.js"></script>    <script>
-        // Initialize navbar with dashboard-specific options
-        window.navbarManualInit = true; // Prevent auto-initialization
-        
-        // DIRECT HAMBURGER FIX
-        window.forceHamburgerFix = function() {
-            console.log('=== FORCE HAMBURGER FIX ===');
-            const hamburger = document.getElementById('navbarHamburgerMenu');
-            
-            if (hamburger) {
-                console.log('Hamburger found, applying direct fix');
-                
-                // Remove all existing event listeners
-                const newHamburger = hamburger.cloneNode(true);
-                hamburger.parentNode.replaceChild(newHamburger, hamburger);
-                
-                // Add simple click handler
-                newHamburger.addEventListener('click', function(e) {
-                    console.log('DIRECT FIXED CLICK!');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    if (window.smartPOSMenu && window.smartPOSMenu.toggleMenuFromNavbar) {
-                        console.log('Toggling menu via direct fix');
-                        window.smartPOSMenu.toggleMenuFromNavbar();
-                    } else {
-                        console.log('Menu not available');
-                    }
-                });
-                
-                // Force visible styles
-                newHamburger.style.cssText += 'cursor: pointer !important; pointer-events: auto !important; z-index: 99999 !important;';
-                
-                console.log('Direct fix applied successfully');
-                return true;
-            } else {
-                console.log('Hamburger not found for fix');
-                return false;
-            }
-        };
-          // Initialize navbar with new SmartPOSNavbar class
-        document.addEventListener('DOMContentLoaded', function() {
-            const navbar = new SmartPOSNavbar();
-            
-            // Add custom navbar actions for dashboard
-            navbar.addAction('refresh', 'Refresh Dashboard', 'fas fa-sync-alt', 'btn-secondary');
-        });
-        
-        // Apply fix after short delay
-        setTimeout(() => {
-            window.forceHamburgerFix();
-        }, 500);
+        </div>    </div>
 
-        // Handle custom navbar actions
-        window.addEventListener('navbarAction', (event) => {
-            const { actionId } = event.detail;
-            if (actionId === 'refresh') {
-                location.reload();
-            }
+    <!-- Navbar and Menu Scripts -->
+    <script src="../js/navbar.js"></script>
+    <script src="../js/menu.js"></script>
+    <script>
+        // Initialize navbar with dashboard-specific options
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = new SmartPOSNavbar({
+                title: 'Smart POS - Dashboard',
+                showNotifications: true,
+                showProfile: true,
+                customActions: [
+                    { id: 'refresh', icon: 'sync-alt', title: 'Refresh Dashboard' },
+                    { id: 'export-report', icon: 'download', title: 'Export Report' },
+                    { id: 'quick-sale', icon: 'cash-register', title: 'Quick Sale' }
+                ]
+            });
+
+            // Handle custom navbar actions
+            window.addEventListener('navbarAction', (event) => {
+                const { actionId } = event.detail;
+                switch(actionId) {
+                    case 'refresh':
+                        location.reload();
+                        break;
+                    case 'export-report':
+                        alert('Export report functionality will be implemented');
+                        break;
+                    case 'quick-sale':
+                        window.location.href = 'pos.html';
+                        break;
+                }
+            });
         });
     </script>
 </body>

@@ -183,12 +183,10 @@
                 <div class="menu-text">Add Expense</div>
             </div>
         </div>
-    </div>
-
-    <!-- Overlay for menu -->
-    <div class="menu-overlay" id="menuOverlay"></div>
-
-    <script src="sidebar.js"></script>    <script>
+    </div>    <!-- Include JavaScript files -->
+    <script src="../js/menu.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
         // Get receipt ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const receiptId = urlParams.get('id');
