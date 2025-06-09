@@ -2,48 +2,89 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Smart POS - Support</title>    <link rel="stylesheet" href="../css/menu.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart POS - Support & Help Center</title>
+    <link rel="stylesheet" href="../css/menu.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/styles.css">
     <style>
-        .support-container {
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
+        body {
+            background-color: #f8f9fa;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .support-section {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-bottom: 20px;
+        .main-content {
+            padding: 32px;
+            margin-left: 0;
+            transition: margin-left 0.3s ease;
+            min-height: calc(100vh - 80px);
         }
 
-        .section-title {
-            font-size: 18px;
-            font-weight: 500;
+        .support-header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding: 40px 0;
+            background: #007bff;
+            color: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .support-title {
+            font-size: 36px;
+            font-weight: 700;
             margin-bottom: 16px;
-            color: #333;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
+            letter-spacing: -0.5px;
         }
 
-        .contact-info {
+        .support-subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .support-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+
+        .support-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .support-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        .support-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
             display: flex;
             align-items: center;
             gap: 16px;
-            padding: 16px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
-        .contact-icon {
-            width: 40px;
-            height: 40px;
+        .card-icon {
+            width: 48px;
+            height: 48px;
             background: #007bff;
-            border-radius: 50%;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -51,246 +92,722 @@
             font-size: 20px;
         }
 
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }        .contact-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .contact-method {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .contact-method:hover {
+            background: #e9ecef;
+            transform: translateX(4px);
+        }
+
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+
         .contact-details {
             flex: 1;
         }
 
         .contact-title {
-            font-weight: 500;
+            font-weight: 600;
             margin-bottom: 4px;
+            color: #2c3e50;
         }
 
-        .contact-number {
-            font-size: 20px;
-            color: #007bff;
+        .contact-info {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .quick-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .quick-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
             text-decoration: none;
+            color: #2c3e50;
+            transition: all 0.3s ease;
         }
 
-        .contact-number:hover {
-            text-decoration: underline;
+        .quick-link:hover {
+            background: #007bff;
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .quick-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .faq-section {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .faq-search {
+            position: relative;
+            margin-bottom: 32px;
+        }
+
+        .faq-search input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .faq-search input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+
+        .faq-search i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 18px;
+        }
+
+        .faq-categories {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .faq-category {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .faq-category.active,
+        .faq-category:hover {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
         }
 
         .faq-list {
-            list-style: none;
-            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
         .faq-item {
-            border-bottom: 1px solid #eee;
-            padding: 16px 0;
+            border: 2px solid #f1f3f4;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
 
-        .faq-item:last-child {
-            border-bottom: none;
+        .faq-item.active {
+            border-color: #007bff;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.1);
         }
 
         .faq-question {
-            font-weight: 500;
-            color: #333;
+            padding: 20px 24px;
+            background: white;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-weight: 600;
+            color: #2c3e50;
+            transition: all 0.3s ease;
         }
 
         .faq-question:hover {
-            color: #007bff;
+            background: #f8f9fa;
+        }
+
+        .faq-item.active .faq-question {
+            background: #007bff;
+            color: white;
         }
 
         .faq-answer {
-            margin-top: 12px;
-            padding: 12px;
+            padding: 0 24px;
             background: #f8f9fa;
-            border-radius: 4px;
-            display: none;
-            line-height: 1.5;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s ease;
         }
 
-        .faq-answer.show {
-            display: block;
+        .faq-item.active .faq-answer {
+            padding: 24px;
+            max-height: 500px;
+        }
+
+        .faq-answer-content {
+            line-height: 1.6;
+            color: #2c3e50;
         }
 
         .toggle-icon {
             font-size: 20px;
-            transition: transform 0.3s;
-        }
-
-        .toggle-icon.active {
+            transition: transform 0.3s ease;
+        }        .faq-item.active .toggle-icon {
             transform: rotate(180deg);
         }
+
+        .help-resources {
+            margin-top: 48px;
+            padding: 32px;
+            background: #f8f9fa;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .resources-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #2c3e50;
+        }
+
+        .resources-subtitle {
+            font-size: 16px;
+            color: #6c757d;
+            margin-bottom: 32px;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+        }
+
+        .resource-item {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .resource-item:hover {
+            transform: translateY(-4px);
+            border-color: #007bff;
+            box-shadow: 0 4px 20px rgba(0,123,255,0.15);
+        }
+
+        .resource-icon {
+            font-size: 32px;
+            color: #007bff;
+            margin-bottom: 16px;
+        }
+
+        .resource-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .resource-description {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 968px) {
+            .support-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            
+            .main-content {
+                padding: 16px;
+            }
+            
+            .support-title {
+                font-size: 28px;
+            }
+            
+            .faq-categories {
+                justify-content: center;
+            }
+            
+            .resources-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animation for FAQ items */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .faq-item {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        .faq-item:nth-child(1) { animation-delay: 0.1s; }
+        .faq-item:nth-child(2) { animation-delay: 0.2s; }
+        .faq-item:nth-child(3) { animation-delay: 0.3s; }
+        .faq-item:nth-child(4) { animation-delay: 0.4s; }
+        .faq-item:nth-child(5) { animation-delay: 0.5s; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="back-button" onclick="window.location.href='settings.html'">
-                ← <span style="font-size: 18px;">Back</span>
+    <div class="main-content">
+        <div class="support-header">
+            <h1 class="support-title">Support & Help Center</h1>
+            <p class="support-subtitle">Get the help you need to make the most of your Smart POS system. Find answers to common questions or get in touch with our support team.</p>
+        </div>
+
+        <div class="support-grid">
+            <div class="support-sidebar">
+                <!-- Contact Support Card -->
+                <div class="support-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h3 class="card-title">Contact Support</h3>
+                    </div>
+                    <div class="contact-methods">
+                        <a href="tel:+97714567890" class="contact-method">
+                            <div class="contact-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="contact-details">
+                                <div class="contact-title">24/7 Phone Support</div>
+                                <div class="contact-info">+977 1-456-7890</div>
+                            </div>
+                        </a>
+                        <a href="mailto:support@smartpos.np" class="contact-method">
+                            <div class="contact-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="contact-details">
+                                <div class="contact-title">Email Support</div>
+                                <div class="contact-info">support@smartpos.np</div>
+                            </div>
+                        </a>
+                        <a href="#" class="contact-method" onclick="openLiveChat()">
+                            <div class="contact-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="contact-details">
+                                <div class="contact-title">Live Chat</div>
+                                <div class="contact-info">Available 9 AM - 6 PM</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links Card -->
+                <div class="support-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h3 class="card-title">Quick Links</h3>
+                    </div>
+                    <div class="quick-links">
+                        <a href="#" class="quick-link">
+                            <i class="fas fa-book"></i>
+                            User Manual
+                        </a>
+                        <a href="#" class="quick-link">
+                            <i class="fas fa-video"></i>
+                            Video Tutorials
+                        </a>
+                        <a href="#" class="quick-link">
+                            <i class="fas fa-download"></i>
+                            Software Updates
+                        </a>
+                        <a href="#" class="quick-link">
+                            <i class="fas fa-tools"></i>
+                            System Requirements
+                        </a>
+                        <a href="#" class="quick-link">
+                            <i class="fas fa-shield-alt"></i>
+                            Security Guide
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div class="app-title">Support</div>
-            <div class="header-icons">
-                <div class="notification-icon">🔔</div>
-                <div class="profile-icon">👤</div>
+
+            <!-- FAQ Section -->
+            <div class="faq-section">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <h3 class="card-title">Frequently Asked Questions</h3>
+                </div>
+
+                <!-- FAQ Search -->
+                <div class="faq-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="faqSearch" placeholder="Search frequently asked questions..." onkeyup="searchFAQ()">
+                </div>
+
+                <!-- FAQ Categories -->
+                <div class="faq-categories">
+                    <div class="faq-category active" onclick="filterFAQ('all')">All</div>
+                    <div class="faq-category" onclick="filterFAQ('inventory')">Inventory</div>
+                    <div class="faq-category" onclick="filterFAQ('sales')">Sales</div>
+                    <div class="faq-category" onclick="filterFAQ('reports')">Reports</div>
+                    <div class="faq-category" onclick="filterFAQ('settings')">Settings</div>
+                    <div class="faq-category" onclick="filterFAQ('technical')">Technical</div>
+                </div>
+
+                <!-- FAQ List -->
+                <div class="faq-list" id="faqList">
+                    <div class="faq-item" data-category="inventory">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            How do I add new inventory items?
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                To add new inventory items:
+                                <ol>
+                                    <li>Navigate to the <strong>Inventory</strong> section from the main menu</li>
+                                    <li>Click the <strong>"Add New Item"</strong> button</li>
+                                    <li>Fill in the required details: item name, SKU, price, quantity, category</li>
+                                    <li>Upload product images if available</li>
+                                    <li>Set minimum stock alerts and reorder levels</li>
+                                    <li>Click <strong>"Save"</strong> to add the item to your inventory</li>
+                                </ol>
+                                You can also bulk import items using Excel/CSV files from the Import option.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="sales">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            How can I process a refund or return?
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                To process a refund:
+                                <ol>
+                                    <li>Go to <strong>Transactions</strong> and find the original sale</li>
+                                    <li>Click on the transaction to view details</li>
+                                    <li>Select <strong>"Process Refund"</strong></li>
+                                    <li>Choose items to refund (full or partial)</li>
+                                    <li>Select refund method (cash, card, store credit)</li>
+                                    <li>Add refund reason for record keeping</li>
+                                    <li>Print refund receipt for customer</li>
+                                </ol>
+                                Note: Refunds will automatically update inventory levels.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="reports">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            How do I generate sales reports?
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                To generate sales reports:
+                                <ol>
+                                    <li>Navigate to <strong>Reports</strong> section</li>
+                                    <li>Select report type: Daily, Weekly, Monthly, or Custom</li>
+                                    <li>Choose date range for the report</li>
+                                    <li>Select specific filters (products, categories, staff)</li>
+                                    <li>Click <strong>"Generate Report"</strong></li>
+                                    <li>View, print, or export the report as PDF/Excel</li>
+                                </ol>
+                                Reports include sales summary, top products, profit margins, and payment methods breakdown.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="settings">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            How to manage user permissions and roles?
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                To manage user permissions:
+                                <ol>
+                                    <li>Go to <strong>Settings → User Management</strong></li>
+                                    <li>Select an existing user or add a new one</li>
+                                    <li>Choose from predefined roles: Admin, Manager, Cashier, or Custom</li>
+                                    <li>Set specific permissions for each module</li>
+                                    <li>Configure access hours and restrictions</li>
+                                    <li>Save changes and notify the user</li>
+                                </ol>
+                                Roles determine what features users can access and modify in the system.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="settings">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            How to set up tax rates and configurations?
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                To configure tax settings:
+                                <ol>
+                                    <li>Navigate to <strong>Settings → Tax Configuration</strong></li>
+                                    <li>Add new tax rate (VAT, Service Tax, etc.)</li>
+                                    <li>Enter tax percentage and description</li>
+                                    <li>Assign taxes to specific product categories</li>
+                                    <li>Set default tax behavior for new products</li>
+                                    <li>Configure tax exemptions if applicable</li>
+                                </ol>
+                                The system supports multiple tax types and automatic calculation during sales.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="technical">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            How to connect receipt printers and hardware?
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                To connect hardware:
+                                <ol>
+                                    <li>Connect your device (printer, scanner, cash drawer) via USB or network</li>
+                                    <li>Go to <strong>Settings → Hardware Devices</strong></li>
+                                    <li>Click <strong>"Add New Device"</strong></li>
+                                    <li>Select device type and connection method</li>
+                                    <li>Test the connection to ensure proper setup</li>
+                                    <li>Configure device-specific settings</li>
+                                </ol>
+                                Supported devices include thermal printers, barcode scanners, and cash drawers.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="technical">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            How to backup and restore data?
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                To backup your data:
+                                <ol>
+                                    <li>Go to <strong>Settings → Backup & Restore</strong></li>
+                                    <li>Choose backup type: Full system or Selective</li>
+                                    <li>Select backup location (local drive, cloud, network)</li>
+                                    <li>Set automatic backup schedule</li>
+                                    <li>Initiate backup process</li>
+                                    <li>Verify backup completion and integrity</li>
+                                </ol>
+                                Regular backups ensure your business data is always protected and recoverable.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="inventory">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            How to manage multiple store locations?
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                To manage multiple stores:
+                                <ol>
+                                    <li>Navigate to <strong>Settings → Store Management</strong></li>
+                                    <li>Add new store location with details</li>
+                                    <li>Configure store-specific settings and tax rates</li>
+                                    <li>Assign staff members to specific locations</li>
+                                    <li>Set up inventory transfer between stores</li>
+                                    <li>Generate location-specific reports</li>
+                                </ol>
+                                The system supports centralized management with location-specific customizations.
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="main-content">
-            <div class="support-container">
-                <div class="support-section">
-                    <div class="section-title">Contact Support Team</div>
-                    <div class="contact-info">
-                        <div class="contact-icon">📞</div>
-                        <div class="contact-details">
-                            <div class="contact-title">24/7 Support Available</div>
-                            <a href="tel:+1234567890" class="contact-number">+1 (234) 567-890</a>
-                        </div>
+        <!-- Help Resources Section -->
+        <div class="help-resources">
+            <h2 class="resources-title">Additional Resources</h2>
+            <p class="resources-subtitle">Explore more resources to help you get the most out of Smart POS</p>
+            <div class="resources-grid">
+                <a href="#" class="resource-item">
+                    <div class="resource-icon">
+                        <i class="fas fa-graduation-cap"></i>
                     </div>
-                </div>
-
-                <div class="support-section">
-                    <div class="section-title">Frequently Asked Questions</div>
-                    <div class="faq-list">
-                        <div class="faq-item">
-                            <div class="faq-question" onclick="toggleAnswer(this)">
-                                How do I add new inventory items?
-                                <span class="toggle-icon">▼</span>
-                            </div>
-                            <div class="faq-answer">
-                                To add new inventory items:
-                                1. Go to Inventory section
-                                2. Click the '+' button
-                                3. Fill in item details (name, price, quantity, etc.)
-                                4. Click Save
-                            </div>
-                        </div>
-
-                        <div class="faq-item">
-                            <div class="faq-question" onclick="toggleAnswer(this)">
-                                How can I process a refund?
-                                <span class="toggle-icon">▼</span>
-                            </div>
-                            <div class="faq-answer">
-                                To process a refund:
-                                1. Go to Store Management
-                                2. Find the original transaction
-                                3. Click 'Process Refund'
-                                4. Select items to refund
-                                5. Choose refund method
-                                6. Confirm refund
-                            </div>
-                        </div>
-
-                        <div class="faq-item">
-                            <div class="faq-question" onclick="toggleAnswer(this)">
-                                How do I generate sales reports?
-                                <span class="toggle-icon">▼</span>
-                            </div>
-                            <div class="faq-answer">
-                                To generate sales reports:
-                                1. Go to Analytics & Report
-                                2. Select report type
-                                3. Choose date range
-                                4. Click 'Generate Report'
-                                5. Export or print as needed
-                            </div>
-                        </div>
-
-                        <div class="faq-item">
-                            <div class="faq-question" onclick="toggleAnswer(this)">
-                                How to manage user permissions?
-                                <span class="toggle-icon">▼</span>
-                            </div>
-                            <div class="faq-answer">
-                                To manage user permissions:
-                                1. Go to Settings
-                                2. Select 'User Management'
-                                3. Choose a user
-                                4. Modify their role and permissions
-                                5. Save changes
-                            </div>
-                        </div>
-
-                        <div class="faq-item">
-                            <div class="faq-question" onclick="toggleAnswer(this)">
-                                How to set up tax rates?
-                                <span class="toggle-icon">▼</span>
-                            </div>
-                            <div class="faq-answer">
-                                To set up tax rates:
-                                1. Go to Settings
-                                2. Select 'Tax Configuration'
-                                3. Add new tax rate
-                                4. Enter rate details
-                                5. Assign to product categories
-                            </div>
-                        </div>
-
-                        <div class="faq-item">
-                            <div class="faq-question" onclick="toggleAnswer(this)">
-                                How to connect a receipt printer?
-                                <span class="toggle-icon">▼</span>
-                            </div>
-                            <div class="faq-answer">
-                                To connect a receipt printer:
-                                1. Connect printer to system
-                                2. Go to Settings > Devices
-                                3. Select 'Add Printer'
-                                4. Choose printer model
-                                5. Test connection
-                            </div>
-                        </div>
-
-                        <div class="faq-item">
-                            <div class="faq-question" onclick="toggleAnswer(this)">
-                                How to backup my data?
-                                <span class="toggle-icon">▼</span>
-                            </div>
-                            <div class="faq-answer">
-                                To backup your data:
-                                1. Go to Settings
-                                2. Select 'Backup & Restore'
-                                3. Choose backup frequency
-                                4. Select backup location
-                                5. Start backup
-                            </div>
-                        </div>
-
-                        <div class="faq-item">
-                            <div class="faq-question" onclick="toggleAnswer(this)">
-                                How to manage multiple stores?
-                                <span class="toggle-icon">▼</span>
-                            </div>
-                            <div class="faq-answer">
-                                To manage multiple stores:
-                                1. Go to Settings
-                                2. Select 'Store Management'
-                                3. Add new store location
-                                4. Configure store settings
-                                5. Assign staff
-                            </div>
-                        </div>
+                    <div class="resource-title">Training Materials</div>
+                    <div class="resource-description">Step-by-step guides and training resources</div>
+                </a>
+                <a href="#" class="resource-item">
+                    <div class="resource-icon">
+                        <i class="fas fa-laptop-code"></i>
                     </div>
-                </div>
+                    <div class="resource-title">API Documentation</div>
+                    <div class="resource-description">Technical documentation for developers</div>
+                </a>
+                <a href="#" class="resource-item">
+                    <div class="resource-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="resource-title">Community Forum</div>
+                    <div class="resource-description">Connect with other Smart POS users</div>
+                </a>
+                <a href="#" class="resource-item">
+                    <div class="resource-icon">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <div class="resource-title">What's New</div>
+                    <div class="resource-description">Latest updates and feature releases</div>
+                </a>
             </div>
         </div>
     </div>
 
     <script>
-        function toggleAnswer(element) {
-            const answer = element.nextElementSibling;
-            const icon = element.querySelector('.toggle-icon');
+        // FAQ Functionality
+        function toggleFAQ(element) {
+            const faqItem = element.parentElement;
+            const wasActive = faqItem.classList.contains('active');
             
-            // Close all other answers
-            document.querySelectorAll('.faq-answer').forEach(item => {
-                if (item !== answer) {
-                    item.classList.remove('show');
+            // Close all FAQ items
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Open clicked item if it wasn't active
+            if (!wasActive) {
+                faqItem.classList.add('active');
+            }
+        }
+
+        // Search FAQ
+        function searchFAQ() {
+            const searchTerm = document.getElementById('faqSearch').value.toLowerCase();
+            const faqItems = document.querySelectorAll('.faq-item');
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question').textContent.toLowerCase();
+                const answer = item.querySelector('.faq-answer-content').textContent.toLowerCase();
+                
+                if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
                 }
             });
-              // Toggle current answer
-            answer.classList.toggle('show');
-            icon.classList.toggle('active');
         }
-    </script>
 
-    <script src="../js/menu.js"></script>
+        // Filter FAQ by category
+        function filterFAQ(category) {
+            // Update active category
+            document.querySelectorAll('.faq-category').forEach(cat => {
+                cat.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Filter FAQ items
+            const faqItems = document.querySelectorAll('.faq-item');
+            faqItems.forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Clear search when filtering
+            document.getElementById('faqSearch').value = '';
+        }
+
+        // Live Chat functionality (placeholder)
+        function openLiveChat() {
+            alert('Live chat feature coming soon! Please use phone or email support for immediate assistance.');
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add any initialization code here
+            console.log('Support page loaded successfully');
+        });
+    </script>    <script src="../js/menu.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize navbar using the new API
+            const navbar = new SmartPOSNavbar({
+                title: 'Support & Help Center'
+            });
+
+            // Ensure menu system is initialized
+            if (!window.smartPOSMenu) {
+                window.smartPOSMenu = new SmartPOSMenu();
+            }
+
+            console.log('Support page initialized with navbar and menu systems');
+        });
+    </script>
 </body>
 </html>

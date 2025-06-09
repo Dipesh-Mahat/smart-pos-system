@@ -634,8 +634,7 @@
                     console.log(`Profit: $${profit.toFixed(2)}, Margin: ${margin}%`);
                 }
             }
-            
-            costPrice.addEventListener('input', updateProfitInfo);
+              costPrice.addEventListener('input', updateProfitInfo);
             sellPrice.addEventListener('input', updateProfitInfo);
         });
 
@@ -648,87 +647,6 @@
             if (e.target === this) {
                 closeImageOptions();
             }
-        });
-    </script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const imageUpload = document.getElementById('imageUpload');
-            const imageOptions = document.getElementById('imageOptions');
-            const overlay = document.getElementById('overlay');
-            const cameraOption = document.getElementById('cameraOption');
-            const galleryOption = document.getElementById('galleryOption');
-            const saveButton = document.querySelector('.save-button');
-            
-            // Show image options when clicking on image upload container
-            imageUpload.addEventListener('click', function() {
-                imageOptions.classList.add('active');
-                overlay.classList.add('active');
-            });
-
-            // Hide image options when clicking overlay
-            overlay.addEventListener('click', function() {
-                imageOptions.classList.remove('active');
-                overlay.classList.remove('active');
-            });
-
-            // Handle camera option
-            cameraOption.addEventListener('click', function() {
-                // Here you would implement camera functionality
-                // For now, we'll just show an alert
-                alert('Camera functionality would be implemented here');
-                imageOptions.classList.remove('active');
-                overlay.classList.remove('active');
-            });
-
-            // Handle gallery option
-            galleryOption.addEventListener('click', function() {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = function(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            imageUpload.innerHTML = `<img src="${e.target.result}" alt="Product Image">`;
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                };
-                input.click();
-                imageOptions.classList.remove('active');
-                overlay.classList.remove('active');
-            });
-
-            saveButton.addEventListener('click', function() {
-                // Get all form values
-                const itemName = document.getElementById('itemName').value;
-                const quantity = document.getElementById('quantity').value;
-                const costPrice = document.getElementById('costPrice').value;
-                const sellPrice = document.getElementById('sellPrice').value;
-                const discount = document.getElementById('discount').value;
-                const expDate = document.getElementById('expDate').value;
-                const barCode = document.getElementById('barCode').value;
-
-                // Validate form
-                if (!itemName || !quantity || !costPrice || !sellPrice) {
-                    alert('Please fill in all required fields');
-                    return;
-                }
-
-                // Here you would typically send this data to your backend
-                console.log('Saving item:', {
-                    itemName,
-                    quantity,
-                    costPrice,
-                    sellPrice,
-                    discount,
-                    expDate,
-                    barCode
-                });
-
-                // Redirect back to inventory page
-                window.location.href = 'inventory.html';
-            });
         });
     </script>
 </body>

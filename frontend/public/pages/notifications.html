@@ -721,7 +721,6 @@
         </div>
     </div>
 
-    <script src="../js/menu.js"></script>
     <script>
         function saveSettings() {
             // Collect all notification settings
@@ -856,8 +855,49 @@
                 
                 // Initialize channel states
                 toggleChannels(toggle);
+            });        });
+    </script>
+
+    <script src="../js/menu.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+        // Prevent auto-initialization
+        window.navbarManualInit = true;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize navbar with custom actions for notifications page
+            initSmartPOSNavbar('Notification Settings', [
+                { icon: 'fas fa-save', label: 'Save Settings', action: 'save-settings' },
+                { icon: 'fas fa-bell-slash', label: 'Disable All', action: 'disable-all' },
+                { icon: 'fas fa-bell', label: 'Enable All', action: 'enable-all' }
+            ]);
+
+            // Add event listeners for navbar actions
+            document.addEventListener('navbarAction', function(event) {
+                const action = event.detail.action;
+                
+                switch(action) {
+                    case 'save-settings':
+                        showNotification('Settings saved successfully!', 'success');
+                        break;
+                    case 'disable-all':
+                        document.querySelectorAll('.toggle-input').forEach(toggle => {
+                            toggle.checked = false;
+                            toggleChannels(toggle);
+                        });
+                        showNotification('All notifications disabled', 'info');
+                        break;
+                    case 'enable-all':
+                        document.querySelectorAll('.toggle-input').forEach(toggle => {
+                            toggle.checked = true;
+                            toggleChannels(toggle);
+                        });
+                        showNotification('All notifications enabled', 'info');
+                        break;
+                }
             });
         });
     </script>
 </body>
 </html>
+

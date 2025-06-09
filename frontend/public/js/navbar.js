@@ -24,12 +24,21 @@ class SmartPOSNavbar {
         };
         this.notificationCount = 3; // Default notification count
         this.init();
-    }
-
-    init() {
-        this.createNavbarHTML();
-        this.attachEventListeners();
-        this.loadNotifications();
+    }    init() {
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.createNavbarHTML();
+                this.attachEventListeners();
+                this.loadNotifications();
+                console.log('Navbar initialized after DOM ready');
+            });
+        } else {
+            this.createNavbarHTML();
+            this.attachEventListeners();
+            this.loadNotifications();
+            console.log('Navbar initialized immediately');
+        }
     }
 
     createNavbarHTML() {
@@ -102,11 +111,16 @@ class SmartPOSNavbar {
                         </a>
                     </div>
                 </div>
-            </div>` : '';
+            </div>` : '';        // Add hamburger menu for menu toggle
+        const hamburgerMenu = `
+            <div class="navbar-hamburger-menu" id="navbarHamburgerMenu" title="Toggle Menu" tabindex="0" role="button" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </div>`;
 
         return `
             <header class="smart-pos-navbar" id="smartPOSNavbar">
                 <div class="navbar-left">
+                    ${hamburgerMenu}
                     ${backButton}
                     <div class="navbar-title" id="navbarTitle">${this.options.title}</div>
                 </div>
@@ -144,8 +158,7 @@ class SmartPOSNavbar {
         const styles = document.createElement('style');
         styles.id = 'smartPOSNavbarStyles';
         styles.textContent = `
-            /* Smart POS Navbar Styles */
-            .smart-pos-navbar {
+            /* Smart POS Navbar Styles */            .smart-pos-navbar {
                 background: linear-gradient(to right, #ffffff, #f8f9fa);
                 padding: 16px 20px;
                 display: flex;
@@ -153,14 +166,50 @@ class SmartPOSNavbar {
                 align-items: center;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.05);
                 position: relative;
-                z-index: 100;
+                z-index: 1000;
                 border-bottom: 1px solid #e9ecef;
-            }
-
-            .navbar-left {
+            }.navbar-left {
                 display: flex;
                 align-items: center;
                 gap: 16px;
+            }            .navbar-hamburger-menu {
+                width: 40px;
+                height: 40px;
+                background: #f8f9fa;
+                border: 1px solid #e9ecef;
+                border-radius: 10px;
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer !important;
+                transition: all 0.3s ease;
+                color: #2c3e50;
+                font-size: 18px;
+                z-index: 1002 !important;
+                position: relative !important;
+                pointer-events: auto !important;
+                user-select: none;
+                outline: none;
+                flex-shrink: 0;
+                min-width: 40px;
+                min-height: 40px;
+                box-sizing: border-box;
+            }
+            
+            .navbar-hamburger-menu:focus {
+                outline: 2px solid #007bff;
+                outline-offset: 2px;
+            }
+
+            .navbar-hamburger-menu:hover {
+                background: #007bff;
+                color: white;
+                transform: scale(1.05);
+                box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+            }
+
+            .navbar-hamburger-menu:active {
+                transform: scale(0.95);
             }
 
             .navbar-right {
@@ -509,9 +558,7 @@ class SmartPOSNavbar {
             .notification-time {
                 color: #999;
                 font-size: 11px;
-            }
-
-            /* Responsive Design */
+            }            /* Responsive Design */
             @media screen and (max-width: 768px) {
                 .navbar-title {
                     font-size: 18px;
@@ -531,17 +578,96 @@ class SmartPOSNavbar {
                     min-width: 220px;
                 }
             }
-
-            @media screen and (min-width: 1024px) {
-                .smart-pos-navbar {
-                    margin-left: 300px;
-                }
-            }
         `;
         document.head.appendChild(styles);
-    }
+    }    attachEventListeners() {
+        // Hamburger menu for toggling sidebar - comprehensive approach
+        const setupHamburgerMenu = () => {
+            const hamburgerMenu = document.getElementById('navbarHamburgerMenu');
+            console.log('Setting up hamburger menu, element found:', !!hamburgerMenu);
+            console.log('Menu system available:', !!window.smartPOSMenu);
+            
+            if (hamburgerMenu) {
+                // Clear any existing event listeners
+                hamburgerMenu.onclick = null;
+                hamburgerMenu.onmousedown = null;
+                
+                // Create comprehensive event handlers
+                const handleClick = (e) => {
+                    console.log('Hamburger clicked via:', e.type);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    this.toggleMenu();
+                };
+                
+                const handleKeydown = (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        console.log('Hamburger activated via keyboard:', e.key);
+                        e.preventDefault();
+                        this.toggleMenu();
+                    }
+                };
+                
+                // Multiple event binding approaches for maximum compatibility
+                hamburgerMenu.addEventListener('click', handleClick, { capture: true });
+                hamburgerMenu.addEventListener('mousedown', handleClick, { capture: true });
+                hamburgerMenu.addEventListener('keydown', handleKeydown);
+                
+                // Fallback: direct onclick
+                hamburgerMenu.onclick = handleClick;
+                
+                // Touch events for mobile
+                hamburgerMenu.addEventListener('touchstart', handleClick, { passive: false });
+                
+                // Debug events
+                hamburgerMenu.addEventListener('mouseenter', () => {
+                    console.log('Hamburger hover detected');
+                    hamburgerMenu.style.transform = 'scale(1.05)';
+                });
+                
+                hamburgerMenu.addEventListener('mouseleave', () => {
+                    hamburgerMenu.style.transform = 'scale(1)';
+                });
+                
+                // Store reference for cleanup
+                this.hamburgerClickHandler = handleClick;
+                this.hamburgerKeyHandler = handleKeydown;
+                
+                console.log('Hamburger menu event listeners attached successfully');
+                
+                // Test if element is actually clickable
+                const styles = window.getComputedStyle(hamburgerMenu);
+                console.log('Hamburger styles check:', {
+                    display: styles.display,
+                    visibility: styles.visibility,
+                    pointerEvents: styles.pointerEvents,
+                    zIndex: styles.zIndex,
+                    position: styles.position
+                });
+                
+                return true;
+            } else {
+                console.error('Hamburger menu element not found!');
+                return false;
+            }
+        };
+        
+        // Try immediate setup
+        if (!setupHamburgerMenu()) {
+            // Retry with delays
+            let retryCount = 0;
+            const retrySetup = () => {
+                retryCount++;
+                console.log(`Retrying hamburger setup, attempt ${retryCount}`);
+                if (setupHamburgerMenu() || retryCount >= 10) {
+                    return;
+                }
+                setTimeout(retrySetup, 50);
+            };
+            setTimeout(retrySetup, 50);
+        }
 
-    attachEventListeners() {
         // Back button
         const backButton = document.getElementById('navbarBackButton');
         if (backButton) {
@@ -700,7 +826,28 @@ class SmartPOSNavbar {
         // Emit custom event for handling by parent application
         window.dispatchEvent(new CustomEvent('navbarAction', { 
             detail: { actionId } 
-        }));
+        }));    }    toggleMenu() {
+        console.log('toggleMenu called');
+        console.log('window.smartPOSMenu:', window.smartPOSMenu);
+        
+        // Check if the menu system exists and has the toggleMenuFromNavbar method
+        if (window.smartPOSMenu && typeof window.smartPOSMenu.toggleMenuFromNavbar === 'function') {
+            console.log('Calling toggleMenuFromNavbar');
+            window.smartPOSMenu.toggleMenuFromNavbar();
+        } else {
+            console.log('Menu not ready, waiting...');
+            // If menu isn't ready yet, wait for it to be available
+            const checkForMenu = () => {
+                if (window.smartPOSMenu && typeof window.smartPOSMenu.toggleMenuFromNavbar === 'function') {
+                    console.log('Menu ready, calling toggleMenuFromNavbar');
+                    window.smartPOSMenu.toggleMenuFromNavbar();
+                } else {
+                    console.log('Still waiting for menu...');
+                    setTimeout(checkForMenu, 50); // Check again after 50ms
+                }
+            };
+            checkForMenu();
+        }
     }
 
     updateTitle(newTitle) {
@@ -740,17 +887,51 @@ class SmartPOSNavbar {
     }
 }
 
+// Legacy compatibility class that emits events in old format
+class LegacyCompatibleSmartPOSNavbar extends SmartPOSNavbar {
+    handleCustomAction(actionId) {
+        // Emit event in legacy format with 'action' instead of 'actionId'
+        window.dispatchEvent(new CustomEvent('navbarAction', { 
+            detail: { action: actionId }  // Legacy format
+        }));
+    }
+}
+
 // Global instance and convenience functions
 let smartPOSNavbar = null;
 
-function initSmartPOSNavbar(options = {}) {
+function initSmartPOSNavbar(optionsOrTitle = {}, legacyActions = null) {
     // Destroy existing instance if any
     if (smartPOSNavbar) {
         smartPOSNavbar.destroy();
     }
     
-    // Create new instance
-    smartPOSNavbar = new SmartPOSNavbar(options);
+    let options;
+    let isLegacyAPI = false;
+    
+    // Check if this is the legacy API call: initSmartPOSNavbar('Title', [actions])
+    if (typeof optionsOrTitle === 'string' && Array.isArray(legacyActions)) {
+        // Legacy API - convert to new format
+        isLegacyAPI = true;
+        options = {
+            title: optionsOrTitle,
+            customActions: legacyActions.map(action => ({
+                id: action.action,  // Map legacy 'action' to 'id'
+                icon: action.icon,
+                title: action.label || action.title
+            }))
+        };
+    } else {
+        // New API - use options object directly
+        options = optionsOrTitle;
+    }
+    
+    // Create new instance with modified SmartPOSNavbar for legacy compatibility
+    if (isLegacyAPI) {
+        smartPOSNavbar = new LegacyCompatibleSmartPOSNavbar(options);
+    } else {
+        smartPOSNavbar = new SmartPOSNavbar(options);
+    }
     
     // Make it globally accessible
     window.smartPOSNavbar = smartPOSNavbar;

@@ -7,15 +7,19 @@
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/menu.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Customers Page Specific Styles */
-        .customers-container {
+    <style>        /* Customers Page Specific Styles */
+        .main-content {
             padding: 24px;
             background-color: #f8f9fa;
-            min-height: 100vh;
+            min-height: calc(100vh - 80px);
         }
 
-        .customers-header {
+        /* Responsive adjustments for menu */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                margin-left: 300px;
+            }
+        }        .customers-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -288,17 +292,11 @@
     </style>
 </head>
 <body>
-    <div class="customers-container">
-        <div class="customers-header">
-            <div class="customers-title">Customer Management</div>
-            <div class="header-actions">
-                <button class="add-customer-btn" onclick="addNewCustomer()">
-                    <i class="fas fa-plus"></i> Add Customer
-                </button>
-            </div>
-        </div>
+    <div class="container">
+        <!-- Navbar component will be loaded here automatically -->
 
-        <div class="search-section">
+        <div class="main-content">
+            <div class="search-section">
             <div class="search-bar">
                 <input type="text" class="search-input" placeholder="Search customers by name, email, or phone..." id="customerSearch">
                 <button class="search-btn" onclick="searchCustomers()">
@@ -470,14 +468,10 @@
                     <button class="action-btn delete-btn" onclick="deleteCustomer(4)">
                         <i class="fas fa-trash"></i>
                     </button>
-                </div>
-            </div>
+                </div>            </div>
         </div>
-    </div>
-
-    <!-- Professional Reusable Menu Component -->
-    <script src="../js/menu.js"></script>
-    
+        </div>
+    </div>    <!-- Professional Reusable Menu Component -->
     <script>
         function addNewCustomer() {
             // In a real app, this would open a modal or navigate to a form
@@ -513,12 +507,45 @@
                 alert(`Customer ${customerId} deleted successfully!`);
                 // In a real app, you would make an API call to delete the customer
             }
-        }
-
-        // Add search on enter key
+        }        // Add search on enter key
         document.getElementById('customerSearch').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 searchCustomers();
+            }
+        });
+    </script>
+
+    <!-- Professional Reusable Menu Component -->
+    <script src="../js/menu.js"></script>
+    <!-- Professional Reusable Navbar Component -->
+    <script src="../js/navbar.js"></script>
+    <script>
+        // Initialize navbar with customer-specific options
+        window.navbarManualInit = true; // Prevent auto-initialization
+        initSmartPOSNavbar({
+            title: 'Customer Management',
+            showNotifications: true,
+            showProfile: true,
+            customActions: [
+                { id: 'add-customer', icon: 'user-plus', title: 'Add Customer' },
+                { id: 'export-customers', icon: 'download', title: 'Export' },
+                { id: 'import-customers', icon: 'upload', title: 'Import' }
+            ]
+        });
+
+        // Handle custom navbar actions
+        window.addEventListener('navbarAction', (event) => {
+            const { actionId } = event.detail;
+            switch(actionId) {
+                case 'add-customer':
+                    addNewCustomer();
+                    break;
+                case 'export-customers':
+                    alert('Exporting customer data...');
+                    break;
+                case 'import-customers':
+                    alert('Import customers functionality will be implemented');
+                    break;
             }
         });
     </script>

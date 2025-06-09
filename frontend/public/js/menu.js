@@ -23,20 +23,15 @@ class SmartPOSMenu {
         if (!menuContainer) {
             menuContainer = document.createElement('div');
             menuContainer.id = 'menuContainer';
-            document.body.insertBefore(menuContainer, document.body.firstChild);
-        }        // Create menu HTML structure
+            document.body.insertBefore(menuContainer, document.body.firstChild);        }        // Create menu HTML structure
         const menuHTML = 
-            '<!-- Menu Toggle Button -->' +
-            '<div class="menu-toggle-btn" id="menuToggleBtn">' +
-                '<i class="fas fa-bars" id="menuToggleIcon"></i>' +
-            '</div>' +
             '<!-- Menu Overlay for Mobile -->' +
             '<div class="menu-overlay" id="menuOverlay"></div>' +
             '<!-- Side Menu -->' +
             '<div class="side-menu" id="sideMenu">' +                '<div class="menu-header">' +
                     '<div class="menu-controls">' +
-                        '<div class="close-menu" id="closeMenu" title="Close Menu">' +
-                            '<i class="fas fa-times"></i>' +
+                        '<div class="minimize-menu" id="minimizeMenu" title="Minimize Menu">' +
+                            '<i class="fas fa-angle-double-left"></i>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -126,18 +121,20 @@ class SmartPOSMenu {
         
         menuContainer.innerHTML = menuHTML;
     }    attachEventListeners() {
-        const menuToggleBtn = document.getElementById('menuToggleBtn');
-        const closeMenu = document.getElementById('closeMenu');
+        const minimizeMenu = document.getElementById('minimizeMenu');
         const menuOverlay = document.getElementById('menuOverlay');
 
-        // Toggle menu open/close
-        if (menuToggleBtn) {
-            menuToggleBtn.addEventListener('click', () => this.toggleMenu());
-        }
-
-        // Close menu
-        if (closeMenu) {
-            closeMenu.addEventListener('click', () => this.closeMenu());
+        // Minimize menu
+        if (minimizeMenu) {
+            minimizeMenu.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Minimize button clicked');
+                this.closeMenu();
+            });
+            console.log('Minimize menu event listener attached');
+        } else {
+            console.error('Minimize menu element not found!');
         }
 
         // Close menu when clicking overlay
@@ -159,9 +156,17 @@ class SmartPOSMenu {
         if (this.isMenuOpen) {
             this.closeMenu();
         } else {
+            this.openMenu();        }
+    }    // Public method to toggle menu from navbar
+    toggleMenuFromNavbar() {
+        console.log('toggleMenuFromNavbar called, isMenuOpen:', this.isMenuOpen);
+        if (this.isMenuOpen) {
+            this.closeMenu();
+        } else {
             this.openMenu();
         }
     }    openMenu() {
+        console.log('Opening menu...');
         const sideMenu = document.getElementById('sideMenu');
         const menuOverlay = document.getElementById('menuOverlay');
 
@@ -170,10 +175,20 @@ class SmartPOSMenu {
             menuOverlay.classList.add('active');
             this.isMenuOpen = true;
             document.body.style.overflow = 'hidden';
+            
+            // Adjust main content margin when menu opens
+            this.adjustMainContentMargin();
+            
+            // Notify navbar about menu state change
+            this.notifyNavbarStateChange();
+            console.log('Menu opened successfully');
+        } else {
+            console.error('Menu elements not found:', { sideMenu, menuOverlay });
         }
     }
 
     closeMenu() {
+        console.log('Closing menu...');
         const sideMenu = document.getElementById('sideMenu');
         const menuOverlay = document.getElementById('menuOverlay');
 
@@ -182,6 +197,27 @@ class SmartPOSMenu {
             menuOverlay.classList.remove('active');
             this.isMenuOpen = false;
             document.body.style.overflow = '';
+            
+            // Remove main content margin when menu closes
+            this.adjustMainContentMargin();
+            
+            // Notify navbar about menu state change
+            this.notifyNavbarStateChange();
+            console.log('Menu closed successfully');
+        } else {
+            console.error('Menu elements not found:', { sideMenu, menuOverlay });
+        }
+    }
+
+    notifyNavbarStateChange() {
+        // Update hamburger menu visibility in navbar
+        const hamburgerMenu = document.getElementById('navbarHamburgerMenu');
+        if (hamburgerMenu) {
+            if (this.isMenuOpen) {
+                hamburgerMenu.style.display = 'none';
+            } else {
+                hamburgerMenu.style.display = 'flex';
+            }
         }
     }
 
@@ -210,60 +246,39 @@ class SmartPOSMenu {
         }
         
         // Default to dashboard if no specific page
-        return 'dashboard';
-    }    handleResponsive() {
+        return 'dashboard';    }    handleResponsive() {
         this.isDesktop = window.innerWidth >= 1024;
         const sideMenu = document.getElementById('sideMenu');
         const menuOverlay = document.getElementById('menuOverlay');
-        const menuToggleBtn = document.getElementById('menuToggleBtn');
-        const closeMenu = document.getElementById('closeMenu');
+        const minimizeMenu = document.getElementById('minimizeMenu');
 
-        if (this.isDesktop) {
-            // Desktop: Always show menu
-            if (sideMenu) {
-                sideMenu.classList.add('open');
-                sideMenu.classList.remove('mobile');
-            }
-            if (menuOverlay) {
-                menuOverlay.classList.remove('active');
-            }
-            if (menuToggleBtn) {
-                menuToggleBtn.style.display = 'none'; // Hide hamburger on desktop
-            }
-            if (closeMenu) {
-                closeMenu.style.display = 'none'; // Hide close button on desktop
-            }
-            document.body.style.overflow = '';
-            this.isMenuOpen = true;
-            
-            // Adjust main content margin
-            this.adjustMainContentMargin();
-        } else {
-            // Mobile: Show hamburger and close buttons
-            if (sideMenu) {
-                sideMenu.classList.add('mobile');
-                if (!this.isMenuOpen) {
-                    sideMenu.classList.remove('open');
-                }
-            }
-            if (menuToggleBtn) {
-                menuToggleBtn.style.display = 'block';
-            }
-            if (closeMenu) {
-                closeMenu.style.display = 'block';
-            }
+        // Always start with menu closed (hamburger visible)
+        if (sideMenu) {
+            sideMenu.classList.remove('open');
         }
+        if (menuOverlay) {
+            menuOverlay.classList.remove('active');
+        }
+        
+        // Reset menu state to closed
+        this.isMenuOpen = false;
+        document.body.style.overflow = '';
+        
+        // Remove main content margin since menu starts closed
+        this.adjustMainContentMargin();
     }    adjustMainContentMargin() {
         const mainContent = document.querySelector('.main-content') || 
                           document.querySelector('main') || 
                           document.querySelector('.content') ||
                           document.querySelector('.container');
         
-        if (mainContent && this.isDesktop) {
-            mainContent.style.marginLeft = '300px';
+        if (mainContent) {
+            if (this.isDesktop && this.isMenuOpen) {
+                mainContent.style.marginLeft = '300px';
+            } else {
+                mainContent.style.marginLeft = '0';
+            }
             mainContent.style.transition = 'margin-left 0.3s ease';
-        } else if (mainContent) {
-            mainContent.style.marginLeft = '0';
         }
     }
 
@@ -283,8 +298,11 @@ class SmartPOSMenu {
 
 // Initialize menu when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Create global menu instance
-    window.smartPOSMenu = new SmartPOSMenu();
+    // Create global menu instance only if it doesn't exist
+    if (!window.smartPOSMenu) {
+        window.smartPOSMenu = new SmartPOSMenu();
+        console.log('SmartPOSMenu initialized');
+    }
 });
 
 // Export for module use

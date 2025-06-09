@@ -178,10 +178,8 @@
 
         .view-btn:hover {
             background: #138496;
-        }
-
-        .add-product-btn {
-            background: linear-gradient(135deg, #007bff, #0056b3);
+        }        .add-product-btn {
+            background: #007bff;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -192,6 +190,7 @@
         }
 
         .add-product-btn:hover {
+            background: #0056b3;
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0,123,255,0.3);
         }
@@ -391,40 +390,17 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Include JavaScript files -->
+        </div>    </div>    <!-- Include JavaScript files -->
     <script src="../js/menu.js"></script>
     <script src="../js/navbar.js"></script>
     <script>
-        // Initialize the navbar with products page configuration
-        new SmartPOSNavbar({
-            title: 'Products Management',
-            showBackButton: false,
-            customActions: [
-                {
-                    icon: 'fas fa-plus',
-                    text: 'Add Product',
-                    action: 'add-product',
-                    primary: true
-                },
-                {
-                    icon: 'fas fa-sync-alt',
-                    text: 'Refresh',
-                    action: 'refresh-products'
-                }
-            ]
-        });
-
-        // Handle custom navbar actions
-        document.addEventListener('navbar-action', function(e) {
-            const action = e.detail.action;
-            if (action === 'add-product') {
-                window.location.href = 'add-item.html';
-            } else if (action === 'refresh-products') {
-                location.reload();
-            }
+        // Initialize navbar with products-specific options
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = new SmartPOSNavbar({
+                title: 'Products Management'
+            });
+            
+            console.log('Products page initialized');
         });
 
         function filterProducts(category) {

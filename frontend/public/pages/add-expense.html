@@ -625,10 +625,8 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </div>    </div>
 
-    <script src="../js/menu.js"></script>
     <script>
         // Set today's date as default
         document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
@@ -743,6 +741,43 @@
             
             input.addEventListener('blur', function() {
                 this.parentElement.style.transform = 'scale(1)';
+            });        });
+    </script>
+
+    <script src="../js/menu.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+        // Prevent auto-initialization
+        window.navbarManualInit = true;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize navbar with custom actions for add expense page
+            initSmartPOSNavbar('Add Expense', [
+                { icon: 'fas fa-save', label: 'Save Expense', action: 'save-expense' },
+                { icon: 'fas fa-receipt', label: 'Upload Receipt', action: 'upload-receipt' },
+                { icon: 'fas fa-list', label: 'View Expenses', action: 'view-expenses' }
+            ]);
+
+            // Add event listeners for navbar actions
+            document.addEventListener('navbarAction', function(event) {
+                const action = event.detail.action;
+                
+                switch(action) {
+                    case 'save-expense':
+                        // Trigger the submit button
+                        const submitBtn = document.querySelector('.submit-btn');
+                        if (submitBtn) submitBtn.click();
+                        break;
+                    case 'upload-receipt':
+                        // Trigger the receipt upload
+                        const receiptInput = document.getElementById('receipt-upload');
+                        if (receiptInput) receiptInput.click();
+                        break;
+                    case 'view-expenses':
+                        // Navigate to expenses list
+                        window.location.href = 'transactions.html';
+                        break;
+                }
             });
         });
     </script>

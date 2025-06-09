@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipt Confirmation</title>
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -92,12 +93,46 @@
     <div class="receipt-info">
         <div class="receipt-label">RECEIPT: 4</div>
         <button class="new-sales-btn"><a href="index.html">NEW SALES</a></button>
-    </div>
-
-    <script>
+    </div>    <script>
         document.querySelector('.new-sales-btn').addEventListener('click', function() {
             // Navigate to the sales page
             window.location.href = 'pos.html';
+        });
+    </script>
+
+    <script src="../js/menu.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+        // Prevent auto-initialization
+        window.navbarManualInit = true;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize navbar with custom actions for success page
+            initSmartPOSNavbar('Payment Success', [
+                { icon: 'fas fa-print', label: 'Print Receipt', action: 'print-receipt' },
+                { icon: 'fas fa-plus', label: 'New Sale', action: 'new-sale' },
+                { icon: 'fas fa-history', label: 'View Transaction', action: 'view-transaction' }
+            ]);
+
+            // Add event listeners for navbar actions
+            document.addEventListener('navbarAction', function(event) {
+                const action = event.detail.action;
+                
+                switch(action) {
+                    case 'print-receipt':
+                        // Print the receipt
+                        window.print();
+                        break;
+                    case 'new-sale':
+                        // Start new sale
+                        window.location.href = 'pos.html';
+                        break;
+                    case 'view-transaction':
+                        // View transaction details
+                        window.location.href = 'transactions.html';
+                        break;
+                }
+            });
         });
     </script>
 </body>

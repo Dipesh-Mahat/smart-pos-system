@@ -549,7 +549,6 @@
         </div>
     </div>
 
-    <script src="../js/menu.js"></script>
     <script>
         function handleAvatarUpload(event) {
             const file = event.target.files[0];
@@ -597,14 +596,48 @@
         function managePermissions() {
             alert('Opening permissions management...');
             // Here you would show permissions interface
-        }
-
-        function deactivateAccount() {
+        }        function deactivateAccount() {
             if (confirm('Are you sure you want to deactivate your account? This action cannot be undone.')) {
                 alert('Account deactivation process initiated...');
                 // Here you would implement account deactivation
             }
         }
     </script>
+
+    <!-- Professional Reusable Menu Component -->
+    <script src="../js/menu.js"></script>
+    <!-- Professional Reusable Navbar Component -->
+    <script src="../js/navbar.js"></script>
+    <script>
+        // Initialize navbar with user profile-specific options
+        window.navbarManualInit = true; // Prevent auto-initialization
+        initSmartPOSNavbar({
+            title: 'User Profile',
+            showNotifications: true,
+            showProfile: true,
+            customActions: [
+                { id: 'edit-profile', icon: 'edit', title: 'Edit Profile' },
+                { id: 'change-password', icon: 'key', title: 'Change Password' },
+                { id: 'privacy-settings', icon: 'shield-alt', title: 'Privacy Settings' }
+            ]
+        });
+
+        // Handle custom navbar actions
+        window.addEventListener('navbarAction', (event) => {
+            const { actionId } = event.detail;
+            switch(actionId) {
+                case 'edit-profile':
+                    alert('Edit profile functionality will be implemented');
+                    break;
+                case 'change-password':
+                    window.location.href = 'change-password.html';
+                    break;
+                case 'privacy-settings':
+                    alert('Privacy settings functionality will be implemented');
+                    break;
+            }
+        });
+    </script>
 </body>
 </html>
+

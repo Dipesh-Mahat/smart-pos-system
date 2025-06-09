@@ -645,7 +645,6 @@
         </div>
     </div>
 
-    <script src="../js/menu.js"></script>
     <script>
         // Initialize date to today
         document.addEventListener('DOMContentLoaded', function() {
@@ -681,7 +680,6 @@
 
     <!-- Navbar and Menu Scripts -->
     <script src="../js/navbar.js"></script>
-    <script src="../js/menu.js"></script>
     <script>
         // Initialize navbar with custom actions
         document.addEventListener('DOMContentLoaded', function() {
@@ -690,11 +688,9 @@
             // Add custom navbar actions for daily summary
             navbar.addAction('export-summary', 'Export Report', 'fas fa-download', 'btn-primary');
             navbar.addAction('print-summary', 'Print', 'fas fa-print', 'btn-secondary');
-            navbar.addAction('email-summary', 'Email Report', 'fas fa-envelope', 'btn-secondary');
-            
-            // Handle navbar action clicks
-            document.addEventListener('navbar-action', function(e) {
-                switch(e.detail.action) {
+            navbar.addAction('email-summary', 'Email Report', 'fas fa-envelope', 'btn-secondary');            // Handle navbar action clicks
+            document.addEventListener('navbarAction', function(e) {
+                switch(e.detail.actionId) {
                     case 'export-summary':
                         exportDailySummary();
                         break;
@@ -712,6 +708,7 @@
     </script>
 </body>
 </html>
+
 
 
 

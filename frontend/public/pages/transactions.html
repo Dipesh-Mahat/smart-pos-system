@@ -492,10 +492,8 @@
                     </div>
                 </div>
             </a>
-        </div>
-    </div>
+        </div>    </div>
 
-    <script src="../js/menu.js"></script>
     <script>
         // Filter functionality
         document.addEventListener('DOMContentLoaded', function() {
@@ -571,11 +569,9 @@
             // Add custom navbar actions for transactions
             navbar.addAction('export-transactions', 'Export', 'fas fa-download', 'btn-secondary');
             navbar.addAction('print-report', 'Print Report', 'fas fa-print', 'btn-secondary');
-            navbar.addAction('filter-transactions', 'Filter', 'fas fa-filter', 'btn-secondary');
-            
-            // Handle navbar action clicks
-            document.addEventListener('navbar-action', function(e) {
-                switch(e.detail.action) {
+            navbar.addAction('filter-transactions', 'Filter', 'fas fa-filter', 'btn-secondary');            // Handle navbar action clicks
+            document.addEventListener('navbarAction', function(e) {
+                switch(e.detail.actionId) {
                     case 'export-transactions':
                         exportTransactions();
                         break;

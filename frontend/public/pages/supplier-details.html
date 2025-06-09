@@ -465,10 +465,49 @@
             locationTitle.textContent = location.charAt(0).toUpperCase() + location.slice(1);
               // Set current suppliers and display them
             currentSuppliers = supplierData[location];
-            displaySuppliers(currentSuppliers);
-        });
+            displaySuppliers(currentSuppliers);        });
     </script>
 
     <script src="../js/menu.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+        // Prevent auto-initialization
+        window.navbarManualInit = true;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize navbar with custom actions for supplier details page
+            initSmartPOSNavbar('Supplier Details', [
+                { icon: 'fas fa-plus', label: 'Add Supplier', action: 'add-supplier' },
+                { icon: 'fas fa-filter', label: 'Filter', action: 'filter-suppliers' },
+                { icon: 'fas fa-arrow-left', label: 'Back to List', action: 'back-list' }
+            ]);
+
+            // Add event listeners for navbar actions
+            document.addEventListener('navbarAction', function(event) {
+                const action = event.detail.action;
+                
+                switch(action) {
+                    case 'add-supplier':
+                        // Add new supplier functionality
+                        alert('Add new supplier feature will be implemented here');
+                        break;
+                    case 'filter-suppliers':
+                        // Filter suppliers functionality
+                        const searchTerm = prompt('Enter supplier name to filter:');
+                        if (searchTerm) {
+                            const filtered = currentSuppliers.filter(supplier => 
+                                supplier.name.toLowerCase().includes(searchTerm.toLowerCase())
+                            );
+                            displaySuppliers(filtered);
+                        }
+                        break;
+                    case 'back-list':
+                        // Navigate back to suppliers list
+                        window.location.href = 'suppliers.html';
+                        break;
+                }
+            });
+        });
+    </script>
 </body>
 </html>

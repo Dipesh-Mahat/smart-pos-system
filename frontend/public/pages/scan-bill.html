@@ -388,9 +388,45 @@
                     alert('Camera functionality will be implemented here. This is a placeholder.');
                 } else {
                     fileUpload.click();
-                }            });
+                }            });        });
+    </script>
+    
+    <script src="../js/menu.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+        // Prevent auto-initialization
+        window.navbarManualInit = true;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize navbar with custom actions for scan bill page
+            initSmartPOSNavbar('Scan Bill', [
+                { icon: 'fas fa-camera', label: 'Camera', action: 'toggle-camera' },
+                { icon: 'fas fa-upload', label: 'Upload', action: 'upload-file' },
+                { icon: 'fas fa-history', label: 'History', action: 'view-history' }
+            ]);
+
+            // Add event listeners for navbar actions
+            document.addEventListener('navbarAction', function(event) {
+                const action = event.detail.action;
+                
+                switch(action) {
+                    case 'toggle-camera':
+                        // Switch to camera mode
+                        const cameraOption = document.querySelector('.scan-option:first-child');
+                        if (cameraOption) cameraOption.click();
+                        break;
+                    case 'upload-file':
+                        // Switch to upload mode
+                        const uploadOption = document.querySelector('.scan-option:last-child');
+                        if (uploadOption) uploadOption.click();
+                        break;
+                    case 'view-history':
+                        // Navigate to transactions history
+                        window.location.href = 'transactions.html';
+                        break;
+                }
+            });
         });
     </script>
-    <script src="../js/menu.js"></script>
 </body>
 </html>

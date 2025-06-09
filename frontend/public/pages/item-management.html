@@ -870,7 +870,6 @@
         </div>
     </div>
 
-    <script src="../js/menu.js"></script>
     <script>
         // Search functionality
         document.getElementById('searchInput').addEventListener('input', function(e) {
@@ -929,7 +928,6 @@
 
     <!-- Navbar and Menu Scripts -->
     <script src="../js/navbar.js"></script>
-    <script src="../js/menu.js"></script>
     <script>
         // Initialize navbar with custom actions
         document.addEventListener('DOMContentLoaded', function() {
@@ -938,11 +936,9 @@
             // Add custom navbar actions for item management
             navbar.addAction('add-item', 'Add Item', 'fas fa-plus', 'btn-primary');
             navbar.addAction('export-items', 'Export', 'fas fa-download', 'btn-secondary');
-            navbar.addAction('import-items', 'Import', 'fas fa-upload', 'btn-secondary');
-            
-            // Handle navbar action clicks
-            document.addEventListener('navbar-action', function(e) {
-                switch(e.detail.action) {
+            navbar.addAction('import-items', 'Import', 'fas fa-upload', 'btn-secondary');            // Handle navbar action clicks
+            document.addEventListener('navbarAction', function(e) {
+                switch(e.detail.actionId) {
                     case 'add-item':
                         addNewItem();
                         break;
@@ -959,6 +955,7 @@
     </script>
 </body>
 </html>
+
 
 
 

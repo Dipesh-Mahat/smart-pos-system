@@ -188,16 +188,59 @@
     <!-- Overlay for menu -->
     <div class="menu-overlay" id="menuOverlay"></div>
 
-    <script src="sidebar.js"></script>
-    <script>
+    <script src="sidebar.js"></script>    <script>
         // Get receipt ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const receiptId = urlParams.get('id');
         
         if (receiptId) {
             document.querySelector('.app-title').textContent = `Receipt ${receiptId}`;
-            document.querySelector('.receipt-title').textContent = `Receipt ${receiptId}`;        }
+            document.querySelector('.receipt-title').textContent = `Receipt ${receiptId}`;
+        }
     </script>
+    
     <script src="../js/menu.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+        // Prevent auto-initialization
+        window.navbarManualInit = true;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize navbar with custom actions for receipt detail page
+            initSmartPOSNavbar('Receipt Details', [
+                { icon: 'fas fa-print', label: 'Print', action: 'print-receipt' },
+                { icon: 'fas fa-download', label: 'Download', action: 'download-receipt' },
+                { icon: 'fas fa-share', label: 'Share', action: 'share-receipt' }
+            ]);
+
+            // Add event listeners for navbar actions
+            document.addEventListener('navbarAction', function(event) {
+                const action = event.detail.action;
+                
+                switch(action) {
+                    case 'print-receipt':
+                        // Print the receipt
+                        window.print();
+                        break;
+                    case 'download-receipt':
+                        // Download receipt as PDF (placeholder)
+                        alert('Download feature will be implemented here');
+                        break;
+                    case 'share-receipt':
+                        // Share receipt (placeholder)
+                        if (navigator.share) {
+                            navigator.share({
+                                title: 'Receipt Details',
+                                text: 'Check out this receipt',
+                                url: window.location.href
+                            });
+                        } else {
+                            alert('Share feature not available');
+                        }
+                        break;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
