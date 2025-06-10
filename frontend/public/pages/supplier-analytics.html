@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics & Reports - Smart POS Supplier</title>
+    <link rel="stylesheet" href="../css/supplier-dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1><i class="fas fa-chart-line"></i> Analytics & Reports</h1>
+                <p>Monitor your business performance and generate reports</p>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Quick Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalRevenue">$45,230</h3>
+                            <p>Total Revenue</p>
+                            <span class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i> 12.5%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalOrders">206</h3>
+                            <p>Total Orders</p>
+                            <span class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i> 8.2%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="avgOrder">$219</h3>
+                            <p>Average Order</p>
+                            <span class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i> 3.1%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="newCustomers">48</h3>
+                            <p>New Customers</p>
+                            <span class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i> 6.4%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date Range Controls -->
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2>Date Range</h2>
+                        <div class="date-controls">
+                            <select id="dateRange" onchange="updateDateRange()">
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month" selected>This Month</option>
+                                <option value="quarter">This Quarter</option>
+                                <option value="year">This Year</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                            <div class="custom-date-range" id="customDateRange" style="display: none;">
+                                <input type="date" id="startDate">
+                                <span>to</span>
+                                <input type="date" id="endDate">
+                                <button class="btn-primary" onclick="applyCustomRange()">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <!-- Revenue Chart -->
+                    <div class="content-card chart-card">
+                        <div class="card-header">
+                            <h2>Revenue Trend</h2>
+                            <div class="chart-controls">
+                                <button class="chart-btn active" onclick="updateRevenueChart('daily')">Daily</button>
+                                <button class="chart-btn" onclick="updateRevenueChart('weekly')">Weekly</button>
+                                <button class="chart-btn" onclick="updateRevenueChart('monthly')">Monthly</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Orders Chart -->
+                    <div class="content-card chart-card">
+                        <div class="card-header">
+                            <h2>Order Status Distribution</h2>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="ordersChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Top Products Chart -->
+                    <div class="content-card chart-card">
+                        <div class="card-header">
+                            <h2>Top Selling Products</h2>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="productsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Customer Growth Chart -->
+                    <div class="content-card chart-card">
+                        <div class="card-header">
+                            <h2>Customer Growth</h2>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="customerChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Products Table -->
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2>Top Products Performance</h2>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Units Sold</th>
+                                    <th>Revenue</th>
+                                    <th>Growth</th>
+                                    <th>Margin</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topProductsTable">
+                                <!-- Dynamic content will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Reports Section -->
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2>Quick Reports</h2>
+                    </div>
+                    <div class="reports-grid">
+                        <div class="report-item">
+                            <div class="report-icon">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <div class="report-details">
+                                <h3>Sales Report</h3>
+                                <p>Detailed sales analysis and trends</p>
+                                <button class="btn-secondary" onclick="generateReport('sales')">Generate</button>
+                            </div>
+                        </div>
+                        <div class="report-item">
+                            <div class="report-icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="report-details">
+                                <h3>Inventory Report</h3>
+                                <p>Stock levels and movement analysis</p>
+                                <button class="btn-secondary" onclick="generateReport('inventory')">Generate</button>
+                            </div>
+                        </div>
+                        <div class="report-item">
+                            <div class="report-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="report-details">
+                                <h3>Customer Report</h3>
+                                <p>Customer behavior and demographics</p>
+                                <button class="btn-secondary" onclick="generateReport('customer')">Generate</button>
+                            </div>
+                        </div>
+                        <div class="report-item">
+                            <div class="report-icon">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <div class="report-details">
+                                <h3>Financial Report</h3>
+                                <p>Profit, loss, and financial overview</p>
+                                <button class="btn-secondary" onclick="generateReport('financial')">Generate</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="report-actions">
+                        <button class="btn-primary" onclick="exportReports()">
+                            <i class="fas fa-download"></i> Export All Reports
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Key Insights -->
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2>Key Insights</h2>
+                    </div>
+                    <div class="insights-grid">
+                        <div class="insight-item">
+                            <div class="insight-icon success">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h3>Best Seller</h3>
+                                <p>Wireless Bluetooth Earbuds</p>
+                                <span>145 units sold this month</span>
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon warning">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h3>Top Region</h3>
+                                <p>North America</p>
+                                <span>42% of total sales</span>
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon info">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h3>Avg Rating</h3>
+                                <p>4.8/5</p>
+                                <span>Based on 234 reviews</span>
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon primary">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h3>Peak Hours</h3>
+                                <p>2PM - 4PM</p>
+                                <span>Highest order volume</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Include JavaScript files -->
+    <script src="../js/supplier-analytics.js"></script>
+</body>
+</html>

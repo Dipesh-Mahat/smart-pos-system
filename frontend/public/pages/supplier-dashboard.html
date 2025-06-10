@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart POS - Supplier Dashboard</title>
+    <link rel="stylesheet" href="../css/supplier-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container"><!-- Main Content Area -->
+        <main class="main-content" id="mainContent">
+        <!-- Dashboard Content -->
+        <div class="dashboard-content" id="dashboardContent">
+            <!-- Quick Stats -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>25</h3>
+                            <p>New Orders</p>
+                            <span class="stat-change positive">+12%</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>₹45,230</h3>
+                            <p>Total Revenue</p>
+                            <span class="stat-change positive">+8.5%</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>156</h3>
+                            <p>Products</p>
+                            <span class="stat-change neutral">+5</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>48</h3>
+                            <p>Active Customers</p>
+                            <span class="stat-change positive">+15%</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="quick-actions-section">
+                <h2>Quick Actions</h2>
+                <div class="actions-grid">
+                    <button class="action-card" onclick="showSection('products')">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Add Product</span>
+                    </button>
+                    <button class="action-card" onclick="showSection('orders')">
+                        <i class="fas fa-eye"></i>
+                        <span>View Orders</span>
+                    </button>
+                    <button class="action-card" onclick="showSection('inventory')">
+                        <i class="fas fa-warehouse"></i>
+                        <span>Update Inventory</span>
+                    </button>
+                    <button class="action-card" onclick="showSection('analytics')">
+                        <i class="fas fa-chart-line"></i>
+                        <span>View Reports</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Recent Orders -->
+            <section class="recent-orders-section">
+                <div class="section-header">
+                    <h2>Recent Orders</h2>
+                    <button class="view-all-btn" onclick="showSection('orders')">View All</button>
+                </div>
+                <div class="orders-table-container">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Products</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentOrdersTable">
+                            <tr>
+                                <td>#ORD001</td>
+                                <td>
+                                    <div class="customer-info">
+                                        <img src="../images/avatars/user-avatar.png" alt="Customer">
+                                        <span>Sharma General Store</span>
+                                    </div>
+                                </td>
+                                <td>Rice, Oil, Sugar</td>
+                                <td>₹2,450</td>
+                                <td><span class="status-badge pending">Pending</span></td>
+                                <td>Dec 8, 2024</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-view" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn-approve" title="Approve">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#ORD002</td>
+                                <td>
+                                    <div class="customer-info">
+                                        <img src="../images/avatars/user-avatar.png" alt="Customer">
+                                        <span>Nepal Mart</span>
+                                    </div>
+                                </td>
+                                <td>Dal, Masala, Soap</td>
+                                <td>₹1,890</td>
+                                <td><span class="status-badge approved">Approved</span></td>
+                                <td>Dec 7, 2024</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-view" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn-ship" title="Ship Order">
+                                            <i class="fas fa-truck"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Low Stock Alerts -->
+            <section class="alerts-section">
+                <div class="section-header">
+                    <h2>Low Stock Alerts</h2>
+                    <span class="alert-count">3 items</span>
+                </div>
+                <div class="alerts-list">
+                    <div class="alert-item">
+                        <div class="alert-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <h4>Basmati Rice (5kg)</h4>
+                            <p>Only 5 units remaining</p>
+                        </div>
+                        <button class="btn-restock">Restock</button>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <h4>Sunflower Oil (1L)</h4>
+                            <p>Only 8 units remaining</p>
+                        </div>
+                        <button class="btn-restock">Restock</button>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <h4>Sugar (1kg)</h4>
+                            <p>Only 3 units remaining</p>
+                        </div>
+                        <button class="btn-restock">Restock</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Products Section (Hidden by default) -->
+        <div class="section-content" id="productsSection" style="display: none;">
+            <div class="section-header">
+                <h2>My Products</h2>
+                <button class="btn-primary" id="addProductBtn">
+                    <i class="fas fa-plus"></i>
+                    Add New Product
+                </button>
+            </div>
+            
+            <div class="products-filters">
+                <div class="filter-group">
+                    <input type="text" placeholder="Search products..." class="search-input">
+                    <select class="filter-select">
+                        <option value="">All Categories</option>
+                        <option value="groceries">Groceries</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="home">Home & Garden</option>
+                    </select>
+                    <select class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="out-of-stock">Out of Stock</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Orders Section (Hidden by default) -->
+        <div class="section-content" id="ordersSection" style="display: none;">
+            <div class="section-header">
+                <h2>Order Management</h2>
+                <div class="order-filters">
+                    <select class="filter-select">
+                        <option value="">All Orders</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="orders-content">
+                <!-- Orders content will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Other sections will be similarly structured -->
+    </main>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel" id="notificationPanel">
+        <div class="notification-header">
+            <h3>Notifications</h3>
+            <button class="close-panel" id="closeNotifications">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="notification-list">
+            <div class="notification-item unread">
+                <div class="notification-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="notification-content">
+                    <h4>New Order Received</h4>
+                    <p>Order #ORD003 from Patel Store - ₹3,200</p>
+                    <span class="notification-time">5 minutes ago</span>
+                </div>
+            </div>
+            <div class="notification-item unread">
+                <div class="notification-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="notification-content">
+                    <h4>Low Stock Alert</h4>
+                    <p>Tea Powder (500g) - Only 2 units left</p>
+                    <span class="notification-time">1 hour ago</span>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notification-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="notification-content">
+                    <h4>Order Delivered</h4>
+                    <p>Order #ORD001 has been successfully delivered</p>
+                    <span class="notification-time">2 hours ago</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Add Product -->
+    <div class="modal" id="addProductModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Product</h3>
+                <button class="close-modal" id="closeAddProductModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form class="product-form" id="productForm">
+                <div class="form-group">
+                    <label for="productName">Product Name *</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="productCategory">Category *</label>
+                        <select id="productCategory" required>
+                            <option value="">Select Category</option>
+                            <option value="groceries">Groceries</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="clothing">Clothing</option>
+                            <option value="home">Home & Garden</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="productBrand">Brand</label>
+                        <input type="text" id="productBrand">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="productPrice">Price (₹) *</label>
+                        <input type="number" id="productPrice" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="productStock">Stock Quantity *</label>
+                        <input type="number" id="productStock" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Description</label>
+                    <textarea id="productDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="productImage">Product Image</label>
+                    <input type="file" id="productImage" accept="image/*">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelAddProduct">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Product</button>
+                </div>            </form>
+        </div>
+    </div>    </div> <!-- End of dashboard-container -->
+
+    <!-- JavaScript -->
+    <script src="../js/supplier-dashboard.js"></script>
+</body>
+</html>

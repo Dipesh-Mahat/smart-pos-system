@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management - Smart POS Supplier</title>
+    <link rel="stylesheet" href="../css/supplier-dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">    </head>
+<body>
+    <div class="dashboard-container"><!-- Main Content -->
+        <main class="main-content">
+            <!-- Order Management Content -->
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Order Statistics -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="pendingOrders">23</h3>
+                            <p>Pending Orders</p>
+                            <span class="stat-change positive">+3 today</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="processingOrders">15</h3>
+                            <p>Processing</p>
+                            <span class="stat-change positive">+5 today</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="shippedOrders">42</h3>
+                            <p>Shipped</p>
+                            <span class="stat-change positive">+12 today</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="completedOrders">156</h3>
+                            <p>Completed</p>
+                            <span class="stat-change positive">+28 this week</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters and Search -->
+                <div class="content-header">
+                    <div class="search-filters">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search orders by ID, customer, or product..." id="orderSearch">
+                        </div>
+                        <div class="filter-controls">
+                            <select id="statusFilter" class="filter-select">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <select id="dateFilter" class="filter-select">
+                                <option value="">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                            <button class="btn-secondary" id="filterBtn">
+                                <i class="fas fa-filter"></i>
+                                Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Table -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Recent Orders</h3>
+                        <div class="table-actions">
+                            <button class="btn-secondary" id="bulkActionsBtn">
+                                <i class="fas fa-tasks"></i>
+                                Bulk Actions
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table" id="ordersTable">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="selectAllOrders">
+                                    </th>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Products</th>
+                                    <th>Total Amount</th>
+                                    <th>Status</th>
+                                    <th>Order Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
+                                <!-- Orders will be loaded here via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-pagination">
+                        <div class="pagination-info">
+                            Showing <span id="showingStartOrders">1</span> to <span id="showingEndOrders">10</span> of <span id="totalOrderRows">236</span> orders
+                        </div>
+                        <div class="pagination-controls">
+                            <button class="pagination-btn" id="prevPageOrders" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span class="pagination-numbers" id="paginationNumbersOrders">
+                                <!-- Page numbers will be generated here -->
+                            </span>
+                            <button class="pagination-btn" id="nextPageOrders">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions-section">
+                    <h3>Quick Actions</h3>
+                    <div class="quick-actions-grid">
+                        <div class="quick-action-card" onclick="bulkUpdateStatus('processing')">
+                            <div class="action-icon info">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Process Selected</h4>
+                                <p>Mark selected orders as processing</p>
+                            </div>
+                        </div>
+                        <div class="quick-action-card" onclick="bulkUpdateStatus('shipped')">
+                            <div class="action-icon primary">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Ship Selected</h4>
+                                <p>Mark selected orders as shipped</p>
+                            </div>
+                        </div>
+                        <div class="quick-action-card" onclick="generateInvoices()">
+                            <div class="action-icon success">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Generate Invoices</h4>
+                                <p>Create invoices for selected orders</p>
+                            </div>
+                        </div>
+                        <div class="quick-action-card" onclick="printShippingLabels()">
+                            <div class="action-icon warning">
+                                <i class="fas fa-print"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Print Labels</h4>
+                                <p>Print shipping labels for orders</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="../js/supplier-orders.js"></script>
+</body>
+</html>
