@@ -34,13 +34,38 @@ class SmartPOSNavbar {
                 this.createNavbarHTML();
                 this.attachEventListeners();
                 this.loadNotifications();
+                this.setupScrollEffects();
                 console.log('Navbar initialized after DOM ready');
             });
         } else {
             this.createNavbarHTML();
             this.attachEventListeners();
             this.loadNotifications();
+            this.setupScrollEffects();
             console.log('Navbar initialized immediately');
+        }
+    }
+
+    setupScrollEffects() {
+        // Add scroll effect to enhance sticky navbar visual feedback
+        let lastScrollTop = 0;
+        const navbar = document.querySelector('.smart-pos-navbar');
+        
+        if (navbar) {
+            window.addEventListener('scroll', () => {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Add enhanced shadow when scrolled
+                if (scrollTop > 10) {
+                    navbar.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+                    navbar.style.backdropFilter = 'blur(15px)';
+                } else {
+                    navbar.style.boxShadow = '0 2px 10px rgba(0,0,0,0.05)';
+                    navbar.style.backdropFilter = 'blur(10px)';
+                }
+                
+                lastScrollTop = scrollTop;
+            });
         }
     }
 
@@ -163,9 +188,19 @@ class SmartPOSNavbar {
                 justify-content: space-between;
                 align-items: center;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-                position: relative;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
                 z-index: 1001;
                 border-bottom: 1px solid #e9ecef;
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }            /* Add body padding to accommodate fixed navbar */
+            body {
+                padding-top: 80px !important;
+                box-sizing: border-box;
             }.navbar-left {                display: flex;
                 align-items: center;
                 gap: 16px;
@@ -539,6 +574,14 @@ class SmartPOSNavbar {
                 font-size: 11px;
             }            /* Responsive Design */
             @media screen and (max-width: 768px) {
+                .smart-pos-navbar {
+                    padding: 12px 16px;
+                }
+
+                body {
+                    padding-top: 70px !important;
+                }
+
                 .navbar-title {
                     font-size: 18px;
                 }
@@ -550,6 +593,8 @@ class SmartPOSNavbar {
                 .navbar-notification-panel {
                     width: 100%;
                     right: -100%;
+                    top: 70px;
+                    height: calc(100vh - 70px);
                 }
 
                 .profile-dropdown {

@@ -17,10 +17,8 @@ class SmartPOSMenu {
         this.setActiveMenuItem();
         this.handleResponsive();
         
-        // Restore menu state after responsive handling is complete
-        setTimeout(() => {
-            this.restoreMenuState();
-        }, 50);
+        // Restore menu state immediately to prevent animation flicker
+        this.restoreMenuState();
         
         // Notify navbar that menu is ready
         setTimeout(() => {
@@ -119,28 +117,42 @@ class SmartPOSMenu {
         // Handle responsive behavior
         window.addEventListener('resize', () => this.handleResponsive());
     }    toggleMenu() {
-        // Toggle open/close for all screen sizes
+        // Toggle open/close for all screen sizes with animation
         if (this.isMenuOpen) {
             this.closeMenu();
         } else {
-            this.openMenu();        }
-    }    // Public method to toggle menu from navbar
+            this.openMenu(true); // true = show animation
+        }
+    }
+
+    // Public method to toggle menu from navbar
     toggleMenuFromNavbar() {
         if (this.isMenuOpen) {
             this.closeMenu();
         } else {
-            this.openMenu();
+            this.openMenu(true); // true = show animation
         }
-    }    openMenu() {
+    }
+
+    openMenu(withAnimation = false) {
         // Prevent multiple simultaneous calls
         if (this.isMenuOpen) {
             return;
         }
         
         const sideMenu = document.getElementById('sideMenu');
-        const menuOverlay = document.getElementById('menuOverlay');        if (sideMenu && menuOverlay) {
+        const menuOverlay = document.getElementById('menuOverlay');
+
+        if (sideMenu && menuOverlay) {
             // Set state first to prevent race conditions
             this.isMenuOpen = true;
+            
+            // Add or remove animation class based on parameter
+            if (withAnimation) {
+                sideMenu.classList.add('with-animation');
+            } else {
+                sideMenu.classList.remove('with-animation');
+            }
             
             sideMenu.classList.add('open');
             menuOverlay.classList.add('active');
@@ -162,7 +174,7 @@ class SmartPOSMenu {
         } else {
             this.isMenuOpen = false; // Reset state on failure
         }
-    }closeMenu() {
+    }    closeMenu() {
         // Prevent multiple simultaneous calls
         if (!this.isMenuOpen) {
             return;
@@ -175,7 +187,9 @@ class SmartPOSMenu {
             // Set state first to prevent race conditions
             this.isMenuOpen = false;
             
+            // Remove both open and animation classes
             sideMenu.classList.remove('open');
+            sideMenu.classList.remove('with-animation');
             menuOverlay.classList.remove('active');
             document.body.style.overflow = '';
             
@@ -187,20 +201,62 @@ class SmartPOSMenu {
             this.notifyNavbarStateChange();
         } else {
             this.isMenuOpen = true; // Reset state on failure
-        }    }restoreMenuState() {
+        }
+    }    restoreMenuState() {
         // Always ensure body can scroll initially
         document.body.style.overflow = '';
         
         // Check if menu should be restored to open state
         const savedState = localStorage.getItem('menuState');
         if (savedState === 'open') {
-            // Restore open state after a short delay to ensure DOM is ready
-            setTimeout(() => {
-                this.openMenu();
-            }, 100);
+            // Restore open state without animation immediately
+            this.restoreMenuOpenState();
         } else {
             // Ensure menu starts closed
             this.isMenuOpen = false;
+            this.ensureMenuClosed();
+        }
+    }
+
+    restoreMenuOpenState() {
+        // Direct state restoration without animations
+        this.isMenuOpen = true;
+        
+        const sideMenu = document.getElementById('sideMenu');
+        const menuOverlay = document.getElementById('menuOverlay');
+
+        if (sideMenu && menuOverlay) {
+            // Remove any animation class first
+            sideMenu.classList.remove('with-animation');
+            
+            // Add open classes immediately
+            sideMenu.classList.add('open');
+            menuOverlay.classList.add('active');
+            
+            // Handle overflow based on screen size
+            if (!this.isDesktop) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+            
+            // Adjust main content margin
+            this.adjustMainContentMargin();
+            
+            // Notify navbar about state
+            this.notifyNavbarStateChange();
+        }
+    }
+
+    ensureMenuClosed() {
+        const sideMenu = document.getElementById('sideMenu');
+        const menuOverlay = document.getElementById('menuOverlay');
+
+        if (sideMenu && menuOverlay) {
+            sideMenu.classList.remove('open', 'with-animation');
+            menuOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+            this.adjustMainContentMargin();
         }
     }saveMenuState() {
         // Save current menu state for persistence across pages
@@ -251,6 +307,8 @@ class SmartPOSMenu {
             
             if (sideMenu) {
                 sideMenu.classList.add('open');
+                // Don't add animation class during responsive handling
+                sideMenu.classList.remove('with-animation');
             }
             if (menuOverlay) {
                 menuOverlay.classList.add('active');
@@ -269,6 +327,7 @@ class SmartPOSMenu {
             
             if (sideMenu) {
                 sideMenu.classList.remove('open');
+                sideMenu.classList.remove('with-animation');
             }
             if (menuOverlay) {
                 menuOverlay.classList.remove('active');
@@ -279,7 +338,7 @@ class SmartPOSMenu {
         
         // Always adjust main content margin based on current state
         this.adjustMainContentMargin();
-    }    adjustMainContentMargin() {
+    }adjustMainContentMargin() {
         const mainContent = document.querySelector('.main-content') || 
                           document.querySelector('main') || 
                           document.querySelector('.content') ||

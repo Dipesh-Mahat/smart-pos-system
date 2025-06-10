@@ -26,10 +26,10 @@
 /* Side Menu */
 .side-menu {
     position: fixed;
-    top: 72px;
+    top: 80px;
     left: -300px;
     width: 300px;
-    height: calc(100vh - 72px);
+    height: calc(100vh - 80px);
     background: white;
     z-index: 999;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -166,22 +166,29 @@
     box-sizing: border-box;
 }
 
-/* Animate menu items when menu opens */
-.side-menu.open .menu-item {
+/* Animate menu items when menu opens WITH USER INTERACTION */
+.side-menu.open.with-animation .menu-item {
     animation: menuItemFadeIn 0.6s ease forwards;
 }
 
-/* Stagger the animation for each menu item */
-.side-menu.open .menu-item:nth-child(1) { animation-delay: 0.1s; }
-.side-menu.open .menu-item:nth-child(2) { animation-delay: 0.15s; }
-.side-menu.open .menu-item:nth-child(3) { animation-delay: 0.2s; }
-.side-menu.open .menu-item:nth-child(4) { animation-delay: 0.25s; }
-.side-menu.open .menu-item:nth-child(5) { animation-delay: 0.3s; }
-.side-menu.open .menu-item:nth-child(6) { animation-delay: 0.35s; }
-.side-menu.open .menu-item:nth-child(7) { animation-delay: 0.4s; }
-.side-menu.open .menu-item:nth-child(8) { animation-delay: 0.45s; }
-.side-menu.open .menu-item:nth-child(9) { animation-delay: 0.5s; }
-.side-menu.open .menu-item:nth-child(10) { animation-delay: 0.55s; }
+/* Stagger the animation for each menu item ONLY when user-triggered */
+.side-menu.open.with-animation .menu-item:nth-child(1) { animation-delay: 0.1s; }
+.side-menu.open.with-animation .menu-item:nth-child(2) { animation-delay: 0.15s; }
+.side-menu.open.with-animation .menu-item:nth-child(3) { animation-delay: 0.2s; }
+.side-menu.open.with-animation .menu-item:nth-child(4) { animation-delay: 0.25s; }
+.side-menu.open.with-animation .menu-item:nth-child(5) { animation-delay: 0.3s; }
+.side-menu.open.with-animation .menu-item:nth-child(6) { animation-delay: 0.35s; }
+.side-menu.open.with-animation .menu-item:nth-child(7) { animation-delay: 0.4s; }
+.side-menu.open.with-animation .menu-item:nth-child(8) { animation-delay: 0.45s; }
+.side-menu.open.with-animation .menu-item:nth-child(9) { animation-delay: 0.5s; }
+.side-menu.open.with-animation .menu-item:nth-child(10) { animation-delay: 0.55s; }
+
+/* For page navigation (no animation), menu items should appear immediately */
+.side-menu.open:not(.with-animation) .menu-item {
+    opacity: 1;
+    transform: translateX(0);
+    animation: none;
+}
 
 @keyframes menuItemFadeIn {
     to {
@@ -327,5 +334,13 @@
     
     .side-menu.mobile.open {
         left: 0;
+    }
+}
+
+/* Mobile navbar height adjustment */
+@media screen and (max-width: 768px) {
+    .side-menu {
+        top: 70px;
+        height: calc(100vh - 70px);
     }
 }
