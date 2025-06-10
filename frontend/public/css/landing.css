@@ -489,6 +489,60 @@ section {
     width: 100%;
 }
 
+/* ===== Supplier Section ===== */
+.supplier-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 80px 0;
+}
+
+.supplier-content {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+}
+
+.supplier-text {
+    flex: 1;
+}
+
+.supplier-text h2 {
+    font-size: 2.5rem;
+    color: var(--text-color);
+    margin-bottom: 20px;
+}
+
+.supplier-text p {
+    font-size: 1.2rem;
+    color: var(--text-light);
+    margin-bottom: 30px;
+    line-height: 1.8;
+}
+
+.supplier-benefits {
+    list-style: none;
+    margin-bottom: 40px;
+}
+
+.supplier-benefits li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.supplier-benefits li i {
+    color: var(--secondary-color);
+    margin-right: 15px;
+    font-size: 1.2rem;
+}
+
+.supplier-image {
+    flex: 1;
+    text-align: center;
+    padding: 40px;
+}
+
 /* ===== CTA Section ===== */
 .cta {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
