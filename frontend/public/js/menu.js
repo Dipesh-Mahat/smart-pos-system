@@ -9,6 +9,9 @@ class SmartPOSMenu {
         this.isDesktop = window.innerWidth >= 1024;
         this.init();
     }    init() {
+        // Always ensure body can scroll on page load
+        document.body.style.overflow = '';
+        
         this.createMenuHTML();
         this.attachEventListeners();
         this.setActiveMenuItem();
@@ -177,15 +180,17 @@ class SmartPOSMenu {
         }
         
         const sideMenu = document.getElementById('sideMenu');
-        const menuOverlay = document.getElementById('menuOverlay');
-
-        if (sideMenu && menuOverlay) {
+        const menuOverlay = document.getElementById('menuOverlay');        if (sideMenu && menuOverlay) {
             // Set state first to prevent race conditions
             this.isMenuOpen = true;
             
             sideMenu.classList.add('open');
             menuOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
+            
+            // Only prevent scrolling on mobile devices (when overlay is needed)
+            if (!this.isDesktop) {
+                document.body.style.overflow = 'hidden';
+            }
             
             // Adjust main content margin when menu opens
             this.adjustMainContentMargin();
@@ -221,17 +226,15 @@ class SmartPOSMenu {
             this.notifyNavbarStateChange();
         } else {
             this.isMenuOpen = true; // Reset state on failure
-        }
-    }restoreMenuState() {
-        // Check if menu should be restored to open state
-        const savedState = localStorage.getItem('menuState');
-        if (savedState === 'open' && this.isDesktop) {
-            // Only restore open state on desktop
-            setTimeout(() => {
-                this.openMenu();
-            }, 100);
-        }
-    }    saveMenuState() {
+        }    }restoreMenuState() {
+        // Always ensure body can scroll regardless of menu state
+        document.body.style.overflow = '';
+        
+        // Don't restore menu state to avoid overflow issues
+        // Menu should start closed on all devices for better UX
+        this.isMenuOpen = false;
+        localStorage.setItem('menuState', 'closed');
+    }saveMenuState() {
         // Save current menu state for persistence across pages
         localStorage.setItem('menuState', this.isMenuOpen ? 'open' : 'closed');
     }    notifyNavbarStateChange() {

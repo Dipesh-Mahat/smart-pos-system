@@ -25,6 +25,9 @@ class SmartPOSNavbar {
         this.notificationCount = 3; // Default notification count
         this.init();
     }    init() {
+        // Always ensure body can scroll on navbar initialization
+        document.body.style.overflow = '';
+        
         // Wait for DOM to be ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
