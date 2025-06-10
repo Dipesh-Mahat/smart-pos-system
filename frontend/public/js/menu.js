@@ -16,7 +16,11 @@ class SmartPOSMenu {
         this.attachEventListeners();
         this.setActiveMenuItem();
         this.handleResponsive();
-        this.restoreMenuState(); // Restore previous menu state
+        
+        // Restore menu state after responsive handling is complete
+        setTimeout(() => {
+            this.restoreMenuState();
+        }, 50);
         
         // Notify navbar that menu is ready
         setTimeout(() => {
@@ -33,116 +37,72 @@ class SmartPOSMenu {
             document.body.insertBefore(menuContainer, document.body.firstChild);        }        // Create menu HTML structure
         const menuHTML = 
             '<!-- Menu Overlay for Mobile -->' +
-            '<div class="menu-overlay" id="menuOverlay"></div>' +
-            '<!-- Side Menu -->' +
-            '<div class="side-menu" id="sideMenu">' +                '<div class="menu-header">' +
-                    '<div class="menu-controls">' +
-                        '<div class="minimize-menu" id="minimizeMenu" title="Minimize Menu">' +
-                            '<i class="fas fa-angle-double-left"></i>' +
-                        '</div>' +
-                    '</div>' +
-                '</div>' +
-                '<div class="menu-items" id="menuItems">' +
-                    '<div class="menu-item" data-page="dashboard">' +
+            '<div class="menu-overlay" id="menuOverlay"></div>' +            '<!-- Side Menu -->' +
+            '<div class="side-menu" id="sideMenu">' +                '<div class="menu-items" id="menuItems">' +
+                    '<a href="dashboard.html" class="menu-item" data-page="dashboard">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-tachometer-alt"></i>' +
                         '</div>' +
-                        '<div class="menu-text">' +
-                            '<a href="dashboard.html">Dashboard</a>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="menu-item" data-page="pos">' +
+                        '<div class="menu-text">Dashboard</div>' +
+                    '</a>' +
+                    '<a href="pos.html" class="menu-item" data-page="pos">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-cash-register"></i>' +
                         '</div>' +
-                        '<div class="menu-text">' +
-                            '<a href="pos.html">POS</a>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="menu-item" data-page="inventory">' +
+                        '<div class="menu-text">POS</div>' +
+                    '</a>' +
+                    '<a href="inventory.html" class="menu-item" data-page="inventory">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-boxes"></i>' +
                         '</div>' +
-                        '<div class="menu-text">' +
-                            '<a href="inventory.html">Inventory</a>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="menu-item" data-page="products">' +
+                        '<div class="menu-text">Inventory</div>' +
+                    '</a>' +
+                    '<a href="products.html" class="menu-item" data-page="products">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-tag"></i>' +
                         '</div>' +
-                        '<div class="menu-text">' +
-                            '<a href="products.html">Products</a>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="menu-item" data-page="customers">' +
+                        '<div class="menu-text">Products</div>' +
+                    '</a>' +
+                    '<a href="customers.html" class="menu-item" data-page="customers">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-users"></i>' +
                         '</div>' +
-                        '<div class="menu-text">' +
-                            '<a href="customers.html">Customers</a>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="menu-item" data-page="suppliers">' +
+                        '<div class="menu-text">Customers</div>' +
+                    '</a>' +
+                    '<a href="suppliers.html" class="menu-item" data-page="suppliers">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-truck"></i>' +
                         '</div>' +
-                        '<div class="menu-text">' +
-                            '<a href="suppliers.html">Suppliers</a>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="menu-item" data-page="transactions">' +
+                        '<div class="menu-text">Suppliers</div>' +                    '</a>' +
+                    '<a href="transactions.html" class="menu-item" data-page="transactions">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-receipt"></i>' +
                         '</div>' +
-                        '<div class="menu-text">' +
-                            '<a href="transactions.html">Transactions</a>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="menu-item" data-page="report">' +
+                        '<div class="menu-text">Transactions</div>' +
+                    '</a>' +
+                    '<a href="report.html" class="menu-item" data-page="report">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-chart-bar"></i>' +
                         '</div>' +
-                        '<div class="menu-text">' +
-                            '<a href="report.html">Reports</a>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="menu-item" data-page="settings">' +
+                        '<div class="menu-text">Reports</div>' +
+                    '</a>' +
+                    '<a href="settings.html" class="menu-item" data-page="settings">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-cog"></i>' +
                         '</div>' +
-                        '<div class="menu-text">' +
-                            '<a href="settings.html">Settings</a>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="menu-item" data-page="logout">' +
+                        '<div class="menu-text">Settings</div>' +
+                    '</a>' +
+                    '<a href="#" class="menu-item" data-page="logout" onclick="smartPOSMenu.logout(); return false;">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-sign-out-alt"></i>' +
                         '</div>' +
-                        '<div class="menu-text">' +
-                            '<a href="#" onclick="smartPOSMenu.logout()">Logout</a>' +
-                        '</div>' +
-                    '</div>' +
+                        '<div class="menu-text">Logout</div>' +
+                    '</a>' +
                 '</div>' +
             '</div>';
         
         menuContainer.innerHTML = menuHTML;
-    }    attachEventListeners() {
-        const minimizeMenu = document.getElementById('minimizeMenu');
-        const menuOverlay = document.getElementById('menuOverlay');
-
-        // Minimize menu
-        if (minimizeMenu) {
-            minimizeMenu.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Minimize button clicked');
-                this.closeMenu();
-            });
-            console.log('Minimize menu event listener attached');
-        } else {
-            console.error('Minimize menu element not found!');
-        }
+    }    attachEventListeners() {        const menuOverlay = document.getElementById('menuOverlay');
 
         // Close menu when clicking overlay
         if (menuOverlay) {
@@ -171,9 +131,7 @@ class SmartPOSMenu {
         } else {
             this.openMenu();
         }
-    }
-
-    openMenu() {
+    }    openMenu() {
         // Prevent multiple simultaneous calls
         if (this.isMenuOpen) {
             return;
@@ -187,9 +145,12 @@ class SmartPOSMenu {
             sideMenu.classList.add('open');
             menuOverlay.classList.add('active');
             
-            // Only prevent scrolling on mobile devices (when overlay is needed)
+            // Only prevent scrolling on mobile devices when overlay covers content
             if (!this.isDesktop) {
                 document.body.style.overflow = 'hidden';
+            } else {
+                // On desktop, always allow scrolling
+                document.body.style.overflow = '';
             }
             
             // Adjust main content margin when menu opens
@@ -201,7 +162,7 @@ class SmartPOSMenu {
         } else {
             this.isMenuOpen = false; // Reset state on failure
         }
-    }    closeMenu() {
+    }closeMenu() {
         // Prevent multiple simultaneous calls
         if (!this.isMenuOpen) {
             return;
@@ -227,13 +188,20 @@ class SmartPOSMenu {
         } else {
             this.isMenuOpen = true; // Reset state on failure
         }    }restoreMenuState() {
-        // Always ensure body can scroll regardless of menu state
+        // Always ensure body can scroll initially
         document.body.style.overflow = '';
         
-        // Don't restore menu state to avoid overflow issues
-        // Menu should start closed on all devices for better UX
-        this.isMenuOpen = false;
-        localStorage.setItem('menuState', 'closed');
+        // Check if menu should be restored to open state
+        const savedState = localStorage.getItem('menuState');
+        if (savedState === 'open') {
+            // Restore open state after a short delay to ensure DOM is ready
+            setTimeout(() => {
+                this.openMenu();
+            }, 100);
+        } else {
+            // Ensure menu starts closed
+            this.isMenuOpen = false;
+        }
     }saveMenuState() {
         // Save current menu state for persistence across pages
         localStorage.setItem('menuState', this.isMenuOpen ? 'open' : 'closed');
@@ -271,23 +239,45 @@ class SmartPOSMenu {
         // Default to dashboard if no specific page
         return 'dashboard';    }    handleResponsive() {
         this.isDesktop = window.innerWidth >= 1024;
-        const sideMenu = document.getElementById('sideMenu');
-        const menuOverlay = document.getElementById('menuOverlay');
-        const minimizeMenu = document.getElementById('minimizeMenu');
-
-        // Always start with menu closed (hamburger visible)
-        if (sideMenu) {
-            sideMenu.classList.remove('open');
-        }
-        if (menuOverlay) {
-            menuOverlay.classList.remove('active');
+        
+        // Don't automatically close menu on page load
+        // Let restoreMenuState() handle the initial state
+        
+        // On window resize, respect current menu state
+        if (this.isMenuOpen) {
+            // If menu is open, ensure proper styling for current screen size
+            const sideMenu = document.getElementById('sideMenu');
+            const menuOverlay = document.getElementById('menuOverlay');
+            
+            if (sideMenu) {
+                sideMenu.classList.add('open');
+            }
+            if (menuOverlay) {
+                menuOverlay.classList.add('active');
+            }
+            
+            // Handle overflow based on screen size
+            if (!this.isDesktop) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        } else {
+            // If menu is closed, ensure it's properly hidden
+            const sideMenu = document.getElementById('sideMenu');
+            const menuOverlay = document.getElementById('menuOverlay');
+            
+            if (sideMenu) {
+                sideMenu.classList.remove('open');
+            }
+            if (menuOverlay) {
+                menuOverlay.classList.remove('active');
+            }
+            
+            document.body.style.overflow = '';
         }
         
-        // Reset menu state to closed
-        this.isMenuOpen = false;
-        document.body.style.overflow = '';
-        
-        // Remove main content margin since menu starts closed
+        // Always adjust main content margin based on current state
         this.adjustMainContentMargin();
     }    adjustMainContentMargin() {
         const mainContent = document.querySelector('.main-content') || 

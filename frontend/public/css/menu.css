@@ -26,12 +26,12 @@
 /* Side Menu */
 .side-menu {
     position: fixed;
-    top: 0;
+    top: 72px;
     left: -300px;
     width: 300px;
-    height: 100vh;
+    height: calc(100vh - 72px);
     background: white;
-    z-index: 1000;
+    z-index: 999;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 4px 0 16px rgba(0,0,0,0.1);
     overflow-y: auto;
@@ -58,12 +58,12 @@
 /* Menu Overlay */
 .menu-overlay {
     position: fixed;
-    top: 0;
+    top: 72px;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: calc(100% - 72px);
     background: rgba(0,0,0,0.5);
-    z-index: 999;
+    z-index: 998;
     opacity: 0;
     visibility: hidden;
     transition: all 0.4s ease;
@@ -84,6 +84,7 @@
     border-bottom: 1px solid #e9ecef;
 }
 
+/* Removed minimize button - no longer needed
 .minimize-menu {
     font-size: 20px;
     color: #6c757d;
@@ -100,7 +101,9 @@
     opacity: 0;
     transform: translateY(-10px);
 }
+*/
 
+/* Removed minimize button animations - no longer needed
 /* Animate minimize button when menu opens */
 .side-menu.open .minimize-menu {
     animation: minimizeButtonFadeIn 0.5s ease forwards;
@@ -131,6 +134,14 @@
     color: #2c3e50;
     transform: scale(1.05);
 }
+*/
+
+/* Reset animations when menu is closed */
+.side-menu:not(.open) .menu-item {
+    opacity: 0;
+    transform: translateX(-20px);
+    animation: none;
+}
 
 /* Menu Items */
 .menu-items {
@@ -151,6 +162,8 @@
     overflow: hidden;
     opacity: 0;
     transform: translateX(-20px);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Animate menu items when menu opens */
@@ -223,15 +236,10 @@
     font-size: 16px;
     font-weight: 500;
     transition: opacity 0.3s ease, transform 0.3s ease;
+    flex: 1;
 }
 
-.menu-text a {
-    color: inherit;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.menu-item:hover .menu-text a {
+.menu-item:hover .menu-text {
     color: #007bff;
 }
 
@@ -277,10 +285,12 @@
 @media screen and (min-width: 1024px) {
     .side-menu {
         left: 0;
+        top: 72px;
+        height: calc(100vh - 72px);
         box-shadow: none;
         border-right: 1px solid #e9ecef;
         position: fixed;
-        z-index: 1000;
+        z-index: 999;
     }
 
     .menu-overlay {
