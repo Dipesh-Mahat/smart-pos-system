@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+const tokenBlacklist = require('../utils/tokenBlacklist');
+const { logSecurityEvent } = require('../utils/securityLogger');
 
 const authenticateJWT = (req, res, next) => {
   try {
@@ -12,7 +14,7 @@ const authenticateJWT = (req, res, next) => {
     if (!token || token === 'null' || token === 'undefined') {
       return res.status(401).json({ success: false, message: 'Invalid token format.' });
     }
-
+    
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
         if (err.name === 'TokenExpiredError') {
@@ -32,6 +34,19 @@ const authenticateJWT = (req, res, next) => {
             error: err.message,
           });
         }
+      }
+
+      // Check if token is blacklisted
+      if (decoded.jti && tokenBlacklist.isBlacklisted(decoded.jti)) {
+        logSecurityEvent('TOKEN_BLACKLISTED_ACCESS_ATTEMPT', { 
+          userId: decoded.id,
+          jti: decoded.jti
+        });
+        
+        return res.status(401).json({
+          success: false,
+          message: 'Token has been revoked. Please login again.',
+        });
       }
 
       req.user = decoded;

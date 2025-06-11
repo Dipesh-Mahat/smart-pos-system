@@ -110,9 +110,17 @@ userSchema.methods.generateAuthToken = function() {
 
 userSchema.methods.generateRefreshToken = function() {
   return jwt.sign(
-    { id: this._id },
-    process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: '7d' }
+    { 
+      id: this._id,
+      // Add a unique identifier for refresh tokens too
+      jti: crypto.randomBytes(16).toString('hex')
+    },
+    process.env.JWT_REFRESH_SECRET,
+    { 
+      expiresIn: '7d',
+      issuer: 'smart-pos-system',
+      audience: 'pos-users'
+    }
   );
 };
 

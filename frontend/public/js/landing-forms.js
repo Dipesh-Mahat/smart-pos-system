@@ -135,40 +135,18 @@ const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
                 // Show loading spinner
                 loginForm.style.display = 'none';
                 loginLoading.style.display = 'block';
-                loginErrorAlert.style.display = 'none';
-
-                // Send login request to backend
+                loginErrorAlert.style.display = 'none';                // Send login request to backend
                 try {
-                    const response = await fetch(`${apiBaseUrl}/auth/login`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify({ email: username, password })
-                    });
-                    let data = {};
-                    try {
-                        data = await response.json();
-                    } catch (jsonErr) {
-                        // If response is not JSON, treat as error
-                        data = {};
-                    }
-                    if (response.ok && data.success) {
-                        // Save token/user info if needed
-                        localStorage.setItem('neopos_auth_token', data.token);
-                        localStorage.setItem('neopos_user', JSON.stringify(data.user));
+                    const result = await window.authService.login(username, password);
+                    
+                    if (result.success) {
                         // Redirect to dashboard
                         window.location.href = 'pages/dashboard.html';
                     } else {
                         loginForm.style.display = 'block';
                         loginLoading.style.display = 'none';
-                        // Show specific error for wrong credentials
-                        if (response.status === 401 || response.status === 400) {
-                            loginErrorAlert.textContent = 'Wrong username or password.';
-                        } else {
-                            loginErrorAlert.textContent = data.message || 'Login failed';
-                        }
+                        // Show error message
+                        loginErrorAlert.textContent = result.message || 'Login failed';
                         loginErrorAlert.style.display = 'block';
                     }
                 } catch (err) {
@@ -216,21 +194,21 @@ const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
                 // Show loading spinner
                 registerForm.style.display = 'none';
                 registerLoading.style.display = 'block';
-                registerErrorAlert.style.display = 'none';
-                // Send registration request to backend
+                registerErrorAlert.style.display = 'none';                // Send registration request to backend
                 try {
-                    const response = await fetch(`${apiBaseUrl}/auth/register`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify({ email, password, name })
-                    });
-                    const data = await response.json();
-                    if (data.success) {
-                        // Show login popup after successful registration
-                        registerPopup.style.display = 'none';
+                    // Prepare user data for registration
+                    const userData = { 
+                        email, 
+                        password, 
+                        username: email.split('@')[0], // Generate username from email
+                        firstName: name.split(' ')[0], // First name is first part of full name
+                        lastName: name.split(' ').slice(1).join(' ') || name.split(' ')[0], // Last name is rest of full name
+                        role: 'shopowner' // Default role
+                    };
+                    
+                    const result = await window.authService.register(userData);
+                    if (result.success) {
+                        // Show login popup after successful registration                        registerPopup.style.display = 'none';
                         loginPopup.style.display = 'flex';
                         registerForm.style.display = 'block';
                         registerLoading.style.display = 'none';
@@ -241,7 +219,7 @@ const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
                     } else {
                         registerForm.style.display = 'block';
                         registerLoading.style.display = 'none';
-                        registerErrorAlert.textContent = data.message || 'Registration failed';
+                        registerErrorAlert.textContent = result.message || 'Registration failed';
                         registerErrorAlert.style.display = 'block';
                     }
                 } catch (err) {

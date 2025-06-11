@@ -790,16 +790,19 @@ class SmartPOSNavbar {
             badge.textContent = count;
             badge.style.display = count > 0 ? 'flex' : 'none';
         }
-    }
-
-    logout() {
+    }    logout() {
         if (confirm('Are you sure you want to logout?')) {
-            // Clear any stored data
-            localStorage.clear();
-            sessionStorage.clear();
-            
-            // Redirect to login/landing page
-            window.location.href = '../landing.html';
+            // Use auth service for logout if available
+            if (window.authService) {
+                window.authService.logout();
+            } else {
+                // Fallback to basic logout
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Redirect to login/landing page
+                window.location.href = '../landing.html';
+            }
         }
     }
 

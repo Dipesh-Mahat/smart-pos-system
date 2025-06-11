@@ -352,18 +352,20 @@ class SmartPOSMenu {
             }
             mainContent.style.transition = 'margin-left 0.3s ease';
         }
-    }
-
-    logout() {
+    }    logout() {
         // Show confirmation dialog
         if (confirm('Are you sure you want to logout?')) {
-            // Clear user session data
-            localStorage.removeItem('userToken');
-            localStorage.removeItem('userData');
-            sessionStorage.clear();
-            
-            // Redirect to landing page
-            window.location.href = '../landing.html';
+            // Use auth service for logout if available
+            if (window.authService) {
+                window.authService.logout();
+            } else {
+                // Fallback to basic logout
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Redirect to landing page
+                window.location.href = '../landing.html';
+            }
         }
     }
 }

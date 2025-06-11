@@ -304,10 +304,25 @@
             .quick-actions {
                 grid-template-columns: repeat(2, 1fr);
             }
-        }
-    </style>
+        }    </style>
 </head>
-<body>    <div class="container">
+<body>    <!-- Include Auth Service for token management -->
+    <script src="../js/auth-service.js"></script>
+    <script src="../js/api-service.js"></script>
+    
+    <!-- Check authentication on page load -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            if (!window.authService || !window.authService.isLoggedIn()) {
+                window.location.href = '../landing.html';
+                return;
+            }
+            
+            // Ensure token is fresh
+            window.authService.ensureFreshToken();
+        });
+    </script><div class="container">
         <!-- Navbar component will be loaded here automatically -->
 
         <div class="main-content">
