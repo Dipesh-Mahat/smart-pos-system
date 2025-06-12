@@ -3,7 +3,7 @@ const router = express.Router();
 const { login, register, googleAuth } = require('../controllers/authControllers');
 const { refreshToken, logout } = require('../controllers/tokenController');
 const { authLimiter, registerLimiter } = require('../middleware/rateLimiter');
-const { authenticateJWT } = require('../middleware/authJWT');
+const authenticateJWT = require('../middleware/authJWT');
 
 // Apply specific rate limiters to auth endpoints
 router.post('/login', authLimiter, login);
