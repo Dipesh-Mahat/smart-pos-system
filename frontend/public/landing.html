@@ -434,11 +434,11 @@
                 
                 <form class="popup-form" id="loginForm">
                     <div class="form-group">
-                        <label for="loginUsername">Username</label>
-                        <input type="text" id="loginUsername" name="username" required>
-                        <div class="error-message" id="loginUsernameError">Please enter your username</div>
+                        <label for="loginShopName">Shop Name</label>
+                        <input type="text" id="loginShopName" name="shopName" required>
+                        <div class="error-message" id="loginShopNameError">Please enter your shop name</div>
                     </div>
-                      <div class="form-group">
+                    <div class="form-group">
                         <label for="loginPassword">Password</label>
                         <div style="position: relative;">
                             <input type="password" id="loginPassword" name="password" required>
@@ -482,23 +482,16 @@
                 
                 <form class="popup-form" id="registerForm">
                     <div class="form-group">
-                        <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" name="fullName" required>
-                        <div class="error-message" id="nameError">Please enter your full name</div>
+                        <label for="shopName">Shop Name</label>
+                        <input type="text" id="shopName" name="shopName" required>
+                        <div class="error-message" id="shopNameError">Please enter your shop name</div>
                     </div>
-                    
                     <div class="form-group">
                         <label for="email">Email Address</label>
                         <input type="email" id="email" name="email" required>
                         <div class="error-message" id="emailError">Please enter a valid email</div>
                     </div>
-                    
                     <div class="form-group">
-                        <label for="registerUsername">Username</label>
-                        <input type="text" id="registerUsername" name="username" required>
-                        <div class="error-message" id="registerUsernameError">Please choose a username</div>
-                    </div>
-                      <div class="form-group">
                         <label for="registerPassword">Password</label>
                         <div style="position: relative;">
                             <input type="password" id="registerPassword" name="password" required>
@@ -506,7 +499,6 @@
                         </div>
                         <div class="error-message" id="registerPasswordError">Password must be at least 8 characters</div>
                     </div>
-                    
                     <div class="form-group">
                         <label for="confirmPassword">Confirm Password</label>
                         <div style="position: relative;">
@@ -515,7 +507,7 @@
                         </div>
                         <div class="error-message" id="confirmPasswordError">Passwords do not match</div>
                     </div>
-                      <button type="submit" class="popup-btn">Create Account</button>
+                    <button type="submit" class="popup-btn">Create Account</button>
                     
                     <div id="g_id_signin_register"
                          class="g_id_signin"

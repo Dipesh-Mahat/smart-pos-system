@@ -115,47 +115,46 @@ const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
             
             loginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const username = document.getElementById('loginUsername').value;
-                const password = document.getElementById('loginPassword').value;
+                const shopName = document.getElementById('loginShopName').value;
+    const password = document.getElementById('loginPassword').value;
 
-                // Basic validation
-                if (!username) {
-                    document.getElementById('loginUsernameError').style.display = 'block';
-                    return;
-                } else {
-                    document.getElementById('loginUsernameError').style.display = 'none';
-                }
-                if (!password) {
-                    document.getElementById('loginPasswordError').style.display = 'block';
-                    return;
-                } else {
-                    document.getElementById('loginPasswordError').style.display = 'none';
-                }
+    // Basic validation
+    if (!shopName) {
+        document.getElementById('loginShopNameError').style.display = 'block';
+        return;
+    } else {
+        document.getElementById('loginShopNameError').style.display = 'none';
+    }
+    if (!password) {
+        document.getElementById('loginPasswordError').style.display = 'block';
+        return;
+    } else {
+        document.getElementById('loginPasswordError').style.display = 'none';
+    }
 
-                // Show loading spinner
-                loginForm.style.display = 'none';
-                loginLoading.style.display = 'block';
-                loginErrorAlert.style.display = 'none';                // Send login request to backend
-                try {
-                    const result = await window.authService.login(username, password);
-                    
-                    if (result.success) {
-                        // Redirect to dashboard
-                        window.location.href = 'pages/dashboard.html';
-                    } else {
-                        loginForm.style.display = 'block';
-                        loginLoading.style.display = 'none';
-                        // Show error message
-                        loginErrorAlert.textContent = result.message || 'Login failed';
-                        loginErrorAlert.style.display = 'block';
-                    }
-                } catch (err) {
-                    loginForm.style.display = 'block';
-                    loginLoading.style.display = 'none';
-                    loginErrorAlert.textContent = 'Network error. Please try again.';
-                    loginErrorAlert.style.display = 'block';
-                }
-            });
+    // Show loading spinner
+    loginForm.style.display = 'none';
+    loginLoading.style.display = 'block';
+    loginErrorAlert.style.display = 'none';
+    try {
+        const result = await window.authService.login(shopName, password);
+        if (result.success) {
+            // Redirect to dashboard
+            window.location.href = 'pages/dashboard.html';
+        } else {
+            loginForm.style.display = 'block';
+            loginLoading.style.display = 'none';
+            // Show error message
+            loginErrorAlert.textContent = result.message || 'Login failed';
+            loginErrorAlert.style.display = 'block';
+        }
+    } catch (err) {
+        loginForm.style.display = 'block';
+        loginLoading.style.display = 'none';
+        loginErrorAlert.textContent = 'Network error. Please try again.';
+        loginErrorAlert.style.display = 'block';
+    }
+});
             
             // Register form handling
             const registerForm = document.getElementById('registerForm');
@@ -167,16 +166,22 @@ const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
             registerForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 // Basic validation
-                const email = document.getElementById('registerEmail').value;
+                const email = document.getElementById('email').value;
                 const password = document.getElementById('registerPassword').value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
-                const name = document.getElementById('registerName') ? document.getElementById('registerName').value : '';
+                const shopName = document.getElementById('shopName') ? document.getElementById('shopName').value : '';
                 let hasError = false;
                 if (!email) {
-                    document.getElementById('registerEmailError').style.display = 'block';
+                    document.getElementById('emailError').style.display = 'block';
                     hasError = true;
                 } else {
-                    document.getElementById('registerEmailError').style.display = 'none';
+                    document.getElementById('emailError').style.display = 'none';
+                }
+                if (!shopName) {
+                    document.getElementById('shopNameError').style.display = 'block';
+                    hasError = true;
+                } else {
+                    document.getElementById('shopNameError').style.display = 'none';
                 }
                 if (!password) {
                     document.getElementById('registerPasswordError').style.display = 'block';
@@ -194,21 +199,19 @@ const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
                 // Show loading spinner
                 registerForm.style.display = 'none';
                 registerLoading.style.display = 'block';
-                registerErrorAlert.style.display = 'none';                // Send registration request to backend
+                registerErrorAlert.style.display = 'none';
                 try {
                     // Prepare user data for registration
-                    const userData = { 
-                        email, 
-                        password, 
-                        username: email.split('@')[0], // Generate username from email
-                        firstName: name.split(' ')[0], // First name is first part of full name
-                        lastName: name.split(' ').slice(1).join(' ') || name.split(' ')[0], // Last name is rest of full name
+                    const userData = {
+                        email,
+                        password,
+                        shopName: shopName,
                         role: 'shopowner' // Default role
                     };
-                    
                     const result = await window.authService.register(userData);
                     if (result.success) {
-                        // Show login popup after successful registration                        registerPopup.style.display = 'none';
+                        // Show login popup after successful registration
+                        registerPopup.style.display = 'none';
                         loginPopup.style.display = 'flex';
                         registerForm.style.display = 'block';
                         registerLoading.style.display = 'none';
