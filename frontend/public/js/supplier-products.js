@@ -3,89 +3,56 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeProductsPage();
 });
 
-// Sample products data
-let productsData = [
-    {
-        id: 1,
-        name: "Samsung Galaxy S23",
-        sku: "SAM-GS23-128",
-        category: "electronics",
-        brand: "Samsung",
-        price: 79999,
-        cost: 65000,
-        stock: 25,
-        minStock: 5,
-        status: "active",
-        image: "../images/products/samsung-s23.jpg",
-        description: "Latest Samsung Galaxy S23 with 128GB storage"
-    },
-    {
-        id: 2,
-        name: "Nike Air Max 270",
-        sku: "NIKE-AM270-42",
-        category: "sports",
-        brand: "Nike",
-        price: 12995,
-        cost: 8500,
-        stock: 3,
-        minStock: 10,
-        status: "active",
-        image: "../images/products/nike-airmax.jpg",
-        description: "Comfortable running shoes with air cushioning"
-    },
-    {
-        id: 3,
-        name: "Apple MacBook Air M2",
-        sku: "APP-MBA-M2-256",
-        category: "electronics",
-        brand: "Apple",
-        price: 114900,
-        cost: 95000,
-        stock: 8,
-        minStock: 3,
-        status: "active",
-        image: "../images/products/macbook-air.jpg",
-        description: "Latest MacBook Air with M2 chip and 256GB SSD"
-    },
-    {
-        id: 4,
-        name: "Levi's 501 Jeans",
-        sku: "LEVI-501-32W",
-        category: "clothing",
-        brand: "Levi's",
-        price: 3999,
-        cost: 2500,
-        stock: 15,
-        minStock: 8,
-        status: "active",
-        image: "../images/products/levis-jeans.jpg",
-        description: "Classic Levi's 501 original fit jeans"
-    },
-    {
-        id: 5,
-        name: "Sony WH-1000XM4",
-        sku: "SONY-WH1000XM4",
-        category: "electronics",
-        brand: "Sony",
-        price: 29990,
-        cost: 22000,
-        stock: 0,
-        minStock: 5,
-        status: "inactive",
-        image: "../images/products/sony-headphones.jpg",
-        description: "Wireless noise-canceling headphones"
-    }
-];
-
-let filteredProducts = [...productsData];
+// Initialize with empty products array
+let productsData = [];
+let filteredProducts = [];
 let currentPage = 1;
 let itemsPerPage = 10;
 
 function initializeProductsPage() {
-    loadProductsTable();
-    updateStatistics();
+    loadProducts();
     setupEventListeners();
     setupPagination();
+}
+
+// Load products from API or use demo products
+function loadProducts() {
+    const apiService = window.apiService || null;
+    
+    if (apiService) {
+        // Show loading state
+        document.getElementById('productsTableBody').innerHTML = '<tr><td colspan="8" class="text-center">Loading products...</td></tr>';
+        
+        // Try to fetch products from API
+        apiService.request('/products')
+            .then(response => {
+                if (response.success && response.data.products.length > 0) {
+                    // Use real products from API
+                    productsData = response.data.products;
+                } else {
+                    // Fall back to demo products if no real products exist
+                    productsData = getDemoProducts();
+                }
+                
+                filteredProducts = [...productsData];
+                loadProductsTable();
+                updateStatistics();
+            })
+            .catch(error => {
+                console.error('Error loading products:', error);
+                // Fall back to demo products on error
+                productsData = getDemoProducts();
+                filteredProducts = [...productsData];
+                loadProductsTable();
+                updateStatistics();
+            });
+    } else {
+        // Use demo products if no API service available
+        productsData = getDemoProducts();
+        filteredProducts = [...productsData];
+        loadProductsTable();
+        updateStatistics();
+    }
 }
 
 function setupEventListeners() {
@@ -296,7 +263,6 @@ function handleAddProduct(e) {
     
     const formData = new FormData(e.target);
     const newProduct = {
-        id: productsData.length + 1,
         name: formData.get('productName'),
         sku: formData.get('productSKU'),
         category: formData.get('productCategory'),
@@ -304,10 +270,10 @@ function handleAddProduct(e) {
         price: parseFloat(formData.get('productPrice')),
         cost: parseFloat(formData.get('productCost')) || 0,
         stock: parseInt(formData.get('productStock')),
-        minStock: parseInt(formData.get('productMinStock')) || 10,
+        minStockLevel: parseInt(formData.get('productMinStock')) || 10,
         status: 'active',
         description: formData.get('productDescription') || '',
-        image: '../images/icons/product-placeholder.png'
+        image: formData.get('productImage') || null
     };
     
     // Validate required fields
@@ -316,20 +282,54 @@ function handleAddProduct(e) {
         return;
     }
     
-    // Check for duplicate SKU
-    if (productsData.some(p => p.sku === newProduct.sku)) {
+    // Check for duplicate SKU in existing products
+    if (productsData.filter(p => !p.id.toString().startsWith('demo')).some(p => p.sku === newProduct.sku)) {
         showNotification('SKU already exists. Please use a unique SKU.', 'error');
         return;
     }
     
-    productsData.push(newProduct);
-    filteredProducts = [...productsData];
-    
-    loadProductsTable();
-    updateStatistics();
-    closeAddProductModal();
-    
-    showNotification('Product added successfully!', 'success');
+    const apiService = window.apiService;
+    if (apiService) {
+        // Show loading state
+        showNotification('Adding product...', 'info');
+        
+        // Add product through API
+        apiService.createProduct(newProduct)
+            .then(response => {
+                if (response.success) {
+                    // Hide demo products when adding first real product
+                    hideDemoProducts();
+                    
+                    // Reload products from API
+                    loadProducts();
+                    closeAddProductModal();
+                    showNotification('Product added successfully!', 'success');
+                } else {
+                    showNotification('Failed to add product: ' + response.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error adding product:', error);
+                showNotification('Failed to add product. Please try again.', 'error');
+            });
+    } else {
+        // Fallback for demo mode
+        newProduct.id = Date.now(); // Use timestamp as ID
+        
+        // Hide demo products when adding first real product
+        hideDemoProducts();
+        
+        // Add the new product to the array
+        productsData = productsData.filter(p => !p.id.toString().startsWith('demo'));
+        productsData.push(newProduct);
+        filteredProducts = [...productsData];
+        
+        loadProductsTable();
+        updateStatistics();
+        closeAddProductModal();
+        
+        showNotification('Product added successfully!', 'success');
+    }
 }
 
 function editProduct(productId) {
@@ -567,4 +567,80 @@ function showNotification(message, type) {
 
 function capitalizeFirst(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// Demo products module
+function getDemoProducts() {
+    return [
+        {
+            id: 1,
+            name: "Samsung Galaxy S23",
+            sku: "SAM-GS23-128",
+            category: "electronics",
+            brand: "Samsung",
+            price: 79999,
+            cost: 65000,
+            stock: 25,
+            minStock: 5,
+            status: "active",
+            image: "../images/products/samsung-s23.jpg",
+            description: "Latest Samsung Galaxy S23 with 128GB storage"
+        },
+        {
+            id: 2,
+            name: "Nike Air Max 270",
+            sku: "NIKE-AM270-42",
+            category: "sports",
+            brand: "Nike",
+            price: 12995,
+            cost: 8500,
+            stock: 3,
+            minStock: 10,
+            status: "active",
+            image: "../images/products/nike-airmax.jpg",
+            description: "Comfortable running shoes with air cushioning"
+        },
+        {
+            id: 3,
+            name: "Apple MacBook Air M2",
+            sku: "APP-MBA-M2-256",
+            category: "electronics",
+            brand: "Apple",
+            price: 114900,
+            cost: 95000,
+            stock: 8,
+            minStock: 3,
+            status: "active",
+            image: "../images/products/macbook-air.jpg",
+            description: "Latest MacBook Air with M2 chip and 256GB SSD"
+        },
+        {
+            id: 4,
+            name: "Levi's 501 Jeans",
+            sku: "LEVI-501-32W",
+            category: "clothing",
+            brand: "Levi's",
+            price: 3999,
+            cost: 2500,
+            stock: 15,
+            minStock: 8,
+            status: "active",
+            image: "../images/products/levis-jeans.jpg",
+            description: "Classic Levi's 501 original fit jeans"
+        },
+        {
+            id: 5,
+            name: "Sony WH-1000XM4",
+            sku: "SONY-WH1000XM4",
+            category: "electronics",
+            brand: "Sony",
+            price: 29990,
+            cost: 22000,
+            stock: 0,
+            minStock: 5,
+            status: "inactive",
+            image: "../images/products/sony-headphones.jpg",
+            description: "Wireless noise-canceling headphones"
+        }
+    ];
 }

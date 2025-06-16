@@ -190,48 +190,38 @@ function showProductsSection() {
 
 function loadProducts() {
     const productsGrid = document.getElementById('productsGrid');
+    const apiService = window.apiService || null;
     
-    // Sample products data
-    sampleProducts = [
-        {
-            id: 1,
-            name: 'Basmati Rice (5kg)',
-            category: 'groceries',
-            price: 850,
-            stock: 25,
-            status: 'active',
-            image: '../images/icons/document-icon.png'
-        },
-        {
-            id: 2,
-            name: 'Sunflower Oil (1L)',
-            category: 'groceries',
-            price: 180,
-            stock: 8,
-            status: 'low-stock',
-            image: '../images/icons/document-icon.png'
-        },
-        {
-            id: 3,
-            name: 'Sugar (1kg)',
-            category: 'groceries',
-            price: 65,
-            stock: 0,
-            status: 'out-of-stock',
-            image: '../images/icons/document-icon.png'
-        },
-        {
-            id: 4,
-            name: 'Tea Powder (500g)',
-            category: 'groceries',
-            price: 320,
-            stock: 45,
-            status: 'active',
-            image: '../images/icons/document-icon.png'
-        }
-    ];
+    // Show loading state
+    productsGrid.innerHTML = '<div class="loading">Loading products...</div>';
     
-    productsGrid.innerHTML = sampleProducts.map(product => `
+    if (apiService) {
+        // Try to fetch products from API
+        apiService.request('/products?limit=4')
+            .then(response => {
+                if (response.success && response.data.products.length > 0) {
+                    // Use real products from API
+                    renderProducts(response.data.products);
+                } else {
+                    // Fall back to demo products if no real products exist
+                    renderProducts(getDemoProducts().slice(0, 4));
+                }
+            })
+            .catch(error => {
+                console.error('Error loading products:', error);
+                // Fall back to demo products on error
+                renderProducts(getDemoProducts().slice(0, 4));
+            });
+    } else {
+        // Use demo products if no API service available
+        renderProducts(getDemoProducts().slice(0, 4));
+    }
+}
+
+function renderProducts(products) {
+    const productsGrid = document.getElementById('productsGrid');
+    
+    productsGrid.innerHTML = products.map(product => `
         <div class="product-card" data-product-id="${product.id}">
             <div class="product-image">
                 <img src="${product.image}" alt="${product.name}">
@@ -245,14 +235,11 @@ function loadProducts() {
                 <div class="product-price">₹${product.price}</div>
                 <div class="product-stock">Stock: ${product.stock} units</div>
                 <div class="product-actions">
-                    <button class="btn-edit" onclick="editProduct(${product.id})">
+                    <button class="btn-edit" onclick="editProduct('${product.id}')">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn-delete" onclick="deleteProduct(${product.id})">
+                    <button class="btn-delete" onclick="deleteProduct('${product.id}')">
                         <i class="fas fa-trash"></i>
-                    </button>
-                    <button class="btn-toggle" onclick="toggleProductStatus(${product.id})">
-                        <i class="fas fa-${product.status === 'active' ? 'pause' : 'play'}"></i>
                     </button>
                 </div>
             </div>

@@ -6,7 +6,7 @@
 class SmartPOSSystem {
     constructor() {
         this.cart = [];
-        this.products = this.initializeProducts();
+        this.products = [];
         this.isScanning = false;
         this.mobileConnection = null;
         this.scanner = null;
@@ -16,9 +16,68 @@ class SmartPOSSystem {
 
     init() {
         this.setupEventListeners();
+        this.loadProducts();
         this.updateCartDisplay();
         this.initializeBarcodeScanner();
         console.log('Smart POS System initialized');
+    }    // Load products from API or use demo products
+    loadProducts() {
+        const apiService = window.apiService || null;
+        const loadingElement = document.getElementById('productsLoading');
+        const productsListElement = document.getElementById('productsList');
+        
+        // Show loading state
+        if (loadingElement) {
+            loadingElement.style.display = 'flex';
+        }
+        if (productsListElement) {
+            productsListElement.style.display = 'none';
+        }
+        
+        if (apiService) {
+            // Try to fetch products from API
+            apiService.request('/products')
+                .then(response => {
+                    if (response.success && response.data.products.length > 0) {
+                        // Use real products from API
+                        this.products = response.data.products;
+                        this.displayAllProducts();
+                    } else {
+                        // Fall back to demo products if no real products exist
+                        this.products = getDemoProducts();
+                        this.displayAllProducts();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading products:', error);
+                    // Fall back to demo products on error
+                    this.products = getDemoProducts();
+                    this.displayAllProducts();
+                })
+                .finally(() => {
+                    // Hide loading state
+                    if (loadingElement) {
+                        loadingElement.style.display = 'none';
+                    }
+                    if (productsListElement) {
+                        productsListElement.style.display = 'grid';
+                    }
+                });
+        } else {
+            // Use demo products if no API service available
+            this.products = getDemoProducts();
+            this.displayAllProducts();
+            
+            // Hide loading state
+            setTimeout(() => {
+                if (loadingElement) {
+                    loadingElement.style.display = 'none';
+                }
+                if (productsListElement) {
+                    productsListElement.style.display = 'grid';
+                }
+            }, 100);
+        }
     }
 
     // Initialize product database with barcodes

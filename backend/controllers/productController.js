@@ -84,55 +84,74 @@ exports.getProduct = async (req, res) => {
 
 // Create a new product
 exports.createProduct = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  
   try {
-    // Add shop ID to product data
-    const productData = {
-      ...req.body,
-      shopId: req.user._id
-    };
-    
-    // Create product
-    const product = new Product(productData);
-    await product.save({ session });
-    
-    // Create inventory log entry if initial stock is provided
-    if (product.stock > 0) {
-      const inventoryLog = new InventoryLog({
+    // Handle product image upload
+    productImageUpload(req, res, async (err) => {
+      if (err) {
+        return res.status(400).json({ success: false, message: 'Image upload failed', error: err.message });
+      }
+
+      // Process the product data
+      const {
+        name,
+        description,
+        category,
+        price,
+        cost,
+        stock,
+        minStockLevel,
+        barcode,
+        sku,
+        brand,
+        status
+      } = req.body;
+
+      // Validate required fields
+      if (!name || !price) {
+        return res.status(400).json({ success: false, message: 'Name and price are required' });
+      }
+
+      // Create the product
+      const product = new Product({
         shopId: req.user._id,
-        productId: product._id,
-        type: 'adjustment',
-        quantity: product.stock,
-        previousStock: 0,
-        newStock: product.stock,
-        reference: 'Initial stock',
-        notes: 'Initial inventory setup',
-        performedBy: req.user._id
+        name,
+        description,
+        category,
+        price: parseFloat(price),
+        cost: parseFloat(cost || 0),
+        stock: parseInt(stock || 0),
+        minStockLevel: parseInt(minStockLevel || 0),
+        barcode,
+        sku,
+        brand,
+        status: status || 'active',
+        image: req.file ? `/uploads/products/${req.file.filename}` : null
       });
-      
-      await inventoryLog.save({ session });
-    }
-    
-    await session.commitTransaction();
-    
-    res.status(201).json(product);
+
+      await product.save();
+
+      // Create inventory log for initial stock
+      if (stock && parseInt(stock) > 0) {
+        const inventoryLog = new InventoryLog({
+          productId: product._id,
+          shopId: req.user._id,
+          quantity: parseInt(stock),
+          type: 'initial',
+          notes: 'Initial stock entry'
+        });
+        await inventoryLog.save();
+      }
+
+      // Return the created product
+      res.status(201).json({
+        success: true,
+        message: 'Product created successfully',
+        data: { product }
+      });
+    });
   } catch (error) {
-    await session.abortTransaction();
     console.error('Error creating product:', error);
-    
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ error: error.message });
-    }
-    
-    if (error.code === 11000) {
-      return res.status(400).json({ error: 'Product with this barcode already exists' });
-    }
-    
-    res.status(500).json({ error: 'Failed to create product' });
-  } finally {
-    session.endSession();
+    res.status(500).json({ success: false, message: 'Error creating product', error: error.message });
   }
 };
 
