@@ -6,6 +6,13 @@
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/menu.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Include Auth Service for token management -->
+    <script src="../js/security-logger.js"></script>
+    <script src="../js/auth-service.js"></script>
+    <script src="../js/api-service.js"></script>
+    <script src="../js/demo-products.js"></script>
+
     <style>
         /* Header modifications */
         .back-button {
@@ -204,6 +211,15 @@
         window.navbarManualInit = true;
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            if (!window.authService || !window.authService.isLoggedIn()) {
+                window.location.href = '../landing.html';
+                return;
+            }
+            
+            // Load transaction details
+            loadTransactionDetails();
+            
             // Initialize navbar with custom actions for receipt detail page
             initSmartPOSNavbar('Receipt Details', [
                 { icon: 'fas fa-print', label: 'Print', action: 'print-receipt' },
@@ -217,28 +233,157 @@
                 
                 switch(action) {
                     case 'print-receipt':
-                        // Print the receipt
-                        window.print();
+                        printReceipt();
                         break;
                     case 'download-receipt':
-                        // Download receipt as PDF (placeholder)
-                        alert('Download feature will be implemented here');
+                        downloadReceipt();
                         break;
                     case 'share-receipt':
-                        // Share receipt (placeholder)
-                        if (navigator.share) {
-                            navigator.share({
-                                title: 'Receipt Details',
-                                text: 'Check out this receipt',
-                                url: window.location.href
-                            });
-                        } else {
-                            alert('Share feature not available');
-                        }
+                        shareReceipt();
                         break;
                 }
             });
+            
+            // Handle back button
+            document.querySelector('.back-button').addEventListener('click', function() {
+                window.history.back();
+            });
         });
+        
+        // Load transaction details from API
+        function loadTransactionDetails() {
+            // Get transaction ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const transactionId = urlParams.get('id');
+            
+            if (!transactionId) {
+                showError('Transaction ID not provided');
+                return;
+            }
+            
+            const apiService = window.apiService;
+            if (apiService) {
+                // Show loading state
+                document.getElementById('receipt-contents').innerHTML = '<div class="loading-state">Loading receipt details...</div>';
+                
+                // Fetch transaction from API
+                apiService.request(`/transactions/${transactionId}`)
+                    .then(response => {
+                        if (response.success && response.data.transaction) {
+                            renderReceiptDetails(response.data.transaction);
+                        } else {
+                            console.error('Failed to load transaction details:', response.message);
+                            // Show demo receipt
+                            renderDemoReceipt(transactionId);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading transaction details:', error);
+                        // Show demo receipt
+                        renderDemoReceipt(transactionId);
+                    });
+            } else {
+                // Show demo receipt
+                renderDemoReceipt(transactionId);
+            }
+        }
+        
+        // Render transaction details
+        function renderReceiptDetails(transaction) {
+            // Format transaction date
+            const date = new Date(transaction.date);
+            const formattedDate = date.toLocaleDateString();
+            const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // Update receipt header
+            document.getElementById('receipt-shop').textContent = transaction.shopName || 'Smart POS Shop';
+            document.getElementById('receipt-number').textContent = transaction._id.substring(0, 8);
+            document.getElementById('receipt-date').textContent = `${formattedDate} ${formattedTime}`;
+            
+            // Update receipt items
+            const itemsContainer = document.getElementById('receipt-items');
+            itemsContainer.innerHTML = transaction.items.map(item => `
+                <div class="receipt-item">
+                    <div class="item-info">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-quantity">${item.quantity} × ₹${item.price.toLocaleString()}</div>
+                    </div>
+                    <div class="item-total">₹${(item.quantity * item.price).toLocaleString()}</div>
+                </div>
+            `).join('');
+            
+            // Update receipt totals
+            document.getElementById('receipt-subtotal').textContent = `₹${transaction.subtotal.toLocaleString()}`;
+            document.getElementById('receipt-tax').textContent = `₹${(transaction.tax || 0).toLocaleString()}`;
+            document.getElementById('receipt-discount').textContent = `₹${(transaction.discount || 0).toLocaleString()}`;
+            document.getElementById('receipt-total').textContent = `₹${transaction.total.toLocaleString()}`;
+            
+            // Update payment details
+            document.getElementById('receipt-payment-method').textContent = transaction.paymentMethod || 'Cash';
+            
+            // Update customer details if available
+            if (transaction.customer) {
+                document.getElementById('receipt-customer').textContent = transaction.customer;
+            }
+        }
+        
+        // Render demo receipt
+        function renderDemoReceipt(transactionId) {
+            // Get demo products for items
+            const demoProducts = getDemoProducts().slice(0, 3);
+            
+            // Create demo transaction
+            const demoTransaction = {
+                _id: transactionId || 'TR10001',
+                date: new Date().toISOString(),
+                shopName: 'Smart POS Shop',
+                items: demoProducts.map(product => ({
+                    name: product.name,
+                    quantity: Math.floor(Math.random() * 3) + 1,
+                    price: product.price
+                })),
+                subtotal: 0,
+                tax: 0,
+                discount: 0,
+                total: 0,
+                paymentMethod: 'Cash',
+                customer: 'Walk-in Customer'
+            };
+            
+            // Calculate totals
+            demoTransaction.subtotal = demoTransaction.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+            demoTransaction.tax = Math.round(demoTransaction.subtotal * 0.05);
+            demoTransaction.total = demoTransaction.subtotal + demoTransaction.tax;
+            
+            // Render the demo receipt
+            renderReceiptDetails(demoTransaction);
+        }
+        
+        // Show error message
+        function showError(message) {
+            document.getElementById('receipt-contents').innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>${message}</p>
+                    <button onclick="window.history.back()" class="btn-primary">Go Back</button>
+                </div>
+            `;
+        }
+        
+        // Print receipt
+        function printReceipt() {
+            window.print();
+        }
+        
+        // Download receipt as PDF
+        function downloadReceipt() {
+            alert('Download receipt feature will be implemented');
+        }
+        
+        // Share receipt
+        function shareReceipt() {
+            alert('Share receipt feature will be implemented');
+        }
     </script>
 </body>
 </html>

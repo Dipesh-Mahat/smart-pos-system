@@ -11,6 +11,7 @@
     <!-- Include Auth Service for token management -->
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
+    <script src="../js/demo-products.js"></script>
     
     <!-- Check authentication on page load -->
     <script>
@@ -638,11 +639,196 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Inventory Management page loaded');
             
+            // Load inventory data
+            loadInventoryData();
+            
             // Auto-refresh alerts every 5 minutes
             setInterval(refreshAlerts, 300000);
-        });        function refreshAlerts() {
-            console.log('Refreshing inventory alerts...');
-            // This would typically fetch latest alerts from the server
+            
+            // Set up filter event listeners
+            setupFilters();
+        });
+        
+        function loadInventoryData() {
+            const inventoryTable = document.getElementById('inventoryTableBody');
+            if (!inventoryTable) return;
+            
+            // Show loading state
+            inventoryTable.innerHTML = '<tr><td colspan="7" class="text-center">Loading inventory data...</td></tr>';
+            
+            const apiService = window.apiService;
+            if (apiService) {
+                // Get filter values
+                const categoryFilter = document.getElementById('categoryFilter').value;
+                const statusFilter = document.getElementById('statusFilter').value;
+                const searchQuery = document.getElementById('searchInput').value;
+                
+                // Build query parameters
+                let queryParams = '?';
+                if (categoryFilter && categoryFilter !== 'all') queryParams += `category=${categoryFilter}&`;
+                if (statusFilter === 'low-stock') queryParams += 'lowStock=true&';
+                if (statusFilter === 'out-of-stock') queryParams += 'stock=0&';
+                if (searchQuery) queryParams += `search=${encodeURIComponent(searchQuery)}&`;
+                
+                // Fetch inventory data from API
+                apiService.request(`/products${queryParams}`)
+                    .then(response => {
+                        if (response.success && response.data.products) {
+                            displayInventory(response.data.products);
+                            updateInventorySummary(response.data.products);
+                        } else {
+                            console.error('Failed to load inventory:', response.message);
+                            // Fallback to demo products
+                            const demoProducts = getDemoProducts();
+                            displayInventory(demoProducts);
+                            updateInventorySummary(demoProducts);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading inventory:', error);
+                        // Fallback to demo products
+                        const demoProducts = getDemoProducts();
+                        displayInventory(demoProducts);
+                        updateInventorySummary(demoProducts);
+                    });
+            } else {
+                // Fallback to demo products
+                const demoProducts = getDemoProducts();
+                displayInventory(demoProducts);
+                updateInventorySummary(demoProducts);
+            }
+        }
+        
+        function displayInventory(products) {
+            const inventoryTable = document.getElementById('inventoryTableBody');
+            if (!inventoryTable) return;
+            
+            if (!products || products.length === 0) {
+                inventoryTable.innerHTML = '<tr><td colspan="7" class="text-center">No inventory items found</td></tr>';
+                return;
+            }
+            
+            // Filter products based on UI filters
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filteredProducts = products.filter(product => {
+                // Category filter
+                if (categoryFilter && categoryFilter !== 'all' && product.category !== categoryFilter) {
+                    return false;
+                }
+                
+                // Status filter
+                if (statusFilter === 'low-stock' && product.stock > (product.minStockLevel || product.minStock)) {
+                    return false;
+                }
+                if (statusFilter === 'out-of-stock' && product.stock > 0) {
+                    return false;
+                }
+                
+                // Search filter
+                if (searchQuery && !product.name.toLowerCase().includes(searchQuery) && 
+                    !product.category.toLowerCase().includes(searchQuery) &&
+                    !(product.barcode && product.barcode.toLowerCase().includes(searchQuery))) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            if (filteredProducts.length === 0) {
+                inventoryTable.innerHTML = '<tr><td colspan="7" class="text-center">No matching inventory items</td></tr>';
+                return;
+            }
+            
+            // Generate table rows
+            inventoryTable.innerHTML = filteredProducts.map(product => {
+                const stockStatus = product.stock === 0 ? 'out-of-stock' : 
+                                    product.stock <= (product.minStockLevel || product.minStock) ? 'low-stock' : 'in-stock';
+                
+                return `
+                    <tr>
+                        <td>
+                            <div class="item-details">
+                                <img src="${product.image || '../images/icons/product-placeholder.png'}" alt="${product.name}" class="item-thumbnail">
+                                <div>
+                                    <div class="item-name">${product.name}</div>
+                                    <div class="item-sku">${product.sku || product.barcode || 'No SKU'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${product.category}</td>
+                        <td class="text-right">₹${(product.price || 0).toLocaleString()}</td>
+                        <td class="text-right">₹${(product.cost || 0).toLocaleString()}</td>
+                        <td class="text-center ${stockStatus}">${product.stock}</td>
+                        <td class="text-center">${product.minStockLevel || product.minStock || 0}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon" onclick="editItem('${product._id || product.id}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon" onclick="adjustStock('${product._id || product.id}')">
+                                    <i class="fas fa-boxes"></i>
+                                </button>
+                                <button class="btn-icon" onclick="viewHistory('${product._id || product.id}')">
+                                    <i class="fas fa-history"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function updateInventorySummary(products) {
+            // Calculate inventory summary
+            const totalItems = products.length;
+            const totalValue = products.reduce((sum, product) => sum + (product.cost || 0) * product.stock, 0);
+            const lowStockItems = products.filter(p => p.stock <= (p.minStockLevel || p.minStock)).length;
+            const outOfStockItems = products.filter(p => p.stock === 0).length;
+            
+            // Update summary display
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('totalValue').textContent = `₹${totalValue.toLocaleString()}`;
+            document.getElementById('lowStockItems').textContent = lowStockItems;
+            document.getElementById('outOfStockItems').textContent = outOfStockItems;
+        }
+        
+        function setupFilters() {
+            // Set up category filter
+            document.getElementById('categoryFilter').addEventListener('change', loadInventoryData);
+            
+            // Set up status filter
+            document.getElementById('statusFilter').addEventListener('change', loadInventoryData);
+            
+            // Set up search
+            document.getElementById('searchInput').addEventListener('input', debounce(loadInventoryData, 300));
+        }
+        
+        // Debounce function to limit search API calls
+        function debounce(func, delay) {
+            let timeout;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+        
+        function editItem(itemId) {
+            window.location.href = `add-item.html?id=${itemId}`;
+        }
+        
+        function adjustStock(itemId) {
+            // This would open a modal for stock adjustment
+            alert('Stock adjustment feature will be implemented');
+        }
+        
+        function viewHistory(itemId) {
+            // This would show stock history
+            alert('Stock history feature will be implemented');
         }
     </script>
 

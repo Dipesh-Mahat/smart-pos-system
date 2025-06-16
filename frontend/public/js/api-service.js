@@ -149,6 +149,56 @@ class ApiService {
     async delete(endpoint) {
         return this.request(endpoint, { method: 'DELETE' });
     }
+
+    /**
+     * Creates a new product
+     * @param {Object} productData - The product data to create
+     * @returns {Promise<Object>} Response data
+     */
+    async createProduct(productData) {
+        // Remove any demo products when creating the first real product
+        if (typeof hideDemoProducts === 'function') {
+            hideDemoProducts();
+        }
+        
+        // Check if we need to use FormData for file uploads
+        if (productData.image instanceof File) {
+            const formData = new FormData();
+            
+            // Add all product data to formData
+            Object.keys(productData).forEach(key => {
+                formData.append(key, productData[key]);
+            });
+            
+            return this.request('/products', {
+                method: 'POST',
+                headers: {
+                    // Do not set Content-Type for FormData
+                    'Authorization': this.getAuthHeaders().Authorization
+                },
+                body: formData
+            });
+        } else {
+            // Regular JSON request
+            return this.request('/products', {
+                method: 'POST',
+                body: JSON.stringify(productData)
+            });
+        }
+    }
+
+    /**
+     * Changes the user's password
+     * @param {string} currentPassword - The current password
+     * @param {string} newPassword - The new password
+     * @returns {Promise<Object>} Response data
+     */
+    async changePassword(currentPassword, newPassword) {
+        return this.post('/users/change-password', {
+            currentPassword,
+            newPassword
+        });
+    }
 }
 
 // Create a singleton instance

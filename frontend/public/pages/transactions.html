@@ -11,6 +11,7 @@
     <!-- Include Auth Service for token management -->
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
+    <script src="../js/demo-products.js"></script>
     
     <!-- Check authentication on page load -->
     <script>
@@ -516,8 +517,16 @@
     <script>
         // Filter functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            if (!window.authService || !window.authService.isLoggedIn()) {
+                window.location.href = '../landing.html';
+                return;
+            }
+            
+            // Load transactions
+            loadTransactions();
+            
             const filterBtns = document.querySelectorAll('.filter-btn');
-            const transactions = document.querySelectorAll('.transaction-item');
             const searchInput = document.getElementById('searchInput');
 
             // Filter button functionality
@@ -528,52 +537,233 @@
                     // Add active class to clicked button
                     this.classList.add('active');
                     
-                    const filter = this.getAttribute('data-filter');
-                    filterTransactions(filter);
+                    // Apply filter
+                    const filterValue = this.getAttribute('data-filter');
+                    filterTransactions(filterValue, searchInput.value);
                 });
             });
-
+            
             // Search functionality
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                transactions.forEach(transaction => {
-                    const text = transaction.textContent.toLowerCase();
-                    if (text.includes(searchTerm)) {
-                        transaction.style.display = 'block';
-                    } else {
-                        transaction.style.display = 'none';
-                    }
-                });
-            });
-
-            function filterTransactions(filter) {
-                transactions.forEach(transaction => {
-                    const statusBadge = transaction.querySelector('.status-badge');
-                    const status = statusBadge ? statusBadge.textContent.toLowerCase() : '';
-                    
-                    switch(filter) {
-                        case 'all':
-                            transaction.style.display = 'block';
-                            break;
-                        case 'completed':
-                            transaction.style.display = status.includes('completed') ? 'block' : 'none';
-                            break;
-                        case 'pending':
-                            transaction.style.display = status.includes('pending') ? 'block' : 'none';
-                            break;
-                        case 'today':
-                            // You would implement actual date filtering here
-                            const dateText = transaction.querySelector('.detail-value').textContent;
-                            transaction.style.display = dateText.includes('Jan 15') ? 'block' : 'none';
-                            break;
-                        default:
-                            transaction.style.display = 'block';
-                    }
+            searchInput.addEventListener('input', debounce(function() {
+                const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+                filterTransactions(activeFilter, this.value);
+            }, 300));
+            
+            // Date range filter
+            const dateRangeSelector = document.getElementById('dateRangeSelector');
+            if (dateRangeSelector) {
+                dateRangeSelector.addEventListener('change', function() {
+                    loadTransactions(this.value);
                 });
             }
-        });        function exportTransactions() {
-            // Implement export functionality
-            alert('Export functionality would be implemented here');
+        });
+        
+        // Load transactions from API
+        function loadTransactions(dateRange = 'week') {
+            const transactionsContainer = document.getElementById('transactionsContainer');
+            if (!transactionsContainer) return;
+            
+            // Show loading state
+            transactionsContainer.innerHTML = '<div class="loading-state">Loading transactions...</div>';
+            
+            const apiService = window.apiService;
+            if (apiService) {
+                // Build query parameters for date range
+                let queryParams = '?';
+                if (dateRange === 'today') {
+                    const today = new Date();
+                    queryParams += `startDate=${today.toISOString().split('T')[0]}&`;
+                } else if (dateRange === 'week') {
+                    const today = new Date();
+                    const lastWeek = new Date(today);
+                    lastWeek.setDate(today.getDate() - 7);
+                    queryParams += `startDate=${lastWeek.toISOString().split('T')[0]}&`;
+                } else if (dateRange === 'month') {
+                    const today = new Date();
+                    const lastMonth = new Date(today);
+                    lastMonth.setMonth(today.getMonth() - 1);
+                    queryParams += `startDate=${lastMonth.toISOString().split('T')[0]}&`;
+                }
+                
+                // Fetch transactions from API
+                apiService.request(`/transactions${queryParams}`)
+                    .then(response => {
+                        if (response.success && response.data.transactions) {
+                            renderTransactions(response.data.transactions);
+                            updateTransactionSummary(response.data.transactions);
+                        } else {
+                            console.error('Failed to load transactions:', response.message);
+                            // Show demo transactions
+                            renderDemoTransactions();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading transactions:', error);
+                        // Show demo transactions
+                        renderDemoTransactions();
+                    });
+            } else {
+                // Show demo transactions
+                renderDemoTransactions();
+            }
+        }
+        
+        // Render transactions in the UI
+        function renderTransactions(transactions) {
+            const transactionsContainer = document.getElementById('transactionsContainer');
+            if (!transactionsContainer) return;
+            
+            if (!transactions || transactions.length === 0) {
+                transactionsContainer.innerHTML = '<div class="empty-state">No transactions found</div>';
+                return;
+            }
+            
+            // Store transactions globally for filtering
+            window.allTransactions = transactions;
+            
+            // Get active filter and search query
+            const activeFilter = document.querySelector('.filter-btn.active')?.getAttribute('data-filter') || 'all';
+            const searchQuery = document.getElementById('searchInput')?.value || '';
+            
+            // Apply initial filtering
+            filterTransactions(activeFilter, searchQuery);
+        }
+        
+        // Filter transactions based on status and search query
+        function filterTransactions(filterValue, searchQuery) {
+            const transactionsContainer = document.getElementById('transactionsContainer');
+            if (!transactionsContainer || !window.allTransactions) return;
+            
+            const filteredTransactions = window.allTransactions.filter(transaction => {
+                // Apply status filter
+                if (filterValue !== 'all' && transaction.status !== filterValue) {
+                    return false;
+                }
+                
+                // Apply search filter
+                if (searchQuery && !transaction._id.includes(searchQuery) && 
+                    !(transaction.customer && transaction.customer.toLowerCase().includes(searchQuery.toLowerCase()))) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            if (filteredTransactions.length === 0) {
+                transactionsContainer.innerHTML = '<div class="empty-state">No matching transactions found</div>';
+                return;
+            }
+            
+            // Generate HTML for filtered transactions
+            transactionsContainer.innerHTML = filteredTransactions.map(transaction => {
+                const date = new Date(transaction.date);
+                const formattedDate = date.toLocaleDateString();
+                const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                return `
+                    <a href="receipt-detail.html?id=${transaction._id}" class="transaction-link">
+                        <div class="transaction-item">
+                            <div class="transaction-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-primary">
+                                    <div class="transaction-id">Invoice #${transaction._id.substring(0, 8)}</div>
+                                    <div class="transaction-amount">₹${transaction.total.toLocaleString()}</div>
+                                </div>
+                                <div class="transaction-secondary">
+                                    <div class="transaction-info">
+                                        <div class="transaction-date">${formattedDate} ${formattedTime}</div>
+                                        <div class="transaction-customer">${transaction.customer || 'Walk-in Customer'}</div>
+                                    </div>
+                                    <div class="transaction-status">
+                                        <span class="status-badge status-${transaction.status || 'completed'}">${capitalizeFirstLetter(transaction.status || 'completed')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+        }
+        
+        // Update transaction summary
+        function updateTransactionSummary(transactions) {
+            const totalSales = transactions.reduce((sum, t) => sum + (t.total || 0), 0);
+            const totalTransactions = transactions.length;
+            const avgTransaction = totalTransactions > 0 ? totalSales / totalTransactions : 0;
+            
+            // Update summary if elements exist
+            if (document.getElementById('totalSales')) {
+                document.getElementById('totalSales').textContent = `₹${totalSales.toLocaleString()}`;
+            }
+            if (document.getElementById('totalTransactions')) {
+                document.getElementById('totalTransactions').textContent = totalTransactions;
+            }
+            if (document.getElementById('avgTransaction')) {
+                document.getElementById('avgTransaction').textContent = `₹${avgTransaction.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+            }
+        }
+        
+        // Render demo transactions
+        function renderDemoTransactions() {
+            // Create some demo transactions
+            const demoTransactions = [
+                {
+                    _id: 'TR10001', 
+                    date: new Date().toISOString(),
+                    total: 1250, 
+                    status: 'completed',
+                    customer: 'Walk-in Customer'
+                },
+                {
+                    _id: 'TR10002', 
+                    date: new Date(Date.now() - 3600000).toISOString(),
+                    total: 785, 
+                    status: 'completed',
+                    customer: 'John Smith'
+                },
+                {
+                    _id: 'TR10003', 
+                    date: new Date(Date.now() - 7200000).toISOString(),
+                    total: 2530, 
+                    status: 'completed',
+                    customer: 'Walk-in Customer'
+                },
+                {
+                    _id: 'TR10004', 
+                    date: new Date(Date.now() - 86400000).toISOString(),
+                    total: 1100, 
+                    status: 'pending',
+                    customer: 'Mary Johnson'
+                },
+                {
+                    _id: 'TR10005', 
+                    date: new Date(Date.now() - 172800000).toISOString(),
+                    total: 3250, 
+                    status: 'cancelled',
+                    customer: 'Walk-in Customer'
+                }
+            ];
+            
+            renderTransactions(demoTransactions);
+            updateTransactionSummary(demoTransactions);
+        }
+        
+        // Helper function to capitalize first letter
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+        
+        // Debounce function for search
+        function debounce(func, delay) {
+            let timeout;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
         }
     </script>
 

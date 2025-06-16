@@ -304,12 +304,230 @@
             .quick-actions {
                 grid-template-columns: repeat(2, 1fr);
             }
-        }    </style>
+        }        /* Dashboard Sections */
+        .dashboard-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+        
+        .dashboard-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .section-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        
+        .view-all-link {
+            font-size: 14px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .view-all-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* Low Stock Items */
+        .inventory-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background-color: #f8f9fa;
+            transition: transform 0.2s ease;
+        }
+        
+        .inventory-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .inventory-item.low-stock {
+            border-left: 4px solid #ffbf00;
+        }
+        
+        .inventory-item.out-of-stock {
+            border-left: 4px solid #ff4d4d;
+        }
+        
+        .item-info {
+            flex: 1;
+        }
+        
+        .item-name {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .item-category {
+            font-size: 12px;
+            color: #666;
+            text-transform: capitalize;
+        }
+        
+        .item-stock {
+            margin-right: 16px;
+            text-align: right;
+        }
+        
+        .stock-level {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .low-stock .stock-level {
+            color: #ffbf00;
+        }
+        
+        .out-of-stock .stock-level {
+            color: #ff4d4d;
+            font-weight: 700;
+        }
+        
+        .stock-min {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .restock-btn {
+            padding: 6px 12px;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .restock-btn:hover {
+            background-color: #5a6acf;
+        }
+        
+        /* Recent Transactions */
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background-color: #f8f9fa;
+            transition: transform 0.2s ease;
+        }
+        
+        .transaction-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .transaction-info {
+            flex: 1;
+        }
+        
+        .transaction-date {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .transaction-id {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .transaction-details {
+            margin-right: 16px;
+            text-align: right;
+        }
+        
+        .transaction-amount {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .transaction-payment, .transaction-items {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .view-receipt-btn {
+            padding: 6px 12px;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        
+        .view-receipt-btn:hover {
+            background-color: #5a6acf;
+        }
+        
+        /* Loading State */
+        .loading-state {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .loading-pulse {
+            height: 12px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 4px;
+        }
+        
+        @keyframes pulse {
+            0% { background-position: 0% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            padding: 30px 20px;
+            text-align: center;
+            color: #666;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>    <!-- Include Auth Service for token management -->
     <script src="../js/security-logger.js"></script>
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
+    <script src="../js/demo-products.js"></script>
     
     <!-- Check authentication on page load -->
     <script>
@@ -321,8 +539,228 @@
             }
             
             // Ensure token is fresh
-            window.authService.ensureFreshToken();
+            window.authService.ensureFreshToken()
+                .then(() => {
+                    // Load dashboard data
+                    loadDashboardData();
+                })
+                .catch(error => {
+                    console.error('Error refreshing token:', error);
+                    window.location.href = '../landing.html';
+                });
         });
+        
+        // Load dashboard data from API
+        function loadDashboardData() {
+            const apiService = window.apiService;
+            if (apiService) {
+                showLoadingState();
+                
+                // Fetch dashboard summary data
+                apiService.request('/dashboard/summary')
+                    .then(response => {
+                        if (response.success) {
+                            updateDashboardMetrics(response.data);
+                        } else {
+                            console.error('Failed to load dashboard data:', response.message);
+                            showDemoData();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading dashboard data:', error);
+                        showDemoData();
+                    });
+                
+                // Fetch low stock items
+                apiService.request('/products?lowStock=true&limit=5')
+                    .then(response => {
+                        if (response.success) {
+                            updateLowStockItems(response.data.products);
+                        } else {
+                            console.error('Failed to load low stock items:', response.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading low stock items:', error);
+                    });
+                
+                // Fetch recent transactions
+                apiService.request('/transactions?limit=5')
+                    .then(response => {
+                        if (response.success) {
+                            updateRecentTransactions(response.data.transactions);
+                        } else {
+                            console.error('Failed to load recent transactions:', response.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading recent transactions:', error);
+                    });
+            } else {
+                // If no API service, show demo data
+                showDemoData();
+            }
+        }
+        
+        // Show loading state
+        function showLoadingState() {
+            document.querySelectorAll('.card-value').forEach(el => {
+                el.innerHTML = '<div class="loading-pulse"></div>';
+            });
+            document.querySelectorAll('.card-subtitle').forEach(el => {
+                el.innerHTML = '<div class="loading-pulse" style="width: 80%;"></div>';
+            });
+            document.querySelectorAll('.card-change').forEach(el => {
+                el.innerHTML = '<div class="loading-pulse" style="width: 60%;"></div>';
+            });
+        }
+        
+        // Show demo data when API fails
+        function showDemoData() {
+            // Today's sales
+            document.querySelector('.dashboard-card:nth-child(1) .card-value').textContent = 'NPR 12,450';
+            document.querySelector('.dashboard-card:nth-child(1) .card-subtitle').textContent = '25 transactions';
+            document.querySelector('.dashboard-card:nth-child(1) .card-change').textContent = '+15% from yesterday';
+            document.querySelector('.dashboard-card:nth-child(1) .card-change').className = 'card-change positive';
+            
+            // Total orders
+            document.querySelector('.dashboard-card:nth-child(2) .card-value').textContent = '87';
+            document.querySelector('.dashboard-card:nth-child(2) .card-subtitle').textContent = 'Items sold today';
+            document.querySelector('.dashboard-card:nth-child(2) .card-change').textContent = '+8 from yesterday';
+            document.querySelector('.dashboard-card:nth-child(2) .card-change').className = 'card-change positive';
+            
+            // Low stock
+            document.querySelector('.dashboard-card:nth-child(3) .card-value').textContent = '5';
+            document.querySelector('.dashboard-card:nth-child(3) .card-subtitle').textContent = 'Need restock';
+            document.querySelector('.dashboard-card:nth-child(3) .card-change').textContent = '3 critical items';
+            document.querySelector('.dashboard-card:nth-child(3) .card-change').className = 'card-change negative';
+            
+            // Weekly revenue
+            document.querySelector('.dashboard-card:nth-child(4) .card-value').textContent = 'NPR 78,200';
+            document.querySelector('.dashboard-card:nth-child(4) .card-subtitle').textContent = 'Last 7 days';
+            document.querySelector('.dashboard-card:nth-child(4) .card-change').textContent = '+12% from last week';
+            document.querySelector('.dashboard-card:nth-child(4) .card-change').className = 'card-change positive';
+            
+            // Load demo low stock items
+            const demoProducts = getDemoProducts();
+            updateLowStockItems(demoProducts.map(p => ({...p, status: p.stock <= p.minStock ? 'low-stock' : 'in-stock'})).slice(0, 5));
+            
+            // Load demo transactions
+            updateRecentTransactions([
+                { _id: 'demo1', date: new Date().toISOString(), total: 1250, paymentMethod: 'Cash', items: 5 },
+                { _id: 'demo2', date: new Date(Date.now() - 3600000).toISOString(), total: 785, paymentMethod: 'Card', items: 2 },
+                { _id: 'demo3', date: new Date(Date.now() - 7200000).toISOString(), total: 2530, paymentMethod: 'Cash', items: 8 },
+                { _id: 'demo4', date: new Date(Date.now() - 86400000).toISOString(), total: 1100, paymentMethod: 'Card', items: 3 },
+                { _id: 'demo5', date: new Date(Date.now() - 172800000).toISOString(), total: 3250, paymentMethod: 'Cash', items: 10 }
+            ]);
+        }
+        
+        // Update dashboard metrics with real data
+        function updateDashboardMetrics(data) {
+            if (data.todaySales) {
+                document.querySelector('.dashboard-card:nth-child(1) .card-value').textContent = `NPR ${data.todaySales.amount.toLocaleString()}`;
+                document.querySelector('.dashboard-card:nth-child(1) .card-subtitle').textContent = `${data.todaySales.count} transactions`;
+                
+                const salesChange = data.todaySales.percentChange;
+                document.querySelector('.dashboard-card:nth-child(1) .card-change').textContent = 
+                    `${salesChange >= 0 ? '+' : ''}${salesChange}% from yesterday`;
+                document.querySelector('.dashboard-card:nth-child(1) .card-change').className = 
+                    `card-change ${salesChange >= 0 ? 'positive' : 'negative'}`;
+            }
+            
+            if (data.todayOrders) {
+                document.querySelector('.dashboard-card:nth-child(2) .card-value').textContent = data.todayOrders.count.toString();
+                document.querySelector('.dashboard-card:nth-child(2) .card-subtitle').textContent = 'Items sold today';
+                
+                const ordersChange = data.todayOrders.countChange;
+                document.querySelector('.dashboard-card:nth-child(2) .card-change').textContent = 
+                    `${ordersChange >= 0 ? '+' : ''}${ordersChange} from yesterday`;
+                document.querySelector('.dashboard-card:nth-child(2) .card-change').className = 
+                    `card-change ${ordersChange >= 0 ? 'positive' : 'negative'}`;
+            }
+            
+            if (data.lowStock) {
+                document.querySelector('.dashboard-card:nth-child(3) .card-value').textContent = data.lowStock.count.toString();
+                document.querySelector('.dashboard-card:nth-child(3) .card-subtitle').textContent = 'Need restock';
+                document.querySelector('.dashboard-card:nth-child(3) .card-change').textContent = 
+                    `${data.lowStock.critical} critical items`;
+                document.querySelector('.dashboard-card:nth-child(3) .card-change').className = 
+                    'card-change negative';
+            }
+            
+            if (data.weeklyRevenue) {
+                document.querySelector('.dashboard-card:nth-child(4) .card-value').textContent = 
+                    `NPR ${data.weeklyRevenue.amount.toLocaleString()}`;
+                document.querySelector('.dashboard-card:nth-child(4) .card-subtitle').textContent = 'Last 7 days';
+                
+                const revenueChange = data.weeklyRevenue.percentChange;
+                document.querySelector('.dashboard-card:nth-child(4) .card-change').textContent = 
+                    `${revenueChange >= 0 ? '+' : ''}${revenueChange}% from last week`;
+                document.querySelector('.dashboard-card:nth-child(4) .card-change').className = 
+                    `card-change ${revenueChange >= 0 ? 'positive' : 'negative'}`;
+            }
+        }
+        
+        // Update low stock items
+        function updateLowStockItems(products) {
+            const lowStockContainer = document.getElementById('lowStockItems');
+            if (!lowStockContainer) return;
+            
+            if (!products || products.length === 0) {
+                lowStockContainer.innerHTML = '<div class="empty-state">No low stock items found</div>';
+                return;
+            }
+            
+            lowStockContainer.innerHTML = products.map(product => `
+                <div class="inventory-item ${product.stock === 0 ? 'out-of-stock' : 'low-stock'}">
+                    <div class="item-info">
+                        <div class="item-name">${product.name}</div>
+                        <div class="item-category">${product.category}</div>
+                    </div>
+                    <div class="item-stock">
+                        <div class="stock-level">${product.stock} remaining</div>
+                        <div class="stock-min">Min: ${product.minStockLevel || product.minStock}</div>
+                    </div>
+                    <a href="add-item.html?id=${product._id || product.id}" class="restock-btn">
+                        <i class="fas fa-plus"></i> Restock
+                    </a>
+                </div>
+            `).join('');
+        }
+        
+        // Update recent transactions
+        function updateRecentTransactions(transactions) {
+            const transactionsContainer = document.getElementById('recentTransactions');
+            if (!transactionsContainer) return;
+            
+            if (!transactions || transactions.length === 0) {
+                transactionsContainer.innerHTML = '<div class="empty-state">No recent transactions found</div>';
+                return;
+            }
+            
+            transactionsContainer.innerHTML = transactions.map(transaction => {
+                const date = new Date(transaction.date);
+                const formattedDate = date.toLocaleDateString();
+                const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                return `
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-date">${formattedDate} ${formattedTime}</div>
+                            <div class="transaction-id">ID: ${transaction._id.substring(0, 8)}</div>
+                        </div>
+                        <div class="transaction-details">
+                            <div class="transaction-amount">NPR ${transaction.total.toLocaleString()}</div>
+                            <div class="transaction-payment">${transaction.paymentMethod}</div>
+                            <div class="transaction-items">${transaction.items} items</div>
+                        </div>
+                        <a href="receipt-detail.html?id=${transaction._id}" class="view-receipt-btn">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </div>
+                `;
+            }).join('');
+        }
     </script><div class="container">
         <!-- Navbar component will be loaded here automatically -->
 
@@ -503,6 +941,31 @@
                         <div class="activity-time">1 hour ago</div>
                     </div>
                     <div class="activity-amount">+NPR 120</div>
+                </div>
+            </div>
+
+            <!-- Recent Activity Sections -->
+            <div class="dashboard-sections">
+                <!-- Low Stock Items -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Low Stock Items</h2>
+                        <a href="inventory.html?filter=low-stock" class="view-all-link">View All</a>
+                    </div>
+                    <div class="section-content" id="lowStockItems">
+                        <div class="loading-state">Loading items...</div>
+                    </div>
+                </div>
+                
+                <!-- Recent Transactions -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Recent Transactions</h2>
+                        <a href="transactions.html" class="view-all-link">View All</a>
+                    </div>
+                    <div class="section-content" id="recentTransactions">
+                        <div class="loading-state">Loading transactions...</div>
+                    </div>
                 </div>
             </div>
         </div>    </div>
