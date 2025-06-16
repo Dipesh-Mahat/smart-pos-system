@@ -393,21 +393,20 @@
                         <i class="fas fa-camera"></i>
                     </div>
                     <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
-                </div>
-                <div class="profile-info">
-                    <h1>John Anderson</h1>
-                    <div class="profile-role">Store Manager</div>
+                </div>                <div class="profile-info">
+                    <h1 id="profileName">Loading...</h1>
+                    <div class="profile-role" id="profileRole">Loading...</div>
                     <div class="profile-stats">
                         <div class="stat-item">
-                            <div class="stat-value">247</div>
+                            <div class="stat-value" id="salesMade">0</div>
                             <div class="stat-label">Sales Made</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value">89</div>
+                            <div class="stat-value" id="daysActive">0</div>
                             <div class="stat-label">Days Active</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value">4.8</div>
+                            <div class="stat-value" id="userRating">0</div>
                             <div class="stat-label">Rating</div>
                         </div>
                     </div>
@@ -421,23 +420,22 @@
                     <h2 class="section-title">
                         <i class="fas fa-user"></i>
                         Personal Information
-                    </h2>
-                    <form id="personalInfoForm">
+                    </h2>                    <form id="personalInfoForm">
                         <div class="form-group">
                             <label class="form-label">Full Name</label>
-                            <input type="text" class="form-input" value="John Anderson" id="fullName">
+                            <input type="text" class="form-input" value="" id="fullName" placeholder="Enter your full name">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Email Address</label>
-                            <input type="email" class="form-input" value="john.anderson@smartpos.com" id="email">
+                            <input type="email" class="form-input" value="" id="email" placeholder="Enter your email address">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Phone Number</label>
-                            <input type="tel" class="form-input" value="+1 (555) 123-4567" id="phone">
+                            <input type="tel" class="form-input" value="" id="phone" placeholder="Enter your phone number">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Employee ID</label>
-                            <input type="text" class="form-input" value="EMP-2024-001" id="employeeId" disabled>
+                            <label class="form-label">Store Name</label>
+                            <input type="text" class="form-input" value="" id="storeName" placeholder="Enter your store name">
                         </div>
                         <button type="button" class="btn btn-primary" onclick="updatePersonalInfo()">
                             <i class="fas fa-save"></i>
@@ -596,10 +594,8 @@
         function setup2FA() {
             alert('Redirecting to 2FA setup...');
             // Here you would redirect to 2FA setup page
-        }
-
-        function changePassword() {
-            window.location.href = 'change-password.html';
+        }        function changePassword() {
+            window.location.href = 'settings.html';
         }
 
         function exportData() {
@@ -621,6 +617,60 @@
                 // Here you would implement account deactivation
             }
         }
+
+        // Load user profile data
+        function loadUserProfile() {
+            // Get user data from localStorage (set during login)
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            
+            // Set profile header data
+            document.getElementById('profileName').textContent = userData.name || 'User Name';
+            document.getElementById('profileRole').textContent = userData.role || 'Shop Owner';
+            
+            // Set form data
+            document.getElementById('fullName').value = userData.name || '';
+            document.getElementById('email').value = userData.email || '';
+            document.getElementById('phone').value = userData.phone || '';
+            document.getElementById('storeName').value = userData.storeName || '';
+            
+            // Set stats (use mock data for now)
+            document.getElementById('salesMade').textContent = userData.salesCount || '0';
+            document.getElementById('daysActive').textContent = calculateDaysActive(userData.joinDate);
+            document.getElementById('userRating').textContent = userData.rating || '5.0';
+        }
+
+        function calculateDaysActive(joinDate) {
+            if (!joinDate) return '0';
+            const join = new Date(joinDate);
+            const now = new Date();
+            const diffTime = Math.abs(now - join);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays.toString();
+        }
+
+        function updatePersonalInfo() {
+            const userData = {
+                name: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                storeName: document.getElementById('storeName').value
+            };
+
+            // Update localStorage
+            const existingData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const updatedData = { ...existingData, ...userData };
+            localStorage.setItem('userData', JSON.stringify(updatedData));
+
+            // Update profile header
+            document.getElementById('profileName').textContent = userData.name;
+            
+            alert('Profile updated successfully!');
+        }
+
+        // Initialize profile data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(loadUserProfile, 100); // Small delay to ensure DOM is ready
+        });
     </script>
 
     <!-- Professional Reusable Menu Component -->
@@ -647,9 +697,8 @@
             switch(actionId) {
                 case 'edit-profile':
                     alert('Edit profile functionality will be implemented');
-                    break;
-                case 'change-password':
-                    window.location.href = 'change-password.html';
+                    break;                case 'change-password':
+                    window.location.href = 'settings.html';
                     break;
                 case 'privacy-settings':
                     alert('Privacy settings functionality will be implemented');
