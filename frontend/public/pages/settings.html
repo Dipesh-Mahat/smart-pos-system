@@ -24,22 +24,52 @@
             // Ensure token is fresh
             window.authService.ensureFreshToken();
         });
-    </script>
-
-    <style>
+    </script>    <style>
         /* Settings Page Specific Styles */
         .settings-container {
             padding: 24px;
             background-color: #f8f9fa;
-            min-height: auto;
+            min-height: calc(100vh - 70px); /* Adjust for header height */
         }
-
-        .settings-grid {
+        
+        /* Page Header */
+        .settings-header {
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            padding-bottom: 15px;
+        }
+        
+        .settings-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0 0 5px 0;
+        }
+        
+        .settings-header p {
+            color: #6c757d;
+            font-size: 16px;
+            margin: 0;
+        }        .settings-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 24px;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 30px;
             max-width: 1200px;
             margin: 0 auto;
+            grid-template-areas: 
+                "main-settings profile"
+                "support profile";
+        }
+
+        /* Improve balance with fewer items */
+        @media screen and (min-width: 1024px) {
+            .settings-grid {
+                grid-template-columns: 1fr 1fr;
+                grid-template-areas: 
+                    "main-settings profile"
+                    "support profile";
+            }
         }
 
         .settings-group {
@@ -48,20 +78,27 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             overflow: hidden;
             transition: transform 0.3s ease;
-        }        .settings-group:hover {
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Make all cards the same height */
+            min-height: 200px; /* Ensure minimum height */
+        }.settings-group:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-
-        .settings-group-header {
+        }        .settings-group-header {
             background: #007bff;
             color: white;
             padding: 20px;
             font-weight: 600;
             font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-
-        .settings-item {
+        
+        .settings-group-header i {
+            font-size: 22px;
+        }        .settings-item {
             display: flex;
             align-items: center;
             padding: 20px;
@@ -70,13 +107,33 @@
             transition: all 0.3s ease;
             text-decoration: none;
             color: inherit;
+            position: relative;
+            overflow: hidden;
         }
 
         .settings-item:last-child {
             border-bottom: none;
-        }        .settings-item:hover {
+        }
+        
+        .settings-item:hover {
             background-color: #f8f9fa;
             transform: translateX(8px);
+        }
+        
+        .settings-item::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background-color: rgba(0, 123, 255, 0.05);
+            transition: width 0.3s ease;
+            z-index: 0;
+        }
+        
+        .settings-item:hover::after {
+            width: 100%;
         }
 
         .settings-icon {
@@ -92,50 +149,64 @@
             color: #007bff;
             transition: all 0.3s ease;
             border: 1px solid #e9ecef;
+            position: relative;
+            z-index: 1;
         }
 
         .settings-item:hover .settings-icon {
             background: #007bff;
             color: white;
             transform: scale(1.1);
-        }
-
-        .settings-content {
+            box-shadow: 0 5px 10px rgba(0, 123, 255, 0.2);
+        }        .settings-content {
             flex: 1;
+            position: relative;
+            z-index: 1;
         }
 
         .settings-label {
             font-weight: 600;
             font-size: 16px;
             color: #2c3e50;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
+            transition: color 0.3s ease;
+        }
+        
+        .settings-item:hover .settings-label {
+            color: #007bff;
         }
 
         .settings-description {
             color: #6c757d;
             font-size: 14px;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
         .settings-arrow {
             color: #6c757d;
             font-size: 16px;
             transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+            margin-left: 10px;
+            opacity: 0.7;
         }
 
         .settings-item:hover .settings-arrow {
             color: #007bff;
             transform: translateX(4px);
-        }
-
-        .toggle-switch {
+            opacity: 1;
+        }        .toggle-switch {
             position: relative;
-            width: 48px;
-            height: 24px;
-            background: #ccc;
-            border-radius: 12px;
+            width: 52px;
+            height: 26px;
+            background: #e0e0e0;
+            border-radius: 13px;
             cursor: pointer;
             transition: background 0.3s ease;
+            margin-left: 10px;
+            z-index: 1;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .toggle-switch.active {
@@ -145,80 +216,649 @@
         .toggle-switch::before {
             content: '';
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             background: white;
             border-radius: 50%;
             top: 2px;
             left: 2px;
-            transition: transform 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }        .toggle-switch.active::before {
-            transform: translateX(24px);
+            transform: translateX(26px);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }        /* Updated Profile Section to match other settings groups */
+        .profile-settings-group {
+            grid-area: profile;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(0,0,0,0.05);
         }
-
-        /* Profile Section */
-        .profile-section {
-            text-align: center;
-            padding: 24px;
+        
+        .profile-settings-group:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .profile-settings-group::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom right, rgba(0,123,255,0.05), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+            border-radius: 12px;
+        }
+        
+        .profile-settings-group:hover::after {
+            opacity: 1;
+        }
+        
+        .profile-header {
             background: #007bff;
             color: white;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            font-weight: 600;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-
+          .profile-content {
+            padding: 25px;
+            flex: 1;
+        }
+        
+        .profile-header-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
         .profile-avatar {
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
-            border: 4px solid white;
-            margin: 0 auto 16px;
+            border: 3px solid #007bff;
+            margin: 0 auto 12px;
             object-fit: cover;
+            box-shadow: 0 3px 10px rgba(0,123,255,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .profile-avatar:hover {
+            transform: scale(1.05);
         }
 
         .profile-name {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
             margin-bottom: 4px;
+            color: #2c3e50;
         }
 
         .profile-role {
-            opacity: 0.9;
+            color: #6c757d;
+            font-size: 13px;
+            background: rgba(0,123,255,0.1);
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,123,255,0.2);
+            margin-bottom: 15px;
+        }
+        
+        .profile-details {
+            text-align: left;
+        }
+        
+        .profile-detail-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
             font-size: 14px;
         }
-
-        /* Responsive adjustments for menu */
+        
+        .profile-detail-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .profile-detail-icon {
+            width: 16px;
+            color: #007bff;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        
+        .profile-detail-label {
+            color: #6c757d;
+            font-weight: 500;
+            min-width: 70px;
+            margin-right: 8px;
+        }
+        
+        .profile-detail-value {
+            color: #2c3e50;
+            font-weight: 400;
+            flex: 1;
+        }
+        
+        .profile-stats {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            text-align: center;
+        }
+        
+        .profile-stat {
+            background: rgba(0,123,255,0.05);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(0,123,255,0.1);
+        }
+        
+        .profile-stat-number {
+            font-size: 16px;
+            font-weight: 700;
+            color: #007bff;
+            display: block;
+        }
+        
+        .profile-stat-label {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+        
+        /* Grid area assignments */
+        .main-settings-group {
+            grid-area: main-settings;
+        }
+        
+        .support-group {
+            grid-area: support;
+        }        /* Responsive adjustments for menu */
         @media screen and (min-width: 1024px) {
             .settings-container {
                 margin-left: 300px;
+                padding: 30px;
             }
-        }
-
-        @media screen and (max-width: 768px) {
+        }        @media screen and (max-width: 768px) {
             .settings-grid {
                 grid-template-columns: 1fr;
+                grid-template-areas: 
+                    "profile"
+                    "main-settings"
+                    "support";
             }
             
             .settings-container {
                 padding: 16px;
             }
+            
+            .profile-content {
+                padding: 20px;
+            }
+            
+            .profile-avatar {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .profile-name {
+                font-size: 16px;
+            }
+            
+            .profile-detail-item {
+                font-size: 13px;
+                margin-bottom: 10px;
+            }
+            
+            .profile-detail-label {
+                min-width: 60px;
+                font-size: 12px;
+            }
+            
+            .profile-stats {
+                gap: 10px;
+            }
+            
+            .profile-stat-number {
+                font-size: 14px;
+            }
+            
+            .profile-stat-label {
+                font-size: 10px;
+            }
+        }
+        
+        /* Add smooth animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .settings-group {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .settings-group:nth-child(1) { animation-delay: 0.1s; }
+        .settings-group:nth-child(2) { animation-delay: 0.2s; }
+        .settings-group:nth-child(3) { animation-delay: 0.3s; }
+        .settings-group:nth-child(4) { animation-delay: 0.4s; }
+        
+        /* Add subtle hover effect to entire card */
+        .settings-group {
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .settings-group::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom right, rgba(0,123,255,0.05), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+            border-radius: 12px;
+        }
+        
+        .settings-group:hover::after {
+            opacity: 1;
+        }
+          /* Password Popup Styles */
+        .password-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .password-popup.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+        }        .password-popup-content {
+            background: white;
+            max-width: 550px;
+            width: 100%;
+            margin: 60px auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+            animation: slideIn 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            transform: translateY(30px);
+            opacity: 0;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+        
+        .password-popup.active .password-popup-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+          .popup-header {
+            background: linear-gradient(135deg, #0062cc, #007bff);
+            color: white;
+            padding: 15px 20px; /* Reduced padding */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .popup-header h2 {
+            margin: 0;
+            font-size: 20px; /* Slightly smaller font */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .close-popup {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .close-popup:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+          .popup-body {
+            padding: 20px; /* Reduced padding */
+        }
+        
+        /* Password form styles */
+        .security-info {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .security-info i {
+            color: #007bff;
+            margin-right: 10px;
+        }        .form-group {
+            margin-bottom: 20px; /* Reduced margin */
+        }
+
+        .form-label {
+            display: block;
+            font-size: 15px; /* Slightly smaller font */
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px; /* Reduced margin */
+        }
+
+        .password-input-container {
+            position: relative;
+        }        .form-input {
+            width: 100%;
+            padding: 12px 45px 12px 15px; /* Reduced padding */
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 15px; /* Slightly smaller font */
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #007bff;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+            font-size: 18px;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: #007bff;
+        }        .password-requirements {
+            margin-top: 12px; /* Reduced margin */
+            padding: 15px; /* Reduced padding */
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }        /* Enhanced professional password strength meter styles */
+        .password-strength-container {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .strength-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .strength-meter {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 8px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .strength-meter-fill {
+            height: 100%;
+            width: 0;
+            border-radius: 4px;
+            transition: width 0.5s ease, background 0.5s ease;
+            background-size: 200% 200%;
+            animation: gradientShift 2s ease infinite;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .strength-text {
+            font-size: 13px;
+            font-weight: 600;
+            text-align: right;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+        }
+        
+        .requirements-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            background: rgba(248, 249, 250, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }        .requirement {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .requirement:hover {
+            background-color: rgba(0,0,0,0.03);
+        }
+
+        .requirement:last-child {
+            margin-bottom: 0;
+        }
+        
+        .requirement-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .requirement-icon.valid {
+            background: #28a745;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .requirement-icon.invalid {
+            background: #dc3545;
+            color: white;
+        }        .requirement-text {
+            color: #6c757d;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .requirement.valid .requirement-text {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .requirement.valid {
+            background-color: rgba(40, 167, 69, 0.05);
+        }        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 8px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            display: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .success-message {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .success-message i {
+            font-size: 18px;
+            margin-right: 8px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }.form-actions {
+            display: flex;
+            gap: 12px; /* Reduced gap */
+            justify-content: center;
+            margin-top: 30px; /* Reduced margin */
+            padding-top: 20px; /* Reduced padding */
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            padding: 12px 30px; /* Reduced padding */
+            border: none;
+            border-radius: 10px; /* Smaller border radius */
+            font-size: 15px; /* Smaller font */
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Reduced gap */
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0062cc, #007bff);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+        }
+
+        .btn-secondary {
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(108, 117, 125, 0.2);
+            border-color: #6c757d;
+        }
+
+        @media (max-width: 480px) {
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .password-popup-content {
+                margin: 10px auto;
+            }
         }
     </style>
 </head>
 <body>    <div class="settings-container">
-        <!-- Profile Section -->
-        <div class="profile-section">
-            <img src="../images/avatars/user-avatar.png" alt="Profile" class="profile-avatar">
-            <div class="profile-name">John Doe</div>
-            <div class="profile-role">Store Manager</div>
-        </div>
-
-        <div class="settings-grid">
-            <!-- Account Settings -->
-            <div class="settings-group">
+        <div class="settings-grid">            <!-- Main Settings (Account + Store + System) -->
+            <div class="settings-group main-settings-group">
                 <div class="settings-group-header">
-                    <i class="fas fa-user-circle"></i> Account Settings
+                    <i class="fas fa-cogs"></i> General Settings
                 </div>
                 
                 <a href="profile.html" class="settings-item">
@@ -232,9 +872,7 @@
                     <div class="settings-arrow">
                         <i class="fas fa-chevron-right"></i>
                     </div>
-                </a>
-
-                <a href="change-password.html" class="settings-item">
+                </a>                <a href="javascript:void(0)" class="settings-item" onclick="openPasswordPopup()">
                     <div class="settings-icon">
                         <i class="fas fa-key"></i>
                     </div>
@@ -253,16 +891,8 @@
                     </div>
                     <div class="settings-content">
                         <div class="settings-label">Notifications</div>
-                        <div class="settings-description">Enable push notifications for important updates</div>
-                    </div>
+                        <div class="settings-description">Enable push notifications for important updates</div>                    </div>
                     <div class="toggle-switch active" id="notificationToggle"></div>
-                </div>
-            </div>
-
-            <!-- Store Settings -->
-            <div class="settings-group">
-                <div class="settings-group-header">
-                    <i class="fas fa-store"></i> Store Settings
                 </div>
                 
                 <a href="store-management.html" class="settings-item">
@@ -277,64 +907,7 @@
                         <i class="fas fa-chevron-right"></i>
                     </div>
                 </a>
-
-                <div class="settings-item" onclick="openTaxSettings()">
-                    <div class="settings-icon">
-                        <i class="fas fa-percentage"></i>
-                    </div>
-                    <div class="settings-content">
-                        <div class="settings-label">Tax Configuration</div>
-                        <div class="settings-description">Set up tax rates and regulations</div>
-                    </div>
-                    <div class="settings-arrow">
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
-                </div>
-
-                <div class="settings-item" onclick="openCurrencySettings()">
-                    <div class="settings-icon">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <div class="settings-content">
-                        <div class="settings-label">Currency Settings</div>
-                        <div class="settings-description">Configure currency and pricing options</div>
-                    </div>
-                    <div class="settings-arrow">
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- System Settings -->
-            <div class="settings-group">
-                <div class="settings-group-header">
-                    <i class="fas fa-cogs"></i> System Settings
-                </div>
                 
-                <div class="settings-item" onclick="toggleDarkMode()">
-                    <div class="settings-icon">
-                        <i class="fas fa-moon"></i>
-                    </div>
-                    <div class="settings-content">
-                        <div class="settings-label">Dark Mode</div>
-                        <div class="settings-description">Switch to dark theme for better visibility</div>
-                    </div>
-                    <div class="toggle-switch" id="darkModeToggle"></div>
-                </div>
-
-                <div class="settings-item" onclick="openBackupSettings()">
-                    <div class="settings-icon">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                    </div>
-                    <div class="settings-content">
-                        <div class="settings-label">Data Backup</div>
-                        <div class="settings-description">Configure automatic data backup settings</div>
-                    </div>
-                    <div class="settings-arrow">
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
-                </div>
-
                 <div class="settings-item" onclick="clearCache()">
                     <div class="settings-icon">
                         <i class="fas fa-broom"></i>
@@ -347,14 +920,68 @@
                         <i class="fas fa-chevron-right"></i>
                     </div>
                 </div>
+            </div>            <!-- Profile Section -->
+            <div class="profile-settings-group">
+                <div class="profile-header">
+                    <i class="fas fa-user-circle"></i> Profile Information
+                </div>
+                <div class="profile-content">
+                    <div class="profile-header-info">
+                        <img src="../images/avatars/user-avatar.png" alt="Profile" class="profile-avatar" id="profileAvatar">
+                        <div class="profile-name" id="profileName">John Doe</div>
+                        <div class="profile-role" id="profileRole">Store Manager</div>
+                    </div>
+                    
+                    <div class="profile-details">
+                        <div class="profile-detail-item">
+                            <i class="fas fa-envelope profile-detail-icon"></i>
+                            <span class="profile-detail-label">Email:</span>
+                            <span class="profile-detail-value" id="profileEmail">john.doe@smartpos.com</span>
+                        </div>
+                        
+                        <div class="profile-detail-item">
+                            <i class="fas fa-phone profile-detail-icon"></i>
+                            <span class="profile-detail-label">Phone:</span>
+                            <span class="profile-detail-value" id="profilePhone">+1 (555) 123-4567</span>
+                        </div>
+                        
+                        <div class="profile-detail-item">
+                            <i class="fas fa-store profile-detail-icon"></i>
+                            <span class="profile-detail-label">Store:</span>
+                            <span class="profile-detail-value" id="profileStore">Smart Store #001</span>
+                        </div>
+                        
+                        <div class="profile-detail-item">
+                            <i class="fas fa-calendar-alt profile-detail-icon"></i>
+                            <span class="profile-detail-label">Joined:</span>
+                            <span class="profile-detail-value" id="profileJoined">Jan 15, 2024</span>
+                        </div>
+                        
+                        <div class="profile-detail-item">
+                            <i class="fas fa-clock profile-detail-icon"></i>
+                            <span class="profile-detail-label">Last Login:</span>
+                            <span class="profile-detail-value" id="profileLastLogin">Today, 9:30 AM</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <span class="profile-stat-number" id="profileTransactions">1,247</span>
+                            <span class="profile-stat-label">Transactions</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span class="profile-stat-number" id="profileDaysActive">156</span>
+                            <span class="profile-stat-label">Days Active</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Support & Help -->
-            <div class="settings-group">
+            <div class="settings-group support-group">
                 <div class="settings-group-header">
                     <i class="fas fa-question-circle"></i> Support & Help
-                </div>
-                
+                </div>                
                 <a href="support.html" class="settings-item">
                     <div class="settings-icon">
                         <i class="fas fa-headset"></i>
@@ -394,10 +1021,99 @@
                     </div>
                 </div>
             </div>
-        </div>    </div>
+        </div></div>    <!-- Change Password Popup -->
+    <div id="changePasswordPopup" class="password-popup">
+        <div class="password-popup-content" onclick="event.stopPropagation();">
+            <div class="popup-header">
+                <h2><i class="fas fa-key"></i> Change Password</h2>
+                <button class="close-popup" onclick="closePasswordPopup()"><i class="fas fa-times"></i></button>
+            </div>
+              <div class="popup-body">
+                <div class="success-message" id="successMessage">
+                    <i class="fas fa-check-circle"></i>
+                    Password changed successfully!
+                </div>
 
-    <!-- Professional Reusable Menu Component -->
-    <script>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label class="form-label">Current Password</label>
+                        <div class="password-input-container">
+                            <input type="password" class="form-input" id="currentPassword" placeholder="Enter your current password" required>
+                            <i class="password-toggle fas fa-eye" onclick="togglePassword('currentPassword', this)"></i>
+                        </div>                        <div class="error-message" id="currentPasswordError">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>Current password is incorrect</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">New Password</label>
+                        <div class="password-input-container">
+                            <input type="password" class="form-input" id="newPassword" placeholder="Enter your new password" required>
+                            <i class="password-toggle fas fa-eye" onclick="togglePassword('newPassword', this)"></i>
+                        </div>                          <div class="password-requirements">
+                            <div class="password-strength-container">
+                                <div class="strength-label">
+                                    <span>Password Strength</span>
+                                    <span class="strength-text" id="strengthText">TOO WEAK</span>
+                                </div>
+                                <div class="strength-meter">
+                                    <div class="strength-meter-fill" id="strengthMeter"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="requirements-list">
+                                <div class="requirement" id="lengthReq">
+                                    <span class="requirement-icon invalid" id="lengthIcon"><i class="fas fa-times"></i></span>
+                                    <span class="requirement-text">At least 8 characters</span>
+                                </div>
+                                <div class="requirement" id="upperReq">
+                                    <span class="requirement-icon invalid" id="upperIcon"><i class="fas fa-times"></i></span>
+                                    <span class="requirement-text">One uppercase letter</span>
+                                </div>
+                                <div class="requirement" id="lowerReq">
+                                    <span class="requirement-icon invalid" id="lowerIcon"><i class="fas fa-times"></i></span>
+                                    <span class="requirement-text">One lowercase letter</span>
+                                </div>
+                                <div class="requirement" id="numberReq">
+                                    <span class="requirement-icon invalid" id="numberIcon"><i class="fas fa-times"></i></span>
+                                    <span class="requirement-text">One number</span>
+                                </div>
+                                <div class="requirement" id="specialReq">
+                                    <span class="requirement-icon invalid" id="specialIcon"><i class="fas fa-times"></i></span>
+                                    <span class="requirement-text">One special character</span>
+                                </div>
+                            </div>                        </div>
+                        
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Confirm New Password</label>
+                        <div class="password-input-container">
+                            <input type="password" class="form-input" id="confirmPassword" placeholder="Confirm your new password" required>
+                            <i class="password-toggle fas fa-eye" onclick="togglePassword('confirmPassword', this)"></i>
+                        </div>                        <div class="error-message" id="confirmPasswordError">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>Passwords do not match</span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closePasswordPopup()">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitButton" disabled>
+                            <i class="fas fa-save"></i>
+                            Change Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Professional Reusable Menu Component -->    <script>
         function toggleNotifications() {
             const toggle = document.getElementById('notificationToggle');
             toggle.classList.toggle('active');
@@ -411,41 +1127,10 @@
             showToast(message);
         }
 
-        function toggleDarkMode() {
-            const toggle = document.getElementById('darkModeToggle');
-            toggle.classList.toggle('active');
-            
-            // Save setting to localStorage
-            const isDark = toggle.classList.contains('active');
-            localStorage.setItem('darkMode', isDark);
-            
-            // Apply dark mode (you would implement this)
-            if (isDark) {
-                document.body.classList.add('dark-mode');
-            } else {
-                document.body.classList.remove('dark-mode');
-            }
-            
-            const message = isDark ? 'Dark mode enabled' : 'Dark mode disabled';
-            showToast(message);
-        }
-
-        function openTaxSettings() {
-            alert('Tax configuration feature coming soon!');
-        }
-
-        function openCurrencySettings() {
-            alert('Currency settings feature coming soon!');
-        }
-
-        function openBackupSettings() {
-            alert('Backup settings feature coming soon!');
-        }
-
         function clearCache() {
             if (confirm('Are you sure you want to clear the cache? This may improve performance but will require reloading some data.')) {
                 // Clear localStorage except for important settings
-                const importantKeys = ['notifications', 'darkMode', 'userToken'];
+                const importantKeys = ['notifications', 'userToken'];
                 const storage = {};
                 
                 importantKeys.forEach(key => {
@@ -503,26 +1188,472 @@ Last Updated: June 2025
             setTimeout(() => {
                 toast.remove();
             }, 3000);
+        }        function loadUserProfile() {
+            // Load user profile data from localStorage or API
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            
+            // Update profile display with actual user data
+            if (userData.name) {
+                document.getElementById('profileName').textContent = userData.name;
+            }
+            
+            if (userData.email) {
+                document.getElementById('profileEmail').textContent = userData.email;
+            }
+            
+            if (userData.role) {
+                document.getElementById('profileRole').textContent = userData.role;
+            }
+            
+            if (userData.phone) {
+                document.getElementById('profilePhone').textContent = userData.phone;
+            } else {
+                document.getElementById('profilePhone').textContent = 'Not provided';
+            }
+            
+            if (userData.storeName) {
+                document.getElementById('profileStore').textContent = userData.storeName;
+            }
+            
+            // Set join date
+            if (userData.joinDate) {
+                const joinDate = new Date(userData.joinDate);
+                document.getElementById('profileJoined').textContent = joinDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+            
+            // Set last login time
+            const lastLogin = localStorage.getItem('lastLogin');
+            if (lastLogin) {
+                const loginDate = new Date(lastLogin);
+                const now = new Date();
+                const diffHours = Math.abs(now - loginDate) / 36e5;
+                
+                if (diffHours < 1) {
+                    document.getElementById('profileLastLogin').textContent = 'Just now';
+                } else if (diffHours < 24) {
+                    document.getElementById('profileLastLogin').textContent = `${Math.floor(diffHours)} hours ago`;
+                } else {
+                    document.getElementById('profileLastLogin').textContent = loginDate.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+                }
+            } else {
+                // Set current time as last login
+                document.getElementById('profileLastLogin').textContent = 'Just now';
+                localStorage.setItem('lastLogin', new Date().toISOString());
+            }
+            
+            // Load transaction count and days active from localStorage
+            const transactionCount = localStorage.getItem('userTransactionCount') || '0';
+            const daysActive = localStorage.getItem('userDaysActive') || '1';
+            
+            document.getElementById('profileTransactions').textContent = parseInt(transactionCount).toLocaleString();
+            document.getElementById('profileDaysActive').textContent = daysActive;
+            
+            // Update profile avatar if available
+            if (userData.avatar) {
+                document.getElementById('profileAvatar').src = userData.avatar;
+            }
         }
 
-        // Load saved settings on page load
+        function updateUserStats() {
+            // Function to update user statistics (can be called when user performs actions)
+            const currentTransactions = parseInt(localStorage.getItem('userTransactionCount') || '0');
+            const newTransactionCount = currentTransactions + 1;
+            localStorage.setItem('userTransactionCount', newTransactionCount.toString());
+            
+            // Update days active based on login streaks
+            const lastActiveDate = localStorage.getItem('lastActiveDate');
+            const today = new Date().toDateString();
+            
+            if (lastActiveDate !== today) {
+                const currentDaysActive = parseInt(localStorage.getItem('userDaysActive') || '1');
+                localStorage.setItem('userDaysActive', (currentDaysActive + 1).toString());
+                localStorage.setItem('lastActiveDate', today);
+            }
+        }
+
+        function resetPasswordErrors() {
+            // Function to reset password error messages
+            document.getElementById('currentPasswordError').style.display = 'none';
+            document.getElementById('confirmPasswordError').style.display = 'none';
+        }
+
+        function validatePasswordMatch() {
+            // Separate function to validate password confirmation
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const confirmError = document.getElementById('confirmPasswordError');
+            
+            // Only validate if both fields have content and the user has finished typing in confirm field
+            if (confirmPassword.length > 0 && newPassword.length > 0) {
+                if (newPassword !== confirmPassword) {
+                    confirmError.style.display = 'block';
+                    return false;
+                } else {
+                    confirmError.style.display = 'none';
+                    return true;
+                }
+            } else {
+                confirmError.style.display = 'none';
+                return confirmPassword.length === 0; // Return true if confirm is empty (not an error yet)
+            }
+        }
+
+        // Password popup functions
+        function openPasswordPopup() {
+            const popup = document.getElementById('changePasswordPopup');
+            popup.style.display = 'flex';
+            
+            // Force reflow to trigger the animation
+            void popup.offsetWidth;
+            
+            // Add active class to trigger animations
+            popup.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling when popup is open
+            
+            // Focus on the first input field after animation completes
+            setTimeout(() => {
+                document.getElementById('currentPassword').focus();
+            }, 500);
+        }
+        
+        function closePasswordPopup() {
+            const popup = document.getElementById('changePasswordPopup');
+            
+            // Start the fade-out animation
+            popup.classList.remove('active');
+            
+            // Wait for animation to complete before hiding completely
+            setTimeout(() => {
+                popup.style.display = 'none';
+                document.body.style.overflow = ''; // Re-enable scrolling
+            }, 300);
+              // Reset the form
+            document.getElementById('passwordForm').reset();
+            document.getElementById('successMessage').style.display = 'none';
+            resetPasswordErrors();
+              // Reset the strength meter
+            document.getElementById('strengthMeter').style.width = '0%';
+            document.getElementById('strengthMeter').style.background = 'transparent';
+            document.getElementById('strengthText').textContent = 'TOO WEAK';
+            document.getElementById('strengthText').style.color = '#dc3545';
+            
+            // Reset requirement icons
+            const requirements = ['length', 'upper', 'lower', 'number', 'special'];
+            requirements.forEach(req => {
+                const icon = document.getElementById(req + 'Icon');
+                const requirement = document.getElementById(req + 'Req');
+                
+                icon.innerHTML = '<i class="fas fa-times"></i>';
+                icon.className = 'requirement-icon invalid';
+                requirement.className = 'requirement';
+            });
+            
+            // Disable submit button
+            document.getElementById('submitButton').disabled = true;
+        }
+        
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }          function checkPasswordStrength(password) {
+            if (!password) return { score: 0, level: 'too-weak', percentage: 0, color: '#dc3545', gradient: 'linear-gradient(to right, #dc3545, #dc3545)' };
+            
+            // Check individual criteria
+            const hasLength = password.length >= 8;
+            const hasUpper = /[A-Z]/.test(password);
+            const hasLower = /[a-z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+            
+            // Calculate score based on criteria met
+            const criteriaCount = [hasLength, hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean).length;
+            
+            // Calculate percentage for meter filling
+            const percentage = (criteriaCount / 5) * 100;
+            
+            // Determine strength level and colors
+            let level, color, gradient;
+            
+            if (criteriaCount === 0) {
+                level = 'too-weak';
+                color = '#dc3545'; // red
+                gradient = 'linear-gradient(to right, #dc3545, #dc3545)';
+            } else if (criteriaCount < 2) {
+                level = 'weak';
+                color = '#ffc107'; // yellow
+                gradient = 'linear-gradient(45deg, #dc3545, #ffc107)';
+            } else if (criteriaCount < 4) {
+                level = 'medium';
+                color = '#fd7e14'; // orange
+                gradient = 'linear-gradient(45deg, #ffc107, #fd7e14)';
+            } else if (criteriaCount === 4) {
+                level = 'good';
+                color = '#20c997'; // teal
+                gradient = 'linear-gradient(45deg, #fd7e14, #20c997)';
+            } else {
+                level = 'strong';
+                color = '#28a745'; // green
+                gradient = 'linear-gradient(45deg, #20c997, #28a745)';
+            }
+            
+            return { 
+                score: criteriaCount,
+                percentage,
+                level,
+                color,
+                gradient,
+                criteriaCount
+            };
+        }          function updateRequirements() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const submitButton = document.getElementById('submitButton');
+            const confirmError = document.getElementById('confirmPasswordError');
+            const strengthMeter = document.getElementById('strengthMeter');
+            const strengthText = document.getElementById('strengthText');
+
+            // Password requirements
+            const hasLength = newPassword.length >= 8;
+            const hasUpper = /[A-Z]/.test(newPassword);
+            const hasLower = /[a-z]/.test(newPassword);
+            const hasNumber = /[0-9]/.test(newPassword);
+            const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword);
+
+            // Update requirement icons and classes
+            const requirements = [
+                { id: 'length', valid: hasLength, reqId: 'lengthReq' },
+                { id: 'upper', valid: hasUpper, reqId: 'upperReq' },
+                { id: 'lower', valid: hasLower, reqId: 'lowerReq' },
+                { id: 'number', valid: hasNumber, reqId: 'numberReq' },
+                { id: 'special', valid: hasSpecial, reqId: 'specialReq' }
+            ];
+
+            requirements.forEach(req => {
+                const icon = document.getElementById(req.id + 'Icon');
+                const requirement = document.getElementById(req.reqId);
+                
+                if (req.valid) {
+                    icon.innerHTML = '<i class="fas fa-check"></i>';
+                    icon.className = 'requirement-icon valid';
+                    requirement.className = 'requirement valid';
+                } else {
+                    icon.innerHTML = '<i class="fas fa-times"></i>';
+                    icon.className = 'requirement-icon invalid';
+                    requirement.className = 'requirement';
+                }
+            });
+
+            // Update password strength meter
+            const strength = checkPasswordStrength(newPassword);
+            
+            // Update the strength meter fill width and color with animated gradient
+            strengthMeter.style.width = strength.percentage + '%';
+            
+            // Apply the gradient effect based on strength level
+            if (newPassword.length > 0) {
+                strengthMeter.style.background = strength.gradient;
+            } else {
+                strengthMeter.style.background = 'transparent';
+            }
+            
+            // Update strength text with appropriate color
+            const strengthLabels = {
+                'too-weak': 'TOO WEAK',
+                'weak': 'WEAK',
+                'medium': 'MEDIUM',
+                'good': 'GOOD',
+                'strong': 'STRONG'
+            };
+              strengthText.textContent = strengthLabels[strength.level];
+            strengthText.style.color = strength.color;
+
+            // Use the separate validation function for password matching
+            const passwordsMatch = validatePasswordMatch();
+
+            // Enable submit button if all requirements are met
+            const allValid = hasLength && hasUpper && hasLower && hasNumber && hasSpecial;
+            const confirmPasswordValue = document.getElementById('confirmPassword').value;
+            const canSubmit = allValid && passwordsMatch && confirmPasswordValue.length > 0;
+            
+            submitButton.disabled = !canSubmit;
+            
+            // Apply additional visual feedback for button
+            if (canSubmit) {
+                submitButton.style.opacity = '1';
+                submitButton.style.transform = 'translateY(0)';
+            } else {
+                submitButton.style.opacity = '0.7';
+                submitButton.style.transform = 'translateY(0)';
+            }
+        }// Function to change password via API
+        async function changePassword(currentPassword, newPassword) {
+            try {
+                // Make API request to change password
+                const response = await window.apiService.changePassword(currentPassword, newPassword);
+                
+                if (response.success) {
+                    return { success: true };
+                } else {
+                    return { 
+                        success: false, 
+                        message: response.message || 'Failed to change password'
+                    };
+                }
+            } catch (error) {
+                console.error('Error changing password:', error);
+                return { 
+                    success: false, 
+                    message: 'An error occurred while changing password'
+                };
+            }
+        }          // Load saved settings on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Load user profile information
+            loadUserProfile();
+            
             // Load notification setting
             const notificationsEnabled = localStorage.getItem('notifications') !== 'false';
             const notificationToggle = document.getElementById('notificationToggle');
             if (!notificationsEnabled) {
                 notificationToggle.classList.remove('active');
             }
+              // Setup close popup when clicking outside
+            const popup = document.getElementById('changePasswordPopup');
+            popup.addEventListener('click', function(event) {
+                // If the click is directly on the popup background (not on its children)
+                if (event.target === popup) {
+                    closePasswordPopup();
+                }
+            });
             
-            // Load dark mode setting
-            const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
-            const darkModeToggle = document.getElementById('darkModeToggle');
-            if (darkModeEnabled) {
-                darkModeToggle.classList.add('active');
-                document.body.classList.add('dark-mode');            }
+            // Close popup with Escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && popup.classList.contains('active')) {
+                    closePasswordPopup();
+                }
+            });
+            
+              // Add event listeners for password form
+            const newPasswordInput = document.getElementById('newPassword');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const currentPasswordInput = document.getElementById('currentPassword');
+            const passwordForm = document.getElementById('passwordForm');            if (newPasswordInput && confirmPasswordInput) {
+                // Listen for input events in real-time for responsive feedback
+                newPasswordInput.addEventListener('input', updateRequirements);
+                
+                // Add a slight delay for confirm password validation to be less annoying
+                let confirmTimeout;
+                confirmPasswordInput.addEventListener('input', function() {
+                    clearTimeout(confirmTimeout);
+                    confirmTimeout = setTimeout(updateRequirements, 300); // 300ms delay
+                });
+                
+                // Add key up events for more fluid password strength updates
+                newPasswordInput.addEventListener('keyup', updateRequirements);
+            }
+            
+            if (currentPasswordInput) {
+                // Only hide current password error when user starts typing
+                currentPasswordInput.addEventListener('input', function() {
+                    const currentPasswordError = document.getElementById('currentPasswordError');
+                    if (currentPasswordError.style.display === 'block') {
+                        currentPasswordError.style.display = 'none';
+                    }
+                });
+            }if (passwordForm) {
+                passwordForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const currentPassword = document.getElementById('currentPassword').value;
+                    const newPassword = document.getElementById('newPassword').value;
+                    const currentPasswordError = document.getElementById('currentPasswordError');
+                    const successMessage = document.getElementById('successMessage');
+                    
+                    // Disable the submit button during submission
+                    const submitButton = document.getElementById('submitButton');
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';                    
+                    try {
+                        // Reset any existing error messages before submission
+                        resetPasswordErrors();
+                        
+                        // Change password via API with loading indicator
+                        const result = await changePassword(currentPassword, newPassword);
+                          if (result.success) {
+                            // Show success message with animation
+                            successMessage.style.display = 'block';
+                            successMessage.style.animation = 'fadeIn 0.5s ease';
+                            
+                            // Reset form inputs but keep validation display
+                            document.getElementById('currentPassword').value = '';
+                            document.getElementById('newPassword').value = '';
+                            document.getElementById('confirmPassword').value = '';
+                            
+                            // Disable button after successful submission
+                            submitButton.disabled = true;
+                            submitButton.innerHTML = '<i class="fas fa-check-circle"></i> Password Changed';
+                            
+                            // Close popup after a delay
+                            setTimeout(() => {
+                                closePasswordPopup();
+                                showToast('Password changed successfully!');
+                            }, 2000);
+                        } else {
+                            // Show error message with animation only for failed API call
+                            currentPasswordError.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${result.message || 'Current password is incorrect'}`;
+                            currentPasswordError.style.display = 'block';
+                            currentPasswordError.style.animation = 'shake 0.5s ease';
+                            document.getElementById('currentPassword').focus();
+                            
+                            // Add shake animation
+                            if (!document.querySelector('@keyframes shake')) {
+                                const style = document.createElement('style');
+                                style.textContent = `
+                                    @keyframes shake {
+                                        0%, 100% { transform: translateX(0); }
+                                        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                                        20%, 40%, 60%, 80% { transform: translateX(5px); }
+                                    }
+                                `;
+                                document.head.appendChild(style);
+                            }
+                            
+                            // Re-enable the submit button
+                            submitButton.disabled = false;
+                            submitButton.innerHTML = '<i class="fas fa-save"></i> Change Password';
+                        }
+                    } catch (error) {
+                        // Handle unexpected errors
+                        console.error('Password change error:', error);
+                        currentPasswordError.innerHTML = '<i class="fas fa-exclamation-circle"></i> An unexpected error occurred. Please try again.';
+                        currentPasswordError.style.display = 'block';
+                        
+                        // Re-enable the submit button
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = '<i class="fas fa-save"></i> Change Password';
+                    }
+                });
+            }
         });
     </script>
-
     <!-- Navbar and Menu Scripts -->
     <script src="../js/navbar.js"></script>
     <script src="../js/menu.js"></script>
@@ -532,24 +1663,36 @@ Last Updated: June 2025
             const navbar = new SmartPOSNavbar();
             
             // Add custom navbar actions for settings
-            navbar.addAction('backup-data', 'Backup', 'fas fa-download', 'btn-secondary');
             navbar.addAction('reset-settings', 'Reset', 'fas fa-undo', 'btn-secondary');
-            navbar.addAction('export-settings', 'Export Config', 'fas fa-file-export', 'btn-secondary');            // Handle navbar action clicks
+            
+            // Handle navbar action clicks
             document.addEventListener('navbarAction', function(e) {
                 switch(e.detail.actionId) {
-                    case 'backup-data':
-                        console.log('Creating backup...');
-                        alert('Backup functionality will be implemented');
-                        break;
                     case 'reset-settings':
                         if (confirm('Reset all settings to default? This action cannot be undone.')) {
                             console.log('Resetting settings...');
-                            alert('Reset functionality will be implemented');
+                            // Clear localStorage except for important settings
+                            const importantKeys = ['userToken', 'userData'];
+                            const storage = {};
+                            
+                            importantKeys.forEach(key => {
+                                if (localStorage.getItem(key)) {
+                                    storage[key] = localStorage.getItem(key);
+                                }
+                            });
+                            
+                            localStorage.clear();
+                            
+                            // Restore important settings
+                            Object.keys(storage).forEach(key => {
+                                localStorage.setItem(key, storage[key]);
+                            });
+                            
+                            showToast('Settings reset to default');
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
                         }
-                        break;
-                    case 'export-settings':
-                        console.log('Exporting settings...');
-                        alert('Export settings functionality will be implemented');
                         break;
                 }
             });
