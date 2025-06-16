@@ -72,11 +72,11 @@ const TransactionSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: [true, 'Shop ID is required']
-  },
-  items: [TransactionItemSchema],
+  },  items: [TransactionItemSchema],
+  // Customer field made optional since we're not tracking customers
   customerId: {
     type: Schema.Types.ObjectId,
-    ref: 'Customer'
+    required: false
   },
   subtotal: {
     type: Number,
@@ -168,7 +168,7 @@ TransactionSchema.methods.calculateTotals = function() {
 // Index for efficient queries
 TransactionSchema.index({ shopId: 1, createdAt: -1 });
 TransactionSchema.index({ receiptNumber: 1 });
-TransactionSchema.index({ customerId: 1 });
+// Removed customerId index as we're not tracking customers
 TransactionSchema.index({ cashierId: 1 });
 
 const Transaction = mongoose.model('Transaction', TransactionSchema);

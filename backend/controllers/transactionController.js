@@ -1,6 +1,6 @@
 const Transaction = require('../models/Transaction');
 const Product = require('../models/Product');
-const Customer = require('../models/Customer');
+// Removed Customer model import as we're not tracking customers
 const InventoryLog = require('../models/InventoryLog');
 const mongoose = require('mongoose');
 
@@ -85,23 +85,12 @@ exports.createTransaction = async (req, res) => {
         reference: 'Sale',
         referenceId: transaction._id,
         referenceModel: 'Transaction',
-        performedBy: req.user._id
-      });
+        performedBy: req.user._id      });
       
       await inventoryLog.save({ session });
     }
     
-    // Update customer data if provided
-    if (transaction.customerId) {
-      const customer = await Customer.findById(transaction.customerId).session(session);
-      
-      if (customer) {
-        // Update total spent and loyalty points
-        customer.totalSpent += transaction.total;
-        customer.loyaltyPoints += transaction.loyaltyPointsEarned - transaction.loyaltyPointsRedeemed;
-        await customer.save({ session });
-      }
-    }
+    // Customer tracking removed as we're not tracking customers in this version
     
     await session.commitTransaction();
     
@@ -277,25 +266,14 @@ exports.voidTransaction = async (req, res) => {
           reference: 'Void Transaction',
           referenceId: transaction._id,
           referenceModel: 'Transaction',
-          notes: req.body.reason || 'Transaction voided',
-          performedBy: req.user._id
+          notes: req.body.reason || 'Transaction voided',          performedBy: req.user._id
         });
         
         await inventoryLog.save({ session });
       }
     }
     
-    // Update customer data if provided
-    if (transaction.customerId) {
-      const customer = await Customer.findById(transaction.customerId).session(session);
-      
-      if (customer) {
-        // Revert total spent and loyalty points
-        customer.totalSpent = Math.max(0, customer.totalSpent - transaction.total);
-        customer.loyaltyPoints = Math.max(0, customer.loyaltyPoints - transaction.loyaltyPointsEarned + transaction.loyaltyPointsRedeemed);
-        await customer.save({ session });
-      }
-    }
+    // Customer tracking removed as we're not tracking customers in this version
     
     await session.commitTransaction();
     
@@ -398,8 +376,7 @@ exports.processRefund = async (req, res) => {
             newStock: product.stock,
             reference: 'Refund',
             referenceId: transaction._id,
-            referenceModel: 'Transaction',
-            notes: reason || 'Customer refund',
+            referenceModel: 'Transaction',            notes: reason || 'Customer refund',
             performedBy: req.user._id
           });
           
@@ -408,21 +385,7 @@ exports.processRefund = async (req, res) => {
       }
     }
     
-    // Update customer data for the refund
-    if (transaction.customerId) {
-      const customer = await Customer.findById(transaction.customerId).session(session);
-      
-      if (customer) {
-        // Calculate proportion of points to revert
-        const refundRatio = amount / transaction.total;
-        const pointsToRevert = Math.round(transaction.loyaltyPointsEarned * refundRatio);
-        
-        // Update customer
-        customer.totalSpent = Math.max(0, customer.totalSpent - amount);
-        customer.loyaltyPoints = Math.max(0, customer.loyaltyPoints - pointsToRevert);
-        await customer.save({ session });
-      }
-    }
+    // Customer tracking removed as we're not tracking customers in this version
     
     await session.commitTransaction();
     
