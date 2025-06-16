@@ -17,7 +17,24 @@ class SmartPOSMenu {
         this.setActiveMenuItem();
         this.handleResponsive();
         
-        // Restore menu state immediately to prevent animation flicker
+        // For desktop, ensure menu is immediately visible without animation
+        if (this.isDesktop) {
+            const sideMenu = document.getElementById('sideMenu');
+            if (sideMenu) {
+                sideMenu.style.transition = 'none';
+                sideMenu.classList.add('open');
+                sideMenu.style.left = '0';
+                sideMenu.style.opacity = '1';
+                sideMenu.style.transform = 'translateX(0)';
+                
+                // Re-enable transitions after a brief delay
+                setTimeout(() => {
+                    sideMenu.style.transition = '';
+                }, 50);
+            }
+        }
+        
+        // Restore menu state for mobile
         this.restoreMenuState();
         
         // Notify navbar that menu is ready
@@ -59,19 +76,12 @@ class SmartPOSMenu {
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-tag"></i>' +
                         '</div>' +
-                        '<div class="menu-text">Products</div>' +
-                    '</a>' +
-                    '<a href="customers.html" class="menu-item" data-page="customers">' +
-                        '<div class="menu-icon-folder">' +
-                            '<i class="fas fa-users"></i>' +
-                        '</div>' +
-                        '<div class="menu-text">Customers</div>' +
-                    '</a>' +
+                        '<div class="menu-text">Products</div>' +                    '</a>' +
                     '<a href="suppliers.html" class="menu-item" data-page="suppliers">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-truck"></i>' +
                         '</div>' +
-                        '<div class="menu-text">Suppliers</div>' +                    '</a>' +
+                        '<div class="menu-text">Suppliers</div>' +'</a>' +
                     '<a href="transactions.html" class="menu-item" data-page="transactions">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-receipt"></i>' +
@@ -206,15 +216,17 @@ class SmartPOSMenu {
         // Always ensure body can scroll initially
         document.body.style.overflow = '';
         
-        // Check if menu should be restored to open state
-        const savedState = localStorage.getItem('menuState');
-        if (savedState === 'open') {
-            // Restore open state without animation immediately
-            this.restoreMenuOpenState();
-        } else {
-            // Ensure menu starts closed
-            this.isMenuOpen = false;
-            this.ensureMenuClosed();
+        // Only handle saved state for mobile devices
+        if (!this.isDesktop) {
+            const savedState = localStorage.getItem('menuState');
+            if (savedState === 'open') {
+                // Restore open state without animation immediately
+                this.restoreMenuOpenState();
+            } else {
+                // Ensure menu starts closed
+                this.isMenuOpen = false;
+                this.ensureMenuClosed();
+            }
         }
     }
 
