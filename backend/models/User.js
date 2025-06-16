@@ -41,11 +41,21 @@ const userSchema = new mongoose.Schema({
   lastName: { 
     type: String, 
     required: true 
-  },
-  shopName: { 
+  },  shopName: { 
     type: String, 
     required: function() { return this.role === 'shopowner'; }, // Only required for shopowners
     trim: true 
+  },
+  contactNumber: {
+    type: String,
+    trim: true
+  },
+  address: {
+    street: String,
+    city: String,
+    state: String,
+    postalCode: String,
+    country: String
   },
   failedLoginAttempts: {
     type: Number,
