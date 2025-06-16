@@ -10,6 +10,7 @@
     <!-- Include Auth Service for token management -->
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
+    <script src="../js/demo-products.js"></script>
     
     <!-- Check authentication on page load -->
     <script>
@@ -508,7 +509,7 @@
                         <i class="fas fa-times"></i>
                         Cancel
                     </button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="saveBtn">
                         <i class="fas fa-save"></i>
                         Save Item
                     </button>
@@ -607,31 +608,70 @@
                 
                 // Get form data
                 const formData = {
-                    itemName: document.getElementById('itemName').value,
+                    name: document.getElementById('itemName').value,
                     category: document.getElementById('category').value,
-                    quantity: document.getElementById('quantity').value,
+                    stock: document.getElementById('quantity').value,
                     unit: document.getElementById('unit').value,
-                    costPrice: document.getElementById('costPrice').value,
-                    sellPrice: document.getElementById('sellPrice').value,
+                    cost: document.getElementById('costPrice').value,
+                    price: document.getElementById('sellPrice').value,
                     discount: document.getElementById('discount').value,
-                    expDate: document.getElementById('expDate').value,
-                    barCode: document.getElementById('barCode').value,
-                    lowStockThreshold: document.getElementById('lowStockThreshold').value,
+                    expiryDate: document.getElementById('expDate').value,
+                    barcode: document.getElementById('barCode').value,
+                    minStockLevel: document.getElementById('lowStockThreshold').value,
                     enableLowStock: document.getElementById('enableLowStock').checked,
-                    description: document.getElementById('description').value
+                    description: document.getElementById('description').value,
+                    status: 'active'
                 };
 
                 // Validate required fields
-                if (!formData.itemName || !formData.quantity || !formData.costPrice || !formData.sellPrice) {
+                if (!formData.name || !formData.stock || !formData.cost || !formData.price) {
                     alert('Please fill in all required fields');
                     return;
                 }
-
-                // Show success message
-                alert('Item added successfully!');
                 
-                // Redirect to inventory page
-                window.location.href = 'inventory.html';
+                const apiService = window.apiService;
+                if (apiService) {
+                    // Show loading message
+                    document.getElementById('saveBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                    document.getElementById('saveBtn').disabled = true;
+                    
+                    // Add product through API
+                    apiService.createProduct(formData)
+                        .then(response => {
+                            if (response.success) {
+                                // Hide demo products when adding first real product
+                                if (typeof hideDemoProducts === 'function') {
+                                    hideDemoProducts();
+                                }
+                                
+                                alert('Item added successfully!');
+                                // Redirect to inventory page
+                                window.location.href = 'item-management.html';
+                            } else {
+                                alert('Failed to add item: ' + response.message);
+                                document.getElementById('saveBtn').innerHTML = 'Save Item';
+                                document.getElementById('saveBtn').disabled = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error adding item:', error);
+                            alert('Failed to add item. Please try again.');
+                            document.getElementById('saveBtn').innerHTML = 'Save Item';
+                            document.getElementById('saveBtn').disabled = false;
+                        });
+                } else {
+                    // Fallback for demo mode
+                    // Hide demo products when adding first real product
+                    if (typeof hideDemoProducts === 'function') {
+                        hideDemoProducts();
+                    }
+                    
+                    // Show success message
+                    alert('Item added successfully!');
+                    
+                    // Redirect to inventory page
+                    window.location.href = 'item-management.html';
+                }
             });
 
             // Auto-calculate profit margin
