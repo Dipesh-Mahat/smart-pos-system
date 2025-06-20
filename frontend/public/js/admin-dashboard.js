@@ -1,0 +1,709 @@
+// Admin Dashboard Main Controller
+class AdminDashboard {
+    constructor() {
+        this.users = [];
+        this.filteredUsers = [];
+        this.charts = {};
+        this.currentFilter = 'all';
+        this.currentStatus = 'all';
+        this.searchQuery = '';
+        
+        this.init();
+    }
+
+    async init() {
+        try {
+            await this.loadUsers();
+            this.setupEventListeners();
+            this.initializeCharts();
+            this.updateStatistics();
+            this.loadRecentActivity();
+            this.startRealTimeUpdates();
+        } catch (error) {
+            console.error('Failed to initialize admin dashboard:', error);
+            this.showMessage('Failed to load dashboard data', 'error');
+        }
+    }
+
+    async loadUsers() {
+        // Mock user data - In production, this would be an API call
+        this.users = [
+            {
+                id: 1,
+                name: 'John Smith',
+                email: 'john@example.com',
+                type: 'shop-owner',
+                status: 'active',
+                avatar: '../images/avatars/user1.jpg',
+                joinDate: '2024-01-15',
+                lastActive: '2024-01-20',
+                revenue: 15420.50,
+                transactions: 342
+            },
+            {
+                id: 2,
+                name: 'Sarah Johnson',
+                email: 'sarah@freshfoods.com',
+                type: 'supplier',
+                status: 'active',
+                avatar: '../images/avatars/user2.jpg',
+                joinDate: '2024-01-10',
+                lastActive: '2024-01-20',
+                revenue: 28750.00,
+                transactions: 156
+            },
+            {
+                id: 3,
+                name: 'Mike Wilson',
+                email: 'mike@quickmart.com',
+                type: 'shop-owner',
+                status: 'suspended',
+                avatar: '../images/avatars/user3.jpg',
+                joinDate: '2023-12-20',
+                lastActive: '2024-01-18',
+                revenue: 8200.00,
+                transactions: 89
+            },
+            {
+                id: 4,
+                name: 'Emily Davis',
+                email: 'emily@groceryplus.com',
+                type: 'supplier',
+                status: 'banned',
+                avatar: '../images/avatars/user4.jpg',
+                joinDate: '2023-11-05',
+                lastActive: '2024-01-15',
+                revenue: 0,
+                transactions: 0
+            },
+            {
+                id: 5,
+                name: 'Robert Brown',
+                email: 'robert@cornerstore.com',
+                type: 'shop-owner',
+                status: 'active',
+                avatar: '../images/avatars/user5.jpg',
+                joinDate: '2024-01-08',
+                lastActive: '2024-01-20',
+                revenue: 12300.75,
+                transactions: 278
+            }
+        ];
+
+        this.filteredUsers = [...this.users];
+        this.renderUserTable();
+    }
+
+    setupEventListeners() {
+        // Filter controls
+        const typeFilter = document.getElementById('typeFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const searchInput = document.getElementById('userSearch');
+
+        if (typeFilter) {
+            typeFilter.addEventListener('change', (e) => {
+                this.currentFilter = e.target.value;
+                this.filterUsers();
+            });
+        }
+
+        if (statusFilter) {
+            statusFilter.addEventListener('change', (e) => {
+                this.currentStatus = e.target.value;
+                this.filterUsers();
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.searchQuery = e.target.value.toLowerCase();
+                this.filterUsers();
+            });
+        }
+
+        // Modal events
+        this.setupModalEvents();
+    }
+
+    setupModalEvents() {
+        const modal = document.getElementById('actionModal');
+        const cancelBtn = document.getElementById('cancelAction');
+        const confirmBtn = document.getElementById('confirmAction');
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                this.hideModal();
+            });
+        }
+
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => {
+                this.executeUserAction();
+            });
+        }
+
+        // Close modal on outside click
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.hideModal();
+                }
+            });
+        }
+    }
+
+    filterUsers() {
+        this.filteredUsers = this.users.filter(user => {
+            const matchesType = this.currentFilter === 'all' || user.type === this.currentFilter;
+            const matchesStatus = this.currentStatus === 'all' || user.status === this.currentStatus;
+            const matchesSearch = !this.searchQuery || 
+                user.name.toLowerCase().includes(this.searchQuery) ||
+                user.email.toLowerCase().includes(this.searchQuery);
+
+            return matchesType && matchesStatus && matchesSearch;
+        });
+
+        this.renderUserTable();
+    }
+
+    renderUserTable() {
+        const tableBody = document.getElementById('userTableBody');
+        if (!tableBody) return;
+
+        if (this.filteredUsers.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="no-data">
+                        <i class="fas fa-users"></i>
+                        <p>No users found matching the current filters</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        const tableHTML = this.filteredUsers.map(user => `
+            <tr>
+                <td>
+                    <div class="user-info">
+                        <img src="${user.avatar}" alt="${user.name}" class="user-avatar" 
+                             onerror="this.src='../images/avatars/default-avatar.png'">
+                        <div class="user-details">
+                            <h4>${user.name}</h4>
+                            <p>${user.email}</p>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="user-type ${user.type}">
+                        ${user.type === 'shop-owner' ? 'Shop Owner' : 'Supplier'}
+                    </span>
+                </td>
+                <td>
+                    <span class="user-status ${user.status}">
+                        ${user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                    </span>
+                </td>
+                <td>${this.formatDate(user.joinDate)}</td>
+                <td>${this.formatDate(user.lastActive)}</td>
+                <td>
+                    <div class="action-buttons">
+                        ${this.getUserActionButtons(user)}
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+        tableBody.innerHTML = tableHTML;
+        this.attachActionListeners();
+    }
+
+    getUserActionButtons(user) {
+        switch (user.status) {
+            case 'active':
+                return `
+                    <button class="action-btn suspend" onclick="adminDashboard.showActionModal(${user.id}, 'suspend')">
+                        Suspend
+                    </button>
+                    <button class="action-btn ban" onclick="adminDashboard.showActionModal(${user.id}, 'ban')">
+                        Ban
+                    </button>
+                `;
+            case 'suspended':
+                return `
+                    <button class="action-btn activate" onclick="adminDashboard.showActionModal(${user.id}, 'activate')">
+                        Activate
+                    </button>
+                    <button class="action-btn ban" onclick="adminDashboard.showActionModal(${user.id}, 'ban')">
+                        Ban
+                    </button>
+                `;
+            case 'banned':
+                return `
+                    <button class="action-btn activate" onclick="adminDashboard.showActionModal(${user.id}, 'activate')">
+                        Activate
+                    </button>
+                `;
+            default:
+                return '';
+        }
+    }
+
+    attachActionListeners() {
+        // Action buttons are handled by onclick attributes for simplicity
+        // In production, you might want to use event delegation
+    }
+
+    showActionModal(userId, action) {
+        const user = this.users.find(u => u.id === userId);
+        if (!user) return;
+
+        const modal = document.getElementById('actionModal');
+        const title = document.getElementById('modalTitle');
+        const message = document.getElementById('modalMessage');
+        
+        if (!modal || !title || !message) return;
+
+        const actionText = {
+            'ban': 'ban',
+            'suspend': 'suspend',
+            'activate': 'activate'
+        };
+
+        const actionMessages = {
+            'ban': `This will permanently ban ${user.name} from the system. They will lose access to all services and data.`,
+            'suspend': `This will temporarily suspend ${user.name}'s account. They can be reactivated later.`,
+            'activate': `This will reactivate ${user.name}'s account and restore full access.`
+        };
+
+        title.textContent = `${actionText[action].charAt(0).toUpperCase() + actionText[action].slice(1)} User`;
+        message.textContent = actionMessages[action];
+
+        // Store action data for execution
+        modal.dataset.userId = userId;
+        modal.dataset.action = action;
+
+        modal.classList.add('show');
+    }
+
+    hideModal() {
+        const modal = document.getElementById('actionModal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+    }
+
+    async executeUserAction() {
+        const modal = document.getElementById('actionModal');
+        if (!modal) return;
+
+        const userId = parseInt(modal.dataset.userId);
+        const action = modal.dataset.action;
+        const user = this.users.find(u => u.id === userId);
+
+        if (!user) return;
+
+        try {
+            // Show loading state
+            const confirmBtn = document.getElementById('confirmAction');
+            confirmBtn.innerHTML = '<span class="loading"></span> Processing...';
+            confirmBtn.disabled = true;
+
+            // Simulate API call
+            await this.simulateAPICall(1000);
+
+            // Update user status
+            switch (action) {
+                case 'ban':
+                    user.status = 'banned';
+                    break;
+                case 'suspend':
+                    user.status = 'suspended';
+                    break;
+                case 'activate':
+                    user.status = 'active';
+                    break;
+            }
+
+            // Update UI
+            this.renderUserTable();
+            this.updateStatistics();
+            this.hideModal();
+            this.showMessage(`User ${action}ed successfully`, 'success');
+
+            // Log activity
+            this.logActivity('user-action', `${action}ed user: ${user.name}`, 'now');
+
+        } catch (error) {
+            console.error('Failed to execute user action:', error);
+            this.showMessage('Failed to execute action', 'error');
+        } finally {
+            // Reset button state
+            const confirmBtn = document.getElementById('confirmAction');
+            confirmBtn.innerHTML = 'Confirm';
+            confirmBtn.disabled = false;
+        }
+    }
+
+    simulateAPICall(delay = 1000) {
+        return new Promise(resolve => setTimeout(resolve, delay));
+    }
+
+    updateStatistics() {
+        const totalUsers = this.users.length;
+        const shopOwners = this.users.filter(u => u.type === 'shop-owner').length;
+        const suppliers = this.users.filter(u => u.type === 'supplier').length;
+        const activeUsers = this.users.filter(u => u.status === 'active').length;
+        const totalRevenue = this.users.reduce((sum, user) => sum + user.revenue, 0);
+        const totalTransactions = this.users.reduce((sum, user) => sum + user.transactions, 0);
+
+        // Update stat cards
+        this.updateStatCard('totalUsers', totalUsers);
+        this.updateStatCard('totalShopOwners', shopOwners);
+        this.updateStatCard('totalSuppliers', suppliers);
+        this.updateStatCard('totalTransactions', totalTransactions);
+        this.updateStatCard('totalRevenue', `$${totalRevenue.toLocaleString()}`);
+
+        // Update menu badges
+        if (window.adminMenu) {
+            window.adminMenu.updateUserCounts(shopOwners, suppliers, totalUsers);
+        }
+    }
+
+    updateStatCard(elementId, value) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = value;
+        }
+    }    initializeCharts() {
+        // Check if Chart.js is loaded
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js is not loaded');
+            return;
+        }
+        
+        try {
+            this.initUserGrowthChart();
+            this.initRevenueChart();
+            this.initUserDistributionChart();
+        } catch (error) {
+            console.error('Error initializing charts:', error);
+        }
+    }    initUserGrowthChart() {
+        const ctx = document.getElementById('userGrowthChart');
+        if (!ctx) {
+            console.warn('User growth chart canvas not found');
+            return;
+        }
+
+        try {
+            this.charts.userGrowth = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Total Users',
+                    data: [1200, 1450, 1680, 2100, 2500, 2847],
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Shop Owners',
+                    data: [650, 780, 920, 1100, 1300, 1456],
+                    borderColor: '#2ecc71',
+                    backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Suppliers',
+                    data: [550, 670, 760, 1000, 1200, 1391],
+                    borderColor: '#9b59b6',
+                    backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                    tension: 0.4
+                }]
+            },            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 2,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'User Growth Over Time'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        } catch (error) {
+            console.error('Error creating user growth chart:', error);
+        }
+    }
+
+    initRevenueChart() {
+        const ctx = document.getElementById('revenueChart');
+        if (!ctx) return;
+
+        this.charts.revenue = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: [45000, 52000, 48000, 61000, 67000, 73000],
+                    backgroundColor: [
+                        'rgba(52, 152, 219, 0.8)',
+                        'rgba(46, 204, 113, 0.8)',
+                        'rgba(155, 89, 182, 0.8)',
+                        'rgba(241, 196, 15, 0.8)',
+                        'rgba(230, 126, 34, 0.8)',
+                        'rgba(231, 76, 60, 0.8)'
+                    ],
+                    borderColor: [
+                        '#3498db',
+                        '#2ecc71',
+                        '#9b59b6',
+                        '#f1c40f',
+                        '#e67e22',
+                        '#e74c3c'
+                    ],
+                    borderWidth: 2
+                }]
+            },            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 2,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Monthly Revenue'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    initUserDistributionChart() {
+        const ctx = document.getElementById('userDistributionChart');
+        if (!ctx) return;
+
+        const shopOwners = this.users.filter(u => u.type === 'shop-owner').length;
+        const suppliers = this.users.filter(u => u.type === 'supplier').length;
+
+        this.charts.userDistribution = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Shop Owners', 'Suppliers'],
+                datasets: [{
+                    data: [shopOwners, suppliers],
+                    backgroundColor: [
+                        '#3498db',
+                        '#9b59b6'
+                    ],
+                    borderColor: [
+                        '#2980b9',
+                        '#8e44ad'
+                    ],
+                    borderWidth: 2
+                }]
+            },            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 1.5,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'User Type Distribution'
+                    }
+                }
+            }
+        });
+    }
+
+    loadRecentActivity() {
+        const activityList = document.getElementById('activityList');
+        if (!activityList) return;
+
+        const activities = [
+            {
+                type: 'user-action',
+                icon: 'fas fa-user-times',
+                title: 'User Suspended',
+                description: 'Suspended user: Mike Wilson for policy violation',
+                time: '5 minutes ago',
+                iconClass: 'user-action'
+            },
+            {
+                type: 'system-action',
+                icon: 'fas fa-database',
+                title: 'Database Backup',
+                description: 'Automated database backup completed successfully',
+                time: '1 hour ago',
+                iconClass: 'system-action'
+            },
+            {
+                type: 'transaction',
+                icon: 'fas fa-dollar-sign',
+                title: 'Large Transaction',
+                description: 'Transaction of $15,000 processed for Fresh Foods Co.',
+                time: '2 hours ago',
+                iconClass: 'transaction'
+            },
+            {
+                type: 'user-action',
+                icon: 'fas fa-user-plus',
+                title: 'New Registration',
+                description: 'New supplier registered: Premium Grocers Ltd.',
+                time: '3 hours ago',
+                iconClass: 'user-action'
+            }
+        ];
+
+        const activityHTML = activities.map(activity => `
+            <div class="activity-item">
+                <div class="activity-icon ${activity.iconClass}">
+                    <i class="${activity.icon}"></i>
+                </div>
+                <div class="activity-content">
+                    <h4>${activity.title}</h4>
+                    <p>${activity.description}</p>
+                </div>
+                <div class="activity-time">${activity.time}</div>
+            </div>
+        `).join('');
+
+        activityList.innerHTML = activityHTML;
+    }
+
+    logActivity(type, description, time) {
+        // Add new activity to the beginning of the list
+        const activityList = document.getElementById('activityList');
+        if (!activityList) return;
+
+        const iconMap = {
+            'user-action': 'fas fa-user-cog',
+            'system-action': 'fas fa-cogs',
+            'transaction': 'fas fa-dollar-sign'
+        };
+
+        const newActivity = document.createElement('div');
+        newActivity.className = 'activity-item';
+        newActivity.innerHTML = `
+            <div class="activity-icon ${type}">
+                <i class="${iconMap[type] || 'fas fa-info-circle'}"></i>
+            </div>
+            <div class="activity-content">
+                <h4>Admin Action</h4>
+                <p>${description}</p>
+            </div>
+            <div class="activity-time">${time}</div>
+        `;
+
+        activityList.insertBefore(newActivity, activityList.firstChild);
+
+        // Remove oldest item if more than 10 activities
+        const items = activityList.querySelectorAll('.activity-item');
+        if (items.length > 10) {
+            items[items.length - 1].remove();
+        }
+    }
+
+    startRealTimeUpdates() {
+        // Update statistics every 30 seconds
+        setInterval(() => {
+            this.updateStatistics();
+        }, 30000);
+
+        // Simulate real-time activity updates
+        setInterval(() => {
+            if (Math.random() < 0.3) { // 30% chance every minute
+                this.simulateRandomActivity();
+            }
+        }, 60000);
+    }
+
+    simulateRandomActivity() {
+        const activities = [
+            'New user registration detected',
+            'Payment processed successfully',
+            'System health check completed',
+            'User logged in from new device',
+            'Inventory update synchronized'
+        ];
+
+        const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+        this.logActivity('system-action', randomActivity, 'just now');
+    }
+
+    showMessage(message, type = 'info') {
+        // Create or update message element
+        let messageEl = document.getElementById('adminMessage');
+        if (!messageEl) {
+            messageEl = document.createElement('div');
+            messageEl.id = 'adminMessage';
+            messageEl.className = 'message';
+            document.querySelector('.main-content').insertBefore(
+                messageEl, 
+                document.querySelector('.dashboard-content')
+            );
+        }
+
+        messageEl.className = `message ${type}`;
+        messageEl.textContent = message;
+        messageEl.style.display = 'block';
+
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            messageEl.style.display = 'none';
+        }, 5000);
+    }
+
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+}
+
+// Initialize admin dashboard when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait for DOM to be fully ready
+    setTimeout(() => {
+        try {
+            // Initialize navbar and menu first
+            window.adminNavbar = new AdminNavbar();
+            window.adminMenu = new AdminMenu();
+            
+            // Wait a bit more for components to render
+            setTimeout(() => {
+                window.adminDashboard = new AdminDashboard();
+            }, 200);
+        } catch (error) {
+            console.error('Failed to initialize admin dashboard:', error);
+        }
+    }, 100);
+});

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard Test</title>
+    <link rel="stylesheet" href="../css/admin-dashboard.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="adminNavbar"></div>
+    <div class="container">
+        <div id="adminMenu"></div>
+        <main class="main-content">
+            <div class="dashboard-content">
+                <div class="dashboard-header">
+                    <h1>Admin Dashboard Test</h1>
+                    <p>Testing navbar and menu components</p>
+                </div>
+                
+                <div class="test-content">
+                    <h2>Component Status</h2>
+                    <div id="testResults">
+                        <p>Loading components...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/admin-navbar.js"></script>
+    <script src="../js/admin-menu.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const testResults = document.getElementById('testResults');
+            let results = [];
+            
+            try {
+                // Test navbar
+                const navbar = new AdminNavbar();
+                results.push('✅ Admin Navbar loaded successfully');
+            } catch (error) {
+                results.push('❌ Admin Navbar failed: ' + error.message);
+            }
+            
+            try {
+                // Test menu
+                const menu = new AdminMenu();
+                results.push('✅ Admin Menu loaded successfully');
+            } catch (error) {
+                results.push('❌ Admin Menu failed: ' + error.message);
+            }
+            
+            // Test Chart.js
+            if (typeof Chart !== 'undefined') {
+                results.push('✅ Chart.js loaded successfully');
+            } else {
+                results.push('❌ Chart.js not loaded');
+            }
+            
+            testResults.innerHTML = results.map(result => `<p>${result}</p>`).join('');
+        });
+    </script>
+</body>
+</html>

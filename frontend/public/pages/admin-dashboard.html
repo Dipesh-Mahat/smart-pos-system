@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart POS - Admin Dashboard</title>
+    <link rel="stylesheet" href="../css/admin-dashboard.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Admin Navbar -->
+    <div id="adminNavbar"></div>
+    
+    <div class="container">
+        <!-- Admin Sidebar Menu -->
+        <div id="adminMenu"></div>
+        
+        <main class="main-content">
+            <!-- Admin Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Dashboard Header -->
+                <div class="dashboard-header">
+                    <h1>Admin Dashboard</h1>
+                    <p>System Management & User Control</p>
+                </div>
+
+                <!-- System Overview Stats -->
+                <section class="overview-section">
+                    <h2>System Overview</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card total-users">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalUsers">2,847</h3>
+                                <p>Total Users</p>
+                                <span class="stat-change positive">+12% this month</span>
+                            </div>
+                        </div>
+                        <div class="stat-card shop-owners">
+                            <div class="stat-icon">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalShopOwners">1,456</h3>
+                                <p>Shop Owners</p>
+                                <span class="stat-change positive">+8% active</span>
+                            </div>
+                        </div>
+                        <div class="stat-card suppliers">
+                            <div class="stat-icon">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalSuppliers">1,391</h3>
+                                <p>Suppliers</p>
+                                <span class="stat-change positive">+15% growth</span>
+                            </div>
+                        </div>
+                        <div class="stat-card transactions">
+                            <div class="stat-icon">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalTransactions">24,567</h3>
+                                <p>Transactions</p>
+                                <span class="stat-change positive">+23% today</span>
+                            </div>
+                        </div>
+                        <div class="stat-card revenue">
+                            <div class="stat-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalRevenue">$346,000</h3>
+                                <p>Total Revenue</p>
+                                <span class="stat-change positive">+18% this month</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- User Management Section -->
+                <section class="user-management-section">
+                    <h2>User Management</h2>
+                    
+                    <!-- User Filters -->
+                    <div class="user-filters">
+                        <div class="filter-group">
+                            <label for="typeFilter">User Type</label>
+                            <select id="typeFilter" class="filter-select">
+                                <option value="all">All Types</option>
+                                <option value="shop-owner">Shop Owners</option>
+                                <option value="supplier">Suppliers</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="statusFilter">Status</label>
+                            <select id="statusFilter" class="filter-select">
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="suspended">Suspended</option>
+                                <option value="banned">Banned</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="userSearch">Search Users</label>
+                            <input type="text" id="userSearch" class="search-input" placeholder="Search by name or email...">
+                        </div>
+                    </div>
+
+                    <!-- User Table -->
+                    <div class="user-table-container">
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Join Date</th>
+                                    <th>Last Active</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Analytics Section -->
+                <section class="analytics-section">
+                    <h2>Analytics</h2>
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h3>User Growth</h3>
+                            <canvas id="userGrowthChart" class="chart-canvas"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Monthly Revenue</h3>
+                            <canvas id="revenueChart" class="chart-canvas"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>User Distribution</h3>
+                            <canvas id="userDistributionChart" class="chart-canvas"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recent Activity Section -->
+                <section class="activity-section">
+                    <h2>Recent Activity</h2>
+                    <div class="activity-list" id="activityList">
+                        <!-- Activities will be loaded here -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Action Confirmation Modal -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Confirm Action</h3>
+                <p id="modalMessage">Are you sure you want to perform this action?</p>
+            </div>
+            <div class="modal-actions">
+                <button id="cancelAction" class="modal-btn cancel">Cancel</button>
+                <button id="confirmAction" class="modal-btn confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Scripts -->
+    <script src="../js/admin-navbar.js"></script>
+    <script src="../js/admin-menu.js"></script>
+    <script src="../js/admin-dashboard.js"></script>
+</body>
+</html>
