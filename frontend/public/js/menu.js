@@ -15,10 +15,11 @@ class SmartPOSMenu {
         this.createMenuHTML();
         this.attachEventListeners();
         this.setActiveMenuItem();
-        this.handleResponsive();
         
-        // For desktop, ensure menu is immediately visible without animation
+        // Set initial state based on screen size
         if (this.isDesktop) {
+            // Desktop: menu open by default
+            this.isMenuOpen = true;
             const sideMenu = document.getElementById('sideMenu');
             if (sideMenu) {
                 sideMenu.style.transition = 'none';
@@ -26,16 +27,20 @@ class SmartPOSMenu {
                 sideMenu.style.left = '0';
                 sideMenu.style.opacity = '1';
                 sideMenu.style.transform = 'translateX(0)';
+                sideMenu.style.visibility = 'visible';
                 
                 // Re-enable transitions after a brief delay
                 setTimeout(() => {
                     sideMenu.style.transition = '';
                 }, 50);
             }
+        } else {
+            // Mobile: restore saved state
+            this.restoreMenuState();
         }
         
-        // Restore menu state for mobile
-        this.restoreMenuState();
+        // Adjust content
+        this.adjustMainContentMargin();
         
         // Notify navbar that menu is ready
         setTimeout(() => {
@@ -142,9 +147,7 @@ class SmartPOSMenu {
         } else {
             this.openMenu(true); // true = show animation
         }
-    }
-
-    openMenu(withAnimation = false) {
+    }    openMenu(withAnimation = false) {
         // Prevent multiple simultaneous calls
         if (this.isMenuOpen) {
             return;
@@ -156,6 +159,10 @@ class SmartPOSMenu {
         if (sideMenu && menuOverlay) {
             // Set state first to prevent race conditions
             this.isMenuOpen = true;
+            
+            // Remove closing class and ensure visibility is set before opening
+            sideMenu.classList.remove('closing');
+            sideMenu.style.visibility = 'visible';
             
             // Add or remove animation class based on parameter
             if (withAnimation) {
@@ -197,7 +204,10 @@ class SmartPOSMenu {
             // Set state first to prevent race conditions
             this.isMenuOpen = false;
             
-            // Remove both open and animation classes
+            // Add closing class for fast transition
+            sideMenu.classList.add('closing');
+            
+            // Remove open and animation classes
             sideMenu.classList.remove('open');
             sideMenu.classList.remove('with-animation');
             menuOverlay.classList.remove('active');
@@ -209,10 +219,17 @@ class SmartPOSMenu {
             // Save state and notify navbar
             this.saveMenuState();
             this.notifyNavbarStateChange();
+              // Remove closing class and set visibility after fast transition
+            setTimeout(() => {
+                if (!this.isMenuOpen) {
+                    sideMenu.style.visibility = 'hidden';
+                    sideMenu.classList.remove('closing');
+                }
+            }, 100); // Match the faster closing transition duration
         } else {
             this.isMenuOpen = true; // Reset state on failure
         }
-    }    restoreMenuState() {
+    }restoreMenuState() {
         // Always ensure body can scroll initially
         document.body.style.overflow = '';
         
@@ -258,17 +275,24 @@ class SmartPOSMenu {
             // Notify navbar about state
             this.notifyNavbarStateChange();
         }
-    }
-
-    ensureMenuClosed() {
+    }    ensureMenuClosed() {
         const sideMenu = document.getElementById('sideMenu');
         const menuOverlay = document.getElementById('menuOverlay');
 
         if (sideMenu && menuOverlay) {
+            sideMenu.classList.add('closing');
             sideMenu.classList.remove('open', 'with-animation');
             menuOverlay.classList.remove('active');
             document.body.style.overflow = '';
             this.adjustMainContentMargin();
+              // Add a small delay to ensure the fast transition completes before setting visibility
+            setTimeout(() => {
+                // If menu is still closed (not reopened during timeout)
+                if (!this.isMenuOpen) {
+                    sideMenu.style.visibility = 'hidden';
+                    sideMenu.classList.remove('closing');
+                }
+            }, 100); // Match the faster closing transition duration
         }
     }saveMenuState() {
         // Save current menu state for persistence across pages
@@ -306,50 +330,68 @@ class SmartPOSMenu {
         
         // Default to dashboard if no specific page
         return 'dashboard';    }    handleResponsive() {
+        const wasDesktop = this.isDesktop;
         this.isDesktop = window.innerWidth >= 1024;
         
-        // Don't automatically close menu on page load
-        // Let restoreMenuState() handle the initial state
-        
-        // On window resize, respect current menu state
-        if (this.isMenuOpen) {
-            // If menu is open, ensure proper styling for current screen size
+        // If switching between desktop and mobile
+        if (wasDesktop !== this.isDesktop) {
             const sideMenu = document.getElementById('sideMenu');
             const menuOverlay = document.getElementById('menuOverlay');
             
-            if (sideMenu) {
-                sideMenu.classList.add('open');
-                // Don't add animation class during responsive handling
-                sideMenu.classList.remove('with-animation');
-            }
-            if (menuOverlay) {
-                menuOverlay.classList.add('active');
-            }
-            
-            // Handle overflow based on screen size
-            if (!this.isDesktop) {
-                document.body.style.overflow = 'hidden';
-            } else {
+            if (this.isDesktop) {
+                // Switching to desktop - show menu by default
+                this.isMenuOpen = true;                if (sideMenu) {
+                    sideMenu.style.transition = 'none'; // Disable transition for immediate change
+                    sideMenu.classList.remove('closing'); // Remove any closing class
+                    sideMenu.classList.add('open');
+                    sideMenu.style.visibility = 'visible';
+                    sideMenu.style.left = '0';
+                    sideMenu.style.opacity = '1';
+                    sideMenu.style.transform = 'translateX(0)';
+                    
+                    // Re-enable transitions after a brief delay
+                    setTimeout(() => {
+                        sideMenu.style.transition = '';
+                    }, 50);
+                }
+                if (menuOverlay) {
+                    menuOverlay.classList.remove('active');
+                }
                 document.body.style.overflow = '';
+            } else {
+                // Switching to mobile - respect saved state
+                const savedState = localStorage.getItem('menuState');
+                this.isMenuOpen = savedState === 'open';
+                  if (sideMenu) {
+                    if (this.isMenuOpen) {
+                        sideMenu.classList.remove('closing');
+                        sideMenu.classList.add('open');
+                        sideMenu.style.visibility = 'visible';
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        sideMenu.classList.add('closing');
+                        sideMenu.classList.remove('open');
+                        sideMenu.style.visibility = 'hidden';                        document.body.style.overflow = '';
+                        // Remove closing class after transition
+                        setTimeout(() => {
+                            sideMenu.classList.remove('closing');
+                        }, 100);
+                    }
+                }
+                if (menuOverlay) {
+                    if (this.isMenuOpen) {
+                        menuOverlay.classList.add('active');
+                    } else {
+                        menuOverlay.classList.remove('active');
+                    }
+                }
             }
-        } else {
-            // If menu is closed, ensure it's properly hidden
-            const sideMenu = document.getElementById('sideMenu');
-            const menuOverlay = document.getElementById('menuOverlay');
-            
-            if (sideMenu) {
-                sideMenu.classList.remove('open');
-                sideMenu.classList.remove('with-animation');
-            }
-            if (menuOverlay) {
-                menuOverlay.classList.remove('active');
-            }
-            
-            document.body.style.overflow = '';
         }
         
         // Always adjust main content margin based on current state
         this.adjustMainContentMargin();
+        this.saveMenuState();
+        this.notifyNavbarStateChange();
     }adjustMainContentMargin() {
         const mainContent = document.querySelector('.main-content') || 
                           document.querySelector('main') || 
@@ -359,12 +401,16 @@ class SmartPOSMenu {
         if (mainContent) {
             if (this.isDesktop && this.isMenuOpen) {
                 mainContent.style.marginLeft = '300px';
+                document.body.classList.remove('menu-closed');
+                document.body.classList.add('menu-open');
             } else {
                 mainContent.style.marginLeft = '0';
+                document.body.classList.remove('menu-open');
+                document.body.classList.add('menu-closed');
             }
-            mainContent.style.transition = 'margin-left 0.3s ease';
+            mainContent.style.transition = 'margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
         }
-    }    logout() {
+    }logout() {
         // Show confirmation dialog
         if (confirm('Are you sure you want to logout?')) {
             // Use auth service for logout if available
