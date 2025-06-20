@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Management - Smart POS Supplier</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Order Management - Smart POS Supplier</title>
     <link rel="stylesheet" href="../css/supplier-dashboard.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">    </head>
-<body>
-    <div class="dashboard-container"><!-- Main Content -->
-        <main class="main-content">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"></head>
+<body>    <div class="container">
+        <!-- Navbar component will be loaded here automatically -->
+
+        <div class="main-content">
             <!-- Order Management Content -->
 
             <!-- Dashboard Content -->
@@ -184,6 +185,15 @@
     </div>
 
     <!-- JavaScript -->
+    <script src="../js/supplier-navbar.js"></script>
+    <script src="../js/supplier-menu.js"></script>
     <script src="../js/supplier-orders.js"></script>
+    
+    <script>
+        // Initialize with custom title
+        if (typeof supplierNavbar !== 'undefined') {
+            supplierNavbar.updatePageTitle('Order Management');
+        }
+    </script>
 </body>
 </html>

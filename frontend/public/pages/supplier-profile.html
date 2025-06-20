@@ -5,16 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supplier Profile - Smart POS Supplier</title>
     <link rel="stylesheet" href="../css/supplier-dashboard.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">    </head>
-<body>
-    <div class="dashboard-container">
-
-        <!-- Main Content -->
+    <link rel="stylesheet" href="../css/menu.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>    <div class="container">
         <main class="main-content">
-            <div class="page-header">
-                <h1><i class="fas fa-user-cog"></i> Supplier Profile & Settings</h1>
-            </div>
-
             <!-- Profile Overview -->
             <div class="content-card">
                 <div class="profile-header">
@@ -942,8 +937,7 @@ United States</textarea>
                         </button>
                     </div>
                 </div>
-            </div>
-        </main>
+            </div>        </main>
     </div>
 
     <script src="../js/supplier-dashboard.js"></script>
@@ -1059,8 +1053,18 @@ United States</textarea>
                 } else {
                     this.checked = true;
                 }
-            }
-        });
+            }        });
+    </script>
+    
+    <!-- Include JavaScript files -->
+    <script src="../js/supplier-navbar.js"></script>
+    <script src="../js/supplier-menu.js"></script>
+    
+    <script>
+        // Initialize with custom title
+        if (typeof supplierNavbar !== 'undefined') {
+            supplierNavbar.updatePageTitle('Profile & Settings');
+        }
     </script>
 </body>
 </html>

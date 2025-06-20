@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Management - Smart POS Supplier</title>
     <link rel="stylesheet" href="../css/supplier-dashboard.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">    </head>
-<body>
-    <div class="dashboard-container">
-
-        <!-- Main Content -->
+    <link rel="stylesheet" href="../css/menu.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>    <div class="container">
         <main class="main-content">
-            <div class="page-header">
-                <h1><i class="fas fa-warehouse"></i> Inventory Management</h1>
+            <!-- Header Actions -->
+            <div class="content-header">
                 <div class="header-actions">
                     <button class="btn btn-secondary" onclick="exportInventory()">
                         <i class="fas fa-download"></i> Export
@@ -172,8 +171,7 @@
                 <div class="table-pagination" id="inventoryPagination">
                     <!-- Pagination will be populated by JavaScript -->
                 </div>
-            </div>
-        </main>
+            </div>        </main>
     </div>
 
     <!-- Item Details Modal -->
@@ -276,10 +274,18 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary close-modal">Cancel</button>
                 <button class="btn btn-primary" onclick="inventoryManager.saveStockAdjustment()">Save Adjustment</button>
-            </div>
-        </div>    </div>
+            </div>    </div>
 
     <!-- Include JavaScript files -->
+    <script src="../js/supplier-navbar.js"></script>
+    <script src="../js/supplier-menu.js"></script>
     <script src="../js/supplier-inventory.js"></script>
+    
+    <script>
+        // Initialize with custom title
+        if (typeof supplierNavbar !== 'undefined') {
+            supplierNavbar.updatePageTitle('Inventory Management');
+        }
+    </script>
 </body>
 </html>

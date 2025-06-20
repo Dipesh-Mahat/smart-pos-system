@@ -5,29 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart POS - Supplier Settings</title>
     <link rel="stylesheet" href="../css/supplier-dashboard.css">
+    <link rel="stylesheet" href="../css/menu.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">        <div class="loading-spinner"></div>
-    </div>
-
     <!-- Dashboard Container -->
-    <div class="dashboard-container">
-
-        <!-- Main Content -->
+    <div class="container">
         <main class="main-content">
-            <!-- Page Header -->
-            <div class="page-header">
-                <div class="page-title">
-                    <h1><i class="fas fa-cog"></i> Settings</h1>
-                    <p>Manage your account and application preferences</p>
-                </div>
-            </div>
-
             <!-- Settings Content -->
             <div class="content-area">
                 <!-- Settings Navigation Tabs -->
@@ -512,11 +498,19 @@
                             </div>
                         </div>
                     </div>
-                </div>        </div>
-        </main>
+                </div>        </div>        </main>
     </div>
 
     <!-- Scripts -->
+    <script src="../js/supplier-navbar.js"></script>
+    <script src="../js/supplier-menu.js"></script>
     <script src="../js/supplier-settings.js"></script>
+    
+    <script>
+        // Initialize with custom title
+        if (typeof supplierNavbar !== 'undefined') {
+            supplierNavbar.updatePageTitle('Settings');
+        }
+    </script>
 </body>
 </html>

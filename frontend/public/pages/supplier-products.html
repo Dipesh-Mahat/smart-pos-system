@@ -2,16 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart POS - My Products</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Smart POS - My Products</title>
     <link rel="stylesheet" href="../css/supplier-dashboard.css">
+    <link rel="stylesheet" href="../css/menu.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">    </head>
-<body>
-    <div class="dashboard-container"><!-- Main Content Area -->
-        <main class="main-content" id="mainContent">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"></head>
+<body>    <div class="container">
+        <!-- Navbar component will be loaded here automatically -->
+
+        <div class="main-content">
             <!-- Dashboard Content -->
             <div class="dashboard-content">
                 <!-- Product Statistics -->
@@ -45,15 +46,14 @@
                             <p>Low Stock</p>
                             <span class="stat-change negative">Needs attention</span>
                         </div>
-                    </div>
-                    <div class="stat-card">
+                    </div>                    <div class="stat-card">
                         <div class="stat-icon info">
-                            <i class="fas fa-star"></i>
+                            <i class="fas fa-boxes"></i>
                         </div>
                         <div class="stat-details">
                             <h3 id="topProducts">32</h3>
-                            <p>Top Performers</p>
-                            <span class="stat-change positive">This month</span>
+                            <p>Well Stocked</p>
+                            <span class="stat-change positive">Ready to ship</span>
                         </div>
                     </div>
                 </div>
@@ -64,15 +64,18 @@
                         <div class="search-box">
                             <i class="fas fa-search"></i>
                             <input type="text" placeholder="Search products by name, SKU, or category..." id="productSearch">
-                        </div>
-                        <div class="filter-controls">
+                        </div>                        <div class="filter-controls">
                             <select id="categoryFilter" class="filter-select">
                                 <option value="">All Categories</option>
-                                <option value="electronics">Electronics</option>
-                                <option value="clothing">Clothing</option>
-                                <option value="home">Home & Garden</option>
-                                <option value="sports">Sports</option>
-                                <option value="books">Books</option>
+                                <option value="beverages">Beverages</option>
+                                <option value="snacks">Snacks</option>
+                                <option value="chocolates">Chocolates</option>
+                                <option value="biscuits">Biscuits</option>
+                                <option value="groceries">Groceries</option>
+                                <option value="dairy">Dairy Products</option>
+                                <option value="household">Household Items</option>
+                                <option value="cooking-oil">Cooking Oil</option>
+                                <option value="instant-food">Instant Food</option>
                             </select>
                             <select id="statusFilter" class="filter-select">
                                 <option value="">All Status</option>
@@ -89,10 +92,13 @@
                 </div>
 
                 <!-- Products Table -->
-                <div class="table-container">
-                    <div class="table-header">
+                <div class="table-container">                    <div class="table-header">
                         <h3>Product Catalog</h3>
                         <div class="table-actions">
+                            <button class="btn-primary" id="addProductBtn">
+                                <i class="fas fa-plus"></i>
+                                Add Product
+                            </button>
                             <button class="btn-secondary" id="exportBtn">
                                 <i class="fas fa-download"></i>
                                 Export
@@ -153,8 +159,7 @@
                 <button class="modal-close" id="closeAddModal">
                     <i class="fas fa-times"></i>
                 </button>
-            </div>
-            <form class="modal-content" id="addProductForm">
+            </div>            <form class="modal-content" id="addProductForm" style="padding: 20px 24px;">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="productName">Product Name *</label>
@@ -167,14 +172,17 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="productCategory">Category *</label>
-                        <select id="productCategory" name="productCategory" required>
+                        <label for="productCategory">Category *</label>                        <select id="productCategory" name="productCategory" required>
                             <option value="">Select Category</option>
-                            <option value="electronics">Electronics</option>
-                            <option value="clothing">Clothing</option>
-                            <option value="home">Home & Garden</option>
-                            <option value="sports">Sports</option>
-                            <option value="books">Books</option>
+                            <option value="beverages">Beverages</option>
+                            <option value="snacks">Snacks</option>
+                            <option value="chocolates">Chocolates</option>
+                            <option value="biscuits">Biscuits</option>
+                            <option value="groceries">Groceries</option>
+                            <option value="dairy">Dairy Products</option>
+                            <option value="household">Household Items</option>
+                            <option value="cooking-oil">Cooking Oil</option>
+                            <option value="instant-food">Instant Food</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -222,9 +230,7 @@
                 </div>
             </form>
         </div>
-    </div>
-
-    <!-- Edit Product Modal -->
+    </div>    <!-- Edit Product Modal -->
     <div class="modal-overlay" id="editProductModal">
         <div class="modal-container">
             <div class="modal-header">
@@ -233,14 +239,86 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <form class="modal-content" id="editProductForm">
-                <!-- Same form fields as add modal, will be populated via JavaScript -->
+            <form class="modal-content" id="editProductForm" style="padding: 20px 24px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editProductName">Product Name *</label>
+                        <input type="text" id="editProductName" name="productName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductSKU">SKU *</label>
+                        <input type="text" id="editProductSKU" name="productSKU" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editProductCategory">Category *</label>                        <select id="editProductCategory" name="productCategory" required>
+                            <option value="">Select Category</option>
+                            <option value="beverages">Beverages</option>
+                            <option value="snacks">Snacks</option>
+                            <option value="chocolates">Chocolates</option>
+                            <option value="biscuits">Biscuits</option>
+                            <option value="groceries">Groceries</option>
+                            <option value="dairy">Dairy Products</option>
+                            <option value="household">Household Items</option>
+                            <option value="cooking-oil">Cooking Oil</option>
+                            <option value="instant-food">Instant Food</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductBrand">Brand</label>
+                        <input type="text" id="editProductBrand" name="productBrand">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editProductPrice">Price (₹) *</label>
+                        <input type="number" id="editProductPrice" name="productPrice" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductCost">Cost Price (₹)</label>
+                        <input type="number" id="editProductCost" name="productCost" step="0.01" min="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editProductStock">Stock *</label>
+                        <input type="number" id="editProductStock" name="productStock" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductMinStock">Minimum Stock Alert</label>
+                        <input type="number" id="editProductMinStock" name="productMinStock" min="0" value="10">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editProductDescription">Description</label>
+                    <textarea id="editProductDescription" name="productDescription" rows="3" placeholder="Enter product description..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelEditProduct">Cancel</button>
+                    <button type="submit" class="btn-primary">Update Product</button>
+                </div>
             </form>
         </div>
-    </div>    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-    </div>
+    </div>        </main> <!-- End of main-content -->
+    </div> <!-- End of container -->
+
+    <!-- Navbar and Menu Scripts -->
+    <script src="../js/supplier-navbar.js"></script>
+    <script src="../js/supplier-menu.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize supplier navbar
+            if (typeof SupplierNavbar !== 'undefined') {
+                const navbar = new SupplierNavbar({
+                    title: 'Product Catalog',
+                    showNotifications: true,
+                    showProfile: true,
+                    userType: 'supplier'
+                });
+            }
+        });
+    </script>
 
     <!-- JavaScript -->
     <script src="../js/supplier-products.js"></script>

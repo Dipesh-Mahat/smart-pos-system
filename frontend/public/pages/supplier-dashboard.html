@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart POS - Supplier Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Smart POS - Supplier Dashboard</title>
     <link rel="stylesheet" href="../css/supplier-dashboard.css">
+    <link rel="stylesheet" href="../css/menu.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -25,19 +25,16 @@
             
             // Ensure token is fresh
             window.authService.ensureFreshToken();
-        });
-    </script>
+        });    </script>
 </head>
-<body>    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-    </div>
-
+<body>
     <!-- Dashboard Container -->
-    <div class="dashboard-container"><!-- Main Content Area -->
-        <main class="main-content" id="mainContent">
-        <!-- Dashboard Content -->
-        <div class="dashboard-content" id="dashboardContent">
+    <div class="container">
+        <!-- Navbar component will be loaded here automatically -->
+
+        <div class="main-content">
+            <!-- Dashboard Content -->
+            <div class="dashboard-content" id="dashboardContent">
             <!-- Quick Stats -->
             <section class="stats-section">
                 <div class="stats-grid">
@@ -366,13 +363,60 @@
                 <div class="form-group">
                     <label for="productImage">Product Image</label>
                     <input type="file" id="productImage" accept="image/*">
-                </div>
-                <div class="form-actions">
+                </div>                <div class="form-actions">
                     <button type="button" class="btn-secondary" id="cancelAddProduct">Cancel</button>
                     <button type="submit" class="btn-primary">Add Product</button>
                 </div>            </form>
         </div>
-    </div>    </div> <!-- End of dashboard-container -->
+    </div>
+
+        </div> <!-- End of main-content -->
+    </div> <!-- End of container -->    <!-- Navbar and Menu Scripts -->
+    <script src="../js/supplier-navbar.js"></script>
+    <script src="../js/supplier-menu.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize supplier navbar with supplier-specific options
+            if (typeof SupplierNavbar !== 'undefined') {
+                const navbar = new SupplierNavbar({
+                    title: 'Supplier Dashboard',
+                    showSearch: true,
+                    showNotifications: true,
+                    showProfile: true,
+                    userType: 'supplier'
+                });
+            }
+
+            // Handle custom navbar actions
+            window.addEventListener('supplierNavbarAction', (event) => {
+                const { actionId } = event.detail;
+                
+                switch(actionId) {
+                    case 'search':
+                        handleSearch();
+                        break;
+                    case 'notification':
+                        handleNotification();
+                        break;
+                    case 'profile':
+                        handleProfileAction();
+                        break;
+                }
+            });
+        });
+
+        function handleSearch() {
+            console.log('Supplier search triggered');
+        }
+
+        function handleNotification() {
+            console.log('Supplier notification clicked');
+        }
+
+        function handleProfileAction() {
+            console.log('Supplier profile action');
+        }
+    </script>
 
     <!-- JavaScript -->
     <script src="../js/supplier-dashboard.js"></script>

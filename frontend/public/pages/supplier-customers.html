@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Management - Smart POS Supplier</title>
     <link rel="stylesheet" href="../css/supplier-dashboard.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">    </head>
+    <link rel="stylesheet" href="../css/menu.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
 <body>
-    <div class="dashboard-container"><!-- Main Content -->
+    <div class="container">
         <main class="main-content">
             <!-- Customer Management Content -->
 
@@ -354,8 +356,7 @@
                         <button class="btn btn-secondary" onclick="nextPage()" id="nextBtn">Next</button>
                     </div>
                 </div>
-            </div>
-        </main>
+            </div>        </main>
     </div>
 
     <!-- Add Customer Modal -->
@@ -908,10 +909,20 @@
             document.getElementById('statusFilter').value = '';
             document.getElementById('typeFilter').value = '';
             document.getElementById('regionFilter').value = '';        filterCustomers();
-        }
-    </script>
+        }    </script>
 
+    <!-- Include the supplier navbar and menu -->
+    <script src="../js/supplier-navbar.js"></script>
+    <script src="../js/supplier-menu.js"></script>
+    
     <!-- Include the customer management JavaScript -->
     <script src="../js/supplier-customers.js"></script>
+    
+    <script>
+        // Initialize with custom title
+        if (typeof supplierNavbar !== 'undefined') {
+            supplierNavbar.updatePageTitle('Customer Management');
+        }
+    </script>
 </body>
 </html>
