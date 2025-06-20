@@ -19,36 +19,61 @@
             opacity: 1 !important;
             visibility: visible !important;
         }
-        
-        /* Preload menu positioning for desktop */
+          /* Preload menu positioning for desktop */
         @media screen and (min-width: 1024px) {
             /* Menu styles that need to be loaded immediately */
             #sideMenu, .side-menu {
                 position: fixed !important;
                 top: 72px !important;
-                left: 0 !important;
                 width: 300px !important;
                 height: calc(100vh - 72px) !important;
                 background: white !important;
                 z-index: 999 !important;
                 border-right: 1px solid #e9ecef !important;
+            }
+            
+            /* Open state */
+            #sideMenu.open, .side-menu.open {
+                left: 0 !important;
                 opacity: 1 !important;
                 transform: translateX(0) !important;
                 visibility: visible !important;
             }
             
+            /* Closed state */
+            #sideMenu:not(.open), .side-menu:not(.open) {
+                left: -300px !important;
+                opacity: 0 !important;
+                transform: translateX(-100%) !important;
+                visibility: hidden !important;
+            }
+              /* Closing transition */
+            #sideMenu.closing, .side-menu.closing {
+                transition: all 0.15s ease-out !important;
+            }
+            
             .pos-main {
-                margin-left: 300px !important;
+                margin-left: 0 !important;
                 transition: margin-left 0.3s ease;
+            }
+            
+            /* Adjust main content when menu is closed */
+            body.menu-closed .main-content {
+                margin-left: 0 !important;
             }
             
             .menu-overlay {
                 display: none !important;
-            }
-            
-            /* Ensure main content is positioned correctly */
+            }            /* Ensure main content is positioned correctly */
             .main-content {
                 margin-left: 300px !important;
+                transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                padding: 0 !important;
+            }
+            
+            /* When menu is closed, adjust main content */
+            body.menu-closed .main-content {
+                margin-left: 0 !important;
             }
         }
         
@@ -1382,10 +1407,11 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Navbar component will be loaded here automatically -->
-        
-        <div class="pos-container">            <div class="pos-main">
+    <div class="main-content">
+        <div class="container">
+            <!-- Navbar component will be loaded here automatically -->
+            
+            <div class="pos-container"><div class="pos-main">
                 <div class="search-bar">
                     <input type="text" class="search-input" id="searchInput" placeholder="Search products or scan barcode...">
                     <button class="scan-btn" id="scanBtn">
@@ -1669,8 +1695,8 @@
                 <p>Or enter barcode manually:</p>
                 <input type="text" id="manualBarcode" placeholder="Enter barcode number">
                 <button id="addManualBarcode">Add Product</button>
-            </div>
-        </div>
+            </div>        </div>
+    </div>
     </div>
 
     <!-- Professional Reusable Menu Component -->

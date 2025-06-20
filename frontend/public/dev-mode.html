@@ -31,12 +31,11 @@
             margin-bottom: 30px;
             color: #333;
         }
-        
-        .dev-options {
+          .dev-options {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
         
         .dev-option {
@@ -46,11 +45,18 @@
             text-align: center;
             transition: transform 0.3s, box-shadow 0.3s;
             cursor: pointer;
+            border: 2px solid transparent;
         }
         
         .dev-option:hover {
             transform: translateY(-5px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: #007bff;
+        }
+        
+        /* Supplier pages have green hover */
+        .dev-option:has(i[style*="color: #28a745"]):hover {
+            border-color: #28a745;
         }
         
         .dev-option i {
@@ -68,14 +74,34 @@
             color: #666;
             font-size: 14px;
         }
-        
-        .dev-note {
+          .dev-note {
             background-color: #f8f9fa;
             padding: 15px;
             border-left: 4px solid #667eea;
             margin-top: 20px;
             font-size: 14px;
             color: #555;
+        }
+        
+        .section-title {
+            margin: 40px 0 20px 0;
+            color: #333;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title:first-of-type {
+            margin-top: 0;
+        }
+        
+        .section-title.shop-owner {
+            border-bottom: 2px solid #007bff;
+        }
+        
+        .section-title.supplier {
+            border-bottom: 2px solid #28a745;
         }
     </style>
     
@@ -95,8 +121,11 @@
                 alert('Development auth service not loaded correctly. Please check the console.');
             }
         });
+          function navigateTo(page) {
+            window.location.href = `pages/${page}.html`;
+        }
         
-        function navigateTo(page) {
+        function navigateToSupplier(page) {
             window.location.href = `pages/${page}.html`;
         }
     </script>
@@ -107,7 +136,9 @@
     </div>
     
     <div class="dev-container">
-        <h1 class="dev-title">Smart POS System - Development Mode</h1>
+        <h1 class="dev-title">Smart POS System - Development Mode</h1>        <h2 class="section-title shop-owner">
+            <i class="fas fa-store"></i> Shop Owner Pages
+        </h2>
         
         <div class="dev-options">
             <div class="dev-option" onclick="navigateTo('dashboard')">
@@ -144,6 +175,60 @@
                 <i class="fas fa-cubes"></i>
                 <h3>Item Management</h3>
                 <p>Add and edit items</p>
+            </div>
+        </div>
+        
+        <h2 class="section-title supplier">
+            <i class="fas fa-truck"></i> Supplier Pages
+        </h2>
+        
+        <div class="dev-options">
+            <div class="dev-option" onclick="navigateToSupplier('supplier-dashboard')">
+                <i class="fas fa-tachometer-alt" style="color: #28a745;"></i>
+                <h3>Supplier Dashboard</h3>
+                <p>View supplier analytics and overview</p>
+            </div>
+            
+            <div class="dev-option" onclick="navigateToSupplier('supplier-products')">
+                <i class="fas fa-box-open" style="color: #28a745;"></i>
+                <h3>Product Catalog</h3>
+                <p>Manage supplier product listings</p>
+            </div>
+            
+            <div class="dev-option" onclick="navigateToSupplier('supplier-orders')">
+                <i class="fas fa-shopping-cart" style="color: #28a745;"></i>
+                <h3>Orders</h3>
+                <p>View and manage orders from shops</p>
+            </div>
+            
+            <div class="dev-option" onclick="navigateToSupplier('supplier-customers')">
+                <i class="fas fa-users" style="color: #28a745;"></i>
+                <h3>Customers</h3>
+                <p>Manage shop relationships</p>
+            </div>
+            
+            <div class="dev-option" onclick="navigateToSupplier('supplier-inventory')">
+                <i class="fas fa-warehouse" style="color: #28a745;"></i>
+                <h3>Inventory</h3>
+                <p>Track supplier stock levels</p>
+            </div>
+            
+            <div class="dev-option" onclick="navigateToSupplier('supplier-analytics')">
+                <i class="fas fa-chart-bar" style="color: #28a745;"></i>
+                <h3>Analytics</h3>
+                <p>View sales and performance data</p>
+            </div>
+            
+            <div class="dev-option" onclick="navigateToSupplier('supplier-profile')">
+                <i class="fas fa-user-cog" style="color: #28a745;"></i>
+                <h3>Profile</h3>
+                <p>Manage supplier profile settings</p>
+            </div>
+            
+            <div class="dev-option" onclick="navigateToSupplier('supplier-settings')">
+                <i class="fas fa-cog" style="color: #28a745;"></i>
+                <h3>Settings</h3>
+                <p>Configure supplier preferences</p>
             </div>
         </div>
         

@@ -81,10 +81,10 @@
 
         .stat-label {
             color: #666;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }        .tools-section {
+            font-size: 0.9rem;            text-transform: uppercase;            letter-spacing: 0.5px;
+        }
+
+        .stats-section {
             background: white;
             padding: 30px;
             border-radius: 16px;
@@ -101,83 +101,6 @@
             display: flex;
             align-items: center;
             gap: 15px;
-        }
-
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-        }        .tool-card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid #e9ecef;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .tool-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-
-        .tool-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: #007bff;
-        }        .tool-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            background: #007bff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            color: white;
-            margin-bottom: 15px;
-        }
-
-        .tool-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .tool-description {
-            color: #666;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            margin-bottom: 15px;
-        }
-
-        .tool-features {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .tool-features li {
-            color: #555;
-            font-size: 0.8rem;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .tool-features li::before {
-            content: '✓';
-            color: #22c55e;
-            font-weight: bold;
         }
 
         .alerts-section {
@@ -328,14 +251,8 @@
                 flex-direction: column;
                 gap: 20px;
                 align-items: stretch;
-            }
-
-            .quick-actions {
+            }            .quick-actions {
                 justify-content: center;
-            }
-
-            .tools-grid {
-                grid-template-columns: 1fr;
             }
 
             .stats-overview {
@@ -360,10 +277,9 @@
         }
     </style>
 </head>
-<body>    <div class="main-content">
-        <div class="inventory-container">
+<body>    <div class="main-content">        <div class="inventory-container">
             <!-- Statistics Overview -->
-            <div class="tools-section">
+            <div class="stats-section">
                 <div class="stats-overview">
                     <div class="stat-card">
                         <div class="stat-icon">
@@ -391,95 +307,7 @@
                             <i class="fas fa-dollar-sign"></i>
                         </div>
                         <div class="stat-number">NPR 847K</div>
-                        <div class="stat-label">Total Value</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Inventory Tools -->
-            <div class="tools-section">
-                <h2 class="section-title">
-                    <i class="fas fa-tools"></i>
-                    Inventory Tools
-                </h2>
-                <div class="tools-grid">
-                    <div class="tool-card" onclick="openScanner()">
-                        <div class="tool-icon">
-                            <i class="fas fa-qrcode"></i>
-                        </div>
-                        <div class="tool-title">Barcode Scanner</div>
-                        <div class="tool-description">Quickly scan barcodes to update inventory, check stock levels, or add new items.</div>
-                        <ul class="tool-features">
-                            <li>Real-time scanning</li>
-                            <li>Batch processing</li>
-                            <li>Audio feedback</li>
-                        </ul>
-                    </div>
-
-                    <div class="tool-card" onclick="openStockTake()">
-                        <div class="tool-icon">
-                            <i class="fas fa-clipboard-check"></i>
-                        </div>
-                        <div class="tool-title">Stock Take</div>
-                        <div class="tool-description">Perform comprehensive stock counts with guided workflows and variance tracking.</div>
-                        <ul class="tool-features">
-                            <li>Guided counting process</li>
-                            <li>Variance detection</li>
-                            <li>Historical comparisons</li>
-                        </ul>
-                    </div>
-
-                    <div class="tool-card" onclick="openReceiving()">
-                        <div class="tool-icon">
-                            <i class="fas fa-truck-loading"></i>
-                        </div>
-                        <div class="tool-title">Receive Stock</div>
-                        <div class="tool-description">Process incoming shipments, update quantities, and verify deliveries against purchase orders.</div>
-                        <ul class="tool-features">
-                            <li>Purchase order matching</li>
-                            <li>Quality verification</li>
-                            <li>Automatic updates</li>
-                        </ul>
-                    </div>
-
-                    <div class="tool-card" onclick="openReporting()">
-                        <div class="tool-icon">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <div class="tool-title">Inventory Reports</div>
-                        <div class="tool-description">Generate detailed reports on stock levels, movements, valuation, and turnover rates.</div>
-                        <ul class="tool-features">
-                            <li>Stock movement analysis</li>
-                            <li>Valuation reports</li>
-                            <li>Turnover insights</li>
-                        </ul>
-                    </div>
-
-                    <div class="tool-card" onclick="openTransfers()">
-                        <div class="tool-icon">
-                            <i class="fas fa-exchange-alt"></i>
-                        </div>
-                        <div class="tool-title">Stock Transfers</div>
-                        <div class="tool-description">Move inventory between locations, departments, or storage areas with full tracking.</div>
-                        <ul class="tool-features">
-                            <li>Multi-location support</li>
-                            <li>Transfer tracking</li>
-                            <li>Approval workflows</li>
-                        </ul>
-                    </div>
-
-                    <div class="tool-card" onclick="openAdjustments()">
-                        <div class="tool-icon">
-                            <i class="fas fa-balance-scale"></i>
-                        </div>
-                        <div class="tool-title">Stock Adjustments</div>
-                        <div class="tool-description">Make inventory adjustments for damages, losses, found items, or corrections.</div>
-                        <ul class="tool-features">
-                            <li>Reason code tracking</li>
-                            <li>Approval requirements</li>
-                            <li>Audit trail</li>
-                        </ul>
-                    </div>
+                        <div class="stat-label">Total Value</div>                    </div>
                 </div>
             </div>
 
@@ -596,45 +424,7 @@
                     </div>
                 </div>
             </div>        </div>
-    </div>
-
-    <script>
-        function openScanner() {
-            console.log('Opening barcode scanner...');
-            // This would typically open a camera interface for scanning
-            alert('Barcode scanner feature will be implemented');
-        }
-
-        function openStockTake() {
-            console.log('Opening stock take...');
-            // Navigate to stock take interface
-            alert('Stock take feature will be implemented');
-        }
-
-        function openReceiving() {
-            console.log('Opening receiving interface...');
-            // Navigate to receiving interface
-            alert('Receiving feature will be implemented');
-        }
-
-        function openReporting() {
-            console.log('Opening inventory reports...');
-            // Navigate to reporting interface
-            alert('Inventory reporting feature will be implemented');
-        }
-
-        function openTransfers() {
-            console.log('Opening stock transfers...');
-            // Navigate to transfers interface
-            alert('Stock transfers feature will be implemented');
-        }
-
-        function openAdjustments() {
-            console.log('Opening stock adjustments...');
-            // Navigate to adjustments interface
-            alert('Stock adjustments feature will be implemented');
-        }
-
+    </div>    <script>
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Inventory Management page loaded');

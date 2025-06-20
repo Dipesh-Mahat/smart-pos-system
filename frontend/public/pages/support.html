@@ -12,13 +12,48 @@
             background-color: #f8f9fa;
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .main-content {
+        }        .main-content {
             padding: 32px;
             margin-left: 0;
-            transition: margin-left 0.3s ease;
+            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             min-height: auto;
+        }        /* Desktop menu adjustments */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                margin-left: 300px;
+            }
+            
+            body.menu-closed .main-content {
+                margin-left: 0;
+            }
+        }
+
+        /* Menu toggle button for desktop */
+        .menu-toggle-desktop {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+
+        .menu-toggle-desktop:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transform: scale(1.05);
+        }
+
+        @media screen and (max-width: 1023px) {
+            .menu-toggle-desktop {
+                display: none;
+            }
         }
 
         .support-header {
@@ -410,6 +445,11 @@
     </style>
 </head>
 <body>
+    <!-- Menu Toggle Button for Desktop -->
+    <button class="menu-toggle-desktop" onclick="toggleMenuFromPage()" title="Toggle Menu">
+        <i class="fas fa-bars"></i>
+    </button>
+    
     <div class="main-content">
         <div class="support-header">
             <h1 class="support-title">Support & Help Center</h1>
@@ -780,11 +820,16 @@
             
             // Clear search when filtering
             document.getElementById('faqSearch').value = '';
-        }
-
-        // Live Chat functionality (placeholder)
+        }        // Live Chat functionality (placeholder)
         function openLiveChat() {
             alert('Live chat feature coming soon! Please use phone or email support for immediate assistance.');
+        }
+
+        // Toggle menu from page
+        function toggleMenuFromPage() {
+            if (window.smartPOSMenu) {
+                window.smartPOSMenu.toggleMenu();
+            }
         }
 
         // Initialize page

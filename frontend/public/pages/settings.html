@@ -26,6 +26,24 @@
         });
     </script>    <style>
         /* Settings Page Specific Styles */
+        .main-content {
+            padding: 0;
+            margin-left: 0;
+            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: auto;
+        }
+
+        /* Desktop menu adjustments */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                margin-left: 300px;
+            }
+            
+            body.menu-closed .main-content {
+                margin-left: 0;
+            }
+        }
+        
         .settings-container {
             padding: 24px;
             background-color: #f8f9fa;
@@ -854,7 +872,9 @@
         }
     </style>
 </head>
-<body>    <div class="settings-container">
+<body>
+    <div class="main-content">
+        <div class="settings-container">
         <div class="settings-grid">            <!-- Main Settings (Account + Store + System) -->
             <div class="settings-group main-settings-group">                <div class="settings-group-header">
                     <i class="fas fa-cogs"></i> General Settings
@@ -1108,11 +1128,11 @@
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div>        </div>
+    </div>
     </div>
 
-    <!-- Professional Reusable Menu Component -->    <script>
+    <!-- Professional Reusable Menu Component --><script>
         function toggleNotifications() {
             const toggle = document.getElementById('notificationToggle');
             toggle.classList.toggle('active');
