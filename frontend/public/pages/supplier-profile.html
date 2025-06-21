@@ -11,10 +11,9 @@
 <body>    <div class="container">
         <main class="main-content">
             <!-- Profile Overview -->
-            <div class="content-card">
-                <div class="profile-header">
+            <div class="content-card">                <div class="profile-header">
                     <div class="profile-avatar">
-                        <img src="../images/avatars/user-avatar.png" alt="Profile Picture" id="profileImage">
+                        <img src="../images/avatars/user-avatar.png" alt="Profile Picture" id="profileImage" onerror="this.src='../images/avatars/user-avatar.png'">
                         <div class="avatar-upload">
                             <input type="file" id="profilePicture" accept="image/*" style="display: none;">
                             <button class="avatar-upload-btn" onclick="document.getElementById('profilePicture').click()">

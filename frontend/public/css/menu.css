@@ -311,15 +311,18 @@
     position: sticky;
     top: 0;
     z-index: 100;
+    width: 100vw !important; /* Use viewport width */
+    margin: 0 !important;
 }
 
 .navbar-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 20px;
+    width: 100vw !important; /* Use viewport width */
+    margin: 0 !important;
+    padding: 0 20px !important; /* Balanced padding on both sides */
     display: flex;
     align-items: center;
     justify-content: space-between;
+    box-sizing: border-box;
 }
 
 .navbar-brand {
@@ -601,6 +604,9 @@
     padding: 25px 20px;
     text-align: center;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .menu-header h3 {
@@ -854,4 +860,15 @@
         top: 70px;
         height: calc(100vh - 70px);
     }
+}
+
+.menu-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.menu-title {
+    text-align: center;
 }

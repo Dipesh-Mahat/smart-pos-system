@@ -106,11 +106,9 @@ class SupplierNavbar {
             `<div class="supplier-notification-icon" id="supplierNotificationIcon">
                 <i class="fas fa-bell"></i>
                 <span class="supplier-notification-badge" id="supplierNotificationBadge">${this.notificationCount}</span>
-            </div>` : '';
-
-        const profile = this.options.showProfile ? 
+            </div>` : '';        const profile = this.options.showProfile ? 
             `<div class="supplier-profile-icon" id="supplierProfileIcon">
-                <img src="../images/avatars/user-avatar.png" alt="Profile" id="supplierProfileImage">
+                <img src="../images/avatars/user-avatar.png" alt="Profile" id="supplierProfileImage" onerror="this.src='../images/avatars/user-avatar.png'">
                 <div class="supplier-profile-dropdown" id="supplierProfileDropdown">
                     <div class="profile-dropdown-header">
                         <div class="profile-info">

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart POS - Admin Dashboard</title>
-    <link rel="stylesheet" href="../css/admin-dashboard.css">
+    <title>Smart POS - Admin Dashboard</title>    <link rel="stylesheet" href="../css/admin-dashboard.css">
     <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="../css/admin-view-more.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,21 +14,42 @@
     <!-- Chart.js for analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-    <!-- Admin Navbar -->
+<body>    <!-- Admin Navbar -->
     <div id="adminNavbar"></div>
-    
-    <div class="container">
-        <!-- Admin Sidebar Menu -->
-        <div id="adminMenu"></div>
-        
+      <div class="container">
+        <!-- Main content without sidebar menu -->
         <main class="main-content">
             <!-- Admin Dashboard Content -->
             <div class="dashboard-content">
-                <!-- Dashboard Header -->
-                <div class="dashboard-header">
-                    <h1>Admin Dashboard</h1>
-                    <p>System Management & User Control</p>
+                <!-- Admin Welcome Hero Section -->
+                <div class="admin-hero-section">
+                    <div class="admin-welcome">
+                        <div class="admin-profile-card">
+                            <img src="../images/avatars/admin-avatar.jpg" alt="Admin" class="admin-profile-img" onerror="this.src='../images/avatars/user-avatar.png'">
+                            <div class="admin-details">
+                                <h3>Welcome, System Admin!</h3>
+                                <p>Last login: <span id="lastLoginTime">Today, 11:05 AM</span></p>
+                            </div>
+                        </div>
+                        <div class="quick-actions-bar">
+                            <button class="quick-action-button" title="Export Reports">
+                                <i class="fas fa-file-export"></i>
+                                <span>Export</span>
+                            </button>
+                            <button class="quick-action-button" title="System Settings">
+                                <i class="fas fa-cog"></i>
+                                <span>Settings</span>
+                            </button>
+                            <button class="quick-action-button" title="Security Logs">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Security</span>
+                            </button>
+                            <button class="quick-action-button primary" title="Add New User">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Add User</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- System Overview Stats -->
@@ -84,13 +105,94 @@
                                 <p>Total Revenue</p>
                                 <span class="stat-change positive">+18% this month</span>
                             </div>
+                        </div>                    </div>
+                </section>
+
+                <!-- System Health Section -->
+                <section class="system-health-section">
+                    <div class="section-header">
+                        <h2>System Health</h2>
+                        <div class="section-actions">
+                            <button class="section-action" title="Refresh Status">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="section-action" title="View Detailed Logs">
+                                <i class="fas fa-clipboard-list"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="health-grid">
+                        <div class="health-card">
+                            <div class="health-icon healthy">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <div class="health-info">
+                                <h4>API Server</h4>
+                                <div class="health-status">
+                                    <span class="status-indicator online"></span>
+                                    <span class="status-text">Online</span>
+                                </div>
+                                <p class="health-details">Response time: 42ms</p>
+                            </div>
+                        </div>
+                        <div class="health-card">
+                            <div class="health-icon healthy">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="health-info">
+                                <h4>Database</h4>
+                                <div class="health-status">
+                                    <span class="status-indicator online"></span>
+                                    <span class="status-text">Online</span>
+                                </div>
+                                <p class="health-details">Queries: 1.5k/min</p>
+                            </div>
+                        </div>
+                        <div class="health-card">
+                            <div class="health-icon warning">
+                                <i class="fas fa-memory"></i>
+                            </div>
+                            <div class="health-info">
+                                <h4>Memory Usage</h4>
+                                <div class="health-status">
+                                    <span class="status-indicator warning"></span>
+                                    <span class="status-text">Warning</span>
+                                </div>
+                                <p class="health-details">76% utilized</p>
+                            </div>
+                        </div>
+                        <div class="health-card">
+                            <div class="health-icon healthy">
+                                <i class="fas fa-cloud"></i>
+                            </div>
+                            <div class="health-info">
+                                <h4>Cloud Storage</h4>
+                                <div class="health-status">
+                                    <span class="status-indicator online"></span>
+                                    <span class="status-text">Online</span>
+                                </div>
+                                <p class="health-details">48% utilized</p>
+                            </div>
                         </div>
                     </div>
                 </section>
 
                 <!-- User Management Section -->
                 <section class="user-management-section">
-                    <h2>User Management</h2>
+                    <div class="section-header">
+                        <h2>User Management</h2>
+                        <div class="section-actions">
+                            <button class="section-action" title="Export Users">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="section-action" title="Add New User">
+                                <i class="fas fa-user-plus"></i>
+                            </button>
+                            <button class="section-action" title="User Settings">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                    </div>
                     
                     <!-- User Filters -->
                     <div class="user-filters">
@@ -111,9 +213,12 @@
                                 <option value="banned">Banned</option>
                             </select>
                         </div>
-                        <div class="filter-group">
+                        <div class="filter-group search-group">
                             <label for="userSearch">Search Users</label>
-                            <input type="text" id="userSearch" class="search-input" placeholder="Search by name or email...">
+                            <div class="search-with-icon">
+                                <input type="text" id="userSearch" class="search-input" placeholder="Search by name or email...">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
                         </div>
                     </div>
 
@@ -134,6 +239,15 @@
                                 <!-- Users will be loaded here -->
                             </tbody>
                         </table>
+                        <div class="table-pagination">
+                            <button class="pagination-btn" id="prevPageBtn" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span class="pagination-info" id="paginationInfo">Page 1 of 5</span>
+                            <button class="pagination-btn" id="nextPageBtn">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </section>
 
@@ -154,13 +268,26 @@
                             <canvas id="userDistributionChart" class="chart-canvas"></canvas>
                         </div>
                     </div>
-                </section>
-
-                <!-- Recent Activity Section -->
+                </section>                <!-- Recent Activity Section -->
                 <section class="activity-section">
-                    <h2>Recent Activity</h2>
+                    <div class="section-header">
+                        <h2>Recent Activity</h2>
+                        <div class="section-actions">
+                            <button class="section-action" title="Filter Activities">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                            <button class="section-action" title="View All Activities">
+                                <i class="fas fa-external-link-alt"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div class="activity-list" id="activityList">
                         <!-- Activities will be loaded here -->
+                    </div>
+                    <div class="view-more-container">
+                        <button id="loadMoreActivities" class="view-more-btn">
+                            <i class="fas fa-history"></i> Load More Activities
+                        </button>
                     </div>
                 </section>
             </div>
@@ -179,11 +306,8 @@
                 <button id="confirmAction" class="modal-btn confirm">Confirm</button>
             </div>
         </div>
-    </div>
-
-    <!-- Admin Scripts -->
+    </div>    <!-- Admin Scripts -->
     <script src="../js/admin-navbar.js"></script>
-    <script src="../js/admin-menu.js"></script>
     <script src="../js/admin-dashboard.js"></script>
 </body>
 </html>

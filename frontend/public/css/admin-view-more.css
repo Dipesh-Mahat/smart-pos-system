@@ -1,0 +1,27 @@
+/* View More Button */
+.view-more-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.view-more-btn {
+    background: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    color: #3498db;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.view-more-btn:hover {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}

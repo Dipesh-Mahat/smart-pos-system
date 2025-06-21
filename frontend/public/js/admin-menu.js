@@ -18,10 +18,12 @@ class AdminMenu {
 
     render() {
         const menuHTML = `
-            <aside class="admin-menu">
-                <div class="menu-header">
-                    <h3>Admin Panel</h3>
-                    <p>System Management</p>
+            <aside class="admin-menu">                <div class="menu-header">
+                    <img src="../images/logos/smart-pos-logo.png" alt="Smart POS" class="menu-logo">
+                    <div class="menu-title">
+                        <h3>Admin Panel</h3>
+                        <p>System Management</p>
+                    </div>
                 </div>
                 
                 <nav class="menu-nav">

@@ -5,13 +5,21 @@
     box-sizing: border-box;
 }
 
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+}
+
 body {
     font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #ffffff;
     min-height: 100vh;
     color: #333;
     margin: 0;
     padding: 0;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Fixed Admin Navbar */
@@ -23,12 +31,9 @@ body {
     z-index: 1000;
 }
 
+/* Hide the admin menu */
 #adminMenu {
-    position: fixed;
-    top: 70px;
-    left: 0;
-    height: calc(100vh - 70px);
-    z-index: 999;
+    display: none;
 }
 
 /* Layout Structure */
@@ -36,23 +41,46 @@ body {
     display: flex;
     min-height: 100vh;
     padding-top: 70px; /* Space for fixed navbar */
-    padding-left: 280px; /* Space for fixed sidebar */
+    width: 100vw !important; /* Use viewport width */
+    justify-content: flex-start;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin: 0 !important;
+    flex-direction: column;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .main-content {
     flex: 1;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    margin: 20px;
-    padding: 30px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
+    background: #ffffff;
+    border-radius: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none;
+    max-width: none; /* Remove max-width to use full screen */
+    width: 100vw !important; /* Use viewport width */
+    box-sizing: border-box;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Dashboard Content */
+.dashboard-content {
+    width: 100vw !important; /* Use viewport width */
+    max-width: none;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box;
 }
 
 /* Dashboard Header */
 .dashboard-header {
-    text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 
 .dashboard-header h1 {
@@ -60,6 +88,8 @@ body {
     font-weight: 700;
     color: #2c3e50;
     margin-bottom: 10px;
+    text-align: center;
+    width: 100%;
 }
 
 .dashboard-header p {
@@ -70,6 +100,9 @@ body {
 /* Overview Section */
 .overview-section {
     margin-bottom: 40px;
+    width: 100vw !important;
+    padding: 0 20px !important; /* Balanced padding on both sides */
+    box-sizing: border-box;
 }
 
 .overview-section h2 {
@@ -83,25 +116,39 @@ body {
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 25px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Even smaller minmax */
+    gap: 20px;
     margin-bottom: 30px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 1200px) {
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .stat-card {
-    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    background: #ffffff;
     border-radius: 15px;
     padding: 25px;
     display: flex;
     align-items: center;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(52, 152, 219, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e9ecef;
     transition: all 0.3s ease;
 }
 
 .stat-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 .stat-card.total-users .stat-icon {
@@ -169,6 +216,9 @@ body {
 /* User Management Section */
 .user-management-section {
     margin-bottom: 40px;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 
 .user-management-section h2 {
@@ -219,12 +269,32 @@ body {
     min-width: 250px;
 }
 
+/* Search with Icon */
+.search-with-icon {
+    position: relative;
+}
+
+.search-with-icon .search-input {
+    padding-right: 40px;
+    width: 100%;
+}
+
+.search-with-icon .search-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #95a5a6;
+}
+
 /* User Table */
 .user-table-container {
-    background: white;
+    background: #ffffff;
     border-radius: 15px;
     overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e9ecef;
+    width: 100%;
 }
 
 .user-table {
@@ -247,7 +317,7 @@ body {
 }
 
 .user-table tr:hover {
-    background: rgba(52, 152, 219, 0.05);
+    background: #f8f9fa;
 }
 
 .user-avatar {
@@ -354,6 +424,9 @@ body {
 .analytics-section {
     margin-bottom: 40px;
     overflow: hidden;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 
 .analytics-section h2 {
@@ -367,19 +440,29 @@ body {
 
 .charts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 25px;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); /* Even smaller minmax */
+    gap: 20px;
     margin-bottom: 30px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 992px) {
+    .charts-grid {
+        grid-template-columns: 1fr; /* Single column on smaller screens */
+    }
 }
 
 .chart-container {
-    background: white;
+    background: #ffffff;
     border-radius: 15px;
     padding: 25px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e9ecef;
     height: 400px; /* Fixed container height */
     display: flex;
     flex-direction: column;
+    width: 100%;
 }
 
 .chart-container h3 {
@@ -406,6 +489,9 @@ body {
 /* Recent Activity Section */
 .activity-section {
     margin-bottom: 40px;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 
 .activity-section h2 {
@@ -418,10 +504,12 @@ body {
 }
 
 .activity-list {
-    background: white;
+    background: #ffffff;
     border-radius: 15px;
     padding: 25px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e9ecef;
+    width: 100%;
 }
 
 .activity-item {
@@ -487,11 +575,10 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    width: 100%;    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
     z-index: 1000;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(3px);
 }
 
 .modal.show {
@@ -575,10 +662,279 @@ body {
     margin: 0;
 }
 
+/* Admin Welcome Section */
+.admin-welcome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 !important;
+    background: transparent;
+    border-radius: 0;
+    padding: 40px 20px !important; /* Balanced padding on both sides */
+    box-shadow: none;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    width: 100vw !important;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .admin-welcome {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+
+.admin-profile-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.admin-profile-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.admin-details h3 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.admin-details p {
+    font-size: 1rem;
+    color: #7f8c8d;
+    margin: 0;
+}
+
+.quick-actions-bar {
+    display: flex;
+    gap: 15px;
+}
+
+.quick-action-button {
+    background: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    font-size: 1rem;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.quick-action-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.quick-action-button.primary {
+    background: #3498db;
+    color: white;
+    padding: 12px 24px;
+    font-weight: 600;
+}
+
+.quick-action-button.primary:hover {
+    background: #2980b9;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+}
+
+/* Section Headers with Actions */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.section-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.section-action {
+    background: white;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #2c3e50;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.section-action:hover {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* System Health Section */
+.system-health-section {
+    margin-bottom: 40px;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+.health-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Even smaller minmax */
+    gap: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 1200px) {
+    .health-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .health-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.health-card {
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.health-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.health-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.health-icon.healthy {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+}
+
+.health-icon.warning {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+}
+
+.health-icon.danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.health-info {
+    flex: 1;
+}
+
+.health-info h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+}
+
+.health-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.health-status .status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.health-status .status-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.health-details {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin: 0;
+}
+
+/* Pagination Controls */
+.table-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 15px;
+}
+
+.pagination-btn {
+    background: white;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #2c3e50;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-info {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
         padding-left: 0;
+        width: 100%;
     }
     
     #adminMenu {
@@ -591,7 +947,8 @@ body {
     }
     
     .main-content {
-        padding: 20px;
+        padding: 15px;
+        width: 100%;
     }
     
     .dashboard-header h1 {
@@ -626,6 +983,39 @@ body {
     .action-buttons {
         flex-direction: column;
         gap: 5px;
+    }
+    
+    .admin-welcome {
+        flex-direction: column;
+        gap: 20px;
+        align-items: stretch;
+    }
+    
+    .admin-profile-card {
+        justify-content: center;
+    }
+    
+    .quick-actions-bar {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .health-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    .section-actions {
+        align-self: flex-end;
+    }
+    
+    .search-group {
+        width: 100%;
     }
 }
 
@@ -662,4 +1052,13 @@ body {
     background: rgba(231, 76, 60, 0.1);
     color: #e74c3c;
     border: 1px solid rgba(231, 76, 60, 0.2);
+}
+
+/* Admin Hero Section */
+.admin-hero-section {
+    width: 100%;
+    padding: 0;
+    margin: 0 0 30px 0;
+    background: linear-gradient(to right, #f5f7fa, #e6ecf2);
+    position: relative;
 }

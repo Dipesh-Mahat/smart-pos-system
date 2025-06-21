@@ -9,11 +9,9 @@ class AdminNavbar {
         this.attachEventListeners();
     }
 
-    render() {
-        const navbarHTML = `
+    render() {        const navbarHTML = `
             <nav class="admin-navbar">
-                <div class="navbar-container">
-                    <div class="navbar-brand">
+                <div class="navbar-container">                    <div class="navbar-brand">
                         <img src="../images/logos/smart-pos-logo.png" alt="Smart POS" class="brand-logo">
                         <span class="brand-text">Smart POS Admin</span>
                     </div>
@@ -42,9 +40,8 @@ class AdminNavbar {
                             </div>
                         </div>
                         
-                        <div class="admin-profile-dropdown">
-                            <button class="profile-btn" id="profileBtn">
-                                <img src="../images/avatars/admin-avatar.jpg" alt="Admin" class="profile-avatar">
+                        <div class="admin-profile-dropdown">                            <button class="profile-btn" id="profileBtn">
+                                <img src="../images/avatars/admin-avatar.jpg" alt="Admin" class="profile-avatar" onerror="this.src='../images/avatars/user-avatar.png'">
                                 <span class="profile-name">System Admin</span>
                                 <i class="fas fa-chevron-down"></i>
                             </button>

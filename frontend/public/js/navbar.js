@@ -103,11 +103,9 @@ class SmartPOSNavbar {
             `<div class="navbar-notification-icon" id="navbarNotificationIcon">
                 <i class="fas fa-bell"></i>
                 <span class="navbar-notification-badge" id="navbarNotificationBadge">${this.notificationCount}</span>
-            </div>` : '';
-
-        const profile = this.options.showProfile ? 
+            </div>` : '';        const profile = this.options.showProfile ? 
             `<div class="navbar-profile-icon" id="navbarProfileIcon">
-                <img src="../images/avatars/user-avatar.png" alt="Profile" id="navbarProfileImage">
+                <img src="../images/avatars/user-avatar.png" alt="Profile" id="navbarProfileImage" onerror="this.src='../images/avatars/user-avatar.png'">
                 <div class="profile-dropdown" id="navbarProfileDropdown">
                     <div class="profile-dropdown-header">
                         <div class="profile-info">

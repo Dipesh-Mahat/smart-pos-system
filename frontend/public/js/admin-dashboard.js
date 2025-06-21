@@ -7,11 +7,18 @@ class AdminDashboard {
         this.currentFilter = 'all';
         this.currentStatus = 'all';
         this.searchQuery = '';
+        this.currentPage = 1;
+        this.usersPerPage = 5;
+        this.totalPages = 1;
+        this.systemHealth = {
+            api: { status: 'online', details: 'Response time: 42ms' },
+            database: { status: 'online', details: 'Queries: 1.5k/min' },
+            memory: { status: 'warning', details: '76% utilized' },
+            storage: { status: 'online', details: '48% utilized' }
+        };
         
         this.init();
-    }
-
-    async init() {
+    }    async init() {
         try {
             await this.loadUsers();
             this.setupEventListeners();
@@ -19,6 +26,8 @@ class AdminDashboard {
             this.updateStatistics();
             this.loadRecentActivity();
             this.startRealTimeUpdates();
+            this.updateSystemHealth();
+            this.setLastLoginTime();
         } catch (error) {
             console.error('Failed to initialize admin dashboard:', error);
             this.showMessage('Failed to load dashboard data', 'error');
@@ -95,32 +104,88 @@ class AdminDashboard {
     }
 
     setupEventListeners() {
-        // Filter controls
+        // Type filter
         const typeFilter = document.getElementById('typeFilter');
-        const statusFilter = document.getElementById('statusFilter');
-        const searchInput = document.getElementById('userSearch');
-
         if (typeFilter) {
             typeFilter.addEventListener('change', (e) => {
                 this.currentFilter = e.target.value;
+                this.currentPage = 1; // Reset to first page on filter change
                 this.filterUsers();
             });
         }
-
+        
+        // Status filter
+        const statusFilter = document.getElementById('statusFilter');
         if (statusFilter) {
             statusFilter.addEventListener('change', (e) => {
                 this.currentStatus = e.target.value;
+                this.currentPage = 1; // Reset to first page on filter change
                 this.filterUsers();
             });
         }
-
+        
+        // Search input
+        const searchInput = document.getElementById('userSearch');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
                 this.searchQuery = e.target.value.toLowerCase();
+                this.currentPage = 1; // Reset to first page on search
                 this.filterUsers();
             });
         }
-
+        
+        // Pagination buttons
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        
+        if (prevPageBtn) {
+            prevPageBtn.addEventListener('click', () => {
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                    this.renderUserTable();
+                    this.updatePaginationInfo();
+                }
+            });
+        }
+        
+        if (nextPageBtn) {
+            nextPageBtn.addEventListener('click', () => {
+                if (this.currentPage < this.totalPages) {
+                    this.currentPage++;
+                    this.renderUserTable();
+                    this.updatePaginationInfo();
+                }
+            });
+        }
+        
+        // Load more activities button
+        const loadMoreBtn = document.getElementById('loadMoreActivities');
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', () => {
+                this.loadMoreActivities();
+            });
+        }
+        
+        // Quick action buttons
+        const exportBtn = document.querySelector('.quick-action-button[title="Export Reports"]');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                this.showMessage('Generating export...', 'info');
+                setTimeout(() => {
+                    this.showMessage('Export downloaded successfully!', 'success');
+                }, 1500);
+            });
+        }
+        
+        // Add user button in quick actions
+        const addUserBtn = document.querySelector('.quick-action-button[title="Add New User"]');
+        if (addUserBtn) {
+            addUserBtn.addEventListener('click', () => {
+                // In production, this would open a modal or redirect to user creation page
+                this.showMessage('Add user functionality will be implemented soon', 'info');
+            });
+        }
+        
         // Modal events
         this.setupModalEvents();
     }
@@ -163,12 +228,81 @@ class AdminDashboard {
             return matchesType && matchesStatus && matchesSearch;
         });
 
+        // Calculate total pages
+        this.totalPages = Math.ceil(this.filteredUsers.length / this.usersPerPage);
+        
+        // Make sure current page is valid
+        if (this.currentPage > this.totalPages) {
+            this.currentPage = this.totalPages || 1;
+        }
+        
         this.renderUserTable();
+        this.updatePaginationInfo();
     }
-
+    
+    updatePaginationInfo() {
+        const paginationInfo = document.getElementById('paginationInfo');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        
+        if (paginationInfo) {
+            paginationInfo.textContent = `Page ${this.currentPage} of ${this.totalPages}`;
+        }
+        
+        if (prevPageBtn) {
+            prevPageBtn.disabled = this.currentPage <= 1;
+        }
+        
+        if (nextPageBtn) {
+            nextPageBtn.disabled = this.currentPage >= this.totalPages;
+        }
+    }
+    
+    loadMoreActivities() {
+        const activityList = document.getElementById('activityList');
+        if (!activityList) return;
+        
+        // Generate some more mock activities
+        const newActivities = [
+            {
+                type: 'system',
+                icon: 'fa-server',
+                title: 'System Update',
+                description: 'Database optimization completed',
+                time: '10 minutes ago'
+            },
+            {
+                type: 'user-action',
+                icon: 'fa-user-shield',
+                title: 'Admin Action',
+                description: 'System backup initiated by admin',
+                time: '15 minutes ago'
+            },
+            {
+                type: 'alert',
+                icon: 'fa-exclamation-triangle',
+                title: 'Warning Alert',
+                description: 'High memory usage detected',
+                time: '25 minutes ago'
+            }
+        ];
+        
+        // Create HTML for new activities
+        const activitiesHTML = newActivities.map(activity => this.createActivityHTML(activity)).join('');
+        
+        // Append to activity list
+        activityList.innerHTML += activitiesHTML;
+        
+        // Show message
+        this.showMessage('Loaded more activities', 'success');
+    }
+    
     renderUserTable() {
         const tableBody = document.getElementById('userTableBody');
         if (!tableBody) return;
+
+        // Clear existing content
+        tableBody.innerHTML = '';
 
         if (this.filteredUsers.length === 0) {
             tableBody.innerHTML = `
@@ -182,12 +316,16 @@ class AdminDashboard {
             return;
         }
 
-        const tableHTML = this.filteredUsers.map(user => `
+        // Paginate results
+        const start = (this.currentPage - 1) * this.usersPerPage;
+        const end = start + this.usersPerPage;
+        const paginatedUsers = this.filteredUsers.slice(start, end);
+
+        const tableHTML = paginatedUsers.map(user => `
             <tr>
                 <td>
-                    <div class="user-info">
-                        <img src="${user.avatar}" alt="${user.name}" class="user-avatar" 
-                             onerror="this.src='../images/avatars/default-avatar.png'">
+                    <div class="user-info">                        <img src="${user.avatar}" alt="${user.name}" class="user-avatar" 
+                             onerror="this.src='../images/avatars/user-avatar.png'">
                         <div class="user-details">
                             <h4>${user.name}</h4>
                             <p>${user.email}</p>
@@ -687,6 +825,93 @@ class AdminDashboard {
             day: 'numeric'
         });
     }
+
+    updateSystemHealth() {
+        // In production, this would be an API call to get system health metrics
+        const refreshBtn = document.querySelector('.system-health-section .fa-sync-alt');
+        if (refreshBtn) {
+            refreshBtn.parentElement.addEventListener('click', () => {
+                refreshBtn.classList.add('fa-spin');
+                setTimeout(() => {
+                    // Simulate system health update
+                    this.systemHealth.memory.status = Math.random() > 0.7 ? 'warning' : 'online';
+                    this.systemHealth.memory.details = `${Math.floor(65 + Math.random() * 20)}% utilized`;
+                    
+                    this.updateSystemHealthDisplay();
+                    refreshBtn.classList.remove('fa-spin');
+                    this.showMessage('System health updated', 'success');
+                }, 1000);
+            });
+        }
+        
+        this.updateSystemHealthDisplay();
+    }
+    
+    updateSystemHealthDisplay() {
+        const statusElements = {
+            api: document.querySelector('.health-card:nth-child(1) .status-indicator'),
+            database: document.querySelector('.health-card:nth-child(2) .status-indicator'),
+            memory: document.querySelector('.health-card:nth-child(3) .status-indicator'),
+            storage: document.querySelector('.health-card:nth-child(4) .status-indicator')
+        };
+        
+        const statusTextElements = {
+            api: document.querySelector('.health-card:nth-child(1) .status-text'),
+            database: document.querySelector('.health-card:nth-child(2) .status-text'),
+            memory: document.querySelector('.health-card:nth-child(3) .status-text'),
+            storage: document.querySelector('.health-card:nth-child(4) .status-text')
+        };
+        
+        const detailElements = {
+            api: document.querySelector('.health-card:nth-child(1) .health-details'),
+            database: document.querySelector('.health-card:nth-child(2) .health-details'),
+            memory: document.querySelector('.health-card:nth-child(3) .health-details'),
+            storage: document.querySelector('.health-card:nth-child(4) .health-details')
+        };
+        
+        const iconElements = {
+            api: document.querySelector('.health-card:nth-child(1) .health-icon'),
+            database: document.querySelector('.health-card:nth-child(2) .health-icon'),
+            memory: document.querySelector('.health-card:nth-child(3) .health-icon'),
+            storage: document.querySelector('.health-card:nth-child(4) .health-icon')
+        };
+        
+        for (const [key, data] of Object.entries(this.systemHealth)) {
+            if (statusElements[key]) {
+                // Update status indicator
+                statusElements[key].className = `status-indicator ${data.status}`;
+                
+                // Update status text
+                if (statusTextElements[key]) {
+                    statusTextElements[key].textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                }
+                
+                // Update details
+                if (detailElements[key]) {
+                    detailElements[key].textContent = data.details;
+                }
+                
+                // Update icon
+                if (iconElements[key]) {
+                    iconElements[key].className = `health-icon ${data.status === 'online' ? 'healthy' : data.status}`;
+                }
+            }
+        }
+    }
+    
+    setLastLoginTime() {
+        const lastLoginElement = document.getElementById('lastLoginTime');
+        if (lastLoginElement) {
+            // In production, this would come from the user's session data
+            const now = new Date();
+            const options = { 
+                hour: 'numeric', 
+                minute: 'numeric',
+                hour12: true
+            };
+            lastLoginElement.textContent = `Today, ${now.toLocaleTimeString('en-US', options)}`;
+        }
+    }
 }
 
 // Initialize admin dashboard when DOM is loaded
@@ -694,9 +919,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Wait for DOM to be fully ready
     setTimeout(() => {
         try {
-            // Initialize navbar and menu first
+            // Initialize navbar only (no menu sidebar)
             window.adminNavbar = new AdminNavbar();
-            window.adminMenu = new AdminMenu();
             
             // Wait a bit more for components to render
             setTimeout(() => {
