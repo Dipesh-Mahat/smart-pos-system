@@ -4,6 +4,7 @@ const authenticateJWT = require('../middleware/authJWT');
 const authorize = require('../middleware/authorize');
 const userRoutes = require('./userRoutes');
 const shopRoutes = require('./shopRoutes');
+const autoOrderRoutes = require('./autoOrderRoutes');
 
 // Public routes (no authentication required)
 router.get('/health', (req, res) => {
@@ -16,6 +17,9 @@ router.use('/users', authenticateJWT, userRoutes);
 
 // Apply shop routes
 router.use('/shop', shopRoutes);
+
+// Add auto-order routes for shopowners
+router.use('/auto-orders', authenticateJWT, autoOrderRoutes);
 
 // Admin-only routes
 router.get('/admin/stats', authenticateJWT, authorize('admin'), (req, res) => {

@@ -69,12 +69,81 @@ const seedUsers = async () => {
     role: 'admin',
     isVerified: true
   });
-  
+
+  // Add a supplier user
+  const supplier = new User({
+    username: 'supplier1',
+    firstName: 'Ram',
+    lastName: 'Nepali',
+    email: 'supplier1@nepal.com',
+    password: hashedPassword,
+    role: 'supplier',
+    contactNumber: '9800000001',
+    address: {
+      street: '456 Supplier Marg',
+      city: 'Kathmandu',
+      state: 'Bagmati',
+      postalCode: '44600',
+      country: 'Nepal'
+    },
+    status: 'approved'
+  });
+
   await shopOwner.save();
   await admin.save();
-  
+  await supplier.save();
+
   console.log('Users seeded');
-  return { shopOwner, admin };
+  return { shopOwner, admin, supplier };
+};
+
+// Seed Products for the supplier
+const seedProducts = async (supplier) => {
+  console.log('Seeding products...');
+  const products = [
+    {
+      name: 'Nepali Tea',
+      barcode: 'TEA001',
+      description: 'Premium Nepali tea leaves',
+      category: 'Beverages',
+      price: 250,
+      costPrice: 150,
+      stock: 100,
+      minStockLevel: 10,
+      unit: 'box',
+      imageUrl: '',
+      shopId: supplier._id, // For demo, use supplier as shopId
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName,
+        supplierCode: 'SUP001'
+      },
+      tax: 13
+    },
+    {
+      name: 'Everest Salt',
+      barcode: 'SALT001',
+      description: 'Iodized salt from Nepal',
+      category: 'Grocery',
+      price: 50,
+      costPrice: 30,
+      stock: 200,
+      minStockLevel: 20,
+      unit: 'pack',
+      imageUrl: '',
+      shopId: supplier._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName,
+        supplierCode: 'SUP001'
+      },
+      tax: 13
+    }
+  ];
+  await Product.insertMany(products);
+  console.log('Products seeded');
 };
 
 // Main seed function
@@ -82,7 +151,8 @@ const seedDB = async () => {
   try {
     await connectDB();
     await clearDB();
-    const { shopOwner } = await seedUsers();
+    const { shopOwner, supplier } = await seedUsers();
+    await seedProducts(supplier);
     
     console.log('Database seeded successfully!');
     console.log('Test Shop Owner Credentials:');

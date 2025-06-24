@@ -326,6 +326,94 @@
             background: #545b62;
             transform: translateY(-2px);
         }
+
+        .modal {
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: auto;
+            background: rgba(44, 62, 80, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+            padding: 32px 28px 24px 28px;
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+            animation: fadeInModal 0.3s;
+        }
+
+        @keyframes fadeInModal {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 18px;
+            right: 22px;
+            font-size: 2rem;
+            color: #888;
+            cursor: pointer;
+            font-weight: bold;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover {
+            color: #007bff;
+        }
+
+        .modal-transaction-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .modal-transaction-info {
+            margin-bottom: 18px;
+            color: #555;
+        }
+
+        .modal-transaction-items {
+            margin-top: 18px;
+            border-top: 1px solid #e9ecef;
+            padding-top: 12px;
+        }
+
+        .modal-transaction-items h4 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #007bff;
+        }
+
+        .modal-transaction-items ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .modal-transaction-items li {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.98rem;
+        }
+
+        .modal-transaction-items li:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>    <div class="main-content">
@@ -358,14 +446,6 @@
                 </div>
                 <div class="stat-value">48</div>
                 <div class="stat-label">Today</div>
-            </div>
-        </div>
-
-        <!-- Search Container -->
-        <div class="search-container">
-            <div class="search-box">
-                <input type="text" placeholder="Search by receipt number, customer, or amount..." id="searchInput">
-                <i class="fas fa-search search-icon"></i>
             </div>
         </div>
 
@@ -514,6 +594,16 @@
             </a>
         </div>    </div>
 
+    <!-- Modal for Transaction Details -->
+    <div id="transactionModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-modal" id="closeTransactionModal">&times;</span>
+            <div id="modalTransactionDetails">
+                <!-- Transaction details will be injected here -->
+            </div>
+        </div>
+    </div>
+
     <script>
         // Filter functionality
         document.addEventListener('DOMContentLoaded', function() {
@@ -610,56 +700,36 @@
         
         // Render transactions in the UI
         function renderTransactions(transactions) {
-            const transactionsContainer = document.getElementById('transactionsContainer');
-            if (!transactionsContainer) return;
-            
+            const transactionsGrid = document.getElementById('transactionsGrid');
+            if (!transactionsGrid) return;
             if (!transactions || transactions.length === 0) {
-                transactionsContainer.innerHTML = '<div class="empty-state">No transactions found</div>';
+                transactionsGrid.innerHTML = '<div class="empty-state">No transactions found</div>';
                 return;
             }
-            
-            // Store transactions globally for filtering
             window.allTransactions = transactions;
-            
-            // Get active filter and search query
             const activeFilter = document.querySelector('.filter-btn.active')?.getAttribute('data-filter') || 'all';
             const searchQuery = document.getElementById('searchInput')?.value || '';
-            
-            // Apply initial filtering
             filterTransactions(activeFilter, searchQuery);
         }
         
         // Filter transactions based on status and search query
         function filterTransactions(filterValue, searchQuery) {
-            const transactionsContainer = document.getElementById('transactionsContainer');
-            if (!transactionsContainer || !window.allTransactions) return;
-            
+            const transactionsGrid = document.getElementById('transactionsGrid');
+            if (!transactionsGrid || !window.allTransactions) return;
             const filteredTransactions = window.allTransactions.filter(transaction => {
-                // Apply status filter
-                if (filterValue !== 'all' && transaction.status !== filterValue) {
-                    return false;
-                }
-                
-                // Apply search filter
+                if (filterValue !== 'all' && transaction.status !== filterValue) return false;
                 if (searchQuery && !transaction._id.includes(searchQuery) && 
-                    !(transaction.customer && transaction.customer.toLowerCase().includes(searchQuery.toLowerCase()))) {
-                    return false;
-                }
-                
+                    !(transaction.customer && transaction.customer.toLowerCase().includes(searchQuery.toLowerCase()))) return false;
                 return true;
             });
-            
             if (filteredTransactions.length === 0) {
-                transactionsContainer.innerHTML = '<div class="empty-state">No matching transactions found</div>';
+                transactionsGrid.innerHTML = '<div class="empty-state">No matching transactions found</div>';
                 return;
             }
-            
-            // Generate HTML for filtered transactions
-            transactionsContainer.innerHTML = filteredTransactions.map(transaction => {
+            transactionsGrid.innerHTML = filteredTransactions.map(transaction => {
                 const date = new Date(transaction.date);
                 const formattedDate = date.toLocaleDateString();
                 const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                
                 return `
                     <a href="receipt-detail.html?id=${transaction._id}" class="transaction-link">
                         <div class="transaction-item">
@@ -765,6 +835,104 @@
                 timeout = setTimeout(() => func.apply(context, args), delay);
             };
         }
+
+        // Modal logic for transaction details
+        document.addEventListener('DOMContentLoaded', function() {
+            // Modal logic
+            const modal = document.getElementById('transactionModal');
+            const closeModalBtn = document.getElementById('closeTransactionModal');
+            const modalDetails = document.getElementById('modalTransactionDetails');
+
+            // Delegate click for transaction links
+            document.body.addEventListener('click', function(e) {
+                const link = e.target.closest('.transaction-item, .transaction-link');
+                if (link && link.getAttribute('href') && link.getAttribute('href').includes('receipt-detail.html')) {
+                    e.preventDefault();
+                    // Get transaction ID from href
+                    const url = new URL(link.href, window.location.origin);
+                    const txnId = url.searchParams.get('id') || link.textContent.match(/TXN-\d{4}-?\d*/)?.[0] || link.textContent.match(/TR\d{5}/)?.[0];
+                    // Find transaction data
+                    let txn = null;
+                    if (window.allTransactions) {
+                        txn = window.allTransactions.find(t => t._id === txnId);
+                    }
+                    // Fallback: try to extract from DOM if not found
+                    if (!txn) {
+                        txn = {
+                            _id: txnId,
+                            total: link.querySelector('.transaction-amount')?.textContent || '',
+                            date: link.querySelector('.detail-value')?.textContent || '',
+                            status: link.querySelector('.status-badge')?.textContent || '',
+                            // Add more fields as needed
+                        };
+                    }
+                    // Render modal content
+                    renderTransactionModal(txn);
+                    modal.style.display = 'flex';
+                }
+            });
+            closeModalBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            window.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+        function renderTransactionModal(txn) {
+            if (!txn) {
+                modalDetails.innerHTML = '<div style="padding:30px;text-align:center;">Transaction details not found.</div>';
+                return;
+            }
+            // Example items (replace with real data if available)
+            const items = txn.items || [
+                { name: 'Milk', qty: 2, price: 40 },
+                { name: 'Bread', qty: 1, price: 30 },
+                { name: 'Eggs', qty: 1, price: 54.5 }
+            ];
+            modalDetails.innerHTML = `
+                <div class="modal-transaction-title">Receipt #${txn._id || ''}</div>
+                <div class="modal-transaction-info">
+                    <div><strong>Amount:</strong> ${txn.total || ''}</div>
+                    <div><strong>Date:</strong> ${txn.date ? new Date(txn.date).toLocaleDateString() : ''}</div>
+                    <div><strong>Time:</strong> ${txn.date ? new Date(txn.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+                    <div><strong>Status:</strong> <span class="status-badge status-${(txn.status || '').toLowerCase()}">${txn.status || ''}</span></div>
+                </div>
+                <div class="modal-transaction-items">
+                    <h4>Purchased Items</h4>
+                    <ul>
+                        ${items.map(item => `<li><span>${item.name} x${item.qty}</span><span>NPR ${(item.price * item.qty).toFixed(2)}</span></li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        // Move search bar into navbar after navbar is initialized
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for navbar to be present
+            setTimeout(function() {
+                const navbar = document.querySelector('.smart-pos-navbar');
+                if (navbar && !document.getElementById('navbarSearchContainer')) {
+                    const searchHTML = `
+                        <div class="navbar-center" id="navbarSearchContainer" style="flex:1;max-width:420px;margin:0 32px;">
+                            <div class="search-container" style="background:transparent;box-shadow:none;padding:0;margin:0;">
+                                <div class="search-box" style="max-width:100%;margin:0;">
+                                    <input type="text" placeholder="Search by receipt number, customer, or amount..." id="searchInput" class="navbar-search">
+                                    <i class="fas fa-search search-icon"></i>
+                                </div>
+                            </div>
+                        </div>`;
+                    // Insert after navbar-left, before navbar-right
+                    const left = navbar.querySelector('.navbar-left');
+                    const right = navbar.querySelector('.navbar-right');
+                    if (left && right) {
+                        left.insertAdjacentHTML('afterend', searchHTML);
+                    }
+                }
+            }, 100);
+        });
+
     </script>
 
     <!-- Navbar and Menu Scripts -->

@@ -28,4 +28,14 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-module.exports = { getProfile, getAllUsers };
+// Get all approved suppliers (for shopowners)
+const getAllSuppliers = async (req, res) => {
+  try {
+    const suppliers = await User.find({ role: 'supplier', status: 'approved' }).select('-password');
+    res.status(200).json({ success: true, suppliers });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+module.exports = { getProfile, getAllUsers, getAllSuppliers };

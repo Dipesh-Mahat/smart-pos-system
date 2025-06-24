@@ -490,18 +490,6 @@
                     <i class="fas fa-download"></i>
                     Export All Data
                 </button>
-                <button class="btn btn-success" onclick="generateCustomReport()">
-                    <i class="fas fa-plus"></i>
-                    Custom Report
-                </button>
-                <button class="btn btn-info" onclick="scheduleReport()">
-                    <i class="fas fa-clock"></i>
-                    Schedule Report
-                </button>
-                <button class="btn btn-warning" onclick="emailReport()">
-                    <i class="fas fa-envelope"></i>
-                    Email Report
-                </button>
             </div>
         </div>
 
@@ -561,16 +549,6 @@
         function exportData(type) {
             alert(`Exporting ${type} data...`);
             // Here you would implement the data export functionality
-        }
-
-        function generateCustomReport() {
-            alert('Opening custom report builder...');
-            // Here you would open a custom report configuration modal
-        }
-
-        function scheduleReport() {
-            alert('Opening report scheduler...');
-            // Here you would open a report scheduling interface
         }        function emailReport() {
             alert('Opening email report interface...');
             // Here you would open an email configuration modal
@@ -587,9 +565,8 @@
                 showNotifications: true,
                 showProfile: true,
                 customActions: [
-                    { id: 'export-report', icon: 'download', title: 'Export Report' },
-                    { id: 'custom-report', icon: 'chart-bar', title: 'Custom Report' },
-                    { id: 'schedule-report', icon: 'calendar', title: 'Schedule' }
+                    { id: 'export-report', icon: 'download', title: 'Export Report' }
+                    // Removed custom-report and schedule-report buttons
                 ]
             });
 
@@ -600,12 +577,7 @@
                     case 'export-report':
                         exportData('all');
                         break;
-                    case 'custom-report':
-                        generateCustomReport();
-                        break;
-                    case 'schedule-report':
-                        scheduleReport();
-                        break;
+                    // Removed custom-report and schedule-report cases
                 }
             });
         });

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Orders - Shopowner Dashboard</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/menu.css">
+</head>
+<body>
+    <div class="main-content">
+        <h2>My Auto-Orders</h2>
+        <button class="btn btn-primary" style="margin-bottom:20px;" onclick="openAutoOrderModal()">Add Auto-Order</button>
+        <div id="autoOrdersGrid" class="suppliers-grid"></div>
+    </div>
+    <!-- Auto-Order Modal -->
+    <div id="autoOrderModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);align-items:center;justify-content:center;z-index:1000;">
+        <div style="background:white;padding:32px 24px;border-radius:16px;max-width:400px;width:100%;box-shadow:0 2px 16px rgba(0,0,0,0.12);">
+            <h3 id="modalTitle">Add Auto-Order</h3>
+            <form id="autoOrderForm">
+                <div class="form-group">
+                    <label for="supplierId">Supplier</label>
+                    <select id="supplierId" name="supplierId" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="productId">Product</label>
+                    <select id="productId" name="productId" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input type="number" id="quantity" name="quantity" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="frequency">Frequency</label>
+                    <select id="frequency" name="frequency" required>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="nextOrderDate">Next Order Date</label>
+                    <input type="date" id="nextOrderDate" name="nextOrderDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes" rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;margin-top:18px;">Save</button>
+                <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px;" onclick="closeAutoOrderModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+    <script src="../js/api-service.js"></script>
+    <script src="../js/auto-orders.js"></script>
+</body>
+</html>

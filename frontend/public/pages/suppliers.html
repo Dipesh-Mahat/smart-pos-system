@@ -201,29 +201,36 @@
         }
 
         .supplier-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0;
             padding-top: 15px;
             border-top: 1px solid #e9ecef;
         }
-
         .detail-item {
+            flex: 1 1 0;
             text-align: center;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
-
         .detail-label {
-            font-size: 12px;
+            font-size: 13px;
             color: #6c757d;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 5px;
+            margin-bottom: 0;
+            font-weight: 500;
         }
-
         .detail-value {
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 700;
             color: #2c3e50;
+            margin-left: 2px;
         }
 
         .btn {
@@ -314,27 +321,6 @@
             margin-bottom: 15px;
         }
 
-        .quick-add {            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: #007bff;
-            color: white;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(0, 123, 255, 0.3);
-            transition: all 0.3s ease;
-            z-index: 100;
-        }
-
-        .quick-add:hover {
-            transform: scale(1.1);
-            box-shadow: 0 15px 35px rgba(116, 185, 255, 0.4);
-        }
-
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -393,14 +379,6 @@
             </div>
         </div>
 
-        <!-- Search -->
-        <div class="search-container">
-            <div class="search-box">
-                <input type="text" placeholder="Search suppliers by name, contact, or location..." id="searchInput">
-                <i class="fas fa-search search-icon"></i>
-            </div>
-        </div>
-
         <!-- Filters -->
         <div class="filters-container">
             <button class="filter-btn active" data-filter="all">All Suppliers</button>
@@ -416,36 +394,36 @@
             <div class="supplier-card" onclick="viewSupplier('SUP001')">
                 <div class="supplier-header">
                     <div class="supplier-info">
-                        <div class="supplier-avatar">AC</div>
-                        <h3>ACME Corporation</h3>
+                        <div class="supplier-avatar">KK</div>
+                        <h3>Kathmandu Kirana Suppliers</h3>
                         <div class="supplier-contact">
-                            <i class="fas fa-envelope"></i> contact@acme.com
+                            <i class="fas fa-envelope"></i> info@kathmandukirana.com.np
                         </div>
                         <div class="supplier-contact">
-                            <i class="fas fa-phone"></i> +1 (555) 123-4567
+                            <i class="fas fa-phone"></i> +977 1-5551234
                         </div>
                         <div class="supplier-contact">
-                            <i class="fas fa-map-marker-alt"></i> New York, USA
+                            <i class="fas fa-map-marker-alt"></i> Kathmandu, Nepal
                         </div>
                     </div>
                     <div class="supplier-status status-active">Active</div>
                 </div>
                 <div class="supplier-details">
                     <div class="detail-item">
-                        <div class="detail-label">Products</div>
-                        <div class="detail-value">45</div>
+                        <span class="detail-label">Products</span>
+                        <span class="detail-value">120</span>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Orders</div>
-                        <div class="detail-value">126</div>
+                        <span class="detail-label">Orders</span>
+                        <span class="detail-value">340</span>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Rating</div>
-                        <div class="detail-value">4.8/5</div>
+                        <span class="detail-label">Rating</span>
+                        <span class="detail-value">4.9/5</span>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Last Order</div>
-                        <div class="detail-value">2 days ago</div>
+                        <span class="detail-label">Last Order</span>
+                        <span class="detail-value">1 day ago</span>
                     </div>
                 </div>
                 <div class="supplier-actions">
@@ -463,36 +441,36 @@
             <div class="supplier-card" onclick="viewSupplier('SUP002')">
                 <div class="supplier-header">
                     <div class="supplier-info">
-                        <div class="supplier-avatar">GL</div>
-                        <h3>Global Logistics Ltd</h3>
+                        <div class="supplier-avatar">PB</div>
+                        <h3>Patan Beverages</h3>
                         <div class="supplier-contact">
-                            <i class="fas fa-envelope"></i> info@globallogistics.com
+                            <i class="fas fa-envelope"></i> contact@patanbeverages.com.np
                         </div>
                         <div class="supplier-contact">
-                            <i class="fas fa-phone"></i> +44 20 7946 0958
+                            <i class="fas fa-phone"></i> +977 1-5522334
                         </div>
                         <div class="supplier-contact">
-                            <i class="fas fa-map-marker-alt"></i> London, UK
+                            <i class="fas fa-map-marker-alt"></i> Patan, Lalitpur, Nepal
                         </div>
                     </div>
                     <div class="supplier-status status-active">Active</div>
                 </div>
                 <div class="supplier-details">
                     <div class="detail-item">
-                        <div class="detail-label">Products</div>
-                        <div class="detail-value">78</div>
+                        <span class="detail-label">Products</span>
+                        <span class="detail-value">60</span>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Orders</div>
-                        <div class="detail-value">89</div>
+                        <span class="detail-label">Orders</span>
+                        <span class="detail-value">210</span>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Rating</div>
-                        <div class="detail-value">4.6/5</div>
+                        <span class="detail-label">Rating</span>
+                        <span class="detail-value">4.7/5</span>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Last Order</div>
-                        <div class="detail-value">1 week ago</div>
+                        <span class="detail-label">Last Order</span>
+                        <span class="detail-value">3 days ago</span>
                     </div>
                 </div>
                 <div class="supplier-actions">
@@ -510,36 +488,36 @@
             <div class="supplier-card" onclick="viewSupplier('SUP003')">
                 <div class="supplier-header">
                     <div class="supplier-info">
-                        <div class="supplier-avatar">TS</div>
-                        <h3>Tech Solutions Inc</h3>
+                        <div class="supplier-avatar">BM</div>
+                        <h3>Bhat-Bhateni Mart Distributors</h3>
                         <div class="supplier-contact">
-                            <i class="fas fa-envelope"></i> sales@techsolutions.com
+                            <i class="fas fa-envelope"></i> sales@bbmart.com.np
                         </div>
                         <div class="supplier-contact">
-                            <i class="fas fa-phone"></i> +1 (650) 555-0123
+                            <i class="fas fa-phone"></i> +977 1-4431234
                         </div>
                         <div class="supplier-contact">
-                            <i class="fas fa-map-marker-alt"></i> San Francisco, USA
+                            <i class="fas fa-map-marker-alt"></i> Bhatbhateni, Kathmandu, Nepal
                         </div>
                     </div>
                     <div class="supplier-status status-pending">Pending</div>
                 </div>
                 <div class="supplier-details">
                     <div class="detail-item">
-                        <div class="detail-label">Products</div>
-                        <div class="detail-value">23</div>
+                        <span class="detail-label">Products</span>
+                        <span class="detail-value">200</span>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Orders</div>
-                        <div class="detail-value">12</div>
+                        <span class="detail-label">Orders</span>
+                        <span class="detail-value">50</span>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Rating</div>
-                        <div class="detail-value">4.2/5</div>
+                        <span class="detail-label">Rating</span>
+                        <span class="detail-value">4.5/5</span>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Last Order</div>
-                        <div class="detail-value">3 weeks ago</div>
+                        <span class="detail-label">Last Order</span>
+                        <span class="detail-value">1 week ago</span>
                     </div>
                 </div>
                 <div class="supplier-actions">
@@ -555,17 +533,17 @@
             </div>
         </div>
 
-        <!-- Quick Add Button -->
-        <button class="quick-add" onclick="addSupplier()" title="Add New Supplier">
-            <i class="fas fa-plus"></i>
-        </button>    </div>
+    </div>
 
     <script>
         // Filter functionality
         document.addEventListener('DOMContentLoaded', function() {
             const filterBtns = document.querySelectorAll('.filter-btn');
             const suppliers = document.querySelectorAll('.supplier-card');
-            const searchInput = document.getElementById('searchInput');
+            // Search input will be injected into navbar, so select it after injection
+            function getSearchInput() {
+                return document.getElementById('searchInput');
+            }
 
             // Filter button functionality
             filterBtns.forEach(btn => {
@@ -578,18 +556,26 @@
                 });
             });
 
-            // Search functionality
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                suppliers.forEach(supplier => {
-                    const text = supplier.textContent.toLowerCase();
-                    if (text.includes(searchTerm)) {
-                        supplier.style.display = 'block';
-                    } else {
-                        supplier.style.display = 'none';
-                    }
-                });
-            });
+            // Wait for search input to be available in navbar
+            function attachSearchListener() {
+                const searchInput = getSearchInput();
+                if (searchInput) {
+                    searchInput.addEventListener('input', function() {
+                        const searchTerm = this.value.toLowerCase();
+                        suppliers.forEach(supplier => {
+                            const text = supplier.textContent.toLowerCase();
+                            if (text.includes(searchTerm)) {
+                                supplier.style.display = 'block';
+                            } else {
+                                supplier.style.display = 'none';
+                            }
+                        });
+                    });
+                } else {
+                    setTimeout(attachSearchListener, 100);
+                }
+            }
+            attachSearchListener();
 
             function filterSuppliers(filter) {
                 suppliers.forEach(supplier => {
@@ -617,7 +603,8 @@
         });
 
         function viewSupplier(supplierId) {
-            window.location.href = `supplier-details.html?id=${supplierId}`;
+            // Redirect to the shopowner-facing supplier products page
+            window.location.href = `supplier-products-shopowner.html?supplierId=${supplierId}`;
         }
 
         function addSupplier() {
@@ -650,7 +637,8 @@
             // Add custom navbar actions for suppliers
             navbar.addAction('add-supplier', 'Add Supplier', 'fas fa-plus', 'btn-primary');
             navbar.addAction('export-suppliers', 'Export', 'fas fa-download', 'btn-secondary');
-            navbar.addAction('import-suppliers', 'Import', 'fas fa-upload', 'btn-secondary');            // Handle navbar action clicks
+            navbar.addAction('import-suppliers', 'Import', 'fas fa-upload', 'btn-secondary');
+            // Handle navbar action clicks
             document.addEventListener('navbarAction', function(e) {
                 switch(e.detail.actionId) {
                     case 'add-supplier':
@@ -665,6 +653,36 @@
                         break;
                 }
             });
+
+            // Use MutationObserver to inject search bar into navbar reliably
+            function injectSearchBar() {
+                const navbar = document.querySelector('.smart-pos-navbar');
+                if (navbar && !document.getElementById('navbarSearchContainer')) {
+                    // Use the same markup as POS/products main content search bar
+                    const searchHTML = `
+                        <div class="navbar-center" id="navbarSearchContainer" style="flex:1;max-width:600px;margin:0 32px;">
+                            <div class="search-container" style="background:white;padding:25px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.05);margin-bottom:0;border:1px solid #e9ecef;">
+                                <div class="search-box" style="max-width:100%;margin:0;">
+                                    <input type="text" placeholder="Search suppliers by name, contact, or location..." id="searchInput" class="navbar-search" style="width:100%;padding:15px 50px 15px 20px;border:2px solid #e9ecef;border-radius:50px;font-size:16px;transition:all 0.3s ease;background:white;">
+                                    <i class="fas fa-search search-icon" style="position:absolute;right:20px;top:50%;transform:translateY(-50%);color:#6c757d;font-size:18px;"></i>
+                                </div>
+                            </div>
+                        </div>`;
+                    const left = navbar.querySelector('.navbar-left');
+                    const right = navbar.querySelector('.navbar-right');
+                    if (left && right) {
+                        left.insertAdjacentHTML('afterend', searchHTML);
+                    }
+                }
+            }
+
+            // Observe for navbar rendering
+            const observer = new MutationObserver(() => {
+                injectSearchBar();
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+            // Also try once in case navbar is already present
+            injectSearchBar();
         });
     </script>
 </body>

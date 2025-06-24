@@ -69,7 +69,12 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   },
   passwordResetToken: String,
-  passwordResetExpires: Date
+  passwordResetExpires: Date,
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: function() { return this.role === 'supplier' ? 'pending' : 'approved'; }
+  }
 }, { timestamps: true });
 
 // Hash password before saving the user

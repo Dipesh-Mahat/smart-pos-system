@@ -981,7 +981,7 @@
                 showNotifications: true,
                 showProfile: true,
                 customActions: [
-                    { id: 'refresh', icon: 'sync-alt', title: 'Refresh Dashboard' },
+                    // Removed refresh button
                     { id: 'export-report', icon: 'download', title: 'Export Report' },
                     { id: 'quick-sale', icon: 'cash-register', title: 'Quick Sale' }
                 ]
@@ -991,9 +991,7 @@
             window.addEventListener('navbarAction', (event) => {
                 const { actionId } = event.detail;
                 switch(actionId) {
-                    case 'refresh':
-                        location.reload();
-                        break;
+                    // Removed refresh case
                     case 'export-report':
                         alert('Export report functionality will be implemented');
                         break;

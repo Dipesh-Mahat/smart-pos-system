@@ -1811,7 +1811,6 @@
                 title: 'Point of Sale',
                 customActions: [
                     { id: 'clearPos', icon: 'redo', title: 'Clear' },
-                    { id: 'holdSale', icon: 'pause', title: 'Hold' },
                     { id: 'newSale', icon: 'receipt', title: 'New Sale' }
                 ]
             });
@@ -1824,9 +1823,6 @@
                         cart = [];
                         posSystem.updateCartDisplay();
                     }
-                } else if (e.target.closest('[data-action="holdSale"]') || e.target.closest('[data-action="holdSale"] *')) {
-                    // Hold sale functionality
-                    alert('Sale has been put on hold');
                 } else if (e.target.closest('[data-action="newSale"]') || e.target.closest('[data-action="newSale"] *')) {
                     // New sale functionality
                     if (cart.length > 0) {
