@@ -115,15 +115,15 @@ const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
             
             loginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const shopName = document.getElementById('loginShopName').value;
-    const password = document.getElementById('loginPassword').value;
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
 
     // Basic validation
-    if (!shopName) {
-        document.getElementById('loginShopNameError').style.display = 'block';
+    if (!email || !email.includes('@')) {
+        document.getElementById('loginEmailError').style.display = 'block';
         return;
     } else {
-        document.getElementById('loginShopNameError').style.display = 'none';
+        document.getElementById('loginEmailError').style.display = 'none';
     }
     if (!password) {
         document.getElementById('loginPasswordError').style.display = 'block';
@@ -137,7 +137,7 @@ const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
     loginLoading.style.display = 'block';
     loginErrorAlert.style.display = 'none';
     try {
-        const result = await window.authService.login(shopName, password);
+        const result = await window.authService.login(email, password);
         if (result.success) {
             // Redirect to dashboard
             window.location.href = 'pages/dashboard.html';

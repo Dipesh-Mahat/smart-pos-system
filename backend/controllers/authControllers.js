@@ -105,13 +105,19 @@ const login = async (req, res) => {
 // Register function with improved security
 const register = async (req, res) => {
   try {
-    const { username, email, password, firstName, lastName, role, shopName } = req.body;
+    const { email, password, confirmPassword, shopName } = req.body;
 
     // Basic validation
-    if (!username || !email || !password || !firstName || !lastName || !role) {
+    if (!email || !password || !confirmPassword || !shopName) {
       return res.status(400).json({ 
         success: false,
-        message: 'All required fields must be provided' 
+        message: 'Shop name, email, password, and confirm password are required' 
+      });
+    }
+    if (password !== confirmPassword) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Passwords do not match' 
       });
     }
 
@@ -133,29 +139,20 @@ const register = async (req, res) => {
 
     // Check if user already exists - use normalized email
     const normalizedEmail = email.toLowerCase();
-    const existingUser = await User.findOne({ 
-      $or: [
-        { email: normalizedEmail },
-        { username: username.trim() }
-      ]
-    });
-    
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({ 
         success: false,
-        message: 'User with this email or username already exists' 
+        message: 'User with this email already exists' 
       });
     }
 
     // Create new user with normalized data - let the pre-save hook handle password hashing
     const newUser = new User({ 
-      username: username.trim(), 
       email: normalizedEmail, 
       password, // Pass password directly, pre-save hook will hash it
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      role,
-      shopName: role === 'shopowner' ? shopName.trim() : undefined
+      role: 'shopowner',
+      shopName: shopName.trim()
     });
     
     await newUser.save();
@@ -166,15 +163,13 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
-    
     // Handle duplicate key errors from MongoDB
     if (error.code === 11000) {
       return res.status(400).json({ 
         success: false,
-        message: 'User with this email or username already exists' 
+        message: 'User with this email already exists' 
       });
     }
-    
     res.status(500).json({ 
       success: false,
       message: 'Internal Server Error' 
