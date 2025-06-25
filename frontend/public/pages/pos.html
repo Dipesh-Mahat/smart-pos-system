@@ -181,13 +181,12 @@
             overflow: hidden;
         }
           .pos-main {
-            flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            transition: var(--transition);
+            gap: 0;
+            padding: 24px 0 0 0;
             height: 100vh;
-            overflow: hidden;
+            background: none;
         }
           .top-bar {
             display: flex;
@@ -250,15 +249,16 @@
         }
         
         .search-bar {
-            background: white;
-            padding: 16px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow-sm);
-            margin-bottom: 20px;
             display: flex;
-            gap: 12px;
             align-items: center;
-        }        .search-input {
+            gap: 12px;
+            margin-bottom: 12px;
+            background: none;
+            box-shadow: none;
+            padding: 0 24px;
+        }
+
+        .search-input {
             flex: 1;
             padding: 12px 16px;
             border: 2px solid var(--gray-200);
@@ -293,14 +293,13 @@
         
         .categories-bar {
             display: flex;
+            flex-direction: row;
+            align-items: center;
             gap: 10px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-            scrollbar-width: thin;
-            scrollbar-color: var(--gray-400) transparent;
-            -webkit-overflow-scrolling: touch;
-            padding: 5px;
+            margin-bottom: 18px;
+            padding: 0 24px;
+            background: none;
+            box-shadow: none;
         }
         
         .categories-bar::-webkit-scrollbar {
@@ -322,6 +321,11 @@
             transition: var(--transition);
             font-size: 14px;
             color: var(--gray-700);
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
         }
         
         .category-btn:hover, .category-btn.active {
@@ -330,11 +334,13 @@
             border-color: var(--primary-color);
         }        .pos-content {
             display: flex;
-            gap: 20px;
+            flex-direction: row;
+            gap: 24px;
             flex: 1;
             min-height: 0;
-            max-height: calc(100vh - 200px);
-            overflow: hidden;
+            max-height: 100%;
+            padding: 0 24px 24px 24px;
+            background: none;
         }
           .products-grid {
             flex: 2;
@@ -344,9 +350,10 @@
             box-shadow: var(--box-shadow-sm);
             display: flex;
             flex-direction: column;
+            min-width: 0;
             min-height: 0;
-            height: calc(100vh - 220px);
-            max-height: calc(100vh - 220px);
+            height: 100%;
+            max-height: 100%;
         }
         
         .products-header {
@@ -520,6 +527,9 @@
             display: flex;
             flex-direction: column;
             min-width: 350px;
+            max-width: 400px;
+            min-height: 0;
+            height: 100%;
         }
         
         .cart-header {
@@ -1404,209 +1414,250 @@
         .barcode-notification.error i {
             color: var(--danger-color);
         }
+        
+        /* Ensure correct vertical stacking and spacing */
+        .pos-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding: 0;
+            height: 100vh;
+            background: none;
+        }
+        .search-bar {
+            margin: 0;
+            padding: 24px 24px 0 24px;
+            background: none;
+            box-shadow: none;
+            border: none;
+        }
+        .categories-bar {
+            margin: 0;
+            padding: 16px 24px 0 24px;
+            background: none;
+            box-shadow: none;
+            border: none;
+        }
+        .pos-content {
+            padding: 24px;
+        }
+        
+        .main-content, .container, .pos-container, .pos-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+body {
+    overflow-x: hidden;
+}
     </style>
 </head>
 <body>
     <div class="main-content">
         <div class="container">
             <!-- Navbar component will be loaded here automatically -->
-            
-            <div class="pos-container"><div class="pos-main">
-                <div class="search-bar">
-                    <input type="text" class="search-input" id="searchInput" placeholder="Search products or scan barcode...">
-                    <button class="scan-btn" id="scanBtn">
-                        <i class="fas fa-qrcode"></i> Scan
-                    </button>
-                </div>
-
-                <div class="categories-bar">
-                    <button class="category-btn active">All Products</button>
-                    <button class="category-btn">Beverages</button>
-                    <button class="category-btn">Snacks</button>
-                    <button class="category-btn">Chocolates</button>
-                    <button class="category-btn">Food</button>
-                    <button class="category-btn">Household</button>
-                    <button class="category-btn">Personal Care</button>
-                </div>
-
-                <div class="pos-content">
-                    <div class="products-grid">                        <div class="products-header">
-                            <div class="products-title">Products</div>
-                            <div class="view-options">
-                                <button class="view-btn active" title="Grid View">
-                                    <i class="fas fa-th"></i>
-                                </button>
-                                <button class="view-btn" title="List View">
-                                    <i class="fas fa-list"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Loading State -->
-                        <div class="products-loading" id="productsLoading" style="display: none;">
-                            <div class="loading-spinner">
-                                <i class="fas fa-spinner fa-spin"></i>
-                            </div>
-                            <p>Loading products...</p>
-                        </div>
-                        
-                        <div class="products-list" id="productsList">
-                            <div class="product-card" onclick="posSystem.addToCart(1)">
-                                <div class="product-img">
-                                    <i class="fas fa-bottle-water"></i>
-                                </div>
-                                <div class="product-category">Beverages</div>
-                                <div class="product-name">Coca Cola 500ml</div>
-                                <div class="product-stock">In stock: 25</div>
-                                <div class="product-footer">
-                                    <div class="product-price">NPR 275</div>
-                                    <button class="add-to-cart">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="product-card" onclick="posSystem.addToCart(5)">
-                                <div class="product-img">
-                                    <i class="fas fa-cookie"></i>
-                                </div>
-                                <div class="product-category">Snacks</div>
-                                <div class="product-name">Potato Chips</div>
-                                <div class="product-stock">In stock: 30</div>
-                                <div class="product-footer">
-                                    <div class="product-price">NPR 219</div>
-                                    <button class="add-to-cart">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="product-card" onclick="posSystem.addToCart(6)">
-                                <div class="product-img">
-                                    <i class="fas fa-tint"></i>
-                                </div>
-                                <div class="product-category">Beverages</div>
-                                <div class="product-name">Water Bottle 1L</div>
-                                <div class="product-stock">In stock: 50</div>
-                                <div class="product-footer">
-                                    <div class="product-price">NPR 138</div>
-                                    <button class="add-to-cart">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="product-card" onclick="posSystem.addToCart(2)">
-                                <div class="product-img">
-                                    <i class="fas fa-candy-bar"></i>
-                                </div>
-                                <div class="product-category">Chocolates</div>
-                                <div class="product-name">Dairy Milk Chocolate</div>
-                                <div class="product-stock">In stock: 15</div>
-                                <div class="product-footer">
-                                    <div class="product-price">NPR 330</div>
-                                    <button class="add-to-cart">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="product-card" onclick="posSystem.addToCart(7)">
-                                <div class="product-img">
-                                    <i class="fas fa-bolt"></i>
-                                </div>
-                                <div class="product-category">Beverages</div>
-                                <div class="product-name">Energy Drink</div>
-                                <div class="product-stock">In stock: 18</div>
-                                <div class="product-footer">
-                                    <div class="product-price">NPR 495</div>
-                                    <button class="add-to-cart">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="product-card" onclick="posSystem.addToCart(8)">
-                                <div class="product-img">
-                                    <i class="fas fa-sandwich"></i>
-                                </div>
-                                <div class="product-category">Food</div>
-                                <div class="product-name">Sandwich</div>
-                                <div class="product-stock">In stock: 8</div>
-                                <div class="product-footer">
-                                    <div class="product-price">NPR 659</div>
-                                    <button class="add-to-cart">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="product-card" onclick="posSystem.addToCart(9)">
-                                <div class="product-img">
-                                    <i class="fas fa-mug-hot"></i>
-                                </div>
-                                <div class="product-category">Beverages</div>
-                                <div class="product-name">Coffee</div>
-                                <div class="product-stock">In stock: 22</div>
-                                <div class="product-footer">
-                                    <div class="product-price">NPR 248</div>
-                                    <button class="add-to-cart">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="product-card" onclick="posSystem.addToCart(10)">
-                                <div class="product-img">
-                                    <i class="fas fa-glass-citrus"></i>
-                                </div>
-                                <div class="product-category">Beverages</div>
-                                <div class="product-name">Fruit Juice</div>
-                                <div class="product-stock">In stock: 16</div>
-                                <div class="product-footer">
-                                    <div class="product-price">NPR 413</div>
-                                    <button class="add-to-cart">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+            <div class="pos-container">
+                <div class="pos-main">
+                    <!-- 1. Search bar and scan button at the very top -->
+                    <div class="search-bar">
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search products or scan barcode...">
+                        <button class="scan-btn" id="scanBtn">
+                            <i class="fas fa-qrcode"></i> Scan
+                        </button>
                     </div>
-
-                    <div class="cart-panel">
-                        <div class="cart-header">
-                            <div class="cart-title">
-                                <i class="fas fa-shopping-basket"></i> Cart <span class="cart-badge" id="cartCount">0</span>
-                            </div>
-                        </div>
-                        
-                        <div class="cart-items" id="cartItems">
-                            <div class="cart-empty">
-                                <i class="fas fa-shopping-cart"></i>
-                                <p>Your cart is empty</p>
-                                <p>Add products by clicking on them</p>
-                            </div>
-                        </div>
-                        
-                        <div class="cart-footer">
-                            <div class="cart-total">
-                                <div class="total-row">
-                                    <span>Subtotal:</span>
-                                    <span id="subtotal">NPR 0</span>
-                                </div>
-                                <div class="total-row">
-                                    <span>Tax (8%):</span>
-                                    <span id="tax">NPR 0</span>
-                                </div>
-                                <div class="total-row total-final">
-                                    <span>Total:</span>
-                                    <span id="total">NPR 0</span>
+                    <!-- 2. Categories bar below search bar -->
+                    <div class="categories-bar">
+                        <button class="category-btn active">All Products</button>
+                        <button class="category-btn">Beverages</button>
+                        <button class="category-btn">Snacks</button>
+                        <button class="category-btn">Chocolates</button>
+                        <button class="category-btn">Food</button>
+                        <button class="category-btn">Household</button>
+                        <button class="category-btn">Personal Care</button>
+                    </div>
+                    <!-- 3. Products and Cart below categories -->
+                    <div class="pos-content">
+                        <div class="products-grid">
+                            <div class="products-header">
+                                <div class="products-title">Products</div>
+                                <div class="view-options">
+                                    <button class="view-btn active" title="Grid View">
+                                        <i class="fas fa-th"></i>
+                                    </button>
+                                    <button class="view-btn" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
                                 </div>
                             </div>
                             
-                            <button class="checkout-btn" id="checkoutBtn">
-                                <i class="fas fa-credit-card"></i> Checkout
-                            </button>
+                            <!-- Loading State -->
+                            <div class="products-loading" id="productsLoading" style="display: none;">
+                                <div class="loading-spinner">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </div>
+                                <p>Loading products...</p>
+                            </div>
+                            
+                            <div class="products-list" id="productsList">
+                                <div class="product-card" onclick="posSystem.addToCart(1)">
+                                    <div class="product-img">
+                                        <i class="fas fa-bottle-water"></i>
+                                    </div>
+                                    <div class="product-category">Beverages</div>
+                                    <div class="product-name">Coca Cola 500ml</div>
+                                    <div class="product-stock">In stock: 25</div>
+                                    <div class="product-footer">
+                                        <div class="product-price">NPR 275</div>
+                                        <button class="add-to-cart">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="product-card" onclick="posSystem.addToCart(5)">
+                                    <div class="product-img">
+                                        <i class="fas fa-cookie"></i>
+                                    </div>
+                                    <div class="product-category">Snacks</div>
+                                    <div class="product-name">Potato Chips</div>
+                                    <div class="product-stock">In stock: 30</div>
+                                    <div class="product-footer">
+                                        <div class="product-price">NPR 219</div>
+                                        <button class="add-to-cart">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="product-card" onclick="posSystem.addToCart(6)">
+                                    <div class="product-img">
+                                        <i class="fas fa-tint"></i>
+                                    </div>
+                                    <div class="product-category">Beverages</div>
+                                    <div class="product-name">Water Bottle 1L</div>
+                                    <div class="product-stock">In stock: 50</div>
+                                    <div class="product-footer">
+                                        <div class="product-price">NPR 138</div>
+                                        <button class="add-to-cart">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="product-card" onclick="posSystem.addToCart(2)">
+                                    <div class="product-img">
+                                        <i class="fas fa-candy-bar"></i>
+                                    </div>
+                                    <div class="product-category">Chocolates</div>
+                                    <div class="product-name">Dairy Milk Chocolate</div>
+                                    <div class="product-stock">In stock: 15</div>
+                                    <div class="product-footer">
+                                        <div class="product-price">NPR 330</div>
+                                        <button class="add-to-cart">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="product-card" onclick="posSystem.addToCart(7)">
+                                    <div class="product-img">
+                                        <i class="fas fa-bolt"></i>
+                                    </div>
+                                    <div class="product-category">Beverages</div>
+                                    <div class="product-name">Energy Drink</div>
+                                    <div class="product-stock">In stock: 18</div>
+                                    <div class="product-footer">
+                                        <div class="product-price">NPR 495</div>
+                                        <button class="add-to-cart">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="product-card" onclick="posSystem.addToCart(8)">
+                                    <div class="product-img">
+                                        <i class="fas fa-sandwich"></i>
+                                    </div>
+                                    <div class="product-category">Food</div>
+                                    <div class="product-name">Sandwich</div>
+                                    <div class="product-stock">In stock: 8</div>
+                                    <div class="product-footer">
+                                        <div class="product-price">NPR 659</div>
+                                        <button class="add-to-cart">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="product-card" onclick="posSystem.addToCart(9)">
+                                    <div class="product-img">
+                                        <i class="fas fa-mug-hot"></i>
+                                    </div>
+                                    <div class="product-category">Beverages</div>
+                                    <div class="product-name">Coffee</div>
+                                    <div class="product-stock">In stock: 22</div>
+                                    <div class="product-footer">
+                                        <div class="product-price">NPR 248</div>
+                                        <button class="add-to-cart">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="product-card" onclick="posSystem.addToCart(10)">
+                                    <div class="product-img">
+                                        <i class="fas fa-glass-citrus"></i>
+                                    </div>
+                                    <div class="product-category">Beverages</div>
+                                    <div class="product-name">Fruit Juice</div>
+                                    <div class="product-stock">In stock: 16</div>
+                                    <div class="product-footer">
+                                        <div class="product-price">NPR 413</div>
+                                        <button class="add-to-cart">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="cart-panel">
+                            <div class="cart-header">
+                                <div class="cart-title">
+                                    <i class="fas fa-shopping-basket"></i> Cart <span class="cart-badge" id="cartCount">0</span>
+                                </div>
+                            </div>
+                            
+                            <div class="cart-items" id="cartItems">
+                                <div class="cart-empty">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <p>Your cart is empty</p>
+                                    <p>Add products by clicking on them</p>
+                                </div>
+                            </div>
+                            
+                            <div class="cart-footer">
+                                <div class="cart-total">
+                                    <div class="total-row">
+                                        <span>Subtotal:</span>
+                                        <span id="subtotal">NPR 0</span>
+                                    </div>
+                                    <div class="total-row">
+                                        <span>Tax (8%):</span>
+                                        <span id="tax">NPR 0</span>
+                                    </div>
+                                    <div class="total-row total-final">
+                                        <span>Total:</span>
+                                        <span id="total">NPR 0</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="checkout-btn" id="checkoutBtn">
+                                    <i class="fas fa-credit-card"></i> Checkout
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1776,17 +1827,13 @@
             const checkoutBtn = document.getElementById('checkoutBtn');
             if (checkoutBtn) {
                 checkoutBtn.addEventListener('click', function() {
-                    if (cart.length === 0) {
+                    // Always use posSystem.cart if available, else fallback to window.cart
+                    let currentCart = (posSystem && Array.isArray(posSystem.cart)) ? posSystem.cart : (window.cart || []);
+                    if (!currentCart || currentCart.length === 0) {
                         alert('Cart is empty!');
                         return;
                     }
-                    
-                    const total = document.getElementById('total').textContent;
-                    if (confirm(`Process payment of ${total}?`)) {
-                        alert('Payment processed successfully!');
-                        cart = [];
-                        posSystem.updateCartDisplay();
-                    }
+                    showBillModal(currentCart);
                 });
             }
             
@@ -1856,7 +1903,8 @@
         const checkoutBtn = document.getElementById('checkoutBtn');
 if (checkoutBtn) {
     checkoutBtn.addEventListener('click', function() {
-        const currentCart = (posSystem.cart && Array.isArray(posSystem.cart)) ? posSystem.cart : (window.cart || []);
+        // Always use posSystem.cart if available, else fallback to window.cart
+        let currentCart = (posSystem && Array.isArray(posSystem.cart)) ? posSystem.cart : (window.cart || []);
         if (!currentCart || currentCart.length === 0) {
             alert('Cart is empty!');
             return;
@@ -1888,7 +1936,7 @@ function showBillModal(cartArr) {
     document.getElementById('confirmPaymentBtn').onclick = function() {
         billModal.style.display = 'none';
         alert('Payment processed successfully!');
-        if (posSystem.cart) posSystem.cart = [];
+        if (posSystem && Array.isArray(posSystem.cart)) posSystem.cart = [];
         if (window.cart) window.cart = [];
         posSystem.updateCartDisplay();
     };
@@ -1897,5 +1945,16 @@ function showBillModal(cartArr) {
     };
 }
    </script>
+   <style>
+@media (min-width: 1024px) {
+  .main-content {
+    margin-left: 300px !important;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  body.menu-closed .main-content {
+    margin-left: 0 !important;
+  }
+}
+</style>
 </body>
 </html>
