@@ -1699,6 +1699,23 @@
     </div>
     </div>
 
+    <div class="bill-modal" id="billModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:3000; justify-content:center; align-items:center;">
+  <div style="background:#fff; border-radius:12px; max-width:400px; width:95%; padding:24px; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+    <h2 style="margin-top:0; text-align:center;">Bill Summary</h2>
+    <div id="billItems" style="max-height:220px; overflow-y:auto; margin-bottom:16px;"></div>
+    <div style="border-top:1px solid #eee; padding-top:12px; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; font-weight:600;">
+        <span>Total:</span>
+        <span id="billTotal"></span>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button id="confirmPaymentBtn" style="flex:1; background:#43a047; color:#fff; border:none; border-radius:6px; padding:12px; font-weight:600; cursor:pointer;">Confirm Payment</button>
+      <button id="cancelBillBtn" style="flex:1; background:#eee; color:#333; border:none; border-radius:6px; padding:12px; font-weight:600; cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
     <!-- Professional Reusable Menu Component -->
     <script>
         // This will be replaced by the POS system JS
@@ -1836,6 +1853,49 @@
                 }
             });
         });
-    </script>
+        const checkoutBtn = document.getElementById('checkoutBtn');
+if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', function() {
+        const currentCart = (posSystem.cart && Array.isArray(posSystem.cart)) ? posSystem.cart : (window.cart || []);
+        if (!currentCart || currentCart.length === 0) {
+            alert('Cart is empty!');
+            return;
+        }
+        showBillModal(currentCart);
+    });
+}
+function showBillModal(cartArr) {
+    const billModal = document.getElementById('billModal');
+    const billItems = document.getElementById('billItems');
+    const billTotal = document.getElementById('billTotal');
+    billItems.innerHTML = '';
+    let total = 0;
+    cartArr.forEach(item => {
+        // item: { id, name, price, quantity }
+        const itemTotal = (item.price || 0) * (item.quantity || 1);
+        total += itemTotal;
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.style.marginBottom = '8px';
+        row.innerHTML = `<span>${item.name} x${item.quantity}</span><span>NPR ${itemTotal.toLocaleString()}</span>`;
+        billItems.appendChild(row);
+    });
+    billTotal.textContent = 'NPR ' + total.toLocaleString();
+    billModal.style.display = 'flex';
+
+    // Confirm and Cancel handlers
+    document.getElementById('confirmPaymentBtn').onclick = function() {
+        billModal.style.display = 'none';
+        alert('Payment processed successfully!');
+        if (posSystem.cart) posSystem.cart = [];
+        if (window.cart) window.cart = [];
+        posSystem.updateCartDisplay();
+    };
+    document.getElementById('cancelBillBtn').onclick = function() {
+        billModal.style.display = 'none';
+    };
+}
+   </script>
 </body>
 </html>
