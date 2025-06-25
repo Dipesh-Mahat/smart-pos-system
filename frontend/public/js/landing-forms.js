@@ -102,7 +102,14 @@
                 }
             });
             
-            // Login form handling
+            // Email validation function (require at least one dot in domain)
+function isValidEmail(email) {
+    // Require at least one dot after @ and at least 2 chars for TLD
+    const re = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})*$/;
+    return re.test(email.trim());
+}
+
+// Login form handling
             const loginForm = document.getElementById('loginForm');
             const loginLoading = loginPopup.querySelector('.loading-popup');
             const loginErrorAlert = document.getElementById('loginErrorAlert');
@@ -115,11 +122,11 @@ const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
             
             loginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const email = document.getElementById('loginEmail').value;
+                const email = document.getElementById('loginEmail').value.trim();
                 const password = document.getElementById('loginPassword').value;
 
-    // Basic validation
-    if (!email || !email.includes('@')) {
+    // Robust email validation
+    if (!isValidEmail(email)) {
         document.getElementById('loginEmailError').style.display = 'block';
         return;
     } else {
@@ -166,12 +173,12 @@ const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
             registerForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 // Basic validation
-                const email = document.getElementById('email').value;
+                const email = document.getElementById('email').value.trim();
                 const password = document.getElementById('registerPassword').value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
                 const shopName = document.getElementById('shopName') ? document.getElementById('shopName').value : '';
                 let hasError = false;
-                if (!email) {
+                if (!isValidEmail(email)) {
                     document.getElementById('emailError').style.display = 'block';
                     hasError = true;
                 } else {
@@ -203,8 +210,9 @@ const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
                 try {
                     // Prepare user data for registration
                     const userData = {
-                        email,
+                        email: email.trim(),
                         password,
+                        confirmPassword,
                         shopName: shopName,
                         role: 'shopowner' // Default role
                     };
@@ -243,10 +251,9 @@ const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
             
             forgotPasswordForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const email = document.getElementById('resetEmail').value;
-                
-                // Basic validation
-                if (!email || !email.includes('@')) {
+                const email = document.getElementById('resetEmail').value.trim();
+                // Robust email validation
+                if (!isValidEmail(email)) {
                     document.getElementById('resetEmailError').style.display = 'block';
                     return;
                 } else {

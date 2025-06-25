@@ -121,8 +121,9 @@ const register = async (req, res) => {
       });
     }
 
-    // Email format validation
-    if (!/\S+@\S+\.\S+/.test(email)) {
+    // Email format validation (trim spaces before validation)
+    const trimmedEmail = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
       return res.status(400).json({ 
         success: false,
         message: 'Invalid email format' 
@@ -138,7 +139,7 @@ const register = async (req, res) => {
     }
 
     // Check if user already exists - use normalized email
-    const normalizedEmail = email.toLowerCase();
+    const normalizedEmail = trimmedEmail.toLowerCase();
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({ 
