@@ -161,7 +161,22 @@ if (!process.env.MONGODB_URI) {
 } else {
   mongoose
     .connect(process.env.MONGODB_URI)
-    .then(() => console.log('Database connected successfully'))
+    .then(async () => {
+      console.log('Database connected successfully');
+      
+      // Auto-seed database if SEED_DATABASE environment variable is set to 'true'
+      if (process.env.SEED_DATABASE === 'true') {
+        console.log('Starting automatic database seeding...');
+        try {
+          const seedDatabase = require('./utils/seedDatabase');
+          await seedDatabase();
+          console.log('Database seeding completed successfully');
+        } catch (error) {
+          console.error('Error seeding database:', error);
+          // Don't exit the process, just log the error
+        }
+      }
+    })
     .catch((err) => {
       console.error('Error connecting to MongoDB:', err);
       process.exit(1); // Exit if there's an error connecting to MongoDB
