@@ -204,17 +204,20 @@ class SmartPOSMenu {
             // Set state first to prevent race conditions
             this.isMenuOpen = false;
             
+            // Add body class for synchronized fast transitions
+            document.body.classList.add('menu-closing');
+            
             // Add closing class for fast transition
             sideMenu.classList.add('closing');
+            
+            // Adjust main content margin immediately with synchronized timing
+            this.adjustMainContentMargin();
             
             // Remove open and animation classes
             sideMenu.classList.remove('open');
             sideMenu.classList.remove('with-animation');
             menuOverlay.classList.remove('active');
             document.body.style.overflow = '';
-            
-            // Remove main content margin when menu closes
-            this.adjustMainContentMargin();
             
             // Save state and notify navbar
             this.saveMenuState();
@@ -224,8 +227,9 @@ class SmartPOSMenu {
                 if (!this.isMenuOpen) {
                     sideMenu.style.visibility = 'hidden';
                     sideMenu.classList.remove('closing');
+                    document.body.classList.remove('menu-closing');
                 }
-            }, 100); // Match the faster closing transition duration
+            }, 150); // Slightly longer to ensure content animation completes
         } else {
             this.isMenuOpen = true; // Reset state on failure
         }
@@ -280,6 +284,7 @@ class SmartPOSMenu {
         const menuOverlay = document.getElementById('menuOverlay');
 
         if (sideMenu && menuOverlay) {
+            document.body.classList.add('menu-closing');
             sideMenu.classList.add('closing');
             sideMenu.classList.remove('open', 'with-animation');
             menuOverlay.classList.remove('active');
@@ -291,8 +296,9 @@ class SmartPOSMenu {
                 if (!this.isMenuOpen) {
                     sideMenu.style.visibility = 'hidden';
                     sideMenu.classList.remove('closing');
+                    document.body.classList.remove('menu-closing');
                 }
-            }, 100); // Match the faster closing transition duration
+            }, 150); // Match the synchronized timing
         }
     }saveMenuState() {
         // Save current menu state for persistence across pages
@@ -392,13 +398,18 @@ class SmartPOSMenu {
         this.adjustMainContentMargin();
         this.saveMenuState();
         this.notifyNavbarStateChange();
-    }adjustMainContentMargin() {
+    }    adjustMainContentMargin() {
         const mainContent = document.querySelector('.main-content') || 
                           document.querySelector('main') || 
                           document.querySelector('.content') ||
                           document.querySelector('.container');
         
         if (mainContent) {
+            // Determine the appropriate transition duration based on menu state
+            const isClosing = document.getElementById('sideMenu')?.classList.contains('closing');
+            const transitionDuration = isClosing ? '0.1s' : '0.4s';
+            const transitionTiming = isClosing ? 'ease-out' : 'cubic-bezier(0.4, 0, 0.2, 1)';
+            
             if (this.isDesktop && this.isMenuOpen) {
                 mainContent.style.marginLeft = '300px';
                 document.body.classList.remove('menu-closed');
@@ -408,7 +419,9 @@ class SmartPOSMenu {
                 document.body.classList.remove('menu-open');
                 document.body.classList.add('menu-closed');
             }
-            mainContent.style.transition = 'margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            
+            // Synchronize transition timing with menu animation
+            mainContent.style.transition = `margin-left ${transitionDuration} ${transitionTiming}`;
         }
     }logout() {
         // Show confirmation dialog

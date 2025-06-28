@@ -32,7 +32,7 @@
     height: calc(100vh - 80px);
     background: white;
     z-index: 999;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.15s ease-out;
     box-shadow: 4px 0 16px rgba(0,0,0,0.1);
     overflow-y: auto;
     opacity: 0;
@@ -50,23 +50,44 @@
 
 /* Fast closing transition - synchronize everything */
 .side-menu.closing {
-    transition: all 0.1s ease-out !important;
+    transition: all 0.15s ease-out !important;
 }
 
 /* Ensure menu items fade out with the same timing when closing */
 .side-menu.closing .menu-item {
-    transition: all 0.1s ease-out !important;
+    transition: all 0.15s ease-out !important;
     opacity: 0 !important;
     transform: translateX(-20px) !important;
 }
 
+/* Synchronize overlay timing when closing */
+.side-menu.closing + .menu-overlay {
+    transition: all 0.15s ease-out !important;
+}
+
 /* Enhanced Smooth Transitions */
 .side-menu {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.15s ease-out;
 }
 
 .side-menu.minimized {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.15s ease-out;
+}
+
+/* Synchronized content area transitions - FAST for all pages */
+.main-content,
+main,
+.content,
+.container {
+    transition: margin-left 0.15s ease-out !important;
+}
+
+/* Fast synchronized transitions when menu is closing */
+body.menu-closing .main-content,
+body.menu-closing main,
+body.menu-closing .content,
+body.menu-closing .container {
+    transition: margin-left 0.15s ease-out !important;
 }
 
 /* Menu Overlay */
