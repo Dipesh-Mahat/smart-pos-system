@@ -1,4 +1,4 @@
-const User = require('./models/User');
+const User = require('../models/User');
 
 // Get user profile (Protected route)
 const getProfile = async (req, res) => {
