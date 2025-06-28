@@ -436,12 +436,14 @@
             border-radius: 8px;
             margin-bottom: 8px;
             background-color: #f8f9fa;
-            transition: transform 0.2s ease;
+            transition: all 0.2s ease;
+            cursor: pointer;
         }
         
         .transaction-item:hover {
             transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background-color: #fff;
         }
         
         .transaction-info {
@@ -476,19 +478,25 @@
         
         .view-receipt-btn {
             padding: 6px 12px;
-            background-color: #667eea;
+            background-color: #007bff;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             text-decoration: none;
             white-space: nowrap;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         
         .view-receipt-btn:hover {
-            background-color: #5a6acf;
+            background-color: #0056b3;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,123,255,0.3);
         }
         
         /* Loading State */
@@ -647,11 +655,46 @@
             
             // Load demo transactions
             updateRecentTransactions([
-                { _id: 'demo1', date: new Date().toISOString(), total: 1250, paymentMethod: 'Cash', items: 5 },
-                { _id: 'demo2', date: new Date(Date.now() - 3600000).toISOString(), total: 785, paymentMethod: 'Card', items: 2 },
-                { _id: 'demo3', date: new Date(Date.now() - 7200000).toISOString(), total: 2530, paymentMethod: 'Cash', items: 8 },
-                { _id: 'demo4', date: new Date(Date.now() - 86400000).toISOString(), total: 1100, paymentMethod: 'Card', items: 3 },
-                { _id: 'demo5', date: new Date(Date.now() - 172800000).toISOString(), total: 3250, paymentMethod: 'Cash', items: 10 }
+                { 
+                    id: 'TXN-2025-001',
+                    _id: 'TXN-2025-001', 
+                    date: new Date().toISOString(), 
+                    total: 1250, 
+                    paymentMethod: 'Cash', 
+                    items: 5 
+                },
+                { 
+                    id: 'TXN-2025-002',
+                    _id: 'TXN-2025-002', 
+                    date: new Date(Date.now() - 3600000).toISOString(), 
+                    total: 785, 
+                    paymentMethod: 'Card', 
+                    items: 2 
+                },
+                { 
+                    id: 'TXN-2025-003',
+                    _id: 'TXN-2025-003', 
+                    date: new Date(Date.now() - 7200000).toISOString(), 
+                    total: 2530, 
+                    paymentMethod: 'Cash', 
+                    items: 8 
+                },
+                { 
+                    id: 'TXN-2025-004',
+                    _id: 'TXN-2025-004', 
+                    date: new Date(Date.now() - 86400000).toISOString(), 
+                    total: 1100, 
+                    paymentMethod: 'Card', 
+                    items: 3 
+                },
+                { 
+                    id: 'TXN-2025-005',
+                    _id: 'TXN-2025-005', 
+                    date: new Date(Date.now() - 172800000).toISOString(), 
+                    total: 3250, 
+                    paymentMethod: 'Cash', 
+                    items: 10 
+                }
             ]);
         }
         
@@ -743,23 +786,32 @@
                 const formattedDate = date.toLocaleDateString();
                 const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 
+                // Generate a consistent transaction ID format
+                const transactionId = transaction.id || transaction._id || `TXN-2025-${String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')}`;
+                
                 return `
-                    <div class="transaction-item">
+                    <div class="transaction-item" onclick="viewTransactionDetail('${transactionId}')">
                         <div class="transaction-info">
                             <div class="transaction-date">${formattedDate} ${formattedTime}</div>
-                            <div class="transaction-id">ID: ${transaction._id.substring(0, 8)}</div>
+                            <div class="transaction-id">ID: ${transactionId}</div>
                         </div>
                         <div class="transaction-details">
                             <div class="transaction-amount">NPR ${transaction.total.toLocaleString()}</div>
                             <div class="transaction-payment">${transaction.paymentMethod}</div>
                             <div class="transaction-items">${transaction.items} items</div>
                         </div>
-                        <a href="receipt-detail.html?id=${transaction._id}" class="view-receipt-btn">
+                        <button class="view-receipt-btn" onclick="event.stopPropagation(); viewTransactionDetail('${transactionId}')">
                             <i class="fas fa-eye"></i> View
-                        </a>
+                        </button>
                     </div>
                 `;
             }).join('');
+        }
+        
+        // Function to view transaction details
+        function viewTransactionDetail(transactionId) {
+            // Navigate to transactions page with the specific transaction ID to open in modal
+            window.location.href = `transactions.html?view=${transactionId}`;
         }
     </script><div class="container">
         <!-- Navbar component will be loaded here automatically -->
