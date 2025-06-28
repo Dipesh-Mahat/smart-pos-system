@@ -136,7 +136,7 @@ class AdminNavbar {
                 id: 1,
                 type: 'warning',
                 title: 'User Report',
-                message: 'Shop owner "John\'s Market" reported suspicious activity',
+                message: 'Shop owner "Sharma General Store" reported suspicious activity',
                 time: '5 minutes ago',
                 unread: true
             },
