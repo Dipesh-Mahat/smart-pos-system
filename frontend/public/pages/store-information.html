@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart POS - Store Information</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Include Auth Service for token management -->
+    <script src="../js/auth-service.js"></script>
+    <script src="../js/api-service.js"></script>
+    
+    <!-- Check authentication on page load -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            if (!window.authService || !window.authService.isLoggedIn()) {
+                window.location.href = '../landing.html';
+                return;
+            }
+            
+            // Ensure token is fresh
+            window.authService.ensureFreshToken();
+        });
+    </script>
+
+    <style>
+        /* Quick Menu Synchronization - Match POS page speed */
+        .main-content {
+            margin-left: 300px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.15s ease-out !important;
+        }
+
+        /* Fast transition when menu is closing */
+        body.menu-closed .main-content {
+            transition: margin-left 0.15s ease-out !important;
+        }
+
+        /* Override any slow transitions from menu.css */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                transition: margin-left 0.15s ease-out !important;
+            }
+            
+            body.menu-closed .main-content {
+                margin-left: 0 !important;
+                transition: margin-left 0.15s ease-out !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+                transition: none;
+            }
+        }
+
+        .profile-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Breadcrumb Navigation */
+        .breadcrumb {
+            margin-bottom: 20px;
+            padding: 12px 0;
+        }
+
+        .breadcrumb nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: #6c7b8a;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: #007bff;
+        }
+
+        .breadcrumb .separator {
+            color: #bbb;
+            margin: 0 4px;
+        }
+
+        .breadcrumb .current {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .profile-header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: flex-start;
+            gap: 50px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .profile-avatar {
+            position: relative;
+            flex-shrink: 0;
+            align-self: flex-start;
+            margin-right: 30px;
+        }
+
+        .avatar-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+            display: block;
+        }
+
+        .avatar-image:hover {
+            transform: scale(1.05);
+        }
+
+        .avatar-upload {
+            position: absolute;
+            bottom: 3px;
+            right: 3px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            border: 2px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .avatar-upload:hover {
+            background: #5a67d8;
+            transform: scale(1.1);
+        }
+
+        .profile-info {
+            flex: 1;
+            min-width: 0;
+            padding-top: 5px;
+            padding-left: 15px;
+        }
+
+        .profile-info h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0 0 8px 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .profile-role {
+            font-size: 16px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 18px;
+            padding: 4px 12px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #6c757d;
+            font-size: 13px;
+        }
+
+        .meta-item i {
+            color: #667eea;
+            width: 14px;
+            font-size: 12px;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 12px 16px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            min-width: 90px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 2px;
+            display: block;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .profile-sections {
+            display: block;
+            margin: 0 auto;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+                padding: 30px 20px;
+                align-items: center;
+            }
+
+            .profile-avatar {
+                align-self: center;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+
+            .profile-info {
+                padding-top: 0;
+            }
+
+            .profile-info h1 {
+                font-size: 28px;
+            }
+
+            .profile-meta {
+                justify-content: center;
+                gap: 15px;
+            }
+
+            .profile-stats {
+                justify-content: center;
+                gap: 15px;
+            }
+
+            .stat-item {
+                min-width: 80px;
+                padding: 10px 12px;
+            }
+
+            .stat-value {
+                font-size: 20px;
+            }
+        }
+
+        .section-card {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .section-title i {
+            color: #667eea;
+            font-size: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-input {
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+            color: #2c3e50;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: #fff;
+        }
+
+        .form-input:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+            margin-bottom: 0;
+            padding-top: 15px;
+            border-top: 2px solid #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+            .form-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            border: 2px solid transparent;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border-color: #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        #storeForm {
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <!-- Breadcrumb Navigation -->
+        <div class="breadcrumb">
+            <nav>
+                <a href="settings.html">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+                <span class="separator">
+                    <i class="fas fa-chevron-right"></i>
+                </span>
+                <span class="current">
+                    <i class="fas fa-store"></i> Store Information
+                </span>
+            </nav>
+        </div>
+
+        <div class="profile-container">
+            <!-- Store Header -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <img src="../images/logos/store-logo.png" alt="Store Logo" class="avatar-image" id="storeLogoImage" onerror="this.src='../images/icons/store-icon.png'">
+                    <div class="avatar-upload" onclick="document.getElementById('logoInput').click()">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <input type="file" id="logoInput" accept="image/*" style="display: none;" onchange="handleLogoUpload(event)">
+                </div>
+                
+                <div class="profile-info">
+                    <h1 id="storeName">Loading...</h1>
+                    <div class="profile-role" id="storeType">Loading...</div>
+                    
+                    <div class="profile-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span id="storeAddress">Loading...</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-phone"></i>
+                            <span id="storePhone">Not provided</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-envelope"></i>
+                            <span id="storeEmail">Loading...</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Opened <span id="storeOpened">Loading...</span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="totalProducts">0</span>
+                            <span class="stat-label">Products</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="totalEmployees">0</span>
+                            <span class="stat-label">Employees</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="monthlyRevenue">NPR 0</span>
+                            <span class="stat-label">Monthly Revenue</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="storeRating">4.5</span>
+                            <span class="stat-label">Rating</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Store Information Sections -->
+            <div class="profile-sections">
+                <!-- Edit Store Information Form -->
+                <div class="section-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-store"></i>
+                        Store Information
+                    </h2>
+                    
+                    <form id="storeForm" onsubmit="saveStoreInfo(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="storeNameInput" class="form-label">Store Name</label>
+                                <input type="text" id="storeNameInput" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="storeTypeInput" class="form-label">Store Type</label>
+                                <select id="storeTypeInput" class="form-input">
+                                    <option value="General Store">General Store</option>
+                                    <option value="Grocery Store">Grocery Store</option>
+                                    <option value="Supermarket">Supermarket</option>
+                                    <option value="Mini Mart">Mini Mart</option>
+                                    <option value="Convenience Store">Convenience Store</option>
+                                    <option value="Department Store">Department Store</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="storeEmailInput" class="form-label">Email Address</label>
+                                <input type="email" id="storeEmailInput" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="storePhoneInput" class="form-label">Phone Number</label>
+                                <input type="tel" id="storePhoneInput" class="form-input">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="storeAddressInput" class="form-label">Full Address</label>
+                                <input type="text" id="storeAddressInput" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="storeCityInput" class="form-label">City</label>
+                                <input type="text" id="storeCityInput" class="form-input" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="storeProvinceInput" class="form-label">Province</label>
+                                <select id="storeProvinceInput" class="form-input">
+                                    <option value="Province 1">Province 1</option>
+                                    <option value="Madhesh Province">Madhesh Province</option>
+                                    <option value="Bagmati Province">Bagmati Province</option>
+                                    <option value="Gandaki Province">Gandaki Province</option>
+                                    <option value="Lumbini Province">Lumbini Province</option>
+                                    <option value="Karnali Province">Karnali Province</option>
+                                    <option value="Sudurpashchim Province">Sudurpashchim Province</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="storePostalCodeInput" class="form-label">Postal Code</label>
+                                <input type="text" id="storePostalCodeInput" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="storePanInput" class="form-label">PAN Number</label>
+                                <input type="text" id="storePanInput" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="storeVatInput" class="form-label">VAT Number</label>
+                                <input type="text" id="storeVatInput" class="form-input">
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i>
+                                Save Changes
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="resetStoreForm()">
+                                <i class="fas fa-undo"></i>
+                                Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('storeLogoImage').src = e.target.result;
+                    showToast('Store logo updated successfully!', 'success');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveStoreInfo(event) {
+            event.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('storeNameInput').value,
+                type: document.getElementById('storeTypeInput').value,
+                email: document.getElementById('storeEmailInput').value,
+                phone: document.getElementById('storePhoneInput').value,
+                address: document.getElementById('storeAddressInput').value,
+                city: document.getElementById('storeCityInput').value,
+                province: document.getElementById('storeProvinceInput').value,
+                postalCode: document.getElementById('storePostalCodeInput').value,
+                pan: document.getElementById('storePanInput').value,
+                vat: document.getElementById('storeVatInput').value
+            };
+
+            // Save to localStorage
+            localStorage.setItem('storeData', JSON.stringify(formData));
+            
+            // Update header display
+            updateStoreHeaderDisplay(formData);
+            
+            showToast('Store information updated successfully!', 'success');
+        }
+
+        function resetStoreForm() {
+            if (confirm('Are you sure you want to reset all changes?')) {
+                loadStoreInformation();
+                showToast('Form reset to saved values', 'info');
+            }
+        }
+
+        function updateStoreHeaderDisplay(data) {
+            document.getElementById('storeName').textContent = data.name;
+            document.getElementById('storeType').textContent = data.type;
+            document.getElementById('storeEmail').textContent = data.email;
+            document.getElementById('storePhone').textContent = data.phone || 'Not provided';
+            document.getElementById('storeAddress').textContent = `${data.address}, ${data.city}`;
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            const bgColor = type === 'success' ? '#28a745' : type === 'warning' ? '#ffc107' : type === 'error' ? '#dc3545' : '#17a2b8';
+            const textColor = type === 'warning' ? '#212529' : 'white';
+            
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${bgColor};
+                color: ${textColor};
+                padding: 16px 24px;
+                border-radius: 12px;
+                z-index: 10000;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                animation: slideInUp 0.3s ease;
+                max-width: 300px;
+                font-weight: 500;
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutDown 0.3s ease';
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        function loadStoreInformation() {
+            // Load store information from localStorage or API
+            const storeData = JSON.parse(localStorage.getItem('storeData') || '{}');
+            const defaultData = {
+                name: 'Thapa General Store',
+                type: 'General Store',
+                email: 'info@thapastore.com',
+                phone: '+977-1-4567890',
+                address: 'Thamel Marg, Ward 29',
+                city: 'Kathmandu',
+                province: 'Bagmati Province',
+                postalCode: '44600',
+                pan: '301234567',
+                vat: '123456789',
+                openDate: '2020-03-15'
+            };
+
+            // Merge default data with stored data
+            const storeInfo = { ...defaultData, ...storeData };
+
+            // Update header display
+            updateStoreHeaderDisplay(storeInfo);
+
+            // Populate form fields
+            document.getElementById('storeNameInput').value = storeInfo.name;
+            document.getElementById('storeTypeInput').value = storeInfo.type;
+            document.getElementById('storeEmailInput').value = storeInfo.email;
+            document.getElementById('storePhoneInput').value = storeInfo.phone;
+            document.getElementById('storeAddressInput').value = storeInfo.address;
+            document.getElementById('storeCityInput').value = storeInfo.city;
+            document.getElementById('storeProvinceInput').value = storeInfo.province;
+            document.getElementById('storePostalCodeInput').value = storeInfo.postalCode;
+            document.getElementById('storePanInput').value = storeInfo.pan;
+            document.getElementById('storeVatInput').value = storeInfo.vat;
+
+            // Set open date
+            const openDate = new Date(storeInfo.openDate);
+            const formattedOpenDate = openDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            document.getElementById('storeOpened').textContent = formattedOpenDate;
+
+            // Load and display stats
+            const totalProducts = localStorage.getItem('storeTotalProducts') || '1,247';
+            const totalEmployees = localStorage.getItem('storeTotalEmployees') || '8';
+            const monthlyRevenue = localStorage.getItem('storeMonthlyRevenue') || '445200';
+
+            document.getElementById('totalProducts').textContent = totalProducts;
+            document.getElementById('totalEmployees').textContent = totalEmployees;
+            document.getElementById('monthlyRevenue').textContent = `NPR ${parseInt(monthlyRevenue).toLocaleString()}`;
+            document.getElementById('storeRating').textContent = '4.5';
+
+            // Update store logo if available
+            if (storeInfo.logo) {
+                document.getElementById('storeLogoImage').src = storeInfo.logo;
+            }
+        }
+
+        // Add CSS animations
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+            @keyframes slideInUp {
+                from { 
+                    opacity: 0; 
+                    transform: translateY(30px); 
+                }
+                to { 
+                    opacity: 1; 
+                    transform: translateY(0); 
+                }
+            }
+            
+            @keyframes slideOutDown {
+                from { 
+                    opacity: 1; 
+                    transform: translateY(0); 
+                }
+                to { 
+                    opacity: 0; 
+                    transform: translateY(30px); 
+                }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+
+        // Load store information when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(loadStoreInformation, 100); // Small delay to ensure DOM is ready
+        });
+    </script>
+
+    <!-- Professional Reusable Menu Component -->
+    <script src="../js/menu.js"></script>
+    <!-- Professional Reusable Navbar Component -->
+    <script src="../js/navbar.js"></script>
+    <script>
+        // Initialize navbar with store information-specific options
+        window.navbarManualInit = true; // Prevent auto-initialization
+        initSmartPOSNavbar({
+            title: 'Store Information',
+            showNotifications: true,
+            showProfile: true,
+            customActions: []
+        });
+
+        // Handle custom navbar actions (if any added in future)
+        window.addEventListener('navbarAction', (event) => {
+            const { actionId } = event.detail;
+            // No actions currently defined
+            console.log('Navbar action:', actionId);
+        });
+    </script>
+</body>
+</html>
