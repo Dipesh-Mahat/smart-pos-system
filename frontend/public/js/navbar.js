@@ -706,7 +706,7 @@ class SmartPOSNavbar {
                 type: 'info',
                 icon: 'credit-card',
                 title: 'Mobile Recharge',
-                message: 'Ncell Recharge Card Rs.100 sold to customer',
+                message: 'Ncell Recharge Card Rs.100 processed successfully',
                 time: '1 hour ago',
                 unread: false
             },
