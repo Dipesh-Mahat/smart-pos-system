@@ -11,42 +11,44 @@ class AnalyticsManager {
         // Sample analytics data
         this.analyticsData = {
             sales: {
-                total: 47825.50,
-                growth: 12.5,
+                total: 245850.00,
+                growth: 15.2,
                 orders: 342,
-                avgOrderValue: 139.84
+                avgOrderValue: 718.57
             },
             products: {
                 totalProducts: 247,
                 topSelling: [
-                    { name: 'Wireless Headphones', sales: 156, revenue: 7800 },
-                    { name: 'Smartphone Case', sales: 134, revenue: 2680 },
-                    { name: 'USB Cable', sales: 98, revenue: 980 },
-                    { name: 'Power Bank', sales: 87, revenue: 2175 },
-                    { name: 'Screen Protector', sales: 76, revenue: 380 }
+                    { name: 'Basmati Rice 5kg', sales: 156, revenue: 132600 },
+                    { name: 'Wai Wai Noodles', sales: 234, revenue: 7020 },
+                    { name: 'DDC Milk 1L', sales: 198, revenue: 16830 },
+                    { name: 'Nepali Tea 250g', sales: 87, revenue: 15660 },
+                    { name: 'Lux Soap', sales: 176, revenue: 7920 }
                 ]
             },
             customers: {
                 total: 142,
                 newCustomers: 18,
                 retention: 85.5,
-                avgLifetimeValue: 892.40
+                avgLifetimeValue: 12450.00
             },
             inventory: {
                 turnoverRate: 4.2,
                 lowStock: 12,
                 outOfStock: 5,
-                totalValue: 156450
+                totalValue: 856450
             },
             revenue: {
-                daily: [1250, 1380, 1420, 1180, 1650, 1480, 1750, 1920, 1680, 1450, 1550, 1680, 1820, 1750, 1650, 1480, 1750, 1920, 1680, 1450, 1550, 1680, 1820, 1750, 1650, 1480, 1750, 1920, 1680, 1450],
-                monthly: [28500, 32100, 29800, 34500, 31200, 35800, 33400, 36900, 34200, 37500, 35100, 38200]
+                daily: [8250, 9380, 8420, 7180, 10650, 9480, 11750, 12920, 10680, 9450, 10550, 11680, 12820, 11750, 10650, 9480, 11750, 12920, 10680, 9450, 10550, 11680, 12820, 11750, 10650, 9480, 11750, 12920, 10680, 9450],
+                monthly: [185500, 192100, 189800, 234500, 231200, 245800, 233400, 256900, 234200, 267500, 245100, 278200]
             },
             categories: {
-                electronics: { sales: 245, revenue: 24500 },
-                accessories: { sales: 187, revenue: 9350 },
-                components: { sales: 89, revenue: 4450 },
-                tools: { sales: 56, revenue: 2800 }
+                groceries: { sales: 345, revenue: 184500 },
+                beverages: { sales: 287, revenue: 58350 },
+                snacks: { sales: 189, revenue: 24450 },
+                'personal-care': { sales: 156, revenue: 18800 },
+                household: { sales: 98, revenue: 32400 },
+                dairy: { sales: 134, revenue: 21800 }
             }
         };
 
@@ -331,7 +333,7 @@ class AnalyticsManager {
         const activities = [
             { type: 'sale', description: 'Order #1234 completed', amount: '$125.50', time: '2 minutes ago' },
             { type: 'inventory', description: 'Low stock alert: USB Cables', amount: '8 left', time: '15 minutes ago' },
-            { type: 'customer', description: 'New customer registered', amount: 'John Doe', time: '1 hour ago' },
+            { type: 'customer', description: 'New customer registered', amount: 'Maya Tamang', time: '1 hour ago' },
             { type: 'sale', description: 'Order #1233 completed', amount: '$89.99', time: '2 hours ago' },
             { type: 'inventory', description: 'Stock updated: Power Banks', amount: '+50 units', time: '3 hours ago' }
         ];

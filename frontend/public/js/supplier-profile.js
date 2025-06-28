@@ -4,28 +4,28 @@ class ProfileManager {
     constructor() {
         this.supplierProfile = {
             id: 'SUP-001',
-            businessName: 'TechWorld Electronics',
-            contactPerson: 'John Smith',
-            email: 'john.smith@techworld.com',
-            phone: '+1 (555) 123-4567',
-            website: 'www.techworld-electronics.com',
+            businessName: 'Adhikari Wholesale Suppliers',
+            contactPerson: 'Krishna Prasad Adhikari',
+            email: 'krishna.adhikari@aws.com.np',
+            phone: '+977-986-1234567',
+            website: 'www.adhikari-wholesale.com.np',
             address: {
-                street: '123 Technology Street',
-                city: 'Tech City',
-                state: 'California',
-                zipCode: '90210',
-                country: 'United States'
+                street: 'Bhaisepati Industrial Area',
+                city: 'Lalitpur',
+                state: 'Bagmati Province',
+                zipCode: '44700',
+                country: 'Nepal'
             },
             businessInfo: {
-                registrationNumber: 'REG-123456789',
-                taxId: 'TAX-987654321',
-                businessType: 'Corporation',
+                registrationNumber: 'REG-123456789-NPL',
+                taxId: 'PAN-987654321',
+                businessType: 'Private Limited',
                 founded: '2015',
-                employees: '50-100',
-                description: 'Leading supplier of electronic components and accessories for retail businesses.'
+                employees: '25-50',
+                description: 'Leading wholesale supplier of grocery items, beverages, and daily necessities for retail marts across Nepal.'
             },
             bankDetails: {
-                bankName: 'First National Bank',
+                bankName: 'Nabil Bank Limited',
                 accountNumber: '****-****-****-1234',
                 routingNumber: '123456789',
                 accountType: 'Business Checking'

@@ -8,78 +8,78 @@ let ordersData = [
     {
         id: 'ORD-2024-001',
         customerId: 1,
-        customerName: 'Rajesh Kumar',
-        customerEmail: 'rajesh@example.com',
+        customerName: 'Maya Tamang',
+        customerEmail: 'maya.tamang@example.com',
         products: [
-            { name: 'Samsung Galaxy S23', quantity: 1, price: 79999 },
-            { name: 'Wireless Charger', quantity: 1, price: 2999 }
+            { name: 'Basmati Rice 5kg', quantity: 10, price: 850 },
+            { name: 'Nepali Tea 250g', quantity: 5, price: 180 }
         ],
-        totalAmount: 82998,
+        totalAmount: 9400,
         status: 'pending',
         orderDate: new Date('2024-06-08'),
-        shippingAddress: '123 MG Road, Bangalore, Karnataka 560001',
-        paymentMethod: 'Credit Card',
-        notes: 'Priority delivery requested'
+        shippingAddress: 'Boudha Stupa Area, Kathmandu, Nepal',
+        paymentMethod: 'Cash on Delivery',
+        notes: 'Urgent order for store opening'
     },
     {
         id: 'ORD-2024-002',
         customerId: 2,
-        customerName: 'Priya Sharma',
-        customerEmail: 'priya@example.com',
+        customerName: 'Suresh Rai',
+        customerEmail: 'suresh.rai@example.com',
         products: [
-            { name: 'Nike Air Max 270', quantity: 2, price: 12995 }
+            { name: 'Wai Wai Noodles Carton', quantity: 3, price: 1440 }
         ],
-        totalAmount: 25990,
+        totalAmount: 4320,
         status: 'processing',
         orderDate: new Date('2024-06-07'),
-        shippingAddress: '456 Park Street, Mumbai, Maharashtra 400001',
-        paymentMethod: 'UPI',
+        shippingAddress: 'Patan Durbar Square, Lalitpur, Nepal',
+        paymentMethod: 'Bank Transfer',
         notes: ''
     },
     {
         id: 'ORD-2024-003',
         customerId: 3,
-        customerName: 'Amit Patel',
-        customerEmail: 'amit@example.com',
+        customerName: 'Binita Shrestha',
+        customerEmail: 'binita.shrestha@example.com',
         products: [
-            { name: 'Apple MacBook Air M2', quantity: 1, price: 114900 },
-            { name: 'Magic Mouse', quantity: 1, price: 7900 }
+            { name: 'DDC Milk 1L Crate', quantity: 5, price: 1020 },
+            { name: 'Lux Soap Box', quantity: 2, price: 2160 }
         ],
-        totalAmount: 122800,
+        totalAmount: 9420,
         status: 'shipped',
         orderDate: new Date('2024-06-06'),
-        shippingAddress: '789 Gandhi Road, Delhi 110001',
-        paymentMethod: 'Net Banking',
+        shippingAddress: 'Newroad Commercial Area, Kathmandu, Nepal',
+        paymentMethod: 'Bank Transfer',
         notes: 'Corporate order'
     },
     {
         id: 'ORD-2024-004',
         customerId: 4,
-        customerName: 'Sneha Reddy',
-        customerEmail: 'sneha@example.com',
+        customerName: 'Dipak Thapa',
+        customerEmail: 'dipak.thapa@example.com',
         products: [
-            { name: 'Levi\'s 501 Jeans', quantity: 3, price: 3999 }
+            { name: 'Teer Detergent Case', quantity: 3, price: 3360 }
         ],
-        totalAmount: 11997,
+        totalAmount: 10080,
         status: 'delivered',
         orderDate: new Date('2024-06-05'),
-        shippingAddress: '321 Commercial Street, Chennai, Tamil Nadu 600001',
+        shippingAddress: 'Durbarmarg Shopping District, Kathmandu, Nepal',
         paymentMethod: 'Cash on Delivery',
-        notes: 'Gift wrapping requested'
+        notes: 'Regular monthly order'
     },
     {
         id: 'ORD-2024-005',
         customerId: 5,
-        customerName: 'Vikram Singh',
-        customerEmail: 'vikram@example.com',
+        customerName: 'Anita Gurung',
+        customerEmail: 'anita.gurung@example.com',
         products: [
-            { name: 'Sony WH-1000XM4', quantity: 1, price: 29990 }
+            { name: 'Khukri Rum Case', quantity: 1, price: 11760 }
         ],
-        totalAmount: 29990,
+        totalAmount: 11760,
         status: 'cancelled',
         orderDate: new Date('2024-06-04'),
-        shippingAddress: '654 Mall Road, Pune, Maharashtra 411001',
-        paymentMethod: 'Credit Card',
+        shippingAddress: 'Lakeside Road, Pokhara, Nepal',
+        paymentMethod: 'Bank Transfer',
         notes: 'Customer requested cancellation'
     }
 ];

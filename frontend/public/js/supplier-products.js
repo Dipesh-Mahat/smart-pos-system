@@ -503,11 +503,13 @@ function populateEditForm(product) {
                 <label for="editProductCategory">Category *</label>
                 <select id="editProductCategory" name="productCategory" required>
                     <option value="">Select Category</option>
-                    <option value="electronics" ${product.category === 'electronics' ? 'selected' : ''}>Electronics</option>
-                    <option value="clothing" ${product.category === 'clothing' ? 'selected' : ''}>Clothing</option>
-                    <option value="home" ${product.category === 'home' ? 'selected' : ''}>Home & Garden</option>
-                    <option value="sports" ${product.category === 'sports' ? 'selected' : ''}>Sports</option>
-                    <option value="books" ${product.category === 'books' ? 'selected' : ''}>Books</option>
+                    <option value="groceries" ${product.category === 'groceries' ? 'selected' : ''}>Groceries</option>
+                    <option value="beverages" ${product.category === 'beverages' ? 'selected' : ''}>Beverages</option>
+                    <option value="snacks" ${product.category === 'snacks' ? 'selected' : ''}>Snacks & Confectionery</option>
+                    <option value="personal-care" ${product.category === 'personal-care' ? 'selected' : ''}>Personal Care</option>
+                    <option value="household" ${product.category === 'household' ? 'selected' : ''}>Household Items</option>
+                    <option value="dairy" ${product.category === 'dairy' ? 'selected' : ''}>Dairy Products</option>
+                    <option value="cooking-oil" ${product.category === 'cooking-oil' ? 'selected' : ''}>Cooking Oil</option>
                 </select>
             </div>
             <div class="form-group">
@@ -609,171 +611,171 @@ function getDemoProducts() {
     return [
         {
             id: 1,
-            name: "Coca Cola 500ml (Case of 24)",
-            sku: "BVRG-CC-500-24",
-            category: "beverages",
-            brand: "Coca Cola",
-            price: 6000,
-            cost: 5000,
+            name: "Basmati Rice 5kg (Bag of 10)",
+            sku: "RICE-BASMATI-5KG-10",
+            category: "groceries",
+            brand: "Himalayan Gold",
+            price: 8500,
+            cost: 7000,
             stock: 45,
             minStock: 10,
             status: "active",
-            image: "../images/products/coca-cola-case.jpg",
-            description: "Wholesale case of 24 Coca Cola 500ml bottles for retail stores"
+            image: "../images/products/basmati-rice-bag.jpg",
+            description: "Wholesale bag of 10 premium Basmati rice 5kg packs for retail stores"
         },
         {
             id: 2,
-            name: "Dairy Milk Chocolate (Box of 48)",
-            sku: "CHOC-DM-100-48",
-            category: "chocolates",
-            brand: "Cadbury",
-            price: 12000,
-            cost: 10000,
+            name: "Nepali Tea 250g (Box of 20)",
+            sku: "TEA-NEPALI-250G-20",
+            category: "beverages",
+            brand: "Ilam Tea",
+            price: 3600,
+            cost: 2400,
             stock: 25,
             minStock: 5,
             status: "active",
-            image: "../images/products/dairy-milk-box.jpg",
-            description: "Wholesale box of 48 Dairy Milk chocolate bars for retail distribution"
+            image: "../images/products/nepali-tea-box.jpg",
+            description: "Wholesale box of 20 Nepali black tea 250g packets from Ilam"
         },
         {
             id: 3,
-            name: "Lay's Potato Chips (Carton of 30)",
-            sku: "SNCK-LAYS-200-30",
+            name: "Wai Wai Noodles (Carton of 48)",
+            sku: "NOODLES-WAIWAI-48",
             category: "snacks",
-            brand: "Lay's",
-            price: 5500,
-            cost: 4500,
+            brand: "Wai Wai",
+            price: 1440,
+            cost: 1056,
             stock: 35,
             minStock: 8,
             status: "active",
-            image: "../images/products/lays-carton.jpg",
-            description: "Wholesale carton of 30 Lay's potato chips packs for retail stores"
+            image: "../images/products/waiwai-carton.jpg",
+            description: "Wholesale carton of 48 Wai Wai instant noodles for retail stores"
         },
         {
             id: 4,
-            name: "Bisleri Water 1L (Crate of 12)",
-            sku: "BVRG-BSL-1L-12",
-            category: "beverages",
-            brand: "Bisleri",
-            price: 1200,
-            cost: 900,
+            name: "DDC Milk 1L (Crate of 12)",
+            sku: "MILK-DDC-1L-12",
+            category: "dairy",
+            brand: "DDC",
+            price: 1020,
+            cost: 840,
             stock: 80,
             minStock: 20,
             status: "active",
-            image: "../images/products/bisleri-crate.jpg",
-            description: "Wholesale crate of 12 Bisleri 1L water bottles"
+            image: "../images/products/ddc-milk-crate.jpg",
+            description: "Wholesale crate of 12 DDC fresh pasteurized milk 1L bottles"
         },
         {
             id: 5,
-            name: "Red Bull Energy Drink (Case of 24)",
-            sku: "BVRG-RB-250-24",
-            category: "beverages",
-            brand: "Red Bull",
-            price: 9600,
-            cost: 8000,
+            name: "Lux Soap 100g (Box of 48)",
+            sku: "SOAP-LUX-100G-48",
+            category: "personal-care",
+            brand: "Lux",
+            price: 2160,
+            cost: 1680,
             stock: 15,
             minStock: 5,
             status: "active",
-            image: "../images/products/redbull-case.jpg",
-            description: "Wholesale case of 24 Red Bull energy drinks for retail distribution"
+            image: "../images/products/lux-soap-box.jpg",
+            description: "Wholesale box of 48 Lux beauty soap bars with rose fragrance"
         },
         {
             id: 6,
-            name: "Maggi Noodles 2-Min (Carton of 48)",
-            sku: "INST-MAG-70-48",
-            category: "instant-food",
-            brand: "Maggi",
-            price: 4800,
-            cost: 4000,
+            name: "Teer Detergent 1kg (Case of 12)",
+            sku: "DETERGENT-TEER-1KG-12",
+            category: "household",
+            brand: "Teer",
+            price: 3360,
+            cost: 2640,
             stock: 60,
             minStock: 15,
             status: "active",
-            image: "../images/products/maggi-carton.jpg",
-            description: "Wholesale carton of 48 Maggi 2-minute noodles packs"
+            image: "../images/products/teer-detergent-case.jpg",
+            description: "Wholesale case of 12 Teer washing powder 1kg packs"
         },
         {
             id: 7,
-            name: "Parle-G Biscuits (Box of 60)",
-            sku: "BISC-PG-56-60",
-            category: "biscuits",
-            brand: "Parle",
-            price: 3600,
-            cost: 3000,
+            name: "Masala Dal 1kg (Bag of 20)",
+            sku: "DAL-MASALA-1KG-20",
+            category: "groceries",
+            brand: "Local Producer",
+            price: 3200,
+            cost: 2600,
             stock: 40,
             minStock: 10,
             status: "active",
-            image: "../images/products/parle-g-box.jpg",
-            description: "Wholesale box of 60 Parle-G biscuit packs"
+            image: "../images/products/masala-dal-bag.jpg",
+            description: "Wholesale bag of 20 mixed lentils with traditional Nepali spices"
         },
         {
             id: 8,
-            name: "Tata Salt 1kg (Bag of 25)",
-            sku: "GROC-TS-1K-25",
-            category: "groceries",
-            brand: "Tata",
-            price: 1750,
-            cost: 1500,
+            name: "Khukri Rum 375ml (Case of 12)",
+            sku: "RUM-KHUKRI-375ML-12",
+            category: "beverages",
+            brand: "Khukri",
+            price: 11760,
+            cost: 9600,
             stock: 30,
             minStock: 8,
             status: "active",
-            image: "../images/products/tata-salt-bag.jpg",
-            description: "Wholesale bag of 25 Tata Salt 1kg packs"
+            image: "../images/products/khukri-rum-case.jpg",
+            description: "Wholesale case of 12 Khukri premium aged rum 375ml bottles"
         },
         {
             id: 9,
-            name: "Britannia Good Day Cookies (Box of 36)",
-            sku: "COOK-BRG-75-36",
-            category: "biscuits",
-            brand: "Britannia",
-            price: 4320,
-            cost: 3600,
+            name: "Everest Spices Mixed (Box of 24)",
+            sku: "SPICE-EVEREST-MIX-24",
+            category: "groceries",
+            brand: "Everest",
+            price: 2880,
+            cost: 2280,
             stock: 20,
             minStock: 6,
             status: "active",
-            image: "../images/products/good-day-box.jpg",
-            description: "Wholesale box of 36 Britannia Good Day cookie packs"
+            image: "../images/products/everest-spices-box.jpg",
+            description: "Wholesale box of 24 assorted Everest spice packets"
         },
         {
             id: 10,
-            name: "Amul Milk 500ml (Crate of 20)",
-            sku: "MILK-AM-500-20",
-            category: "dairy",
-            brand: "Amul",
-            price: 2200,
-            cost: 1900,
+            name: "Golmaal Biscuits (Carton of 60)",
+            sku: "BISCUIT-GOLMAAL-60",
+            category: "snacks",
+            brand: "Shivam",
+            price: 1800,
+            cost: 1500,
             stock: 50,
             minStock: 12,
             status: "active",
-            image: "../images/products/amul-milk-crate.jpg",
-            description: "Wholesale crate of 20 Amul milk 500ml packets"
+            image: "../images/products/golmaal-biscuits-carton.jpg",
+            description: "Wholesale carton of 60 popular Golmaal biscuit packets"
         },
         {
             id: 11,
-            name: "Surf Excel Detergent 1kg (Case of 12)",
-            sku: "DTGN-SE-1K-12",
-            category: "household",
-            brand: "Surf Excel",
-            price: 4800,
-            cost: 4200,
+            name: "Mustard Oil 1L (Case of 15)",
+            sku: "OIL-MUSTARD-1L-15",
+            category: "cooking-oil",
+            brand: "Dhara",
+            price: 2250,
+            cost: 1950,
             stock: 25,
             minStock: 5,
             status: "active",
-            image: "../images/products/surf-excel-case.jpg",
-            description: "Wholesale case of 12 Surf Excel detergent 1kg packs"
+            image: "../images/products/mustard-oil-case.jpg",
+            description: "Wholesale case of 15 pure mustard oil 1L bottles for cooking"
         },
         {
             id: 12,
-            name: "Fortune Sunflower Oil 1L (Case of 15)",
-            sku: "OIL-FRT-1L-15",
-            category: "cooking-oil",
-            brand: "Fortune",
-            price: 2250,
-            cost: 1950,
+            name: "CG Salt 1kg (Bag of 25)",
+            sku: "SALT-CG-1KG-25",
+            category: "groceries",
+            brand: "CG",
+            price: 1375,
+            cost: 1125,
             stock: 2,
             minStock: 8,
             status: "active",
-            image: "../images/products/fortune-oil-case.jpg",
-            description: "Wholesale case of 15 Fortune sunflower oil 1L bottles - Low Stock!"
+            image: "../images/products/cg-salt-bag.jpg",
+            description: "Wholesale bag of 25 CG iodized salt 1kg packets - Low Stock!"
         }
     ];
 }
