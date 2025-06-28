@@ -10,6 +10,10 @@ const productController = require('../controllers/productController');
 const transactionController = require('../controllers/transactionController');
 const expenseController = require('../controllers/expenseController');
 const testController = require('../controllers/testController');
+const customerController = require('../controllers/customerController');
+const categoryController = require('../controllers/categoryController');
+const orderController = require('../controllers/orderController');
+const settingsController = require('../controllers/settingsController');
 
 // Apply JWT authentication and shop owner authorization to all routes
 router.use(authenticateJWT);
@@ -787,5 +791,862 @@ router.get('/test-shopowner', (req, res) => {
     }
   });
 });
+
+// ================================
+// CUSTOMER MANAGEMENT ROUTES
+// ================================
+
+/**
+ * @swagger
+ * /shop/customers:
+ *   get:
+ *     summary: Get all customers
+ *     tags: [Customers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Number of customers per page
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search term for customer name, email, or phone
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, inactive]
+ *         description: Filter by customer status
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [regular, wholesale, vip, corporate]
+ *         description: Filter by customer type
+ *     responses:
+ *       200:
+ *         description: Customers retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/customers', customerController.getCustomers);
+
+/**
+ * @swagger
+ * /shop/customers:
+ *   post:
+ *     summary: Create a new customer
+ *     tags: [Customers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               address:
+ *                 type: object
+ *               type:
+ *                 type: string
+ *                 enum: [regular, wholesale, vip, corporate]
+ *     responses:
+ *       201:
+ *         description: Customer created successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.post('/customers', customerController.createCustomer);
+
+/**
+ * @swagger
+ * /shop/customers/stats:
+ *   get:
+ *     summary: Get customer statistics
+ *     tags: [Customers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Customer statistics retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/customers/stats', customerController.getCustomerStats);
+
+/**
+ * @swagger
+ * /shop/customers/bulk-update:
+ *   put:
+ *     summary: Bulk update customers
+ *     tags: [Customers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - customerIds
+ *               - updateData
+ *             properties:
+ *               customerIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               updateData:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Customers updated successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.put('/customers/bulk-update', customerController.bulkUpdateCustomers);
+
+/**
+ * @swagger
+ * /shop/customers/{id}:
+ *   get:
+ *     summary: Get a single customer
+ *     tags: [Customers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Customer ID
+ *     responses:
+ *       200:
+ *         description: Customer retrieved successfully
+ *       404:
+ *         description: Customer not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/customers/:id', customerController.getCustomer);
+
+/**
+ * @swagger
+ * /shop/customers/{id}:
+ *   put:
+ *     summary: Update a customer
+ *     tags: [Customers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Customer ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               address:
+ *                 type: object
+ *               type:
+ *                 type: string
+ *                 enum: [regular, wholesale, vip, corporate]
+ *               status:
+ *                 type: string
+ *                 enum: [active, inactive]
+ *     responses:
+ *       200:
+ *         description: Customer updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Customer not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.put('/customers/:id', customerController.updateCustomer);
+
+/**
+ * @swagger
+ * /shop/customers/{id}:
+ *   delete:
+ *     summary: Delete a customer
+ *     tags: [Customers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Customer ID
+ *     responses:
+ *       200:
+ *         description: Customer deleted successfully
+ *       404:
+ *         description: Customer not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.delete('/customers/:id', customerController.deleteCustomer);
+
+// ================================
+// CATEGORY MANAGEMENT ROUTES
+// ================================
+
+/**
+ * @swagger
+ * /shop/categories:
+ *   get:
+ *     summary: Get all categories
+ *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: includeProducts
+ *         schema:
+ *           type: boolean
+ *         description: Include product count for each category
+ *     responses:
+ *       200:
+ *         description: Categories retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/categories', categoryController.getCategories);
+
+/**
+ * @swagger
+ * /shop/categories:
+ *   post:
+ *     summary: Create a new category
+ *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               parentCategory:
+ *                 type: string
+ *               imageUrl:
+ *                 type: string
+ *               isActive:
+ *                 type: boolean
+ *               sortOrder:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Category created successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.post('/categories', categoryController.createCategory);
+
+/**
+ * @swagger
+ * /shop/categories/hierarchy:
+ *   get:
+ *     summary: Get category hierarchy tree
+ *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Category hierarchy retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/categories/hierarchy', categoryController.getCategoryHierarchy);
+
+/**
+ * @swagger
+ * /shop/categories/reorder:
+ *   put:
+ *     summary: Reorder categories
+ *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - categoryOrders
+ *             properties:
+ *               categoryOrders:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     sortOrder:
+ *                       type: number
+ *     responses:
+ *       200:
+ *         description: Categories reordered successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.put('/categories/reorder', categoryController.reorderCategories);
+
+/**
+ * @swagger
+ * /shop/categories/{id}:
+ *   get:
+ *     summary: Get a single category with products
+ *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category ID
+ *     responses:
+ *       200:
+ *         description: Category retrieved successfully
+ *       404:
+ *         description: Category not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/categories/:id', categoryController.getCategory);
+
+/**
+ * @swagger
+ * /shop/categories/{id}:
+ *   put:
+ *     summary: Update a category
+ *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               parentCategory:
+ *                 type: string
+ *               imageUrl:
+ *                 type: string
+ *               isActive:
+ *                 type: boolean
+ *               sortOrder:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Category updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Category not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.put('/categories/:id', categoryController.updateCategory);
+
+/**
+ * @swagger
+ * /shop/categories/{id}:
+ *   delete:
+ *     summary: Delete a category
+ *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category ID
+ *     responses:
+ *       200:
+ *         description: Category deleted successfully
+ *       400:
+ *         description: Cannot delete category with products or subcategories
+ *       404:
+ *         description: Category not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.delete('/categories/:id', categoryController.deleteCategory);
+
+// ================================
+// ORDER MANAGEMENT ROUTES
+// ================================
+
+/**
+ * @swagger
+ * /shop/orders:
+ *   get:
+ *     summary: Get all orders
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Number of orders per page
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, confirmed, shipped, delivered, cancelled]
+ *         description: Filter by order status
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter orders from this date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter orders until this date
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by order number or product name
+ *     responses:
+ *       200:
+ *         description: Orders retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ *   post:
+ *     summary: Create a new order to supplier
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - supplierId
+ *               - items
+ *             properties:
+ *               supplierId:
+ *                 type: string
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     productId:
+ *                       type: string
+ *                     quantity:
+ *                       type: number
+ *                     unitPrice:
+ *                       type: number
+ *               notes:
+ *                 type: string
+ *               requestedDeliveryDate:
+ *                 type: string
+ *                 format: date
+ *     responses:
+ *       201:
+ *         description: Order created successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/orders', orderController.getOrders);
+router.post('/orders', orderController.createOrder);
+
+/**
+ * @swagger
+ * /shop/orders/stats:
+ *   get:
+ *     summary: Get order statistics
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Order statistics retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/orders/stats', orderController.getOrderStats);
+
+/**
+ * @swagger
+ * /shop/orders/suppliers:
+ *   get:
+ *     summary: Get available suppliers for orders
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Suppliers retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/orders/suppliers', orderController.getAvailableSuppliers);
+
+/**
+ * @swagger
+ * /shop/suppliers/{supplierId}/products:
+ *   get:
+ *     summary: Get products from a specific supplier
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: supplierId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The supplier's user ID
+ *     responses:
+ *       200:
+ *         description: Supplier products retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Supplier not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/suppliers/:supplierId/products', orderController.getSupplierProducts);
+
+/**
+ * @swagger
+ * /shop/orders/{id}:
+ *   get:
+ *     summary: Get a single order
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID
+ *     responses:
+ *       200:
+ *         description: Order retrieved successfully
+ *       404:
+ *         description: Order not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/orders/:id', orderController.getOrder);
+
+/**
+ * @swagger
+ * /shop/orders/{id}/status:
+ *   put:
+ *     summary: Update order status (cancel only for shopowners)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [cancelled]
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Order status updated successfully
+ *       400:
+ *         description: Validation error
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Order not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.put('/orders/:id/status', orderController.updateOrderStatus);
+
+// ================================
+// SETTINGS MANAGEMENT ROUTES
+// ================================
+
+/**
+ * @swagger
+ * /shop/settings:
+ *   get:
+ *     summary: Get shop settings
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Settings retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/settings', settingsController.getSettings);
+
+/**
+ * @swagger
+ * /shop/settings:
+ *   put:
+ *     summary: Update shop settings
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               business:
+ *                 type: object
+ *               currency:
+ *                 type: object
+ *               tax:
+ *                 type: object
+ *               receipt:
+ *                 type: object
+ *               inventory:
+ *                 type: object
+ *               pos:
+ *                 type: object
+ *               notifications:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Settings updated successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.put('/settings', settingsController.updateSettings);
+
+/**
+ * @swagger
+ * /shop/settings/{section}:
+ *   put:
+ *     summary: Update specific settings section
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: section
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [business, currency, tax, receipt, inventory, pos, notifications]
+ *         description: Settings section to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Settings section updated successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.put('/settings/:section', settingsController.updateSettingSection);
+
+/**
+ * @swagger
+ * /shop/settings/reset:
+ *   post:
+ *     summary: Reset settings to default
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               section:
+ *                 type: string
+ *                 description: Specific section to reset (optional)
+ *     responses:
+ *       200:
+ *         description: Settings reset successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.post('/settings/reset', settingsController.resetSettings);
+
+/**
+ * @swagger
+ * /shop/settings/business-profile:
+ *   get:
+ *     summary: Get business profile (public information)
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Business profile retrieved successfully
+ *       404:
+ *         description: Business profile not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/settings/business-profile', settingsController.getBusinessProfile);
 
 module.exports = router;
