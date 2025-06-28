@@ -25,13 +25,13 @@
             window.authService.ensureFreshToken();
         });
     </script>    <style>
-        /* Settings Page Specific Styles */
+        /* Settings Page Specific Styles - Quick Menu Transitions */
         .main-content {
             padding: 0;
             margin-left: 0 !important;
             width: 100vw;
             box-sizing: border-box;
-            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: margin-left 0.15s ease-out !important;
             min-height: auto;
         }
 
@@ -39,10 +39,12 @@
         @media screen and (min-width: 1024px) {
             .main-content {
                 margin-left: 300px;
+                transition: margin-left 0.15s ease-out !important;
             }
             
             body.menu-closed .main-content {
                 margin-left: 0;
+                transition: margin-left 0.15s ease-out !important;
             }
         }
         
@@ -465,8 +467,20 @@
         }
         
         /* Add smooth animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
@@ -777,7 +791,6 @@
             display: none;
             transition: all 0.3s ease;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            display: flex;
             align-items: center;
             gap: 8px;
         }
@@ -802,11 +815,7 @@
             animation: pulse 1.5s infinite;
         }
         
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }.form-actions {
+        .form-actions {
             display: flex;
             gap: 12px; /* Reduced gap */
             justify-content: center;
@@ -916,13 +925,13 @@
                     <div class="toggle-switch active" id="notificationToggle"></div>
                 </div>
                 
-                <a href="store-management.html" class="settings-item">
+                <a href="store-information.html" class="settings-item">
                     <div class="settings-icon">
-                        <i class="fas fa-building"></i>
+                        <i class="fas fa-store"></i>
                     </div>
                     <div class="settings-content">
                         <div class="settings-label">Store Information</div>
-                        <div class="settings-description">Manage store details, hours, and contact info</div>
+                        <div class="settings-description">Manage store details, branding, and business information</div>
                     </div>
                     <div class="settings-arrow">
                         <i class="fas fa-chevron-right"></i>
@@ -1198,77 +1207,72 @@ Last Updated: June 2025
         }        function loadUserProfile() {
             // Load user profile data from localStorage or API
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            
-            // Update profile display with actual user data
-            if (userData.name) {
-                document.getElementById('profileName').textContent = userData.name;
-            }
-            
-            if (userData.email) {
-                document.getElementById('profileEmail').textContent = userData.email;
-            }
-            
-            if (userData.role) {
-                document.getElementById('profileRole').textContent = userData.role;
-            }
-            
-            if (userData.phone) {
-                document.getElementById('profilePhone').textContent = userData.phone;
-            } else {
-                document.getElementById('profilePhone').textContent = 'Not provided';
-            }
-            
-            if (userData.storeName) {
-                document.getElementById('profileStore').textContent = userData.storeName;
-            }
+            const defaultData = {
+                name: 'Ram Bahadur Thapa',
+                email: 'ram.thapa@smartpos.com',
+                role: 'Store Manager',
+                phone: '+977-9812345678',
+                storeName: 'Thapa General Store',
+                location: 'Thamel, Kathmandu',
+                joinDate: '2024-01-15',
+                userId: 'USR-2024-001'
+            };
+
+            // Merge default data with stored data
+            const profileData = { ...defaultData, ...userData };
+
+            // Update profile display with user data
+            document.getElementById('profileName').textContent = profileData.name;
+            document.getElementById('profileEmail').textContent = profileData.email;
+            document.getElementById('profileRole').textContent = profileData.role;
+            document.getElementById('profilePhone').textContent = profileData.phone || 'Not provided';
+            document.getElementById('profileStore').textContent = profileData.storeName;
             
             // Set join date
-            if (userData.joinDate) {
-                const joinDate = new Date(userData.joinDate);
-                document.getElementById('profileJoined').textContent = joinDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-            }
+            const joinDate = new Date(profileData.joinDate);
+            const formattedJoinDate = joinDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            document.getElementById('profileJoined').textContent = formattedJoinDate;
             
             // Set last login time
-            const lastLogin = localStorage.getItem('lastLogin');
-            if (lastLogin) {
-                const loginDate = new Date(lastLogin);
-                const now = new Date();
-                const diffHours = Math.abs(now - loginDate) / 36e5;
-                
-                if (diffHours < 1) {
-                    document.getElementById('profileLastLogin').textContent = 'Just now';
-                } else if (diffHours < 24) {
-                    document.getElementById('profileLastLogin').textContent = `${Math.floor(diffHours)} hours ago`;
-                } else {
-                    document.getElementById('profileLastLogin').textContent = loginDate.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                    });
-                }
+            const lastLogin = localStorage.getItem('lastLogin') || new Date().toISOString();
+            const loginDate = new Date(lastLogin);
+            const now = new Date();
+            const diffHours = Math.abs(now - loginDate) / 36e5;
+
+            let lastLoginText;
+            if (diffHours < 1) {
+                lastLoginText = 'Just now';
+            } else if (diffHours < 24) {
+                lastLoginText = `${Math.floor(diffHours)} hours ago`;
             } else {
-                // Set current time as last login
-                document.getElementById('profileLastLogin').textContent = 'Just now';
-                localStorage.setItem('lastLogin', new Date().toISOString());
+                lastLoginText = loginDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
             }
+            document.getElementById('profileLastLogin').textContent = lastLoginText;
             
-            // Load transaction count and days active from localStorage
-            const transactionCount = localStorage.getItem('userTransactionCount') || '0';
-            const daysActive = localStorage.getItem('userDaysActive') || '1';
+            // Load and display stats (same as user profile page)
+            const transactionCount = localStorage.getItem('userTransactionCount') || '247';
+            const daysActive = localStorage.getItem('userDaysActive') || '156';
             
             document.getElementById('profileTransactions').textContent = parseInt(transactionCount).toLocaleString();
             document.getElementById('profileDaysActive').textContent = daysActive;
             
             // Update profile avatar if available
-            if (userData.avatar) {
-                document.getElementById('profileAvatar').src = userData.avatar;
+            if (profileData.avatar) {
+                document.getElementById('profileAvatar').src = profileData.avatar;
             }
+
+            // Store current timestamp as last login
+            localStorage.setItem('lastLogin', new Date().toISOString());
         }
 
         function updateUserStats() {
@@ -1289,86 +1293,51 @@ Last Updated: June 2025
         }
 
         function resetPasswordErrors() {
-            // Function to reset password error messages
-            document.getElementById('currentPasswordError').style.display = 'none';
-            document.getElementById('confirmPasswordError').style.display = 'none';
+            const errors = ['currentPasswordError', 'confirmPasswordError'];
+            errors.forEach(errorId => {
+                const errorElement = document.getElementById(errorId);
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+            });
         }
 
-        function validatePasswordMatch() {
-            // Separate function to validate password confirmation
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const confirmError = document.getElementById('confirmPasswordError');
-            
-            // Only validate if both fields have content and the user has finished typing in confirm field
-            if (confirmPassword.length > 0 && newPassword.length > 0) {
-                if (newPassword !== confirmPassword) {
-                    confirmError.style.display = 'block';
-                    return false;
-                } else {
-                    confirmError.style.display = 'none';
-                    return true;
-                }
-            } else {
-                confirmError.style.display = 'none';
-                return confirmPassword.length === 0; // Return true if confirm is empty (not an error yet)
+        function showErrorMessage(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+                errorElement.style.display = 'flex';
             }
         }
 
-        // Password popup functions
-        function openPasswordPopup() {
-            const popup = document.getElementById('changePasswordPopup');
-            popup.style.display = 'flex';
-            
-            // Force reflow to trigger the animation
-            void popup.offsetWidth;
-            
-            // Add active class to trigger animations
-            popup.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling when popup is open
-            
-            // Focus on the first input field after animation completes
-            setTimeout(() => {
-                document.getElementById('currentPassword').focus();
-            }, 500);
+        function hideErrorMessage(elementId) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.style.display = 'none';
+            }
         }
-        
-        function closePasswordPopup() {
-            const popup = document.getElementById('changePasswordPopup');
-            
-            // Start the fade-out animation
-            popup.classList.remove('active');
-            
-            // Wait for animation to complete before hiding completely
-            setTimeout(() => {
-                popup.style.display = 'none';
-                document.body.style.overflow = ''; // Re-enable scrolling
-            }, 300);
-              // Reset the form
-            document.getElementById('passwordForm').reset();
-            document.getElementById('successMessage').style.display = 'none';
-            resetPasswordErrors();
-              // Reset the strength meter
-            document.getElementById('strengthMeter').style.width = '0%';
-            document.getElementById('strengthMeter').style.background = 'transparent';
-            document.getElementById('strengthText').textContent = 'TOO WEAK';
-            document.getElementById('strengthText').style.color = '#dc3545';
-            
-            // Reset requirement icons
-            const requirements = ['length', 'upper', 'lower', 'number', 'special'];
-            requirements.forEach(req => {
-                const icon = document.getElementById(req + 'Icon');
-                const requirement = document.getElementById(req + 'Req');
-                
-                icon.innerHTML = '<i class="fas fa-times"></i>';
-                icon.className = 'requirement-icon invalid';
-                requirement.className = 'requirement';
-            });
-            
-            // Disable submit button
-            document.getElementById('submitButton').disabled = true;
+
+        function validatePasswordMatch() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const confirmError = document.getElementById('confirmPasswordError');
+
+            // If confirm password field is empty, don't show error yet
+            if (confirmPassword.length === 0) {
+                hideErrorMessage('confirmPasswordError');
+                return true; // Return true so it doesn't block form submission before user types
+            }
+
+            // If passwords don't match, show error
+            if (newPassword !== confirmPassword) {
+                showErrorMessage('confirmPasswordError', 'Passwords do not match');
+                return false;
+            } else {
+                hideErrorMessage('confirmPasswordError');
+                return true;
+            }
         }
-        
+
         function togglePassword(inputId, icon) {
             const input = document.getElementById(inputId);
             if (input.type === 'password') {
@@ -1380,7 +1349,9 @@ Last Updated: June 2025
                 icon.classList.remove('fa-eye-slash');
                 icon.classList.add('fa-eye');
             }
-        }          function checkPasswordStrength(password) {
+        }
+
+        function checkPasswordStrength(password) {
             if (!password) return { score: 0, level: 'too-weak', percentage: 0, color: '#dc3545', gradient: 'linear-gradient(to right, #dc3545, #dc3545)' };
             
             // Check individual criteria
@@ -1429,11 +1400,12 @@ Last Updated: June 2025
                 gradient,
                 criteriaCount
             };
-        }          function updateRequirements() {
+        }
+
+        function updateRequirements() {
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const submitButton = document.getElementById('submitButton');
-            const confirmError = document.getElementById('confirmPasswordError');
             const strengthMeter = document.getElementById('strengthMeter');
             const strengthText = document.getElementById('strengthText');
 
@@ -1489,7 +1461,8 @@ Last Updated: June 2025
                 'good': 'GOOD',
                 'strong': 'STRONG'
             };
-              strengthText.textContent = strengthLabels[strength.level];
+            
+            strengthText.textContent = strengthLabels[strength.level];
             strengthText.style.color = strength.color;
 
             // Use the separate validation function for password matching
@@ -1510,7 +1483,9 @@ Last Updated: June 2025
                 submitButton.style.opacity = '0.7';
                 submitButton.style.transform = 'translateY(0)';
             }
-        }// Function to change password via API
+        }
+
+        // Function to change password via API
         async function changePassword(currentPassword, newPassword) {
             try {
                 // Make API request to change password
@@ -1531,7 +1506,9 @@ Last Updated: June 2025
                     message: 'An error occurred while changing password'
                 };
             }
-        }          // Load saved settings on page load
+        }
+
+        // Load saved settings on page load and setup password functionality
         document.addEventListener('DOMContentLoaded', function() {
             // Load user profile information
             loadUserProfile();
@@ -1542,7 +1519,8 @@ Last Updated: June 2025
             if (!notificationsEnabled) {
                 notificationToggle.classList.remove('active');
             }
-              // Setup close popup when clicking outside
+            
+            // Setup close popup when clicking outside
             const popup = document.getElementById('changePasswordPopup');
             popup.addEventListener('click', function(event) {
                 // If the click is directly on the popup background (not on its children)
@@ -1558,19 +1536,22 @@ Last Updated: June 2025
                 }
             });
             
-              // Add event listeners for password form
+            // Add event listeners for password form
             const newPasswordInput = document.getElementById('newPassword');
             const confirmPasswordInput = document.getElementById('confirmPassword');
             const currentPasswordInput = document.getElementById('currentPassword');
-            const passwordForm = document.getElementById('passwordForm');            if (newPasswordInput && confirmPasswordInput) {
+            const passwordForm = document.getElementById('passwordForm');
+
+            if (newPasswordInput && confirmPasswordInput) {
                 // Listen for input events in real-time for responsive feedback
                 newPasswordInput.addEventListener('input', updateRequirements);
                 
-                // Add a slight delay for confirm password validation to be less annoying
-                let confirmTimeout;
+                // Add real-time validation for confirm password with immediate feedback
                 confirmPasswordInput.addEventListener('input', function() {
-                    clearTimeout(confirmTimeout);
-                    confirmTimeout = setTimeout(updateRequirements, 300); // 300ms delay
+                    // Immediate validation for password match
+                    validatePasswordMatch();
+                    // Update overall requirements
+                    updateRequirements();
                 });
                 
                 // Add key up events for more fluid password strength updates
@@ -1580,31 +1561,38 @@ Last Updated: June 2025
             if (currentPasswordInput) {
                 // Only hide current password error when user starts typing
                 currentPasswordInput.addEventListener('input', function() {
-                    const currentPasswordError = document.getElementById('currentPasswordError');
-                    if (currentPasswordError.style.display === 'block') {
-                        currentPasswordError.style.display = 'none';
-                    }
+                    hideErrorMessage('currentPasswordError');
                 });
-            }if (passwordForm) {
+            }
+
+            if (passwordForm) {
                 passwordForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     
                     const currentPassword = document.getElementById('currentPassword').value;
                     const newPassword = document.getElementById('newPassword').value;
-                    const currentPasswordError = document.getElementById('currentPasswordError');
+                    const confirmPassword = document.getElementById('confirmPassword').value;
                     const successMessage = document.getElementById('successMessage');
+                    
+                    // Final validation before submission
+                    if (newPassword !== confirmPassword) {
+                        showErrorMessage('confirmPasswordError', 'Passwords do not match');
+                        return;
+                    }
                     
                     // Disable the submit button during submission
                     const submitButton = document.getElementById('submitButton');
                     submitButton.disabled = true;
-                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';                    
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                    
                     try {
                         // Reset any existing error messages before submission
                         resetPasswordErrors();
                         
                         // Change password via API with loading indicator
                         const result = await changePassword(currentPassword, newPassword);
-                          if (result.success) {
+                        
+                        if (result.success) {
                             // Show success message with animation
                             successMessage.style.display = 'block';
                             successMessage.style.animation = 'fadeIn 0.5s ease';
@@ -1613,6 +1601,9 @@ Last Updated: June 2025
                             document.getElementById('currentPassword').value = '';
                             document.getElementById('newPassword').value = '';
                             document.getElementById('confirmPassword').value = '';
+                            
+                            // Reset requirements display
+                            updateRequirements();
                             
                             // Disable button after successful submission
                             submitButton.disabled = true;
@@ -1625,23 +1616,8 @@ Last Updated: June 2025
                             }, 2000);
                         } else {
                             // Show error message with animation only for failed API call
-                            currentPasswordError.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${result.message || 'Current password is incorrect'}`;
-                            currentPasswordError.style.display = 'block';
-                            currentPasswordError.style.animation = 'shake 0.5s ease';
+                            showErrorMessage('currentPasswordError', result.message || 'Current password is incorrect');
                             document.getElementById('currentPassword').focus();
-                            
-                            // Add shake animation
-                            if (!document.querySelector('@keyframes shake')) {
-                                const style = document.createElement('style');
-                                style.textContent = `
-                                    @keyframes shake {
-                                        0%, 100% { transform: translateX(0); }
-                                        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-                                        20%, 40%, 60%, 80% { transform: translateX(5px); }
-                                    }
-                                `;
-                                document.head.appendChild(style);
-                            }
                             
                             // Re-enable the submit button
                             submitButton.disabled = false;
@@ -1650,8 +1626,7 @@ Last Updated: June 2025
                     } catch (error) {
                         // Handle unexpected errors
                         console.error('Password change error:', error);
-                        currentPasswordError.innerHTML = '<i class="fas fa-exclamation-circle"></i> An unexpected error occurred. Please try again.';
-                        currentPasswordError.style.display = 'block';
+                        showErrorMessage('currentPasswordError', 'An unexpected error occurred. Please try again.');
                         
                         // Re-enable the submit button
                         submitButton.disabled = false;
@@ -1660,6 +1635,94 @@ Last Updated: June 2025
                 });
             }
         });
+
+        // Password popup functions
+        function openPasswordPopup() {
+            const popup = document.getElementById('changePasswordPopup');
+            if (!popup) {
+                console.error('Password popup not found');
+                return;
+            }
+            
+            popup.style.display = 'flex';
+            
+            // Force reflow to trigger the animation
+            void popup.offsetWidth;
+            
+            // Add active class to trigger animations
+            popup.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling when popup is open
+            
+            // Focus on the first input field after animation completes
+            setTimeout(() => {
+                const currentPasswordInput = document.getElementById('currentPassword');
+                if (currentPasswordInput) {
+                    currentPasswordInput.focus();
+                }
+            }, 500);
+        }
+        
+        function closePasswordPopup() {
+            const popup = document.getElementById('changePasswordPopup');
+            if (!popup) {
+                console.error('Password popup not found');
+                return;
+            }
+            
+            // Start the fade-out animation
+            popup.classList.remove('active');
+            
+            // Wait for animation to complete before hiding completely
+            setTimeout(() => {
+                popup.style.display = 'none';
+                document.body.style.overflow = ''; // Re-enable scrolling
+            }, 300);
+            
+            // Reset the form
+            const passwordForm = document.getElementById('passwordForm');
+            if (passwordForm) {
+                passwordForm.reset();
+            }
+            
+            const successMessage = document.getElementById('successMessage');
+            if (successMessage) {
+                successMessage.style.display = 'none';
+            }
+            
+            resetPasswordErrors();
+            
+            // Reset the strength meter
+            const strengthMeter = document.getElementById('strengthMeter');
+            const strengthText = document.getElementById('strengthText');
+            if (strengthMeter && strengthText) {
+                strengthMeter.style.width = '0%';
+                strengthMeter.style.background = 'transparent';
+                strengthText.textContent = 'TOO WEAK';
+                strengthText.style.color = '#dc3545';
+            }
+            
+            // Reset requirement icons
+            const requirements = ['length', 'upper', 'lower', 'number', 'special'];
+            requirements.forEach(req => {
+                const icon = document.getElementById(req + 'Icon');
+                const requirement = document.getElementById(req + 'Req');
+                
+                if (icon && requirement) {
+                    icon.innerHTML = '<i class="fas fa-times"></i>';
+                    icon.className = 'requirement-icon invalid';
+                    requirement.className = 'requirement';
+                }
+            });
+            
+            // Disable submit button
+            const submitButton = document.getElementById('submitButton');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-save"></i> Change Password';
+            }
+        }
+
+        // ...existing code...
     </script>
     <!-- Navbar and Menu Scripts -->
     <script src="../js/navbar.js"></script>

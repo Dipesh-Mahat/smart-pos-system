@@ -27,72 +27,157 @@
     </script>
 
     <style>
+        /* Quick Menu Synchronization - Match POS page speed */
         .main-content {
             margin-left: 300px;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: auto;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.15s ease-out !important;
+        }
+
+        /* Fast transition when menu is closing */
+        body.menu-closed .main-content {
+            transition: margin-left 0.15s ease-out !important;
+        }
+
+        /* Override any slow transitions from menu.css */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                transition: margin-left 0.15s ease-out !important;
+            }
+            
+            body.menu-closed .main-content {
+                margin-left: 0 !important;
+                transition: margin-left 0.15s ease-out !important;
+            }
         }
 
         @media (max-width: 768px) {
             .main-content {
                 margin-left: 0;
-                padding: 15px;
+                padding: 16px;
+                transition: none;
             }
         }
 
         .profile-container {
-            max-width: 900px;
+            max-width: 1600px;
             margin: 0 auto;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Breadcrumb Navigation */
+        .breadcrumb {
+            margin-bottom: 20px;
+            padding: 12px 0;
+        }
+
+        .breadcrumb nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: #6c7b8a;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: #007bff;
+        }
+
+        .breadcrumb .separator {
+            color: #bbb;
+            margin: 0 4px;
+        }
+
+        .breadcrumb .current {
+            color: #2c3e50;
+            font-weight: 500;
         }
 
         .profile-header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 40px;
+            background: white;
+            padding: 30px;
             border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             display: flex;
-            align-items: center;
-            gap: 30px;
+            align-items: flex-start;
+            gap: 50px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
         }
 
         .profile-avatar {
             position: relative;
+            flex-shrink: 0;
+            align-self: flex-start;
+            margin-right: 30px;
         }
 
         .avatar-image {
-            width: 120px;
-            height: 120px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             object-fit: cover;
-            border: 4px solid white;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+            display: block;
+        }
+
+        .avatar-image:hover {
+            transform: scale(1.05);
         }
 
         .avatar-upload {
             position: absolute;
-            bottom: 5px;
-            right: 5px;
-            width: 35px;
-            height: 35px;
+            bottom: 3px;
+            right: 3px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
-            background: #007bff;
+            background: #667eea;
             color: white;
-            border: 3px solid white;
+            border: 2px solid white;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 12px;
             transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
         .avatar-upload:hover {
-            background: #0056b3;
+            background: #5a67d8;
             transform: scale(1.1);
+        }
+
+        .profile-info {
+            flex: 1;
+            min-width: 0;
+            padding-top: 5px;
+            padding-left: 15px;
         }
 
         .profile-info h1 {
@@ -100,42 +185,83 @@
             font-weight: 700;
             color: #2c3e50;
             margin: 0 0 8px 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
         }
 
         .profile-role {
             font-size: 16px;
             color: #667eea;
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
+            padding: 4px 12px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #6c757d;
+            font-size: 13px;
+        }
+
+        .meta-item i {
+            color: #667eea;
+            width: 14px;
+            font-size: 12px;
         }
 
         .profile-stats {
             display: flex;
             gap: 30px;
+            flex-wrap: wrap;
         }
 
         .stat-item {
             text-align: center;
+            padding: 12px 16px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            min-width: 90px;
         }
 
         .stat-value {
             font-size: 24px;
             font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 5px;
+            color: #667eea;
+            margin-bottom: 2px;
+            display: block;
+            line-height: 1;
         }
 
         .stat-label {
-            font-size: 12px;
+            font-size: 11px;
             color: #6c757d;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: 600;
         }
 
         .profile-sections {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            display: block;
+            margin: 0 auto;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
         }
 
         @media (max-width: 768px) {
@@ -143,72 +269,197 @@
                 flex-direction: column;
                 text-align: center;
                 gap: 20px;
+                padding: 30px 20px;
+                align-items: center;
             }
 
-            .profile-sections {
-                grid-template-columns: 1fr;
-                gap: 20px;
+            .profile-avatar {
+                align-self: center;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+
+            .profile-info {
+                padding-top: 0;
+            }
+
+            .profile-info h1 {
+                font-size: 28px;
+            }
+
+            .profile-meta {
+                justify-content: center;
+                gap: 15px;
             }
 
             .profile-stats {
                 justify-content: center;
+                gap: 15px;
+            }
+
+            .stat-item {
+                min-width: 80px;
+                padding: 10px 12px;
+            }
+
+            .stat-value {
+                font-size: 20px;
             }
         }
 
         .section-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
 
         .section-title {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 600;
             color: #2c3e50;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.1);
         }
 
         .section-title i {
             color: #667eea;
+            font-size: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .info-item:hover {
+            background: #f0f2ff;
+            transform: translateX(4px);
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 16px;
+        }
+
+        .info-content {
+            flex: 1;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
         }
 
         .form-group {
-            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
         }
 
         .form-label {
-            display: block;
             font-size: 14px;
             font-weight: 600;
             color: #2c3e50;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .form-input {
-            width: 100%;
             padding: 12px 16px;
             border: 2px solid #e9ecef;
             border-radius: 10px;
             font-size: 16px;
             transition: all 0.3s ease;
             background: white;
+            color: #2c3e50;
         }
 
         .form-input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: #fff;
         }
 
         .form-input:disabled {
             background: #f8f9fa;
             color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+            margin-bottom: 0;
+            padding-top: 15px;
+            border-top: 2px solid #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+            .form-actions {
+                flex-direction: column;
+                align-items: center;
+            }
         }
 
         .btn {
@@ -219,194 +470,136 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            text-decoration: none;
+            border: 2px solid transparent;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #667eea;
             color: white;
         }
 
         .btn-primary:hover {
+            background: #5a67d8;
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
         .btn-secondary {
-            background: #6c757d;
-            color: white;
+            background: #f8f9fa;
+            color: #6c757d;
+            border-color: #e9ecef;
         }
 
         .btn-secondary:hover {
-            background: #545b62;
-            transform: translateY(-2px);
+            background: #e9ecef;
+            color: #495057;
         }
 
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-            transform: translateY(-2px);
-        }
-
-        .activity-item {
+        #profileForm {
             display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .badge {
+            display: inline-flex;
             align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: white;
-            margin-right: 15px;
-        }
-
-        .activity-icon.login {
-            background: linear-gradient(135deg, #28a745, #20c997);
-        }
-
-        .activity-icon.sale {
-            background: linear-gradient(135deg, #007bff, #6610f2);
-        }
-
-        .activity-icon.update {
-            background: linear-gradient(135deg, #ffc107, #fd7e14);
-        }
-
-        .activity-content {
-            flex: 1;
-        }
-
-        .activity-title {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 2px;
-        }
-
-        .activity-time {
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
             font-size: 12px;
-            color: #6c757d;
-        }
-
-        .settings-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .settings-item:last-child {
-            border-bottom: none;
-        }
-
-        .setting-info h4 {
-            font-size: 16px;
             font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .setting-info p {
-            font-size: 14px;
-            color: #6c757d;
-            margin: 0;
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
         }
 
-        .toggle-switch {
-            position: relative;
-            width: 50px;
-            height: 25px;
-            background: #ccc;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
         }
 
-        .toggle-switch.active {
-            background: #667eea;
-        }
-
-        .toggle-switch::before {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 21px;
-            height: 21px;
-            background: white;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-switch.active::before {
-            transform: translateX(25px);
-        }
-
-        .two-factor-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #ffc107;
-            margin-top: 20px;
-        }
-
-        .two-factor-title {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .two-factor-title i {
-            color: #ffc107;
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
         }
     </style>
 </head>
 <body>
     <div class="main-content">
+        <!-- Breadcrumb Navigation -->
+        <div class="breadcrumb">
+            <nav>
+                <a href="settings.html">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+                <span class="separator">
+                    <i class="fas fa-chevron-right"></i>
+                </span>
+                <span class="current">
+                    <i class="fas fa-user"></i> User Profile
+                </span>
+            </nav>
+        </div>
+
         <div class="profile-container">
-            <!-- Profile Header -->            <div class="profile-header">
+            <!-- Profile Header -->
+            <div class="profile-header">
                 <div class="profile-avatar">
                     <img src="../images/avatars/user-avatar.png" alt="Profile Picture" class="avatar-image" id="avatarImage" onerror="this.src='../images/avatars/user-avatar.png'">
                     <div class="avatar-upload" onclick="document.getElementById('avatarInput').click()">
                         <i class="fas fa-camera"></i>
                     </div>
                     <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
-                </div>                <div class="profile-info">
+                </div>
+                
+                <div class="profile-info">
                     <h1 id="profileName">Loading...</h1>
                     <div class="profile-role" id="profileRole">Loading...</div>
+                    
+                    <div class="profile-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-envelope"></i>
+                            <span id="profileEmail">Loading...</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-phone"></i>
+                            <span id="profilePhone">Not provided</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Joined <span id="profileJoined">Loading...</span></span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Last active <span id="profileLastLogin">Loading...</span></span>
+                        </div>
+                    </div>
+                    
                     <div class="profile-stats">
                         <div class="stat-item">
-                            <div class="stat-value" id="salesMade">0</div>
-                            <div class="stat-label">Sales Made</div>
+                            <span class="stat-value" id="salesMade">0</span>
+                            <span class="stat-label">Sales Made</span>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value" id="daysActive">0</div>
-                            <div class="stat-label">Days Active</div>
+                            <span class="stat-value" id="daysActive">0</span>
+                            <span class="stat-label">Days Active</span>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value" id="userRating">0</div>
-                            <div class="stat-label">Rating</div>
+                            <span class="stat-value" id="userRating">4.8</span>
+                            <span class="stat-label">Rating</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="totalRevenue">NPR 0</span>
+                            <span class="stat-label">Total Revenue</span>
                         </div>
                     </div>
                 </div>
@@ -414,152 +607,63 @@
 
             <!-- Profile Sections -->
             <div class="profile-sections">
-                <!-- Personal Information -->
+                <!-- Edit Profile Form -->
                 <div class="section-card">
                     <h2 class="section-title">
-                        <i class="fas fa-user"></i>
-                        Personal Information
-                    </h2>                    <form id="personalInfoForm">
-                        <div class="form-group">
-                            <label class="form-label">Full Name</label>
-                            <input type="text" class="form-input" value="" id="fullName" placeholder="Enter your full name">
+                        <i class="fas fa-edit"></i>
+                        Edit Profile
+                    </h2>
+                    
+                    <form id="profileForm" onsubmit="saveProfile(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="fullName" class="form-label">Full Name</label>
+                                <input type="text" id="fullName" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" id="email" class="form-input" required>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Email Address</label>
-                            <input type="email" class="form-input" value="" id="email" placeholder="Enter your email address">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" id="phone" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="storeName" class="form-label">Store Name</label>
+                                <input type="text" id="storeName" class="form-input" required>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Phone Number</label>
-                            <input type="tel" class="form-input" value="" id="phone" placeholder="Enter your phone number">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" id="location" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="role" class="form-label">Role</label>
+                                <select id="role" class="form-input">
+                                    <option value="Store Manager">Store Manager</option>
+                                    <option value="Owner">Owner</option>
+                                    <option value="Cashier">Cashier</option>
+                                    <option value="Assistant">Assistant</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Store Name</label>
-                            <input type="text" class="form-input" value="" id="storeName" placeholder="Enter your store name">
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i>
+                                Save Changes
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                <i class="fas fa-undo"></i>
+                                Reset
+                            </button>
                         </div>
-                        <button type="button" class="btn btn-primary" onclick="updatePersonalInfo()">
-                            <i class="fas fa-save"></i>
-                            Update Information
-                        </button>
                     </form>
-                </div>
-
-                <!-- Security Settings -->
-                <div class="section-card">
-                    <h2 class="section-title">
-                        <i class="fas fa-shield-alt"></i>
-                        Security Settings
-                    </h2>
-                    <div class="settings-item">
-                        <div class="setting-info">
-                            <h4>Email Notifications</h4>
-                            <p>Receive security alerts via email</p>
-                        </div>
-                        <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
-                    </div>
-                    <div class="settings-item">
-                        <div class="setting-info">
-                            <h4>Login Alerts</h4>
-                            <p>Get notified of new login attempts</p>
-                        </div>
-                        <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
-                    </div>
-                    <div class="settings-item">
-                        <div class="setting-info">
-                            <h4>SMS Notifications</h4>
-                            <p>Receive important updates via SMS</p>
-                        </div>
-                        <div class="toggle-switch" onclick="toggleSetting(this)"></div>
-                    </div>
-
-                    <div class="two-factor-section">
-                        <div class="two-factor-title">
-                            <i class="fas fa-key"></i>
-                            Two-Factor Authentication
-                        </div>
-                        <p style="color: #6c757d; margin-bottom: 15px;">Add an extra layer of security to your account</p>
-                        <button class="btn btn-primary" onclick="setup2FA()">
-                            <i class="fas fa-mobile-alt"></i>
-                            Setup 2FA
-                        </button>
-                    </div>
-
-                    <div style="margin-top: 25px;">
-                        <button class="btn btn-secondary" onclick="changePassword()">
-                            <i class="fas fa-lock"></i>
-                            Change Password
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Recent Activity -->
-                <div class="section-card">
-                    <h2 class="section-title">
-                        <i class="fas fa-history"></i>
-                        Recent Activity
-                    </h2>
-                    <div class="activity-item">
-                        <div class="activity-icon login">
-                            <i class="fas fa-sign-in-alt"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Logged in from Chrome</div>
-                            <div class="activity-time">2 hours ago</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon sale">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Processed sale TXN-2024-247</div>
-                            <div class="activity-time">4 hours ago</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon update">
-                            <i class="fas fa-edit"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Updated product inventory</div>
-                            <div class="activity-time">6 hours ago</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon login">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Logged out</div>
-                            <div class="activity-time">Yesterday</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Account Actions -->
-                <div class="section-card">
-                    <h2 class="section-title">
-                        <i class="fas fa-cog"></i>
-                        Account Actions
-                    </h2>
-                    <div style="display: flex; flex-direction: column; gap: 15px;">
-                        <button class="btn btn-secondary" onclick="exportData()">
-                            <i class="fas fa-download"></i>
-                            Export My Data
-                        </button>
-                        <button class="btn btn-secondary" onclick="viewLoginHistory()">
-                            <i class="fas fa-history"></i>
-                            View Login History
-                        </button>
-                        <button class="btn btn-secondary" onclick="managePermissions()">
-                            <i class="fas fa-user-shield"></i>
-                            Manage Permissions
-                        </button>
-                        <hr style="margin: 10px 0; border: none; border-top: 1px solid #e9ecef;">
-                        <button class="btn btn-danger" onclick="deactivateAccount()">
-                            <i class="fas fa-user-times"></i>
-                            Deactivate Account
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -572,101 +676,190 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById('avatarImage').src = e.target.result;
+                    showToast('Profile picture updated successfully!', 'success');
                 };
                 reader.readAsDataURL(file);
             }
         }
 
-        function toggleSetting(toggle) {
-            toggle.classList.toggle('active');
-        }
-
-        function updatePersonalInfo() {
-            const fullName = document.getElementById('fullName').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
+        function saveProfile(event) {
+            event.preventDefault();
             
-            // Here you would typically send this data to your backend
-            alert('Personal information updated successfully!');
-        }
-
-        function setup2FA() {
-            alert('Redirecting to 2FA setup...');
-            // Here you would redirect to 2FA setup page
-        }        function changePassword() {
-            window.location.href = 'settings.html';
-        }
-
-        function exportData() {
-            alert('Preparing data export...');
-            // Here you would implement data export functionality
-        }
-
-        function viewLoginHistory() {
-            alert('Opening login history...');
-            // Here you would show login history modal or page
-        }
-
-        function managePermissions() {
-            alert('Opening permissions management...');
-            // Here you would show permissions interface
-        }        function deactivateAccount() {
-            if (confirm('Are you sure you want to deactivate your account? This action cannot be undone.')) {
-                alert('Account deactivation process initiated...');
-                // Here you would implement account deactivation
-            }
-        }
-
-        // Load user profile data
-        function loadUserProfile() {
-            // Get user data from localStorage (set during login)
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            
-            // Set profile header data
-            document.getElementById('profileName').textContent = userData.name || 'User Name';
-            document.getElementById('profileRole').textContent = userData.role || 'Shop Owner';
-            
-            // Set form data
-            document.getElementById('fullName').value = userData.name || '';
-            document.getElementById('email').value = userData.email || '';
-            document.getElementById('phone').value = userData.phone || '';
-            document.getElementById('storeName').value = userData.storeName || '';
-            
-            // Set stats (use mock data for now)
-            document.getElementById('salesMade').textContent = userData.salesCount || '0';
-            document.getElementById('daysActive').textContent = calculateDaysActive(userData.joinDate);
-            document.getElementById('userRating').textContent = userData.rating || '5.0';
-        }
-
-        function calculateDaysActive(joinDate) {
-            if (!joinDate) return '0';
-            const join = new Date(joinDate);
-            const now = new Date();
-            const diffTime = Math.abs(now - join);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays.toString();
-        }
-
-        function updatePersonalInfo() {
-            const userData = {
+            const formData = {
                 name: document.getElementById('fullName').value,
                 email: document.getElementById('email').value,
                 phone: document.getElementById('phone').value,
-                storeName: document.getElementById('storeName').value
+                storeName: document.getElementById('storeName').value,
+                location: document.getElementById('location').value,
+                role: document.getElementById('role').value
             };
 
-            // Update localStorage
-            const existingData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const updatedData = { ...existingData, ...userData };
-            localStorage.setItem('userData', JSON.stringify(updatedData));
-
-            // Update profile header
-            document.getElementById('profileName').textContent = userData.name;
+            // Save to localStorage
+            localStorage.setItem('userData', JSON.stringify(formData));
             
-            alert('Profile updated successfully!');
+            // Update header display
+            updateHeaderDisplay(formData);
+            
+            showToast('Profile updated successfully!', 'success');
         }
 
-        // Initialize profile data on page load
+        function resetForm() {
+            if (confirm('Are you sure you want to reset all changes?')) {
+                loadUserProfile();
+                showToast('Form reset to saved values', 'info');
+            }
+        }
+
+        function updateHeaderDisplay(data) {
+            document.getElementById('profileName').textContent = data.name;
+            document.getElementById('profileRole').textContent = data.role;
+            document.getElementById('profileEmail').textContent = data.email;
+            document.getElementById('profilePhone').textContent = data.phone || 'Not provided';
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            const bgColor = type === 'success' ? '#28a745' : type === 'warning' ? '#ffc107' : type === 'error' ? '#dc3545' : '#17a2b8';
+            const textColor = type === 'warning' ? '#212529' : 'white';
+            
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${bgColor};
+                color: ${textColor};
+                padding: 16px 24px;
+                border-radius: 12px;
+                z-index: 10000;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                animation: slideInUp 0.3s ease;
+                max-width: 300px;
+                font-weight: 500;
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutDown 0.3s ease';
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        function loadUserProfile() {
+            // Load user profile data from localStorage or API
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const defaultData = {
+                name: 'Ram Bahadur Thapa',
+                email: 'ram.thapa@smartpos.com',
+                role: 'Store Manager',
+                phone: '+977-9812345678',
+                storeName: 'Thapa General Store',
+                location: 'Thamel, Kathmandu',
+                joinDate: '2024-01-15',
+                userId: 'USR-2024-001'
+            };
+
+            // Merge default data with stored data
+            const profileData = { ...defaultData, ...userData };
+
+            // Update header display
+            updateHeaderDisplay(profileData);
+
+            // Populate form fields
+            document.getElementById('fullName').value = profileData.name;
+            document.getElementById('email').value = profileData.email;
+            document.getElementById('phone').value = profileData.phone;
+            document.getElementById('storeName').value = profileData.storeName;
+            document.getElementById('location').value = profileData.location;
+            document.getElementById('role').value = profileData.role;
+
+            // Set join date
+            const joinDate = new Date(profileData.joinDate);
+            const formattedJoinDate = joinDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            document.getElementById('profileJoined').textContent = formattedJoinDate;
+
+            // Set last login time
+            const lastLogin = localStorage.getItem('lastLogin') || new Date().toISOString();
+            const loginDate = new Date(lastLogin);
+            const now = new Date();
+            const diffHours = Math.abs(now - loginDate) / 36e5;
+
+            let lastLoginText;
+            if (diffHours < 1) {
+                lastLoginText = 'Just now';
+            } else if (diffHours < 24) {
+                lastLoginText = `${Math.floor(diffHours)} hours ago`;
+            } else {
+                lastLoginText = loginDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            }
+            document.getElementById('profileLastLogin').textContent = lastLoginText;
+
+            // Load and display stats
+            const transactionCount = localStorage.getItem('userTransactionCount') || '247';
+            const daysActive = localStorage.getItem('userDaysActive') || '156';
+            const totalRevenue = localStorage.getItem('userTotalRevenue') || '125450';
+
+            document.getElementById('salesMade').textContent = parseInt(transactionCount).toLocaleString();
+            document.getElementById('daysActive').textContent = daysActive;
+            document.getElementById('userRating').textContent = '4.8';
+            document.getElementById('totalRevenue').textContent = `NPR ${parseInt(totalRevenue).toLocaleString()}`;
+
+            // Update profile avatar if available
+            if (profileData.avatar) {
+                document.getElementById('avatarImage').src = profileData.avatar;
+            }
+
+            // Store current timestamp as last login
+            localStorage.setItem('lastLogin', new Date().toISOString());
+        }
+
+        // Add CSS animations
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+            @keyframes slideInUp {
+                from { 
+                    opacity: 0; 
+                    transform: translateY(30px); 
+                }
+                to { 
+                    opacity: 1; 
+                    transform: translateY(0); 
+                }
+            }
+            
+            @keyframes slideOutDown {
+                from { 
+                    opacity: 1; 
+                    transform: translateY(0); 
+                }
+                to { 
+                    opacity: 0; 
+                    transform: translateY(30px); 
+                }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+
+        // Load profile data when page loads
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(loadUserProfile, 100); // Small delay to ensure DOM is ready
         });
@@ -684,25 +877,16 @@
             showNotifications: true,
             showProfile: true,
             customActions: [
-                { id: 'edit-profile', icon: 'edit', title: 'Edit Profile' },
-                { id: 'change-password', icon: 'key', title: 'Change Password' },
-                { id: 'privacy-settings', icon: 'shield-alt', title: 'Privacy Settings' }
+                // Removed edit-profile, change-password, and privacy-settings buttons
+                // These functions are now handled within the page itself
             ]
         });
 
-        // Handle custom navbar actions
+        // Handle custom navbar actions (if any added in future)
         window.addEventListener('navbarAction', (event) => {
             const { actionId } = event.detail;
-            switch(actionId) {
-                case 'edit-profile':
-                    alert('Edit profile functionality will be implemented');
-                    break;                case 'change-password':
-                    window.location.href = 'settings.html';
-                    break;
-                case 'privacy-settings':
-                    alert('Privacy settings functionality will be implemented');
-                    break;
-            }
+            // No actions currently defined
+            console.log('Navbar action:', actionId);
         });
     </script>
 </body>

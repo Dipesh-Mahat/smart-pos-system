@@ -8,21 +8,44 @@
     <link rel="stylesheet" href="../css/menu.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Include Auth Service for token management -->
-    <script src="../js/auth-service.js"></script>
+    <!-- Conditional Auth Service Loading -->
+    <script>
+        // Check if we're in development mode
+        const isDevMode = sessionStorage.getItem('devMode') === 'true';
+        if (isDevMode) {
+            // Load development auth service
+            document.write('<script src="../js/auth-service-dev.js"><\/script>');
+            console.log('Loading development auth service for suppliers page');
+        } else {
+            // Load production auth service
+            document.write('<script src="../js/auth-service.js"><\/script>');
+        }
+    </script>
     <script src="../js/api-service.js"></script>
     
     <!-- Check authentication on page load -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is logged in
-            if (!window.authService || !window.authService.isLoggedIn()) {
-                window.location.href = '../landing.html';
-                return;
-            }
+            const isDevMode = sessionStorage.getItem('devMode') === 'true';
             
-            // Ensure token is fresh
-            window.authService.ensureFreshToken();
+            if (isDevMode) {
+                // In dev mode, set up mock user data
+                if (window.authService && typeof window.authService.setMockUserData === 'function') {
+                    window.authService.setMockUserData();
+                    console.log('Development mode: Mock user data set for suppliers page');
+                } else {
+                    console.error('Development auth service not available');
+                }
+            } else {
+                // In production mode, check authentication
+                if (!window.authService || !window.authService.isLoggedIn()) {
+                    window.location.href = '../landing.html';
+                    return;
+                }
+                
+                // Ensure token is fresh
+                window.authService.ensureFreshToken();
+            }
         });
     </script>
 
@@ -391,155 +414,230 @@
 
         <!-- Suppliers Grid -->
         <div class="suppliers-grid" id="suppliersGrid">
-            <div class="supplier-card" onclick="viewSupplier('SUP001')">
-                <div class="supplier-header">
-                    <div class="supplier-info">
-                        <div class="supplier-avatar">KK</div>
-                        <h3>Kathmandu Kirana Suppliers</h3>
-                        <div class="supplier-contact">
-                            <i class="fas fa-envelope"></i> info@kathmandukirana.com.np
-                        </div>
-                        <div class="supplier-contact">
-                            <i class="fas fa-phone"></i> +977 1-5551234
-                        </div>
-                        <div class="supplier-contact">
-                            <i class="fas fa-map-marker-alt"></i> Kathmandu, Nepal
-                        </div>
-                    </div>
-                    <div class="supplier-status status-active">Active</div>
-                </div>
-                <div class="supplier-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Products</span>
-                        <span class="detail-value">120</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Orders</span>
-                        <span class="detail-value">340</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Rating</span>
-                        <span class="detail-value">4.9/5</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Last Order</span>
-                        <span class="detail-value">1 day ago</span>
-                    </div>
-                </div>
-                <div class="supplier-actions">
-                    <button class="btn btn-success" onclick="event.stopPropagation(); createOrder('SUP001')">
-                        <i class="fas fa-plus"></i>
-                        New Order
-                    </button>
-                    <button class="btn btn-secondary" onclick="event.stopPropagation(); editSupplier('SUP001')">
-                        <i class="fas fa-edit"></i>
-                        Edit
-                    </button>
-                </div>
-            </div>
-
-            <div class="supplier-card" onclick="viewSupplier('SUP002')">
-                <div class="supplier-header">
-                    <div class="supplier-info">
-                        <div class="supplier-avatar">PB</div>
-                        <h3>Patan Beverages</h3>
-                        <div class="supplier-contact">
-                            <i class="fas fa-envelope"></i> contact@patanbeverages.com.np
-                        </div>
-                        <div class="supplier-contact">
-                            <i class="fas fa-phone"></i> +977 1-5522334
-                        </div>
-                        <div class="supplier-contact">
-                            <i class="fas fa-map-marker-alt"></i> Patan, Lalitpur, Nepal
-                        </div>
-                    </div>
-                    <div class="supplier-status status-active">Active</div>
-                </div>
-                <div class="supplier-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Products</span>
-                        <span class="detail-value">60</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Orders</span>
-                        <span class="detail-value">210</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Rating</span>
-                        <span class="detail-value">4.7/5</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Last Order</span>
-                        <span class="detail-value">3 days ago</span>
-                    </div>
-                </div>
-                <div class="supplier-actions">
-                    <button class="btn btn-success" onclick="event.stopPropagation(); createOrder('SUP002')">
-                        <i class="fas fa-plus"></i>
-                        New Order
-                    </button>
-                    <button class="btn btn-secondary" onclick="event.stopPropagation(); editSupplier('SUP002')">
-                        <i class="fas fa-edit"></i>
-                        Edit
-                    </button>
-                </div>
-            </div>
-
-            <div class="supplier-card" onclick="viewSupplier('SUP003')">
-                <div class="supplier-header">
-                    <div class="supplier-info">
-                        <div class="supplier-avatar">BM</div>
-                        <h3>Bhat-Bhateni Mart Distributors</h3>
-                        <div class="supplier-contact">
-                            <i class="fas fa-envelope"></i> sales@bbmart.com.np
-                        </div>
-                        <div class="supplier-contact">
-                            <i class="fas fa-phone"></i> +977 1-4431234
-                        </div>
-                        <div class="supplier-contact">
-                            <i class="fas fa-map-marker-alt"></i> Bhatbhateni, Kathmandu, Nepal
-                        </div>
-                    </div>
-                    <div class="supplier-status status-pending">Pending</div>
-                </div>
-                <div class="supplier-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Products</span>
-                        <span class="detail-value">200</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Orders</span>
-                        <span class="detail-value">50</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Rating</span>
-                        <span class="detail-value">4.5/5</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Last Order</span>
-                        <span class="detail-value">1 week ago</span>
-                    </div>
-                </div>
-                <div class="supplier-actions">
-                    <button class="btn btn-success" onclick="event.stopPropagation(); createOrder('SUP003')">
-                        <i class="fas fa-plus"></i>
-                        New Order
-                    </button>
-                    <button class="btn btn-secondary" onclick="event.stopPropagation(); editSupplier('SUP003')">
-                        <i class="fas fa-edit"></i>
-                        Edit
-                    </button>
-                </div>
+            <!-- Suppliers will be loaded here dynamically -->
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <h3>Loading Suppliers...</h3>
+                <p>Please wait while we fetch supplier information.</p>
             </div>
         </div>
 
     </div>
 
     <script>
+        // Global variables
+        let allSuppliers = [];
+        let currentFilter = 'all';
+        
+        // Load suppliers from API
+        async function loadSuppliers() {
+            try {
+                showLoading(true);
+                
+                // Debug info
+                console.log('Loading suppliers...');
+                console.log('Auth service:', window.authService);
+                console.log('API service:', window.apiService);
+                console.log('User logged in:', window.authService?.isLoggedIn());
+                console.log('Current user:', window.authService?.getCurrentUser());
+                
+                const response = await window.apiService.get('/shop/orders/suppliers');
+                console.log('Suppliers API response:', response);
+                
+                if (response.success) {
+                    allSuppliers = response.suppliers || [];
+                    displaySuppliers(allSuppliers);
+                    updateStatistics(allSuppliers);
+                } else {
+                    console.error('Failed to load suppliers:', response);
+                    showError(`Failed to load suppliers: ${response.error || response.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error loading suppliers:', error);
+                let errorMessage = 'Error loading suppliers. ';
+                
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage += 'Cannot connect to server. Please ensure the backend server is running.';
+                } else if (error.status === 401) {
+                    errorMessage += 'Authentication failed. Please log in again.';
+                } else if (error.status === 403) {
+                    errorMessage += 'Access denied. Please check your permissions.';
+                } else {
+                    errorMessage += 'Please check your connection and try again.';
+                }
+                
+                showError(errorMessage);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Display suppliers in grid
+        function displaySuppliers(suppliers) {
+            const grid = document.getElementById('suppliersGrid');
+            
+            if (!suppliers || suppliers.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-store-slash"></i>
+                        <h3>No Suppliers Found</h3>
+                        <p>No suppliers are available at the moment. Please check back later or contact your administrator.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = suppliers.map(supplier => `
+                <div class="supplier-card" onclick="viewSupplier('${supplier._id}')">
+                    <div class="supplier-header">
+                        <div class="supplier-info">
+                            <div class="supplier-avatar">${getSupplierInitials(supplier)}</div>
+                            <h3>${supplier.shopName || `${supplier.firstName} ${supplier.lastName}`}</h3>
+                            <div class="supplier-contact">
+                                <i class="fas fa-envelope"></i> ${supplier.email}
+                            </div>
+                            ${supplier.contactNumber ? `
+                                <div class="supplier-contact">
+                                    <i class="fas fa-phone"></i> ${supplier.contactNumber}
+                                </div>
+                            ` : ''}
+                            ${supplier.address && supplier.address.city ? `
+                                <div class="supplier-contact">
+                                    <i class="fas fa-map-marker-alt"></i> ${formatAddress(supplier.address)}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="supplier-status ${getStatusClass(supplier.status)}">${supplier.status}</div>
+                    </div>
+                    <div class="supplier-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Products</span>
+                            <span class="detail-value">${supplier.productCount || 0}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Orders</span>
+                            <span class="detail-value">${supplier.orderCount || 0}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Rating</span>
+                            <span class="detail-value">${supplier.rating || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Last Order</span>
+                            <span class="detail-value">${supplier.lastOrderDate ? formatDate(supplier.lastOrderDate) : 'Never'}</span>
+                        </div>
+                    </div>
+                    <div class="supplier-actions">
+                        <button class="btn btn-success" onclick="event.stopPropagation(); createOrder('${supplier._id}')">
+                            <i class="fas fa-plus"></i>
+                            New Order
+                        </button>
+                        <button class="btn btn-secondary" onclick="event.stopPropagation(); viewSupplierProducts('${supplier._id}')">
+                            <i class="fas fa-boxes"></i>
+                            View Products
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update statistics based on suppliers data
+        function updateStatistics(suppliers) {
+            const totalCount = suppliers.length;
+            const activeCount = suppliers.filter(s => s.status === 'approved').length;
+            const pendingCount = suppliers.filter(s => s.status === 'pending').length;
+            const inactiveCount = suppliers.filter(s => s.status === 'rejected').length;
+
+            document.querySelector('.stat-card:nth-child(1) .stat-value').textContent = totalCount;
+            document.querySelector('.stat-card:nth-child(2) .stat-value').textContent = activeCount;
+            document.querySelector('.stat-card:nth-child(3) .stat-value').textContent = pendingCount;
+            document.querySelector('.stat-card:nth-child(4) .stat-value').textContent = inactiveCount;
+        }
+
+        // Helper functions
+        function getSupplierInitials(supplier) {
+            const name = supplier.shopName || `${supplier.firstName} ${supplier.lastName}`;
+            return name.split(' ').map(word => word.charAt(0)).join('').substring(0, 2).toUpperCase();
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 'approved': return 'status-active';
+                case 'pending': return 'status-pending';
+                case 'rejected': return 'status-inactive';
+                default: return 'status-inactive';
+            }
+        }
+
+        function formatAddress(address) {
+            const parts = [address.city, address.state, address.country].filter(Boolean);
+            return parts.join(', ');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) return 'Today';
+            if (diffDays === 1) return '1 day ago';
+            if (diffDays < 7) return `${diffDays} days ago`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+            return date.toLocaleDateString();
+        }
+
+        function showLoading(show) {
+            const grid = document.getElementById('suppliersGrid');
+            if (show) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <h3>Loading Suppliers...</h3>
+                        <p>Please wait while we fetch the supplier data.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function showError(message) {
+            const grid = document.getElementById('suppliersGrid');
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle" style="color: #ef476f; font-size: 64px; margin-bottom: 20px;"></i>
+                    <h3 style="color: #495057; font-size: 24px; margin-bottom: 10px;">Error Loading Suppliers</h3>
+                    <p style="color: #6c757d; font-size: 16px; margin-bottom: 30px;">${message}</p>
+                    <button class="retry-btn" onclick="loadSuppliers()" style="
+                        background: linear-gradient(135deg, #007bff, #0056b3);
+                        color: white;
+                        padding: 12px 24px;
+                        border: none;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 8px;
+                        font-size: 16px;
+                        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.25);
+                        text-decoration: none;
+                        min-width: 120px;
+                        justify-content: center;
+                    " onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(0, 123, 255, 0.35)'" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 123, 255, 0.25)'">
+                        <i class="fas fa-refresh"></i>
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+
         // Filter functionality
         document.addEventListener('DOMContentLoaded', function() {
+            loadSuppliers();
+            
             const filterBtns = document.querySelectorAll('.filter-btn');
-            const suppliers = document.querySelectorAll('.supplier-card');
+            
             // Search input will be injected into navbar, so select it after injection
             function getSearchInput() {
                 return document.getElementById('searchInput');
@@ -551,8 +649,8 @@
                     filterBtns.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     
-                    const filter = this.getAttribute('data-filter');
-                    filterSuppliers(filter);
+                    currentFilter = this.getAttribute('data-filter');
+                    filterSuppliers(currentFilter);
                 });
             });
 
@@ -562,67 +660,134 @@
                 if (searchInput) {
                     searchInput.addEventListener('input', function() {
                         const searchTerm = this.value.toLowerCase();
-                        suppliers.forEach(supplier => {
-                            const text = supplier.textContent.toLowerCase();
-                            if (text.includes(searchTerm)) {
-                                supplier.style.display = 'block';
-                            } else {
-                                supplier.style.display = 'none';
-                            }
-                        });
+                        filterAndSearchSuppliers(currentFilter, searchTerm);
                     });
                 } else {
                     setTimeout(attachSearchListener, 100);
                 }
             }
             attachSearchListener();
+        });
 
-            function filterSuppliers(filter) {
-                suppliers.forEach(supplier => {
-                    const statusElement = supplier.querySelector('.supplier-status');
-                    const status = statusElement ? statusElement.textContent.toLowerCase() : '';
-                    
+        function filterSuppliers(filter) {
+            filterAndSearchSuppliers(filter, '');
+        }
+
+        function filterAndSearchSuppliers(filter, searchTerm = '') {
+            let filteredSuppliers = [...allSuppliers];
+            
+            // Apply status filter
+            if (filter !== 'all') {
+                filteredSuppliers = filteredSuppliers.filter(supplier => {
                     switch(filter) {
-                        case 'all':
-                            supplier.style.display = 'block';
-                            break;
                         case 'active':
-                            supplier.style.display = status.includes('active') ? 'block' : 'none';
-                            break;
+                            return supplier.status === 'approved';
                         case 'pending':
-                            supplier.style.display = status.includes('pending') ? 'block' : 'none';
-                            break;
+                            return supplier.status === 'pending';
                         case 'inactive':
-                            supplier.style.display = status.includes('inactive') ? 'block' : 'none';
-                            break;
+                            return supplier.status === 'rejected';
+                        case 'local':
+                            return supplier.address && supplier.address.country === 'Nepal';
+                        case 'international':
+                            return supplier.address && supplier.address.country !== 'Nepal';
                         default:
-                            supplier.style.display = 'block';
+                            return true;
                     }
                 });
             }
-        });
+            
+            // Apply search filter
+            if (searchTerm) {
+                filteredSuppliers = filteredSuppliers.filter(supplier => {
+                    const searchableText = [
+                        supplier.shopName,
+                        supplier.firstName,
+                        supplier.lastName,
+                        supplier.email,
+                        supplier.contactNumber,
+                        supplier.address?.city,
+                        supplier.address?.state,
+                        supplier.address?.country
+                    ].filter(Boolean).join(' ').toLowerCase();
+                    
+                    return searchableText.includes(searchTerm);
+                });
+            }
+            
+            displaySuppliers(filteredSuppliers);
+        }
 
         function viewSupplier(supplierId) {
             // Redirect to the shopowner-facing supplier products page
             window.location.href = `supplier-products-shopowner.html?supplierId=${supplierId}`;
         }
 
-        function addSupplier() {
-            alert('Opening new supplier form...');
-            // Here you would open a modal or redirect to add supplier form
+        function viewSupplierProducts(supplierId) {
+            // Redirect to the supplier products view
+            window.location.href = `supplier-products-shopowner.html?supplierId=${supplierId}`;
         }
 
-        function editSupplier(supplierId) {
-            alert(`Editing supplier ${supplierId}...`);
-            // Here you would open edit form for the supplier
+        function addSupplier() {
+            alert('Adding new suppliers is handled through the registration system. New suppliers can register on the platform and await admin approval.');
         }
 
         function createOrder(supplierId) {
-            alert(`Creating new order for supplier ${supplierId}...`);
-            // Here you would open order creation interface
-        }        function exportSuppliers() {
-            alert('Exporting suppliers data...');
-            // Here you would implement export functionality
+            // Redirect to order creation page
+            window.location.href = `create-order.html?supplierId=${supplierId}`;
+        }
+
+        function exportSuppliers() {
+            try {
+                const dataStr = JSON.stringify(allSuppliers, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `suppliers_${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+                
+                showToast('Suppliers data exported successfully!', 'success');
+            } catch (error) {
+                console.error('Export error:', error);
+                showToast('Failed to export suppliers data', 'error');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            const bgColor = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8';
+            
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${bgColor};
+                color: white;
+                padding: 16px 24px;
+                border-radius: 12px;
+                z-index: 10000;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                animation: slideInUp 0.3s ease;
+                max-width: 300px;
+                font-weight: 500;
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutDown 0.3s ease';
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
         }
     </script>
 
