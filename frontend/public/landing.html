@@ -14,6 +14,19 @@
     <meta name="google-signin-client_id" content="489848070288-0he2h9ti3a9aqljpagoigmt5h9tmt38k.apps.googleusercontent.com">
     <!-- External Google Auth Script -->
     <script src="js/google-auth.js" defer></script>
+    <style>
+        /* Additional style for error messages */
+        .error-message {
+            display: none; /* Hide all error messages by default */
+            color: #dc3545;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+        
+        .error-message.visible {
+            display: block; /* Only show when the visible class is added */
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -26,7 +39,7 @@
                 <li><a href="#benefits">Benefits</a></li>
                 <li><a href="#testimonials">Testimonials</a></li>                <li><a href="#pricing">Pricing</a></li>
                 <li><a href="#contact">Contact</a></li>
-                <li><a href="#" id="loginBtn" class="login-btn">Login</a></li>
+                <li><a href="#" id="loginBtn" class="login-btn">Login</a>
                 <li><a href="#" id="registerBtn">Register</a></li>
             </ul>
             <div class="menu-toggle">
@@ -483,13 +496,14 @@
                 <form class="popup-form" id="registerForm">
                     <div class="form-group">
                         <label for="shopName">Shop Name</label>
-                        <input type="text" id="shopName" name="shopName" required>
-                        <div class="error-message" id="shopNameError">Please enter your shop name</div>
+                        <input type="text" id="shopName" name="shopName" required
+                               oninput="document.getElementById('shopNameError').style.display='none';">
+                        <div class="error-message" id="shopNameError" style="display: none;">Please enter your shop name</div>
                     </div>
                     <div class="form-group">
                         <label for="email">Email Address</label>
                         <input type="email" id="email" name="email" required>
-                        <div class="error-message" id="emailError">Please enter a valid email</div>
+                        <div class="error-message" id="emailError" style="display: none;">Please enter a valid email</div>
                     </div>
                     <div class="form-group">
                         <label for="registerPassword">Password</label>
@@ -497,7 +511,7 @@
                             <input type="password" id="registerPassword" name="password" required>
                             <i class="fas fa-eye password-toggle" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;" onclick="togglePasswordVisibility('registerPassword', this)"></i>
                         </div>
-                        <div class="error-message" id="registerPasswordError">Password must be at least 8 characters</div>
+                        <div class="error-message" id="registerPasswordError" style="display: none;">Password must be at least 6 characters</div>
                     </div>
                     <div class="form-group">
                         <label for="confirmPassword">Confirm Password</label>
@@ -505,7 +519,7 @@
                             <input type="password" id="confirmPassword" name="confirmPassword" required>
                             <i class="fas fa-eye password-toggle" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;" onclick="togglePasswordVisibility('confirmPassword', this)"></i>
                         </div>
-                        <div class="error-message" id="confirmPasswordError">Passwords do not match</div>
+                        <div class="error-message" id="confirmPasswordError" style="display: none;">Passwords do not match</div>
                     </div>
                     <button type="submit" class="popup-btn">Create Account</button>
                     
