@@ -6,59 +6,50 @@
 // Simple and reliable email validation
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const result = emailRegex.test(email.trim());
-    console.log(`🔍 Email validation for "${email}": ${result ? 'VALID ✅' : 'INVALID ❌'}`);
-    return result;
+    return emailRegex.test(email.trim());
 }
 
 // Clear all form errors
 function clearFormErrors() {
-    console.log('🧹 Clearing all form errors...');
     document.querySelectorAll('.error-message').forEach(error => {
         error.style.display = 'none';
     });
     document.querySelectorAll('input').forEach(input => {
         input.style.borderColor = '';
     });
-    console.log('✅ All form errors cleared');
 }
 
 // Show error message
 function showError(elementId, message) {
-    console.log(`❌ Showing error for ${elementId}: ${message}`);
     const errorElement = document.getElementById(elementId);
     if (errorElement) {
         errorElement.textContent = message;
         errorElement.style.display = 'block';
-        console.log(`✅ Error shown for ${elementId}`);
-    } else {
-        console.error(`❌ Error element not found: ${elementId}`);
     }
 }
 
 // Auto-detect API URL based on environment
 function getApiBaseUrl() {
+    // Auto-detect based on hostname
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1';
-    return isLocalhost ? 'http://localhost:5000/api' : 'https://smart-pos-system.onrender.com/api';
+    
+    // Use localhost for development, Render for production
+    const apiUrl = isLocalhost ? 'http://localhost:5000/api' : 'https://smart-pos-system.onrender.com/api';
+    
+    console.log(`🌐 Environment: ${isLocalhost ? 'Development' : 'Production'}`);
+    console.log(`🌐 API URL: ${apiUrl}`);
+    
+    return apiUrl;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎯 Landing forms script loaded');
-    
     const apiBaseUrl = getApiBaseUrl();
-    console.log('🌐 Using API Base URL:', apiBaseUrl);
     
     // Get all popup elements
     const loginPopup = document.getElementById('loginPopup');
     const registerPopup = document.getElementById('registerPopup');
     const forgotPasswordPopup = document.getElementById('forgotPasswordPopup');
-    
-    console.log('🔍 Popup elements found:', {
-        loginPopup: !!loginPopup,
-        registerPopup: !!registerPopup,
-        forgotPasswordPopup: !!forgotPasswordPopup
-    });
     
     // Get all button elements
     const loginBtn = document.getElementById('loginBtn');
@@ -69,74 +60,67 @@ document.addEventListener('DOMContentLoaded', function() {
     const backToLoginLink = document.getElementById('backToLogin');
     const closePopupButtons = document.querySelectorAll('.close-popup');
     
-    console.log('🔍 Button elements found:', {
-        loginBtn: !!loginBtn,
-        registerBtn: !!registerBtn,
-        switchToRegister: !!switchToRegister,
-        switchToLogin: !!switchToLogin,
-        closePopupButtons: closePopupButtons.length
-    });
-    
     // Get form elements
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
-    
-    console.log('🔍 Form elements found:', {
-        loginForm: !!loginForm,
-        registerForm: !!registerForm
-    });
-    
-    // Check registration form inputs specifically
-    const shopNameInput = document.getElementById('shopName');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('registerPassword');
-    const confirmPasswordInput = document.getElementById('confirmPassword');
-    
-    console.log('🔍 Registration form inputs found:', {
-        shopNameInput: !!shopNameInput,
-        emailInput: !!emailInput,
-        passwordInput: !!passwordInput,
-        confirmPasswordInput: !!confirmPasswordInput
-    });
     
     // Initially hide all error messages
     clearFormErrors();
     
     // Popup show/hide functionality
-    loginBtn?.addEventListener('click', function(e) {
-        e.preventDefault();
-        clearFormErrors();
-        loginPopup.style.display = 'flex';
-    });
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearFormErrors();
+            if (loginPopup) {
+                loginPopup.style.display = 'flex';
+            }
+        });
+    }
     
-    registerBtn?.addEventListener('click', function(e) {
-        e.preventDefault();
-        console.log('🚀 REGISTER BUTTON CLICKED!');
-        clearFormErrors();
-        registerPopup.style.display = 'flex';
-        console.log('✅ Register popup opened');
-    });
+    if (registerBtn) {
+        registerBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearFormErrors();
+            if (registerPopup) {
+                registerPopup.style.display = 'flex';
+            }
+        });
+    }
     
     // Hero and other Get Started buttons
-    document.getElementById('heroGetStarted')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        clearFormErrors();
-        registerPopup.style.display = 'flex';
-    });
+    const heroGetStarted = document.getElementById('heroGetStarted');
+    if (heroGetStarted) {
+        heroGetStarted.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearFormErrors();
+            if (registerPopup) {
+                registerPopup.style.display = 'flex';
+            }
+        });
+    }
     
-    document.querySelectorAll('.pricing-get-started').forEach(button => {
+    const pricingButtons = document.querySelectorAll('.pricing-get-started');
+    pricingButtons.forEach((button) => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
             clearFormErrors();
-            registerPopup.style.display = 'flex';
+            if (registerPopup) {
+                registerPopup.style.display = 'flex';
+            }
         });
     });
     
-    document.getElementById('ctaGetStarted')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        clearFormErrors();
-        registerPopup.style.display = 'flex';
-    });
+    const ctaGetStarted = document.getElementById('ctaGetStarted');
+    if (ctaGetStarted) {
+        ctaGetStarted.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearFormErrors();
+            if (registerPopup) {
+                registerPopup.style.display = 'flex';
+            }
+        });
+    }
     
     // Switch between popups
     switchToRegister?.addEventListener('click', function(e) {
@@ -169,12 +153,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Close popups
-    closePopupButtons.forEach(button => {
+    closePopupButtons.forEach((button) => {
         button.addEventListener('click', function() {
             clearFormErrors();
-            loginPopup.style.display = 'none';
-            registerPopup.style.display = 'none';
-            forgotPasswordPopup.style.display = 'none';
+            if (loginPopup) loginPopup.style.display = 'none';
+            if (registerPopup) registerPopup.style.display = 'none';
+            if (forgotPasswordPopup) forgotPasswordPopup.style.display = 'none';
         });
     });
     
@@ -197,7 +181,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // LOGIN FORM HANDLING
     loginForm?.addEventListener('submit', async function(e) {
         e.preventDefault();
-        console.log('Login form submitted');
         
         // Clear previous errors
         clearFormErrors();
@@ -272,7 +255,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // REGISTRATION FORM HANDLING
     registerForm?.addEventListener('submit', async function(e) {
         e.preventDefault();
-        console.log('🚀 REGISTRATION FORM SUBMITTED!');
         
         // Clear ALL previous errors completely
         clearFormErrors();
@@ -283,99 +265,52 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Get form values with proper element checking
         const shopNameInput = document.getElementById('shopName');
-        const emailInput = document.getElementById('email');
+        const regEmailInput = document.getElementById('email');
         const passwordInput = document.getElementById('registerPassword');
         const confirmPasswordInput = document.getElementById('confirmPassword');
         
-        console.log('📋 Form elements found:', {
-            shopNameInput: !!shopNameInput,
-            emailInput: !!emailInput,
-            passwordInput: !!passwordInput,
-            confirmPasswordInput: !!confirmPasswordInput
-        });
-        
         const shopName = shopNameInput ? shopNameInput.value.trim() : '';
-        const email = emailInput ? emailInput.value.trim() : '';
+        const email = regEmailInput ? regEmailInput.value.trim() : '';
         const password = passwordInput ? passwordInput.value : '';
         const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : '';
         
-        console.log('📝 Form values extracted:', { 
-            shopName: `"${shopName}"`, 
-            email: `"${email}"`, 
-            password: password ? '***' : 'EMPTY',
-            confirmPassword: confirmPassword ? '***' : 'EMPTY'
-        });
-        
-        // Validate inputs one by one with detailed logging
+        // Validate inputs
         let hasError = false;
         
         // Shop name validation
-        console.log('🏪 Validating shop name...');
         if (!shopName || shopName === '') {
-            console.log('❌ Shop name is empty');
             showError('shopNameError', 'Shop name is required');
             hasError = true;
-        } else {
-            console.log('✅ Shop name is valid');
         }
         
-        // Email validation - MOST IMPORTANT
-        console.log('📧 Validating email...');
-        console.log(`📧 Email value: "${email}"`);
-        console.log(`📧 Email length: ${email.length}`);
-        console.log(`📧 Email is truthy: ${!!email}`);
-        
+        // Email validation
         if (!email || email === '' || email.length === 0) {
-            console.log('❌ Email is EMPTY - showing error');
             showError('emailError', 'Email is required');
             hasError = true;
-        } else {
-            console.log('📧 Email has content, checking format...');
-            if (!isValidEmail(email)) {
-                console.log('❌ Email format is INVALID');
-                showError('emailError', 'Please enter a valid email address');
-                hasError = true;
-            } else {
-                console.log('✅ Email is VALID!');
-            }
+        } else if (!isValidEmail(email)) {
+            showError('emailError', 'Please enter a valid email address');
+            hasError = true;
         }
         
         // Password validation
-        console.log('🔒 Validating password...');
         if (!password || password === '') {
-            console.log('❌ Password is empty');
             showError('registerPasswordError', 'Password is required');
             hasError = true;
         } else if (password.length < 6) {
-            console.log('❌ Password too short');
             showError('registerPasswordError', 'Password must be at least 6 characters');
             hasError = true;
-        } else {
-            console.log('✅ Password is valid');
         }
         
         // Confirm password validation
-        console.log('🔒 Validating confirm password...');
         if (!confirmPassword || confirmPassword === '') {
-            console.log('❌ Confirm password is empty');
             showError('confirmPasswordError', 'Please confirm your password');
             hasError = true;
         } else if (password !== confirmPassword) {
-            console.log('❌ Passwords do not match');
             showError('confirmPasswordError', 'Passwords do not match');
             hasError = true;
-        } else {
-            console.log('✅ Confirm password is valid');
         }
         
-        console.log(`🏁 Validation complete. Has errors: ${hasError}`);
-        
-        if (hasError) {
-            console.log('❌ VALIDATION FAILED - STOPPING HERE');
-            return;
-        }
-        
-        console.log('✅ ALL VALIDATION PASSED - PROCEEDING WITH API CALL');
+        if (hasError) return;
         
         // Show loading state
         const registerLoading = registerPopup.querySelector('.loading-popup');
@@ -383,7 +318,6 @@ document.addEventListener('DOMContentLoaded', function() {
         registerLoading.style.display = 'block';
         
         try {
-            console.log('🌐 Making API request...');
             const requestData = {
                 email,
                 password,
@@ -391,7 +325,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 shopName,
                 role: 'shopowner'
             };
-            console.log('📤 Request data:', requestData);
             
             const response = await fetch(`${apiBaseUrl}/auth/register`, {
                 method: 'POST',
@@ -402,13 +335,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             const data = await response.json();
-            console.log('📥 Registration response:', data);
             
             if (response.ok && data.success) {
-                console.log('🎉 REGISTRATION SUCCESS!');
                 // Clear form
                 if (shopNameInput) shopNameInput.value = '';
-                if (emailInput) emailInput.value = '';
+                if (regEmailInput) regEmailInput.value = '';
                 if (passwordInput) passwordInput.value = '';
                 if (confirmPasswordInput) confirmPasswordInput.value = '';
                 
@@ -426,11 +357,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Pre-fill email in login form
-                const loginEmailInput = document.getElementById('loginEmail');
-                if (loginEmailInput) loginEmailInput.value = email;
+                const loginEmailInputField = document.getElementById('loginEmail');
+                if (loginEmailInputField) loginEmailInputField.value = email;
                 
             } else {
-                console.log('❌ REGISTRATION FAILED:', data);
                 // Show errors
                 registerForm.style.display = 'block';
                 registerLoading.style.display = 'none';
@@ -450,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         } catch (error) {
-            console.error('💥 Registration network error:', error);
+            console.error('Registration network error:', error);
             registerForm.style.display = 'block';
             registerLoading.style.display = 'none';
             if (registerErrorAlert) {
@@ -461,9 +391,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Real-time email validation feedback (but don't show errors while typing)
-    const emailInput = document.getElementById('email');
-    if (emailInput) {
-        emailInput.addEventListener('input', function() {
+    const registerEmailInput = document.getElementById('email');
+    if (registerEmailInput) {
+        registerEmailInput.addEventListener('input', function() {
             const emailError = document.getElementById('emailError');
             if (emailError && emailError.style.display === 'block') {
                 // Only hide the error if it's currently showing

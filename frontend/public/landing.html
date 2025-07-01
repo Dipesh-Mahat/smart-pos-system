@@ -37,9 +37,10 @@
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
                 <li><a href="#benefits">Benefits</a></li>
-                <li><a href="#testimonials">Testimonials</a></li>                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#testimonials">Testimonials</a></li>
+                <li><a href="#pricing">Pricing</a></li>
                 <li><a href="#contact">Contact</a></li>
-                <li><a href="#" id="loginBtn" class="login-btn">Login</a>
+                <li><a href="#" id="loginBtn" class="login-btn">Login</a></li>
                 <li><a href="#" id="registerBtn">Register</a></li>
             </ul>
             <div class="menu-toggle">
@@ -357,8 +358,8 @@
                             <input type="text" id="name" name="name" required>
                         </div>
                         <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" id="email" name="email" required>
+                            <label for="contactEmail">Email Address</label>
+                            <input type="email" id="contactEmail" name="email" required>
                         </div>
                         <div class="form-group">
                             <label for="phone">Phone Number</label>
@@ -425,8 +426,13 @@
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                // Skip if href is just "#" or if target element doesn't exist
+                if (href === '#' || !document.querySelector(href)) {
+                    return;
+                }
                 e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                document.querySelector(href).scrollIntoView({
                     behavior: 'smooth'
                 });
             });
