@@ -35,70 +35,31 @@ class AdminDashboard {
     }
 
     async loadUsers() {
-        // Mock user data - In production, this would be an API call
-        this.users = [
-            {
-                id: 1,
-                name: 'Ram Bahadur Sharma',
-                email: 'ram.sharma@example.com',
-                type: 'shop-owner',
-                status: 'active',
-                avatar: '../images/avatars/user1.jpg',
-                joinDate: '2024-01-15',
-                lastActive: '2024-01-20',
-                revenue: 154200.50,
-                transactions: 342
-            },
-            {
-                id: 2,
-                name: 'Krishna Prasad Adhikari',
-                email: 'krishna@wholesalemart.com',
-                type: 'supplier',
-                status: 'active',
-                avatar: '../images/avatars/user2.jpg',
-                joinDate: '2024-01-10',
-                lastActive: '2024-01-20',
-                revenue: 287500.00,
-                transactions: 156
-            },
-            {
-                id: 3,
-                name: 'Suresh Rai',
-                email: 'suresh@quickmart.com',
-                type: 'shop-owner',
-                status: 'suspended',
-                avatar: '../images/avatars/user3.jpg',
-                joinDate: '2023-12-20',
-                lastActive: '2024-01-18',
-                revenue: 82000.00,
-                transactions: 89
-            },
-            {
-                id: 4,
-                name: 'Maya Tamang',
-                email: 'maya@grocerystore.com',
-                type: 'supplier',
-                status: 'banned',
-                avatar: '../images/avatars/user4.jpg',
-                joinDate: '2023-11-05',
-                lastActive: '2024-01-15',
-                revenue: 0,
-                transactions: 0
-            },
-            {
-                id: 5,
-                name: 'Dipak Thapa',
-                email: 'robert@cornerstore.com',
-                type: 'shop-owner',
-                status: 'active',
-                avatar: '../images/avatars/user5.jpg',
-                joinDate: '2024-01-08',
-                lastActive: '2024-01-20',
-                revenue: 12300.75,
-                transactions: 278
-            }
-        ];
-
+        try {
+            // Fetch real user data from backend API
+            const response = await fetch('/users', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                }
+            });
+            if (!response.ok) throw new Error('Failed to fetch users');
+            const data = await response.json();
+            this.users = (data.users || []).map((user, idx) => ({
+                id: user._id || idx + 1,
+                name: user.firstName + ' ' + user.lastName,
+                email: user.email,
+                type: user.role,
+                status: user.status,
+                avatar: user.avatar || '../images/avatars/user-avatar.png',
+                joinDate: user.createdAt,
+                lastActive: user.updatedAt,
+                revenue: user.revenue || 0,
+                transactions: user.transactions || 0
+            }));
+        } catch (error) {
+            this.showMessage('Failed to load users from server', 'error');
+            this.users = [];
+        }
         this.filteredUsers = [...this.users];
         this.renderUserTable();
     }
@@ -527,156 +488,164 @@ class AdminDashboard {
         } catch (error) {
             console.error('Error initializing charts:', error);
         }
-    }    initUserGrowthChart() {
+    }    async initUserGrowthChart() {
         const ctx = document.getElementById('userGrowthChart');
         if (!ctx) {
             console.warn('User growth chart canvas not found');
             return;
         }
-
         try {
+            // Fetch real user growth data from backend
+            const res = await fetch('/api/users/admin/user-growth', {
+                headers: { 'Authorization': `Bearer ${window.localStorage.getItem('token')}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch user growth data');
+            const data = await res.json();
             this.charts.userGrowth = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                datasets: [{
-                    label: 'Total Users',
-                    data: [1200, 1450, 1680, 2100, 2500, 2847],
-                    borderColor: '#3498db',
-                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                    tension: 0.4
-                }, {
-                    label: 'Shop Owners',
-                    data: [650, 780, 920, 1100, 1300, 1456],
-                    borderColor: '#2ecc71',
-                    backgroundColor: 'rgba(46, 204, 113, 0.1)',
-                    tension: 0.4
-                }, {
-                    label: 'Suppliers',
-                    data: [550, 670, 760, 1000, 1200, 1391],
-                    borderColor: '#9b59b6',
-                    backgroundColor: 'rgba(155, 89, 182, 0.1)',
-                    tension: 0.4
-                }]
-            },            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                aspectRatio: 2,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: 'User Growth Over Time'
-                    }
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: 'Total Users',
+                            data: data.datasets[0].data,
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Shop Owners',
+                            data: data.datasets[1].data,
+                            borderColor: '#2ecc71',
+                            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Suppliers',
+                            data: data.datasets[2].data,
+                            borderColor: '#9b59b6',
+                            backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 2,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'User Growth Over Time' }
+                    },
+                    scales: { y: { beginAtZero: true } }
                 }
-            }
-        });
+            });
         } catch (error) {
             console.error('Error creating user growth chart:', error);
         }
     }
 
-    initRevenueChart() {
+    async initRevenueChart() {
         const ctx = document.getElementById('revenueChart');
         if (!ctx) return;
-
-        this.charts.revenue = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                datasets: [{
-                    label: 'Revenue ($)',
-                    data: [45000, 52000, 48000, 61000, 67000, 73000],
-                    backgroundColor: [
-                        'rgba(52, 152, 219, 0.8)',
-                        'rgba(46, 204, 113, 0.8)',
-                        'rgba(155, 89, 182, 0.8)',
-                        'rgba(241, 196, 15, 0.8)',
-                        'rgba(230, 126, 34, 0.8)',
-                        'rgba(231, 76, 60, 0.8)'
-                    ],
-                    borderColor: [
-                        '#3498db',
-                        '#2ecc71',
-                        '#9b59b6',
-                        '#f1c40f',
-                        '#e67e22',
-                        '#e74c3c'
-                    ],
-                    borderWidth: 2
-                }]
-            },            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                aspectRatio: 2,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    title: {
-                        display: true,
-                        text: 'Monthly Revenue'
-                    }
+        try {
+            // Fetch real monthly revenue data from backend
+            const res = await fetch('/api/users/admin/monthly-revenue', {
+                headers: { 'Authorization': `Bearer ${window.localStorage.getItem('token')}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch monthly revenue data');
+            const data = await res.json();
+            this.charts.revenue = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: data.data,
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.8)',
+                            'rgba(46, 204, 113, 0.8)',
+                            'rgba(155, 89, 182, 0.8)',
+                            'rgba(241, 196, 15, 0.8)',
+                            'rgba(230, 126, 34, 0.8)',
+                            'rgba(231, 76, 60, 0.8)'
+                        ],
+                        borderColor: [
+                            '#3498db',
+                            '#2ecc71',
+                            '#9b59b6',
+                            '#f1c40f',
+                            '#e67e22',
+                            '#e74c3c'
+                        ],
+                        borderWidth: 2
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return '$' + value.toLocaleString();
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 2,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Monthly Revenue' }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error('Error creating revenue chart:', error);
+        }
     }
 
-    initUserDistributionChart() {
+    async initUserDistributionChart() {
         const ctx = document.getElementById('userDistributionChart');
         if (!ctx) return;
-
-        const shopOwners = this.users.filter(u => u.type === 'shop-owner').length;
-        const suppliers = this.users.filter(u => u.type === 'supplier').length;
-
-        this.charts.userDistribution = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Shop Owners', 'Suppliers'],
-                datasets: [{
-                    data: [shopOwners, suppliers],
-                    backgroundColor: [
-                        '#3498db',
-                        '#9b59b6'
-                    ],
-                    borderColor: [
-                        '#2980b9',
-                        '#8e44ad'
-                    ],
-                    borderWidth: 2
-                }]
-            },            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                aspectRatio: 1.5,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                    },
-                    title: {
-                        display: true,
-                        text: 'User Type Distribution'
+        try {
+            // Fetch real user distribution data from backend
+            const res = await fetch('/api/users/admin/user-distribution', {
+                headers: { 'Authorization': `Bearer ${window.localStorage.getItem('token')}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch user distribution data');
+            const data = await res.json();
+            this.charts.userDistribution = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.data,
+                        backgroundColor: [
+                            '#3498db',
+                            '#9b59b6'
+                        ],
+                        borderColor: [
+                            '#2980b9',
+                            '#8e44ad'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 1.5,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: 'User Distribution' }
                     }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error('Error creating user distribution chart:', error);
+        }
     }
 
     loadRecentActivity() {
@@ -688,7 +657,7 @@ class AdminDashboard {
                 type: 'user-action',
                 icon: 'fas fa-user-times',
                 title: 'User Suspended',
-                description: 'Suspended user: Suresh Rai for policy violation',
+                description: 'Suspended user: Mike Wilson for policy violation',
                 time: '5 minutes ago',
                 iconClass: 'user-action'
             },
@@ -866,7 +835,7 @@ class AdminDashboard {
             api: document.querySelector('.health-card:nth-child(1) .health-details'),
             database: document.querySelector('.health-card:nth-child(2) .health-details'),
             memory: document.querySelector('.health-card:nth-child(3) .health-details'),
-            storage: document.querySelector('.health-card:nth-child(4) .health-details')
+            storage: document.querySelector('.health-card:nth-child(4) .status-text')
         };
         
         const iconElements = {
