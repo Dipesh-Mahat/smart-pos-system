@@ -11,7 +11,9 @@
     "seed:old": "node seed.js",
     "test": "jest",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "start:all": "node start-servers.js",
+    "dev:all": "nodemon start-servers.js"
   },
   "dependencies": {
     "axios": "^1.9.0",
