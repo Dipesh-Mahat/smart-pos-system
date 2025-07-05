@@ -99,12 +99,6 @@ class SmartPOSMenu {
                         '</div>' +
                         '<div class="menu-text">Reports</div>' +
                     '</a>' +
-                    '<a href="ocr/ocr.html" class="menu-item" data-page="ocr">' +
-                        '<div class="menu-icon-folder">' +
-                            '<i class="fas fa-scanner"></i>' +
-                        '</div>' +
-                        '<div class="menu-text">Bill Scanner</div>' +
-                    '</a>' +
                     '<a href="settings.html" class="menu-item" data-page="settings">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-cog"></i>' +
