@@ -6,13 +6,15 @@
     <title>Inventory Management - Smart POS Supplier</title>
     <link rel="stylesheet" href="../css/supplier-dashboard.css">
     <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="../css/supplier-inventory.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>    <div class="container">
         <main class="main-content">
             <!-- Header Actions -->
             <div class="content-header">
-                <div class="header-actions">
+                <h1>Inventory Management</h1>
+                <div class="header-actions" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
                     <button class="btn btn-secondary" onclick="exportInventory()">
                         <i class="fas fa-download"></i> Export
                     </button>
@@ -22,6 +24,95 @@
                     <button class="btn btn-primary" onclick="openModal('addStockModal')">
                         <i class="fas fa-plus"></i> Add Stock
                     </button>
+                </div>
+            </div>
+
+            <!-- Key Insights Section -->
+            <div class="content-card" style="margin-bottom: 32px;">
+                <div class="card-header">
+                    <h2>Key Insights</h2>
+                </div>
+                <div class="insights-grid">
+                    <div class="insight-item">
+                        <div class="insight-icon warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h3>Low Stock Rate</h3>
+                            <p>12 items</p>
+                            <span>4.8% of inventory</span>
+                        </div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon out-of-stock">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h3>Out of Stock</h3>
+                            <p>5 items</p>
+                            <span>2.0% of inventory</span>
+                        </div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon value">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h3>Inventory Value</h3>
+                            <p>$156,450</p>
+                            <span>Highest this year</span>
+                        </div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon total">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h3>Total Products</h3>
+                            <p>247</p>
+                            <span>+8 this month</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Stock Alerts -->
+            <div class="alerts-section" style="margin-bottom: 32px;">
+                <div class="section-header">
+                    <h2>Low Stock Alerts</h2>
+                    <span class="alert-count">3 items</span>
+                </div>
+                <div class="alerts-list">
+                    <div class="alert-item">
+                        <div class="alert-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <h4>Basmati Rice (5kg)</h4>
+                            <p>Only 5 units remaining</p>
+                        </div>
+                        <button class="btn-restock">Restock</button>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <h4>Sunflower Oil (1L)</h4>
+                            <p>Only 8 units remaining</p>
+                        </div>
+                        <button class="btn-restock">Restock</button>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <h4>Sugar (1kg)</h4>
+                            <p>Only 3 units remaining</p>
+                        </div>
+                        <button class="btn-restock">Restock</button>
+                    </div>
                 </div>
             </div>
 
@@ -62,31 +153,6 @@
                         <h3 id="inventoryValue">$156,450</h3>
                         <p>Inventory Value</p>
                     </div>
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="content-card">
-                <div class="card-header">
-                    <h2>Quick Actions</h2>
-                </div>
-                <div class="quick-actions-grid">
-                    <button class="quick-action-btn" onclick="showLowStockItems()">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span>View Low Stock</span>
-                    </button>
-                    <button class="quick-action-btn" onclick="showOutOfStockItems()">
-                        <i class="fas fa-times-circle"></i>
-                        <span>Out of Stock</span>
-                    </button>
-                    <button class="quick-action-btn" onclick="generateStockReport()">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Stock Report</span>
-                    </button>
-                    <button class="quick-action-btn" onclick="openModal('bulkUpdateModal')">
-                        <i class="fas fa-edit"></i>
-                        <span>Bulk Update</span>
-                    </button>
                 </div>
             </div>
 
