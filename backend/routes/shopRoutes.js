@@ -14,6 +14,7 @@ const customerController = require('../controllers/customerController');
 const categoryController = require('../controllers/categoryController');
 const orderController = require('../controllers/orderController');
 const settingsController = require('../controllers/settingsController');
+const supplierProductsController = require('../controllers/supplierProductsController');
 
 // Apply JWT authentication and shop owner authorization to all routes
 router.use(authenticateJWT);
@@ -1429,7 +1430,212 @@ router.get('/orders/suppliers', orderController.getAvailableSuppliers);
  *       500:
  *         description: Server error
  */
-router.get('/suppliers/:supplierId/products', orderController.getSupplierProducts);
+router.get('/suppliers/:supplierId/products', supplierProductsController.getSupplierProducts);
+
+/**
+ * @swagger
+ * /shop/suppliers/{supplierId}/categories:
+ *   get:
+ *     summary: Get categories available from a specific supplier
+ *     tags: [Suppliers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: supplierId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The supplier's user ID
+ *     responses:
+ *       200:
+ *         description: Supplier categories retrieved successfully
+ *       404:
+ *         description: Supplier not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/suppliers/:supplierId/categories', supplierProductsController.getSupplierCategories);
+
+/**
+ * @swagger
+ * /shop/suppliers/{supplierId}/insights:
+ *   get:
+ *     summary: Get supplier product statistics and insights
+ *     tags: [Suppliers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: supplierId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The supplier's user ID
+ *     responses:
+ *       200:
+ *         description: Supplier insights retrieved successfully
+ *       404:
+ *         description: Supplier not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/suppliers/:supplierId/insights', supplierProductsController.getSupplierProductInsights);
+
+/**
+ * @swagger
+ * /shop/suppliers/{supplierId}/orders:
+ *   post:
+ *     summary: Place an order with a supplier
+ *     tags: [Suppliers, Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: supplierId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The supplier's user ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 description: List of items to order
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     productId:
+ *                       type: string
+ *                       description: Product ID
+ *                     quantity:
+ *                       type: number
+ *                       description: Quantity to order
+ *               notes:
+ *                 type: string
+ *                 description: Order notes
+ *               shippingAddress:
+ *                 type: object
+ *                 description: Shipping address (optional, will use shop address if not provided)
+ *     responses:
+ *       201:
+ *         description: Order placed successfully
+ *       400:
+ *         description: Invalid request data
+ *       404:
+ *         description: Supplier or product not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/suppliers/:supplierId/orders', supplierProductsController.placeSupplierOrder);
+
+/**
+ * @swagger
+ * /shop/suppliers/{supplierId}/auto-orders:
+ *   get:
+ *     summary: Get list of auto-orders for a specific supplier
+ *     tags: [Suppliers, Auto-Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: supplierId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The supplier's user ID
+ *     responses:
+ *       200:
+ *         description: Auto-orders retrieved successfully
+ *       404:
+ *         description: Supplier not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/suppliers/:supplierId/auto-orders', supplierProductsController.getSupplierAutoOrders);
+
+/**
+ * @swagger
+ * /shop/suppliers/{supplierId}/auto-orders:
+ *   post:
+ *     summary: Set up auto-order for a supplier product
+ *     tags: [Suppliers, Auto-Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: supplierId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The supplier's user ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               productId:
+ *                 type: string
+ *                 description: Product ID
+ *               quantity:
+ *                 type: number
+ *                 description: Quantity to order
+ *               frequency:
+ *                 type: string
+ *                 enum: [daily, weekly, monthly]
+ *                 description: Order frequency
+ *               nextOrderDate:
+ *                 type: string
+ *                 format: date
+ *                 description: Date of the next order
+ *               notes:
+ *                 type: string
+ *                 description: Auto-order notes
+ *     responses:
+ *       201:
+ *         description: Auto-order created successfully
+ *       200:
+ *         description: Auto-order updated successfully
+ *       400:
+ *         description: Invalid request data
+ *       404:
+ *         description: Supplier or product not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/suppliers/:supplierId/auto-orders', supplierProductsController.setupAutoOrder);
+
+/**
+ * @swagger
+ * /shop/auto-orders/{autoOrderId}:
+ *   delete:
+ *     summary: Delete an auto-order
+ *     tags: [Auto-Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: autoOrderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The auto-order ID
+ *     responses:
+ *       200:
+ *         description: Auto-order deleted successfully
+ *       404:
+ *         description: Auto-order not found
+ *       500:
+ *         description: Server error
+ */
+router.delete('/auto-orders/:autoOrderId', supplierProductsController.deleteAutoOrder);
 
 /**
  * @swagger
@@ -1503,9 +1709,47 @@ router.get('/orders/:id', orderController.getOrder);
  */
 router.put('/orders/:id/status', orderController.updateOrderStatus);
 
-// ================================
-// SETTINGS MANAGEMENT ROUTES
-// ================================
+/**
+ * @swagger
+ * /shop/orders/{orderId}/rate:
+ *   post:
+ *     summary: Rate an order and provide feedback on supplier performance
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The order ID to rate
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rating:
+ *                 type: number
+ *                 minimum: 1
+ *                 maximum: 5
+ *                 description: Rating between 1 and 5
+ *               reviewComment:
+ *                 type: string
+ *                 description: Optional review comment
+ *     responses:
+ *       200:
+ *         description: Order rated successfully
+ *       400:
+ *         description: Invalid rating or order not in delivered status
+ *       404:
+ *         description: Order not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/orders/:orderId/rate', orderController.rateOrder);
 
 /**
  * @swagger
