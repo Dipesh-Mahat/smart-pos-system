@@ -1,143 +1,174 @@
-// Inventory Management JavaScript for Smart POS Supplier Dashboard
+/**
+ * Supplier Inventory Management
+ * Smart POS System - Supplier Portal
+ */
 
 class InventoryManager {
     constructor() {
-        this.inventory = [
-            {
-                id: 1,
-                name: 'Basmati Rice 5kg (Bag of 10)',
-                sku: 'RICE-BASMATI-5KG-10',
-                category: 'groceries',
-                currentStock: 45,
-                minStock: 10,
-                maxStock: 100,
-                costPrice: 700.00,
-                sellingPrice: 850.00,
-                supplier: 'Himalayan Gold Distributors',
-                location: 'A1-B2',
-                lastUpdated: '2024-01-15',
-                status: 'in-stock'
-            },
-            {
-                id: 2,
-                name: 'Nepali Tea 250g (Box of 20)',
-                sku: 'TEA-NEPALI-250G-20',
-                category: 'beverages',
-                currentStock: 8,
-                minStock: 15,
-                maxStock: 200,
-                costPrice: 120.00,
-                sellingPrice: 180.00,
-                supplier: 'Ilam Tea Suppliers',
-                location: 'B2-C1',
-                lastUpdated: '2024-01-14',
-                status: 'low-stock'
-            },
-            {
-                id: 3,
-                name: 'Wai Wai Noodles (Carton of 48)',
-                sku: 'NOODLES-WAIWAI-48',
-                category: 'snacks',
-                currentStock: 120,
-                minStock: 20,
-                maxStock: 300,
-                costPrice: 22.00,
-                sellingPrice: 30.00,
-                supplier: 'CG Foods Distribution',
-                location: 'C1-D3',
-                lastUpdated: '2024-01-13',
-                status: 'in-stock'
-            },
-            {
-                id: 4,
-                name: 'DDC Milk 1L (Crate of 12)',
-                sku: 'MILK-DDC-1L-12',
-                category: 'dairy',
-                currentStock: 0,
-                minStock: 5,
-                maxStock: 50,
-                costPrice: 70.00,
-                sellingPrice: 85.00,
-                supplier: 'DDC Dairy Distribution',
-                location: 'D3-E1',
-                lastUpdated: '2024-01-12',
-                status: 'out-of-stock'
-            },
-            {
-                id: 5,
-                name: 'Lux Soap 100g (Box of 48)',
-                sku: 'SOAP-LUX-100G-48',
-                category: 'personal-care',
-                currentStock: 32,
-                minStock: 8,
-                maxStock: 80,
-                costPrice: 35.00,
-                sellingPrice: 45.00,
-                supplier: 'Unilever Nepal',
-                location: 'E1-F2',
-                lastUpdated: '2024-01-11',
-                status: 'in-stock'
-            },
-            {
-                id: 6,
-                name: 'Teer Detergent 1kg (Case of 12)',
-                sku: 'DETERGENT-TEER-1KG-12',
-                category: 'household',
-                currentStock: 3,
-                minStock: 5,
-                maxStock: 40,
-                costPrice: 220.00,
-                sellingPrice: 280.00,
-                supplier: 'Local Soap Industries',
-                location: 'F2-G1',
-                lastUpdated: '2024-01-10',
-                status: 'low-stock'
-            },
-            {
-                id: 7,
-                name: 'Masala Dal 1kg (Bag of 20)',
-                sku: 'DAL-MASALA-1KG-20',
-                category: 'groceries',
-                currentStock: 25,
-                minStock: 10,
-                maxStock: 60,
-                costPrice: 130.00,
-                sellingPrice: 160.00,
-                supplier: 'Local Pulse Traders',
-                location: 'G1-H3',
-                lastUpdated: '2024-01-09',
-                status: 'in-stock'
-            },
-            {
-                id: 8,
-                name: 'Khukri Rum 375ml (Case of 12)',
-                sku: 'RUM-KHUKRI-375ML-12',
-                category: 'beverages',
-                currentStock: 0,
-                minStock: 12,
-                maxStock: 100,
-                costPrice: 800.00,
-                sellingPrice: 980.00,
-                supplier: 'Khukri Distillery',
-                location: 'H3-I1',
-                lastUpdated: '2024-01-08',
-                status: 'out-of-stock'
-            }
-        ];
-
-        this.filteredInventory = [...this.inventory];
+        this.inventory = [];
+        this.filteredInventory = [];
         this.currentPage = 1;
         this.itemsPerPage = 10;
         this.selectedItems = new Set();
-
+        this.totalPages = 1;
+        this.apiService = window.apiService || {};
+        
         this.init();
     }
 
-    init() {
-        this.renderInventoryStats();
-        this.renderInventory();
-        this.setupEventListeners();
-        this.updateStockAlerts();
+    async init() {
+        try {
+            await this.loadInventoryData();
+            this.setupEventListeners();
+            this.loadLowStockAlerts();
+        } catch (error) {
+            console.error("Error initializing inventory manager:", error);
+            this.showNotification("Failed to load inventory data", "error");
+        }
+    }
+    
+    async loadInventoryData(page = 1, filters = {}) {
+        try {
+            this.showLoader();
+            
+            // Build query params for API request
+            const queryParams = new URLSearchParams();
+            queryParams.append('page', page);
+            queryParams.append('limit', this.itemsPerPage);
+            
+            // Add filters if provided
+            if (filters.search) queryParams.append('search', filters.search);
+            if (filters.category) queryParams.append('category', filters.category);
+            if (filters.status) queryParams.append('status', filters.status);
+            if (filters.location) queryParams.append('location', filters.location);
+            
+            // Make API request to get inventory data
+            const response = await this.apiService.request(`/supplier/inventory?${queryParams.toString()}`);
+            
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to load inventory data');
+            }
+            
+            this.inventory = response.data.items;
+            this.filteredInventory = this.inventory;
+            this.currentPage = page;
+            this.totalPages = response.data.pagination.pages;
+            
+            // Update statistics
+            this.updateStatistics(response.data.stats);
+            
+            this.renderInventory();
+        } catch (error) {
+            console.error("Error loading inventory data:", error);
+            this.showNotification("Failed to load inventory data", "error");
+        } finally {
+            this.hideLoader();
+        }
+    }
+    
+    async loadLowStockAlerts() {
+        try {
+            const response = await this.apiService.request('/supplier/inventory/alerts/low-stock');
+            
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to load low stock alerts');
+            }
+            
+            this.renderLowStockAlerts(response.data);
+        } catch (error) {
+            console.error("Error loading low stock alerts:", error);
+        }
+    }
+    
+    renderLowStockAlerts(lowStockItems) {
+        const alertsList = document.querySelector('.alerts-list');
+        const alertCount = document.querySelector('.alert-count');
+        
+        if (!alertsList || !alertCount) return;
+        
+        // Set alert count
+        alertCount.textContent = `${lowStockItems.length} items`;
+        
+        // Clear existing alerts
+        alertsList.innerHTML = '';
+        
+        // Display up to 5 low stock items
+        const displayItems = lowStockItems.slice(0, 5);
+        
+        if (displayItems.length === 0) {
+            alertsList.innerHTML = '<div class="no-alerts">No low stock items</div>';
+            return;
+        }
+        
+        // Create alert items
+        displayItems.forEach(item => {
+            const alertItem = document.createElement('div');
+            alertItem.className = 'alert-item';
+            alertItem.innerHTML = `
+                <div class="alert-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="alert-content">
+                    <h4>${item.productId.name}</h4>
+                    <p>Only ${item.currentStock} units remaining</p>
+                </div>
+                <button class="btn-restock" onclick="inventoryManager.openRestockModal('${item._id}')">Restock</button>
+            `;
+            alertsList.appendChild(alertItem);
+        });
+    }
+    
+    openRestockModal(itemId) {
+        // Find the item
+        const item = this.inventory.find(i => i._id === itemId);
+        if (!item) return;
+        
+        // Open the adjust stock modal
+        this.adjustStock(itemId);
+    }
+
+    updateStatistics(stats) {
+        // Update statistics in the UI
+        document.getElementById('totalProducts').textContent = stats.totalProducts;
+        document.getElementById('lowStockItems').textContent = stats.lowStockItems;
+        document.getElementById('outOfStockItems').textContent = stats.outOfStockItems;
+        document.getElementById('inventoryValue').textContent = `$${stats.inventoryValue.toLocaleString()}`;
+        
+        // Update insights grid
+        const lowStockRateElement = document.querySelector('.insight-item:nth-child(1) span');
+        const outOfStockRateElement = document.querySelector('.insight-item:nth-child(2) span');
+        
+        if (lowStockRateElement) {
+            lowStockRateElement.textContent = `${stats.lowStockRate}% of inventory`;
+        }
+        
+        if (outOfStockRateElement) {
+            outOfStockRateElement.textContent = `${stats.outOfStockRate}% of inventory`;
+        }
+        
+        // Update low stock count in insights
+        const lowStockCount = document.querySelector('.insight-item:nth-child(1) p');
+        if (lowStockCount) {
+            lowStockCount.textContent = `${stats.lowStockItems} items`;
+        }
+        
+        // Update out of stock count in insights
+        const outOfStockCount = document.querySelector('.insight-item:nth-child(2) p');
+        if (outOfStockCount) {
+            outOfStockCount.textContent = `${stats.outOfStockItems} items`;
+        }
+        
+        // Update total products count in insights
+        const totalProductsCount = document.querySelector('.insight-item:nth-child(4) p');
+        if (totalProductsCount) {
+            totalProductsCount.textContent = `${stats.totalProducts}`;
+        }
+        
+        // Update inventory value in insights
+        const inventoryValueElement = document.querySelector('.insight-item:nth-child(3) p');
+        if (inventoryValueElement) {
+            inventoryValueElement.textContent = `$${stats.inventoryValue.toLocaleString()}`;
+        }
     }
 
     setupEventListeners() {
@@ -145,17 +176,21 @@ class InventoryManager {
         const searchInput = document.getElementById('inventorySearch');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
-                this.filterInventory();
+                clearTimeout(this._searchTimer);
+                this._searchTimer = setTimeout(() => {
+                    this.applyFilters();
+                }, 500);
             });
         }
 
         // Filter dropdowns
-        const filters = ['categoryFilter', 'stockStatusFilter'];
+        const filters = ['categoryFilter', 'stockStatusFilter', 'locationFilter'];
         filters.forEach(filterId => {
             const filter = document.getElementById(filterId);
             if (filter) {
                 filter.addEventListener('change', () => {
-                    this.filterInventory();
+                    this.currentPage = 1;
+                    this.applyFilters();
                 });
             }
         });
@@ -173,71 +208,57 @@ class InventoryManager {
                 this.closeModals();
             }
         });
-
-        // Mobile menu toggle
-        const mobileToggle = document.getElementById('mobileToggle');
-        const sidebar = document.getElementById('sidebar');
         
-        if (mobileToggle && sidebar) {
-            mobileToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('active');
+        // Select all checkbox
+        const selectAllCheckbox = document.getElementById('selectAll');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', (e) => {
+                this.toggleSelectAll(e.target.checked);
             });
         }
-
-        // Sidebar toggle
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        if (sidebarToggle && sidebar) {
-            sidebarToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('collapsed');
-            });
-        }
-    }
-
-    renderInventoryStats() {
-        const totalProducts = this.inventory.length;
-        const lowStockItems = this.inventory.filter(item => 
-            item.currentStock <= item.minStock && item.currentStock > 0
-        ).length;
-        const outOfStockItems = this.inventory.filter(item => item.currentStock === 0).length;
-        const inventoryValue = this.inventory.reduce((total, item) => 
-            total + (item.currentStock * item.costPrice), 0
-        );
-
-        // Update stats
-        document.getElementById('totalProducts').textContent = totalProducts;
-        document.getElementById('lowStockItems').textContent = lowStockItems;
-        document.getElementById('outOfStockItems').textContent = outOfStockItems;
-        document.getElementById('inventoryValue').textContent = `$${inventoryValue.toLocaleString()}`;
     }
 
     renderInventory() {
         const tableBody = document.getElementById('inventoryTableBody');
         if (!tableBody) return;
-
-        // Calculate pagination
-        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-        const endIndex = startIndex + this.itemsPerPage;
-        const paginatedItems = this.filteredInventory.slice(startIndex, endIndex);
-
+        
+        // Clear existing content
         tableBody.innerHTML = '';
-
-        paginatedItems.forEach(item => {
-            const stockStatus = this.getStockStatus(item);
-            const stockStatusClass = stockStatus.toLowerCase().replace(' ', '-');
+        
+        if (this.filteredInventory.length === 0) {
+            // Show "no items" message
+            const noItemsRow = document.createElement('tr');
+            noItemsRow.innerHTML = `
+                <td colspan="9" class="no-items">
+                    <div>
+                        <i class="fas fa-search"></i>
+                        <p>No inventory items found</p>
+                    </div>
+                </td>
+            `;
+            tableBody.appendChild(noItemsRow);
             
+            // Hide pagination
+            const paginationContainer = document.getElementById('inventoryPagination');
+            if (paginationContainer) paginationContainer.innerHTML = '';
+            
+            return;
+        }
+
+        this.filteredInventory.forEach(item => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>
-                    <input type="checkbox" class="item-checkbox" data-id="${item.id}" 
-                           ${this.selectedItems.has(item.id) ? 'checked' : ''}>
+                    <input type="checkbox" class="item-checkbox" data-id="${item._id}" 
+                           ${this.selectedItems.has(item._id) ? 'checked' : ''}>
                 </td>
                 <td>
                     <div class="product-info">
-                        <div class="product-name">${item.name}</div>
+                        <div class="product-name">${item.productId.name}</div>
                         <div class="product-sku">SKU: ${item.sku}</div>
                     </div>
                 </td>
-                <td><span class="category-badge">${item.category}</span></td>
+                <td><span class="category-badge">${item.productId.category}</span></td>
                 <td>
                     <div class="stock-info">
                         <span class="current-stock">${item.currentStock}</span>
@@ -245,22 +266,22 @@ class InventoryManager {
                     </div>
                 </td>
                 <td>
-                    <span class="stock-status ${stockStatusClass}">
-                        ${stockStatus}
+                    <span class="stock-status ${item.status}">
+                        ${this.formatStockStatus(item.status)}
                     </span>
                 </td>
                 <td>$${item.costPrice.toFixed(2)}</td>
                 <td>$${item.sellingPrice.toFixed(2)}</td>
-                <td>${item.location}</td>
+                <td>${item.location || 'N/A'}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn-icon" onclick="inventoryManager.adjustStock(${item.id})" title="Adjust Stock">
+                        <button class="btn-icon" onclick="inventoryManager.adjustStock('${item._id}')" title="Adjust Stock">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-icon" onclick="inventoryManager.viewItem(${item.id})" title="View Details">
+                        <button class="btn-icon" onclick="inventoryManager.viewItem('${item._id}')" title="View Details">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="btn-icon danger" onclick="inventoryManager.deleteItem(${item.id})" title="Delete">
+                        <button class="btn-icon danger" onclick="inventoryManager.deleteItem('${item._id}')" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -272,7 +293,7 @@ class InventoryManager {
         // Add event listeners for checkboxes
         document.querySelectorAll('.item-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', (e) => {
-                const itemId = parseInt(e.target.dataset.id);
+                const itemId = e.target.dataset.id;
                 if (e.target.checked) {
                     this.selectedItems.add(itemId);
                 } else {
@@ -287,10 +308,9 @@ class InventoryManager {
     }
 
     renderPagination() {
-        const totalPages = Math.ceil(this.filteredInventory.length / this.itemsPerPage);
         const paginationContainer = document.getElementById('inventoryPagination');
         
-        if (!paginationContainer || totalPages <= 1) {
+        if (!paginationContainer || this.totalPages <= 1) {
             if (paginationContainer) paginationContainer.innerHTML = '';
             return;
         }
@@ -307,8 +327,8 @@ class InventoryManager {
         `;
 
         // Page numbers
-        for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) {
+        for (let i = 1; i <= this.totalPages; i++) {
+            if (i === 1 || i === this.totalPages || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) {
                 paginationHTML += `
                     <button class="pagination-btn ${i === this.currentPage ? 'active' : ''}" 
                             onclick="inventoryManager.changePage(${i})">
@@ -322,90 +342,285 @@ class InventoryManager {
 
         // Next button
         paginationHTML += `
-            <button class="pagination-btn ${this.currentPage === totalPages ? 'disabled' : ''}" 
+            <button class="pagination-btn ${this.currentPage === this.totalPages ? 'disabled' : ''}" 
                     onclick="inventoryManager.changePage(${this.currentPage + 1})" 
-                    ${this.currentPage === totalPages ? 'disabled' : ''}>
+                    ${this.currentPage === this.totalPages ? 'disabled' : ''}>
                 <i class="fas fa-chevron-right"></i>
             </button>
         `;
 
         paginationContainer.innerHTML = paginationHTML;
     }
-
-    changePage(page) {
-        const totalPages = Math.ceil(this.filteredInventory.length / this.itemsPerPage);
-        if (page >= 1 && page <= totalPages) {
-            this.currentPage = page;
-            this.renderInventory();
-        }
-    }
-
-    filterInventory() {
-        const searchTerm = document.getElementById('inventorySearch')?.value.toLowerCase() || '';
-        const categoryFilter = document.getElementById('categoryFilter')?.value || '';
-        const stockStatusFilter = document.getElementById('stockStatusFilter')?.value || '';
-
-        this.filteredInventory = this.inventory.filter(item => {
-            const matchesSearch = item.name.toLowerCase().includes(searchTerm) ||
-                                item.sku.toLowerCase().includes(searchTerm);
-            const matchesCategory = !categoryFilter || item.category === categoryFilter;
-            const matchesStockStatus = !stockStatusFilter || this.getStockStatus(item).toLowerCase().replace(' ', '-') === stockStatusFilter;
-
-            return matchesSearch && matchesCategory && matchesStockStatus;
-        });
-
-        this.currentPage = 1;
-        this.renderInventory();
-    }
-
-    getStockStatus(item) {
-        if (item.currentStock === 0) return 'Out of Stock';
-        if (item.currentStock <= item.minStock) return 'Low Stock';
+    
+    formatStockStatus(status) {
+        if (status === 'out-of-stock') return 'Out of Stock';
+        if (status === 'low-stock') return 'Low Stock';
         return 'In Stock';
     }
 
-    adjustStock(itemId) {
-        const item = this.inventory.find(i => i.id === itemId);
-        if (!item) return;
-
-        // Show stock adjustment modal
-        document.getElementById('adjustItemName').textContent = item.name;
-        document.getElementById('adjustCurrentStock').textContent = item.currentStock;
-        document.getElementById('adjustItemId').value = item.id;
-        document.getElementById('stockAdjustment').value = '';
-        document.getElementById('adjustmentReason').value = '';
-
-        this.showModal('adjustStockModal');
+    async changePage(page) {
+        if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+            this.currentPage = page;
+            await this.loadInventoryData(page, this.getCurrentFilters());
+        }
     }
 
-    viewItem(itemId) {
-        const item = this.inventory.find(i => i.id === itemId);
-        if (!item) return;
-
-        // Populate item details modal
-        document.getElementById('detailItemName').textContent = item.name;
-        document.getElementById('detailItemSku').textContent = item.sku;
-        document.getElementById('detailItemCategory').textContent = item.category;
-        document.getElementById('detailCurrentStock').textContent = item.currentStock;
-        document.getElementById('detailMinStock').textContent = item.minStock;
-        document.getElementById('detailMaxStock').textContent = item.maxStock;
-        document.getElementById('detailCostPrice').textContent = `$${item.costPrice.toFixed(2)}`;
-        document.getElementById('detailSellingPrice').textContent = `$${item.sellingPrice.toFixed(2)}`;
-        document.getElementById('detailSupplier').textContent = item.supplier;
-        document.getElementById('detailLocation').textContent = item.location;
-        document.getElementById('detailLastUpdated').textContent = this.formatDate(item.lastUpdated);
-
-        this.showModal('itemDetailsModal');
+    async applyFilters() {
+        const filters = this.getCurrentFilters();
+        this.currentPage = 1;
+        await this.loadInventoryData(1, filters);
+    }
+    
+    getCurrentFilters() {
+        return {
+            search: document.getElementById('inventorySearch')?.value || '',
+            category: document.getElementById('categoryFilter')?.value || '',
+            status: document.getElementById('stockStatusFilter')?.value || '',
+            location: document.getElementById('locationFilter')?.value || ''
+        };
+    }
+    
+    async clearFilters() {
+        // Reset filter inputs
+        document.getElementById('inventorySearch').value = '';
+        document.getElementById('categoryFilter').value = '';
+        document.getElementById('stockStatusFilter').value = '';
+        document.getElementById('locationFilter').value = '';
+        
+        // Load data without filters
+        this.currentPage = 1;
+        await this.loadInventoryData(1, {});
+        
+        this.showNotification("Filters cleared", "info");
     }
 
-    deleteItem(itemId) {
+    async adjustStock(itemId) {
+        try {
+            const item = this.inventory.find(i => i._id === itemId);
+            if (!item) return;
+            
+            // Show stock adjustment modal
+            document.getElementById('adjustItemName').textContent = item.productId.name;
+            document.getElementById('adjustCurrentStock').textContent = item.currentStock;
+            document.getElementById('adjustItemId').value = item._id;
+            document.getElementById('stockAdjustment').value = '';
+            document.getElementById('adjustmentReason').value = '';
+            
+            this.showModal('adjustStockModal');
+        } catch (error) {
+            console.error("Error preparing stock adjustment:", error);
+            this.showNotification("Failed to prepare stock adjustment", "error");
+        }
+    }
+
+    async saveStockAdjustment() {
+        try {
+            const itemId = document.getElementById('adjustItemId').value;
+            const adjustment = parseFloat(document.getElementById('stockAdjustment').value);
+            const reason = document.getElementById('adjustmentReason').value;
+            
+            if (!itemId || isNaN(adjustment) || adjustment === 0) {
+                this.showNotification("Please enter a valid adjustment amount", "error");
+                return;
+            }
+            
+            if (!reason) {
+                this.showNotification("Please select a reason for adjustment", "error");
+                return;
+            }
+            
+            this.showLoader();
+            
+            const response = await this.apiService.request(`/supplier/inventory/${itemId}/adjust`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    adjustment,
+                    reason,
+                    notes: `Stock ${adjustment > 0 ? 'increased' : 'decreased'} by ${Math.abs(adjustment)} units`
+                })
+            });
+            
+            if (!response.success) {
+                throw new Error(response.message || "Failed to adjust stock");
+            }
+            
+            this.closeModals();
+            this.showNotification("Stock adjusted successfully", "success");
+            
+            // Reload inventory data
+            await this.loadInventoryData(this.currentPage, this.getCurrentFilters());
+        } catch (error) {
+            console.error("Error saving stock adjustment:", error);
+            this.showNotification("Failed to adjust stock: " + (error.message || "Unknown error"), "error");
+        } finally {
+            this.hideLoader();
+        }
+    }
+
+    async viewItem(itemId) {
+        try {
+            this.showLoader();
+            
+            const response = await this.apiService.request(`/supplier/inventory/${itemId}`);
+            
+            if (!response.success) {
+                throw new Error(response.message || "Failed to retrieve item details");
+            }
+            
+            const item = response.data.item;
+            
+            // Populate item details modal
+            document.getElementById('detailItemName').textContent = item.productId.name;
+            document.getElementById('detailItemSku').textContent = item.sku;
+            document.getElementById('detailItemCategory').textContent = item.productId.category;
+            document.getElementById('detailCurrentStock').textContent = item.currentStock;
+            document.getElementById('detailMinStock').textContent = item.minStock;
+            document.getElementById('detailMaxStock').textContent = item.maxStock;
+            document.getElementById('detailCostPrice').textContent = `$${item.costPrice.toFixed(2)}`;
+            document.getElementById('detailSellingPrice').textContent = `$${item.sellingPrice.toFixed(2)}`;
+            document.getElementById('detailSupplier').textContent = 'Self';
+            document.getElementById('detailLocation').textContent = item.location || 'N/A';
+            document.getElementById('detailLastUpdated').textContent = this.formatDate(item.lastUpdated);
+            
+            this.showModal('itemDetailsModal');
+        } catch (error) {
+            console.error("Error viewing item details:", error);
+            this.showNotification("Failed to load item details", "error");
+        } finally {
+            this.hideLoader();
+        }
+    }
+
+    async deleteItem(itemId) {
         if (confirm('Are you sure you want to delete this item from inventory?')) {
-            this.inventory = this.inventory.filter(i => i.id !== itemId);
-            this.filteredInventory = this.filteredInventory.filter(i => i.id !== itemId);
-            this.selectedItems.delete(itemId);
-            this.renderInventory();
-            this.renderInventoryStats();
-            this.showNotification('Item deleted successfully', 'success');
+            try {
+                this.showLoader();
+                
+                const response = await this.apiService.request(`/supplier/inventory/${itemId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.success) {
+                    throw new Error(response.message || "Failed to delete inventory item");
+                }
+                
+                this.showNotification("Item deleted successfully", "success");
+                this.selectedItems.delete(itemId);
+                
+                // Reload inventory data
+                await this.loadInventoryData(this.currentPage, this.getCurrentFilters());
+            } catch (error) {
+                console.error("Error deleting item:", error);
+                this.showNotification("Failed to delete item", "error");
+            } finally {
+                this.hideLoader();
+            }
+        }
+    }
+    
+    toggleSelectAll(isChecked) {
+        const checkboxes = document.querySelectorAll('.item-checkbox');
+        
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = isChecked;
+            const itemId = checkbox.dataset.id;
+            
+            if (isChecked) {
+                this.selectedItems.add(itemId);
+            } else {
+                this.selectedItems.delete(itemId);
+            }
+        });
+        
+        this.updateBulkActionButton();
+    }
+    
+    async executeBulkAction() {
+        const action = document.getElementById('bulkActionSelect').value;
+        
+        if (!action || this.selectedItems.size === 0) {
+            this.showNotification("Please select an action and at least one item", "error");
+            return;
+        }
+        
+        try {
+            this.showLoader();
+            
+            switch (action) {
+                case 'adjust-stock':
+                    // Open a specialized bulk adjust modal
+                    this.showModal('bulkAdjustStockModal');
+                    break;
+                    
+                case 'update-location':
+                    const newLocation = prompt("Enter new location for selected items:");
+                    if (newLocation === null) return;
+                    
+                    const updateLocationResponse = await this.apiService.request('/supplier/inventory/bulk-update', {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            items: Array.from(this.selectedItems),
+                            updateType: 'location',
+                            updateData: { location: newLocation }
+                        })
+                    });
+                    
+                    if (!updateLocationResponse.success) {
+                        throw new Error(updateLocationResponse.message || "Failed to update locations");
+                    }
+                    
+                    this.showNotification(`Updated location for ${this.selectedItems.size} items`, "success");
+                    await this.loadInventoryData(this.currentPage, this.getCurrentFilters());
+                    break;
+                    
+                case 'export':
+                    await this.exportSelectedItems();
+                    break;
+                    
+                default:
+                    this.showNotification("Invalid action selected", "error");
+            }
+        } catch (error) {
+            console.error("Error executing bulk action:", error);
+            this.showNotification("Failed to execute bulk action", "error");
+        } finally {
+            this.hideLoader();
+        }
+    }
+    
+    async exportSelectedItems() {
+        try {
+            // Get selected items
+            const selectedIds = Array.from(this.selectedItems);
+            
+            // Get full details of selected items
+            const selectedItems = this.inventory.filter(item => selectedIds.includes(item._id));
+            
+            // Generate CSV
+            const headers = ['Product Name', 'SKU', 'Category', 'Current Stock', 'Min Stock', 'Status', 'Cost Price', 'Selling Price', 'Location'];
+            const rows = [headers];
+            
+            selectedItems.forEach(item => {
+                rows.push([
+                    item.productId.name,
+                    item.sku,
+                    item.productId.category,
+                    item.currentStock,
+                    item.minStock,
+                    this.formatStockStatus(item.status),
+                    item.costPrice,
+                    item.sellingPrice,
+                    item.location || 'N/A'
+                ]);
+            });
+            
+            const csvContent = rows.map(row => row.join(',')).join('\n');
+            this.downloadCSV(csvContent, 'selected_items_export.csv');
+            
+            this.showNotification(`Exported ${selectedItems.length} items`, "success");
+        } catch (error) {
+            console.error("Error exporting selected items:", error);
+            this.showNotification("Failed to export selected items", "error");
         }
     }
 
@@ -421,64 +636,50 @@ class InventoryManager {
             bulkActionContainer.style.display = 'none';
         }
     }
-
-    showLowStockItems() {
-        document.getElementById('stockStatusFilter').value = 'low-stock';
-        this.filterInventory();
-        this.showNotification('Showing low stock items', 'info');
-    }
-
-    showOutOfStockItems() {
-        document.getElementById('stockStatusFilter').value = 'out-of-stock';
-        this.filterInventory();
-        this.showNotification('Showing out of stock items', 'info');
-    }
-
-    generateStockReport() {
-        const report = {
-            totalItems: this.inventory.length,
-            lowStockItems: this.inventory.filter(item => 
-                item.currentStock <= item.minStock && item.currentStock > 0
-            ),
-            outOfStockItems: this.inventory.filter(item => item.currentStock === 0),
-            totalValue: this.inventory.reduce((total, item) => 
-                total + (item.currentStock * item.costPrice), 0
-            )
-        };
-
-        // Generate CSV report
-        const csvContent = this.generateInventoryReportCSV(report);
-        this.downloadCSV(csvContent, 'inventory_report.csv');
-        this.showNotification('Stock report generated successfully', 'success');
-    }
-
-    generateInventoryReportCSV(report) {
-        const headers = ['Name', 'SKU', 'Category', 'Current Stock', 'Min Stock', 'Max Stock', 'Status', 'Cost Price', 'Selling Price', 'Value'];
-        const csvRows = [headers.join(',')];
-
-        this.inventory.forEach(item => {
-            const row = [
-                item.name,
-                item.sku,
-                item.category,
-                item.currentStock,
-                item.minStock,
-                item.maxStock,
-                this.getStockStatus(item),
-                item.costPrice,
-                item.sellingPrice,
-                (item.currentStock * item.costPrice).toFixed(2)
-            ];
-            csvRows.push(row.join(','));
-        });
-
-        return csvRows.join('\n');
-    }
-
-    exportInventory() {
-        const csvContent = this.generateInventoryReportCSV({});
-        this.downloadCSV(csvContent, 'inventory_export.csv');
-        this.showNotification('Inventory exported successfully', 'success');
+    
+    async exportInventory() {
+        try {
+            this.showLoader();
+            
+            const response = await this.apiService.request('/supplier/inventory/report');
+            
+            if (!response.success) {
+                throw new Error(response.message || "Failed to generate inventory report");
+            }
+            
+            const reportData = response.data;
+            
+            // Generate CSV
+            const headers = ['Product Name', 'SKU', 'Category', 'Current Stock', 'Min Stock', 'Max Stock', 'Status', 'Cost Price', 'Selling Price', 'Value', 'Location', 'Last Updated'];
+            const rows = [headers];
+            
+            reportData.items.forEach(item => {
+                rows.push([
+                    item.productName,
+                    item.sku,
+                    item.category,
+                    item.currentStock,
+                    item.minStock,
+                    item.maxStock,
+                    item.status,
+                    item.costPrice,
+                    item.sellingPrice,
+                    item.value,
+                    item.location,
+                    this.formatDate(item.lastUpdated)
+                ]);
+            });
+            
+            const csvContent = rows.map(row => row.join(',')).join('\n');
+            this.downloadCSV(csvContent, 'inventory_export.csv');
+            
+            this.showNotification("Inventory exported successfully", "success");
+        } catch (error) {
+            console.error("Error exporting inventory:", error);
+            this.showNotification("Failed to export inventory", "error");
+        } finally {
+            this.hideLoader();
+        }
     }
 
     downloadCSV(csvContent, filename) {
@@ -489,49 +690,6 @@ class InventoryManager {
         a.download = filename;
         a.click();
         window.URL.revokeObjectURL(url);
-    }
-
-    updateStockAlerts() {
-        const lowStockItems = this.inventory.filter(item => 
-            item.currentStock <= item.minStock && item.currentStock > 0
-        );
-        const outOfStockItems = this.inventory.filter(item => item.currentStock === 0);
-
-        // Update alerts in UI
-        if (lowStockItems.length > 0 || outOfStockItems.length > 0) {
-            this.showStockAlerts(lowStockItems, outOfStockItems);
-        }
-    }
-
-    showStockAlerts(lowStockItems, outOfStockItems) {
-        let alertMessage = '';
-        
-        if (outOfStockItems.length > 0) {
-            alertMessage += `${outOfStockItems.length} items are out of stock. `;
-        }
-        
-        if (lowStockItems.length > 0) {
-            alertMessage += `${lowStockItems.length} items are running low on stock.`;
-        }
-
-        if (alertMessage) {
-            // Create alert notification
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'stock-alert warning';
-            alertDiv.innerHTML = `
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>${alertMessage}</span>
-                <button onclick="this.parentElement.remove()" class="close-alert">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-
-            // Insert at top of main content
-            const mainContent = document.querySelector('.main-content');
-            if (mainContent && !document.querySelector('.stock-alert')) {
-                mainContent.insertBefore(alertDiv, mainContent.firstChild);
-            }
-        }
     }
 
     showModal(modalId) {
@@ -569,6 +727,26 @@ class InventoryManager {
             notification.remove();
         }, 3000);
     }
+    
+    showLoader() {
+        let loader = document.querySelector('.page-loader');
+        
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.className = 'page-loader';
+            loader.innerHTML = '<div class="loader-spinner"></div>';
+            document.body.appendChild(loader);
+        }
+        
+        loader.style.display = 'flex';
+    }
+    
+    hideLoader() {
+        const loader = document.querySelector('.page-loader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    }
 }
 
 // Global functions for modal and quick actions
@@ -592,21 +770,28 @@ function exportInventory() {
     }
 }
 
-function showLowStockItems() {
+function applyFilters() {
     if (window.inventoryManager) {
-        window.inventoryManager.showLowStockItems();
+        window.inventoryManager.applyFilters();
     }
 }
 
-function showOutOfStockItems() {
+function clearFilters() {
     if (window.inventoryManager) {
-        window.inventoryManager.showOutOfStockItems();
+        window.inventoryManager.clearFilters();
     }
 }
 
-function generateStockReport() {
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    if (window.inventoryManager && selectAll) {
+        window.inventoryManager.toggleSelectAll(selectAll.checked);
+    }
+}
+
+function executeBulkAction() {
     if (window.inventoryManager) {
-        window.inventoryManager.generateStockReport();
+        window.inventoryManager.executeBulkAction();
     }
 }
 
