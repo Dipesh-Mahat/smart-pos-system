@@ -370,6 +370,58 @@
     </style>
 </head>
 <body>    <div class="main-content">
+        <!-- Page Header -->
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 32px; gap: 20px;">
+            <div class="page-title" style="display: flex; align-items: center; gap: 12px; font-size: 2rem; font-weight: 700; color: #2c3e50;">
+                <i class="fas fa-truck"></i>
+                Suppliers
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="addSupplier()">
+                    <i class="fas fa-plus"></i> Add Supplier
+                </button>
+                <button class="btn btn-secondary" onclick="exportSuppliers()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+                <button class="btn btn-secondary" onclick="alert('Import suppliers functionality will be implemented')">
+                    <i class="fas fa-upload"></i> Import
+                </button>
+            </div>
+        </div>
+
+        <!-- Key Insights & Quick Actions -->
+        <div style="display: flex; flex-wrap: wrap; gap: 32px; margin-bottom: 32px;">
+            <!-- Key Insights -->
+            <div style="flex: 2 1 320px; min-width: 280px; background: white; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); padding: 28px 28px 20px 28px; border: 1px solid #e9ecef;">
+                <div style="font-size: 1.2rem; font-weight: 600; color: #007bff; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-lightbulb"></i> Key Insights
+                </div>
+                <ul id="keyInsightsList" style="list-style: none; padding: 0; margin: 0; color: #495057; font-size: 1rem;">
+                    <li style="margin-bottom: 12px;"><i class="fas fa-check-circle" style="color:#28a745;margin-right:8px;"></i> <span id="insight-most-active">Most suppliers are active and ready for orders.</span></li>
+                    <li style="margin-bottom: 12px;"><i class="fas fa-clock" style="color:#ffc107;margin-right:8px;"></i> <span id="insight-pending">Some suppliers are pending approval.</span></li>
+                    <li style="margin-bottom: 12px;"><i class="fas fa-globe" style="color:#007bff;margin-right:8px;"></i> <span id="insight-international">International suppliers are available for global sourcing.</span></li>
+                    <li><i class="fas fa-boxes" style="color:#6c757d;margin-right:8px;"></i> <span id="insight-products">Suppliers offer a wide range of products.</span></li>
+                </ul>
+            </div>
+            <!-- Quick Actions -->
+            <div style="flex: 1 1 220px; min-width: 200px; background: white; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); padding: 28px 28px 20px 28px; border: 1px solid #e9ecef;">
+                <div style="font-size: 1.2rem; font-weight: 600; color: #007bff; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-bolt"></i> Quick Actions
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <button class="btn btn-success" style="width:100%;" onclick="addSupplier()">
+                        <i class="fas fa-user-plus"></i> Add New Supplier
+                    </button>
+                    <button class="btn btn-secondary" style="width:100%;" onclick="exportSuppliers()">
+                        <i class="fas fa-download"></i> Export Suppliers
+                    </button>
+                    <button class="btn btn-secondary" style="width:100%;" onclick="alert('Import suppliers functionality will be implemented')">
+                        <i class="fas fa-upload"></i> Import Suppliers
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Statistics -->
         <div class="stats-container">
             <div class="stat-card">
@@ -448,6 +500,7 @@
                     allSuppliers = response.suppliers || [];
                     displaySuppliers(allSuppliers);
                     updateStatistics(allSuppliers);
+                    updateKeyInsights(allSuppliers);
                 } else {
                     console.error('Failed to load suppliers:', response);
                     showError(`Failed to load suppliers: ${response.error || response.message || 'Unknown error'}`);
@@ -554,6 +607,55 @@
             document.querySelector('.stat-card:nth-child(4) .stat-value').textContent = inactiveCount;
         }
 
+        // --- Key Insights Calculation ---
+        function updateKeyInsights(suppliers) {
+            if (!suppliers || suppliers.length === 0) {
+                document.getElementById('topSupplierName').textContent = '-';
+                document.getElementById('mostProductsSupplier').textContent = '-';
+                document.getElementById('mostOrdersSupplier').textContent = '-';
+                document.getElementById('lastSupplierAdded').textContent = '-';
+                return;
+            }
+            // Top Supplier (highest rating, fallback to most orders)
+            let topSupplier = suppliers.slice().sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
+            if (!topSupplier || !topSupplier.rating) {
+                topSupplier = suppliers.slice().sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0))[0];
+            }
+            document.getElementById('topSupplierName').textContent = topSupplier ? (topSupplier.shopName || `${topSupplier.firstName} ${topSupplier.lastName}`) : '-';
+            // Most Products
+            const mostProducts = suppliers.slice().sort((a, b) => (b.productCount || 0) - (a.productCount || 0))[0];
+            document.getElementById('mostProductsSupplier').textContent = mostProducts ? (mostProducts.shopName || `${mostProducts.firstName} ${mostProducts.lastName}`) + ` (${mostProducts.productCount || 0})` : '-';
+            // Most Orders
+            const mostOrders = suppliers.slice().sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0))[0];
+            document.getElementById('mostOrdersSupplier').textContent = mostOrders ? (mostOrders.shopName || `${mostOrders.firstName} ${mostOrders.lastName}`) + ` (${mostOrders.orderCount || 0})` : '-';
+            // Last Supplier Added (most recent _id or createdAt)
+            let lastAdded = suppliers.slice().sort((a, b) => {
+                if (a.createdAt && b.createdAt) return new Date(b.createdAt) - new Date(a.createdAt);
+                if (a._id && b._id) return b._id.localeCompare(a._id);
+                return 0;
+            })[0];
+            document.getElementById('lastSupplierAdded').textContent = lastAdded ? (lastAdded.shopName || `${lastAdded.firstName} ${lastAdded.lastName}`) : '-';
+        }
+
+        // Enhance Key Insights dynamically after suppliers load
+        function updateKeyInsights(suppliers) {
+            if (!Array.isArray(suppliers) || suppliers.length === 0) return;
+            // Most active supplier
+            const active = suppliers.filter(s => s.status === 'approved');
+            const pending = suppliers.filter(s => s.status === 'pending');
+            const international = suppliers.filter(s => s.address && s.address.country && s.address.country !== 'Nepal');
+            const totalProducts = suppliers.reduce((sum, s) => sum + (s.productCount || 0), 0);
+            document.getElementById('insight-most-active').textContent = `${active.length} supplier${active.length === 1 ? '' : 's'} currently active.`;
+            document.getElementById('insight-pending').textContent = `${pending.length} supplier${pending.length === 1 ? '' : 's'} pending approval.`;
+            document.getElementById('insight-international').textContent = `${international.length} international supplier${international.length === 1 ? '' : 's'} available.`;
+            document.getElementById('insight-products').textContent = `Suppliers offer ${totalProducts} product${totalProducts === 1 ? '' : 's'} in total.`;
+        }
+        // Patch loadSuppliers to update insights
+        const origLoadSuppliers = loadSuppliers;
+        loadSuppliers = async function() {
+            await origLoadSuppliers.apply(this, arguments);
+            updateKeyInsights(allSuppliers);
+        };
         // Helper functions
         function getSupplierInitials(supplier) {
             const name = supplier.shopName || `${supplier.firstName} ${supplier.lastName}`;
