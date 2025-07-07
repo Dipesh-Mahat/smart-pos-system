@@ -15,6 +15,20 @@
         <div class="main-content">
             <!-- Dashboard Content -->
             <div class="dashboard-content">
+                <div class="content-header">
+                    <h1>Product Catalog</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" id="addProductBtnHeader">
+                            <i class="fas fa-plus"></i> Add Product
+                        </button>
+                        <button class="btn btn-secondary" id="exportBtnHeader">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button class="btn btn-secondary" id="importBtnHeader">
+                            <i class="fas fa-upload"></i> Import
+                        </button>
+                    </div>
+                </div>
                 <!-- Product Statistics -->
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -147,11 +161,80 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </main>
-    </div>
 
-    <!-- Add Product Modal -->
+                <!-- Key Insights Section -->
+                <div class="content-card" style="margin-bottom: 32px;">
+                    <div class="card-header">
+                        <h2>Key Insights</h2>
+                    </div>
+                    <div class="insights-grid">
+                        <div class="insight-item">
+                            <div class="insight-icon success">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h3>Best Seller</h3>
+                                <p>Wireless Bluetooth Earbuds</p>
+                                <span>145 units sold this month</span>
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h3>Low Stock Alert</h3>
+                                <p>15 products</p>
+                                <span>Needs restocking</span>
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon info">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h3>Avg Rating</h3>
+                                <p>4.6/5</p>
+                                <span>Based on 320 reviews</span>
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon primary">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h3>New Arrivals</h3>
+                                <p>8 products</p>
+                                <span>Added this month</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Section -->
+                <div class="quick-actions-section" style="margin-bottom: 32px;">
+                    <h2>Quick Actions</h2>
+                    <div class="actions-grid">
+                        <a href="#" class="action-card" onclick="document.getElementById('addProductBtn').click()">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Product</span>
+                        </a>
+                        <a href="#" class="action-card" onclick="document.getElementById('exportBtn').click()">
+                            <i class="fas fa-download"></i>
+                            <span>Export Products</span>
+                        </a>
+                        <a href="#" class="action-card" onclick="document.getElementById('importBtn').click()">
+                            <i class="fas fa-upload"></i>
+                            <span>Import Products</span>
+                        </a>
+                        <a href="#" class="action-card" onclick="showLowStock()">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>View Low Stock</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Add Product Modal -->
     <div class="modal-overlay" id="addProductModal">
         <div class="modal-container">
             <div class="modal-header">
