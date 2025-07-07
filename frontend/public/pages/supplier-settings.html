@@ -16,6 +16,78 @@
         <main class="main-content">
             <!-- Settings Content -->
             <div class="content-area">
+                <!-- Key Insights Section -->
+                <div class="content-card" style="margin-bottom: 32px;">
+                    <div class="card-header">
+                        <h2>Key Insights</h2>
+                    </div>
+                    <div class="insights-grid">
+                        <div class="insight-item">
+                            <div class="insight-icon success">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h3>2FA Status</h3>
+                                <p>Enabled</p>
+                                <span>Extra security active</span>
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon warning">
+                                <i class="fas fa-key"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h3>Password Changed</h3>
+                                <p>30 days ago</p>
+                                <span>Keep your account secure</span>
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon info">
+                                <i class="fas fa-plug"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h3>Integrations</h3>
+                                <p>2 connected</p>
+                                <span>Stripe, Shipping Partners</span>
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon primary">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h3>Notifications</h3>
+                                <p>Email & Push</p>
+                                <span>All critical alerts enabled</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Section -->
+                <div class="quick-actions-section" style="margin-bottom: 32px;">
+                    <h2>Quick Actions</h2>
+                    <div class="actions-grid">
+                        <a href="#" class="action-card" onclick="downloadAccountData()">
+                            <i class="fas fa-download"></i>
+                            <span>Download My Data</span>
+                        </a>
+                        <a href="#" class="action-card" onclick="enable2FA()">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Enable 2FA</span>
+                        </a>
+                        <a href="#" class="action-card" onclick="resetAllSettings()">
+                            <i class="fas fa-undo"></i>
+                            <span>Reset Settings</span>
+                        </a>
+                        <a href="#" class="action-card" onclick="window.location.href='supplier-support.html'">
+                            <i class="fas fa-headset"></i>
+                            <span>Contact Support</span>
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Settings Navigation Tabs -->
                 <div class="settings-tabs">
                     <button class="tab-button active" data-tab="general">
