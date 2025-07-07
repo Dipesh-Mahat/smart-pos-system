@@ -47,11 +47,16 @@ function loadProducts() {
             }
             
             // Try to fetch products from API
-            apiService.request('/products')
+            apiService.request('/supplier/products')
                 .then(response => {
-                    if (response.success && response.data.products.length > 0) {
+                    if (response.success && response.data.products && response.data.products.length > 0) {
                         // Use real products from API
                         productsData = response.data.products;
+                        
+                        // Also update statistics from API response
+                        if (response.data.statistics) {
+                            updateStatistics(response.data.statistics);
+                        }
                     } else {
                         // Fall back to demo products if no real products exist
                         productsData = getDemoProducts();
@@ -59,7 +64,6 @@ function loadProducts() {
                     
                     filteredProducts = [...productsData];
                     loadProductsTable();
-                    updateStatistics();
                     console.log('Products loaded from API successfully');
                 })
                 .catch(error => {
@@ -249,24 +253,42 @@ function createProductRow(product) {
     return row;
 }
 
-function updateStatistics() {
+function updateStatistics(stats) {
     try {
-        const totalProducts = productsData.length;
-        const activeProducts = productsData.filter(p => p.status === 'active').length;
-        const lowStockProducts = productsData.filter(p => p.stock <= p.minStock).length;
-        const highStockProducts = productsData.filter(p => p.stock > p.minStock * 3).length; // Well-stocked items
-        
         const totalElement = document.getElementById('totalProducts');
         const activeElement = document.getElementById('activeProducts');
         const lowStockElement = document.getElementById('lowStockProducts');
         const topElement = document.getElementById('topProducts');
         
+        // If stats are provided from API, use those
+        if (stats) {
+            if (totalElement) totalElement.textContent = stats.total;
+            if (activeElement) activeElement.textContent = stats.active;
+            if (lowStockElement) lowStockElement.textContent = stats.lowStock;
+            if (topElement) topElement.textContent = stats.wellStocked;
+            
+            console.log('Statistics updated from API:', stats);
+            return;
+        }
+        
+        // Otherwise calculate from local data
+        const totalProducts = productsData.length;
+        const activeProducts = productsData.filter(p => p.isActive !== false && p.status !== 'inactive').length;
+        const lowStockProducts = productsData.filter(p => {
+            const minLevel = p.minStockLevel || p.minStock || 5;
+            return p.stock <= minLevel;
+        }).length;
+        const highStockProducts = productsData.filter(p => {
+            const minLevel = p.minStockLevel || p.minStock || 5;
+            return p.stock > minLevel * 3;
+        }).length;
+        
         if (totalElement) totalElement.textContent = totalProducts;
         if (activeElement) activeElement.textContent = activeProducts;
         if (lowStockElement) lowStockElement.textContent = lowStockProducts;
-        if (topElement) topElement.textContent = highStockProducts; // Changed from topProducts to wellStocked
+        if (topElement) topElement.textContent = highStockProducts;
         
-        console.log('Statistics updated:', { totalProducts, activeProducts, lowStockProducts, highStockProducts });
+        console.log('Statistics updated from local data:', { totalProducts, activeProducts, lowStockProducts, highStockProducts });
     } catch (error) {
         console.error('Error updating statistics:', error);
     }
@@ -390,7 +412,12 @@ function handleAddProduct(e) {
         showNotification('Adding product...', 'info');
         
         // Add product through API
-        apiService.createProduct(newProduct)
+        const formData = new FormData();
+        Object.keys(newProduct).forEach(key => {
+            formData.append(key, newProduct[key]);
+        });
+        
+        apiService.request('/supplier/products', 'POST', formData, true)
             .then(response => {
                 if (response.success) {
                     // Hide demo products when adding first real product
@@ -401,7 +428,7 @@ function handleAddProduct(e) {
                     closeAddProductModal();
                     showNotification('Product added successfully!', 'success');
                 } else {
-                    showNotification('Failed to add product: ' + response.message, 'error');
+                    showNotification('Failed to add product: ' + (response.message || 'Unknown error'), 'error');
                 }
             })
             .catch(error => {
@@ -448,12 +475,31 @@ function viewProduct(productId) {
 
 function deleteProduct(productId) {
     if (confirm('Are you sure you want to delete this product?')) {
-        productsData = productsData.filter(p => p.id !== productId);
-        filteredProducts = filteredProducts.filter(p => p.id !== productId);
+        // Check if in demo mode
+        if (productId.toString().startsWith('demo')) {
+            productsData = productsData.filter(p => p.id !== productId);
+            filteredProducts = filteredProducts.filter(p => p.id !== productId);
+            loadProductsTable();
+            updateStatistics();
+            showNotification('Product deleted successfully!', 'success');
+            return;
+        }
         
-        loadProductsTable();
-        updateStatistics();
-        showNotification('Product deleted successfully!', 'success');
+        // Use API to delete product
+        apiService.request(`/supplier/products/${productId}`, 'DELETE')
+            .then(response => {
+                if (response.success) {
+                    // Delete was successful, reload products
+                    loadProducts();
+                    showNotification('Product deleted successfully!', 'success');
+                } else {
+                    showNotification('Failed to delete product: ' + (response.message || 'Unknown error'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting product:', error);
+                showNotification('Failed to delete product. Please try again.', 'error');
+            });
     }
 }
 
@@ -556,27 +602,55 @@ function populateEditForm(product) {
 }
 
 function updateProduct(productId) {
-    const product = productsData.find(p => p.id === productId);
+    const product = productsData.find(p => p.id === productId || p._id === productId);
     if (!product) return;
     
     // Get form data
-    product.name = document.getElementById('editProductName').value;
-    product.sku = document.getElementById('editProductSKU').value;
-    product.category = document.getElementById('editProductCategory').value;
-    product.brand = document.getElementById('editProductBrand').value;
-    product.price = parseFloat(document.getElementById('editProductPrice').value);
-    product.cost = parseFloat(document.getElementById('editProductCost').value) || 0;
-    product.stock = parseInt(document.getElementById('editProductStock').value);
-    product.minStock = parseInt(document.getElementById('editProductMinStock').value);
-    product.description = document.getElementById('editProductDescription').value;
-    product.status = document.getElementById('editProductStatus').value;
+    const updatedProduct = {
+        name: document.getElementById('editProductName').value,
+        barcode: document.getElementById('editProductSKU').value,
+        category: document.getElementById('editProductCategory').value,
+        brand: document.getElementById('editProductBrand').value,
+        price: parseFloat(document.getElementById('editProductPrice').value),
+        cost: parseFloat(document.getElementById('editProductCost').value) || 0,
+        stock: parseInt(document.getElementById('editProductStock').value),
+        minStockLevel: parseInt(document.getElementById('editProductMinStock').value),
+        description: document.getElementById('editProductDescription').value
+    };
     
-    filteredProducts = [...productsData];
-    loadProductsTable();
-    updateStatistics();
-    closeEditProductModal();
+    // Check if in demo mode
+    if (product.id && product.id.toString().startsWith('demo')) {
+        // Update the product in memory for demo mode
+        Object.assign(product, updatedProduct);
+        filteredProducts = [...productsData];
+        loadProductsTable();
+        updateStatistics();
+        closeEditProductModal();
+        showNotification('Product updated successfully!', 'success');
+        return;
+    }
     
-    showNotification('Product updated successfully!', 'success');
+    // Use API to update product
+    const formData = new FormData();
+    Object.keys(updatedProduct).forEach(key => {
+        formData.append(key, updatedProduct[key]);
+    });
+    
+    apiService.request(`/supplier/products/${product._id}`, 'PUT', formData, true)
+        .then(response => {
+            if (response.success) {
+                // Update was successful, reload products
+                loadProducts();
+                closeEditProductModal();
+                showNotification('Product updated successfully!', 'success');
+            } else {
+                showNotification('Failed to update product: ' + (response.message || 'Unknown error'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating product:', error);
+            showNotification('Failed to update product. Please try again.', 'error');
+        });
 }
 
 function showNotification(message, type) {
