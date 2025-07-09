@@ -5,7 +5,8 @@
 
 class ApiService {
     constructor() {
-        this.baseUrl = 'https://smart-pos-system.onrender.com/api';
+        // Use relative URL for API to work with both local development and production
+        this.baseUrl = '/api';
         this.authService = window.authService;
     }
 

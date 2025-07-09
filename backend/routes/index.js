@@ -6,6 +6,7 @@ const userRoutes = require('./userRoutes');
 const shopRoutes = require('./shopRoutes');
 const autoOrderRoutes = require('./autoOrderRoutes');
 const supplierRoutes = require('./supplierRoutes');
+const adminController = require('../controllers/adminController');
 
 // Public routes (no authentication required)
 router.get('/health', (req, res) => {
@@ -29,6 +30,12 @@ router.use('/auto-orders', authenticateJWT, autoOrderRoutes);
 router.get('/admin/stats', authenticateJWT, authorize('admin'), (req, res) => {
   res.status(200).json({ message: 'Admin stats accessed successfully' });
 });
+
+router.get('/admin/dashboard-stats', authenticateJWT, authorize('admin'), adminController.getDashboardStats);
+router.get('/admin/transaction-stats', authenticateJWT, authorize('admin'), adminController.getTransactionStats);
+router.get('/admin/recent-activity', authenticateJWT, authorize('admin'), adminController.getRecentActivity);
+router.get('/admin/system-health', authenticateJWT, authorize('admin'), adminController.getSystemHealth);
+router.post('/admin/audit-log', authenticateJWT, authorize('admin'), adminController.createAuditLog);
 
 // Shop owner routes
 router.get('/shop/dashboard', authenticateJWT, authorize('shopowner', 'admin'), (req, res) => {

@@ -32,19 +32,19 @@
                             </div>
                         </div>
                         <div class="quick-actions-bar">
-                            <button class="quick-action-button" title="Export Reports">
+                            <button class="quick-action-button" title="Export Reports" onclick="adminDashboard.exportReports()">
                                 <i class="fas fa-file-export"></i>
                                 <span>Export</span>
                             </button>
-                            <button class="quick-action-button" title="System Settings">
+                            <button class="quick-action-button" title="System Settings" onclick="adminDashboard.openSystemSettings()">
                                 <i class="fas fa-cog"></i>
                                 <span>Settings</span>
                             </button>
-                            <button class="quick-action-button" title="Security Logs">
+                            <button class="quick-action-button" title="Security Logs" onclick="adminDashboard.viewSecurityLogs()">
                                 <i class="fas fa-shield-alt"></i>
                                 <span>Security</span>
                             </button>
-                            <button class="quick-action-button primary" title="Add New User">
+                            <button class="quick-action-button primary" title="Add New User" onclick="adminDashboard.openAddUserModal()">
                                 <i class="fas fa-user-plus"></i>
                                 <span>Add User</span>
                             </button>
@@ -61,9 +61,9 @@
                                 <i class="fas fa-users"></i>
                             </div>
                             <div class="stat-info">
-                                <h3 id="totalUsers">2,847</h3>
+                                <h3 id="totalUsers">0</h3>
                                 <p>Total Users</p>
-                                <span class="stat-change positive">+12% this month</span>
+                                <span id="userChangePercent" class="stat-change positive">0% this month</span>
                             </div>
                         </div>
                         <div class="stat-card shop-owners">
@@ -71,9 +71,9 @@
                                 <i class="fas fa-store"></i>
                             </div>
                             <div class="stat-info">
-                                <h3 id="totalShopOwners">1,456</h3>
+                                <h3 id="totalShopOwners">0</h3>
                                 <p>Shop Owners</p>
-                                <span class="stat-change positive">+8% active</span>
+                                <span id="shopOwnerChangePercent" class="stat-change positive">0% active</span>
                             </div>
                         </div>
                         <div class="stat-card suppliers">
@@ -81,9 +81,9 @@
                                 <i class="fas fa-truck"></i>
                             </div>
                             <div class="stat-info">
-                                <h3 id="totalSuppliers">1,391</h3>
+                                <h3 id="totalSuppliers">0</h3>
                                 <p>Suppliers</p>
-                                <span class="stat-change positive">+15% growth</span>
+                                <span id="supplierChangePercent" class="stat-change positive">0% growth</span>
                             </div>
                         </div>
                         <div class="stat-card transactions">
@@ -91,9 +91,9 @@
                                 <i class="fas fa-exchange-alt"></i>
                             </div>
                             <div class="stat-info">
-                                <h3 id="totalTransactions">24,567</h3>
+                                <h3 id="totalTransactions">0</h3>
                                 <p>Transactions</p>
-                                <span class="stat-change positive">+23% today</span>
+                                <span id="transactionChangePercent" class="stat-change positive">0% today</span>
                             </div>
                         </div>
                         <div class="stat-card revenue">
@@ -101,9 +101,9 @@
                                 <i class="fas fa-dollar-sign"></i>
                             </div>
                             <div class="stat-info">
-                                <h3 id="totalRevenue">$346,000</h3>
+                                <h3 id="totalRevenue">$0</h3>
                                 <p>Total Revenue</p>
-                                <span class="stat-change positive">+18% this month</span>
+                                <span id="revenueChangePercent" class="stat-change positive">0% this month</span>
                             </div>
                         </div>                    </div>
                 </section>
@@ -113,65 +113,65 @@
                     <div class="section-header">
                         <h2>System Health</h2>
                         <div class="section-actions">
-                            <button class="section-action" title="Refresh Status">
+                            <button class="section-action" title="Refresh Status" onclick="adminDashboard.refreshSystemStatus()">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
-                            <button class="section-action" title="View Detailed Logs">
+                            <button class="section-action" title="View Detailed Logs" onclick="adminDashboard.viewDetailedLogs()">
                                 <i class="fas fa-clipboard-list"></i>
                             </button>
                         </div>
                     </div>
                     <div class="health-grid">
                         <div class="health-card">
-                            <div class="health-icon healthy">
+                            <div class="health-icon healthy" id="apiServerHealthIcon">
                                 <i class="fas fa-server"></i>
                             </div>
                             <div class="health-info">
-                                <h4>API Server</h4>
+                                <h4>Render API Server</h4>
                                 <div class="health-status">
-                                    <span class="status-indicator online"></span>
-                                    <span class="status-text">Online</span>
+                                    <span class="status-indicator online" id="apiServerStatusIndicator"></span>
+                                    <span class="status-text" id="apiServerStatusText">Online</span>
                                 </div>
-                                <p class="health-details">Response time: 42ms</p>
+                                <p class="health-details">Response time: <span id="serverResponseTime">42ms</span></p>
                             </div>
                         </div>
                         <div class="health-card">
-                            <div class="health-icon healthy">
+                            <div class="health-icon healthy" id="dbHealthIcon">
                                 <i class="fas fa-database"></i>
                             </div>
                             <div class="health-info">
-                                <h4>Database</h4>
+                                <h4>MongoDB Database</h4>
                                 <div class="health-status">
-                                    <span class="status-indicator online"></span>
-                                    <span class="status-text">Online</span>
+                                    <span class="status-indicator online" id="dbStatusIndicator"></span>
+                                    <span class="status-text" id="dbStatusText">Online</span>
                                 </div>
-                                <p class="health-details">Queries: 1.5k/min</p>
+                                <p class="health-details">Queries: <span id="dbQueriesPerMin">150</span>/min</p>
                             </div>
                         </div>
                         <div class="health-card">
-                            <div class="health-icon warning">
+                            <div class="health-icon warning" id="memoryHealthIcon">
                                 <i class="fas fa-memory"></i>
                             </div>
                             <div class="health-info">
-                                <h4>Memory Usage</h4>
+                                <h4>MongoDB Memory</h4>
                                 <div class="health-status">
-                                    <span class="status-indicator warning"></span>
-                                    <span class="status-text">Warning</span>
+                                    <span class="status-indicator warning" id="memoryStatusIndicator"></span>
+                                    <span class="status-text" id="memoryStatusText">Warning</span>
                                 </div>
-                                <p class="health-details">76% utilized</p>
+                                <p class="health-details"><span id="memoryUsage">45</span>% utilized</p>
                             </div>
                         </div>
                         <div class="health-card">
-                            <div class="health-icon healthy">
-                                <i class="fas fa-cloud"></i>
+                            <div class="health-icon healthy" id="performanceHealthIcon">
+                                <i class="fas fa-tachometer-alt"></i>
                             </div>
                             <div class="health-info">
-                                <h4>Cloud Storage</h4>
+                                <h4>System Performance</h4>
                                 <div class="health-status">
-                                    <span class="status-indicator online"></span>
-                                    <span class="status-text">Online</span>
+                                    <span class="status-indicator online" id="performanceStatusIndicator"></span>
+                                    <span class="status-text" id="performanceStatusText">Good</span>
                                 </div>
-                                <p class="health-details">48% utilized</p>
+                                <p class="health-details">Load avg: <span id="systemLoad">0.25</span></p>
                             </div>
                         </div>
                     </div>
@@ -182,13 +182,13 @@
                     <div class="section-header">
                         <h2>User Management</h2>
                         <div class="section-actions">
-                            <button class="section-action" title="Export Users">
+                            <button class="section-action" title="Export Users" onclick="adminDashboard.exportUsers()">
                                 <i class="fas fa-download"></i>
                             </button>
-                            <button class="section-action" title="Add New User">
+                            <button class="section-action" title="Add New User" onclick="adminDashboard.openAddUserModal()">
                                 <i class="fas fa-user-plus"></i>
                             </button>
-                            <button class="section-action" title="User Settings">
+                            <button class="section-action" title="User Settings" onclick="adminDashboard.openUserSettings()">
                                 <i class="fas fa-cog"></i>
                             </button>
                         </div>
@@ -278,7 +278,7 @@
                             <button class="section-action" title="Refresh Applications" onclick="adminDashboard.loadPendingSuppliers()">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
-                            <button class="section-action" title="View All Suppliers">
+                            <button class="section-action" title="View All Suppliers" onclick="adminDashboard.viewAllSuppliers()">
                                 <i class="fas fa-external-link-alt"></i>
                             </button>
                         </div>
@@ -294,10 +294,10 @@
                     <div class="section-header">
                         <h2>Recent Activity</h2>
                         <div class="section-actions">
-                            <button class="section-action" title="Filter Activities">
+                            <button class="section-action" title="Filter Activities" onclick="adminDashboard.filterActivities()">
                                 <i class="fas fa-filter"></i>
                             </button>
-                            <button class="section-action" title="View All Activities">
+                            <button class="section-action" title="View All Activities" onclick="adminDashboard.viewAllActivities()">
                                 <i class="fas fa-external-link-alt"></i>
                             </button>
                         </div>

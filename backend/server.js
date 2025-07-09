@@ -26,19 +26,25 @@ app.use(cors({
   origin: function(origin, callback) {
     // Allow requests with no origin (like mobile apps, curl requests)
     if(!origin) return callback(null, true);
-      // Define allowed origins - only production URLs
+      // Define allowed origins - both production and development URLs
     const allowedOrigins = [
       'https://smart-pos-system-lime.vercel.app',  // Frontend Vercel deployment
-      'https://smart-pos-system.onrender.com'      // backend Render deployment
+      'https://smart-pos-system.onrender.com',     // backend Render deployment
+      'http://localhost:3000',                     // Development frontend
+      'http://localhost:5000',                     // Development backend
+      'http://localhost:8080',                     // Local development server
+      'http://127.0.0.1:8080',                     // Alternative localhost
+      'http://127.0.0.1:5000',                     // Alternative localhost
+      'http://127.0.0.1:3000'                      // Alternative localhost
     ];
     
     // For development and debugging - uncomment this to see the actual origin
-    // console.log('Request origin:', origin);
+    console.log('Request origin:', origin);
     
     // Check if the origin is allowed
     if(allowedOrigins.indexOf(origin) === -1){
-      // In production, we still want to allow the request but log the violation
-      console.warn(`CORS policy warning: Origin ${origin} not in allowedOrigins`);
+      // In development, we allow all requests for easier testing
+      console.warn(`CORS policy warning: Origin ${origin} not in allowedOrigins - allowing anyway`);
       return callback(null, true); // Allow request anyway instead of blocking
     }
     

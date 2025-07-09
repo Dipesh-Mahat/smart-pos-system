@@ -9,7 +9,6 @@ const dashboardController = require('../controllers/dashboardController');
 const productController = require('../controllers/productController');
 const transactionController = require('../controllers/transactionController');
 const expenseController = require('../controllers/expenseController');
-const testController = require('../controllers/testController');
 const customerController = require('../controllers/customerController');
 const categoryController = require('../controllers/categoryController');
 const orderController = require('../controllers/orderController');

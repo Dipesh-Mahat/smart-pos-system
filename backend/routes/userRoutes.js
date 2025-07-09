@@ -186,6 +186,7 @@ router.post('/admin/bulk-action', authenticateJWT, authorize('admin'), adminCont
 // Individual user CRUD operations (admin)
 router.post('/admin/users', authenticateJWT, authorize('admin'), adminController.createUser);
 router.put('/admin/users/:userId', authenticateJWT, authorize('admin'), adminController.updateUser);
+router.put('/admin/users/:userId/status', authenticateJWT, authorize('admin'), adminController.updateUserStatus);
 router.delete('/admin/users/:userId', authenticateJWT, authorize('admin'), adminController.deleteUser);
 
 // Enhanced supplier management (admin)
