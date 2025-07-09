@@ -18,7 +18,7 @@ let selectedProducts = {};
 let supplierProducts = [];
 
 function loadSupplierInfo(supplierId) {
-    apiService.get(`/shop/orders/suppliers`).then(res => {
+    apiService.get('/shop/orders/suppliers').then(res => {
         if (res.success) {
             // Find by _id (ObjectId) not code
             const supplier = res.suppliers.find(s => s._id === supplierId);
@@ -35,19 +35,22 @@ function loadSupplierInfo(supplierId) {
             document.getElementById('supplierContact').textContent = '';
         }
     });
+    
+    // Also load the supplier insights
+    loadSupplierInsights(supplierId);
 }
 
 function loadSupplierProducts(supplierId) {
-    apiService.get(`/shop/suppliers/${supplierId}/products`).then(res => {
-        if (res.success && res.products && res.products.length) {
-            supplierProducts = res.products;
-            renderProducts(res.products);
+    apiService.get('/shop/suppliers/' + supplierId + '/products').then(res => {
+        if (res.success && res.data && res.data.products && res.data.products.length) {
+            supplierProducts = res.data.products;
+            renderProducts(res.data.products);
             
             // Also update supplier info if available
-            if (res.supplier) {
-                document.getElementById('supplierName').textContent = res.supplier.shopName || res.supplier.firstName + ' ' + res.supplier.lastName;
+            if (res.data.supplier) {
+                document.getElementById('supplierName').textContent = res.data.supplier.name;
                 document.getElementById('supplierContact').innerHTML =
-                    `<b>Email:</b> ${res.supplier.email}`;
+                    `<b>Email:</b> ${res.data.supplier.email} <br><b>Phone:</b> ${res.data.supplier.phone || 'N/A'}`;
             }
         } else {
             document.getElementById('productsGrid').innerHTML = '<div class="empty-state">No products found for this supplier.</div>';
@@ -158,6 +161,46 @@ function removeProduct(productId) {
     updateOrderSection();
 }
 
+function loadSupplierInsights(supplierId) {
+    apiService.get('/shop/suppliers/' + supplierId + '/insights').then(res => {
+        if (res.success && res.data) {
+            const insightsGrid = document.querySelector('.insights-grid');
+            const insights = res.data;
+            
+            // Update best seller insight
+            if (insights.bestSeller) {
+                insightsGrid.children[0].querySelector('p').textContent = insights.bestSeller.name;
+                insightsGrid.children[0].querySelector('span').textContent = 
+                    `${insights.bestSeller.quantity} units sold ${insights.bestSeller.period}`;
+            }
+            
+            // Update top discount insight
+            if (insights.topDiscount) {
+                insightsGrid.children[1].querySelector('p').textContent = insights.topDiscount.discount + ' off on ' + insights.topDiscount.name;
+                
+                // Format date
+                const validDate = new Date(insights.topDiscount.validUntil);
+                const formattedDate = validDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+                insightsGrid.children[1].querySelector('span').textContent = `Valid till ${formattedDate}`;
+            }
+            
+            // Update avg rating insight
+            if (insights.avgRating) {
+                insightsGrid.children[2].querySelector('p').textContent = insights.avgRating.value + '/5';
+                insightsGrid.children[2].querySelector('span').textContent = `Based on ${insights.avgRating.count} reviews`;
+            }
+            
+            // Update fastest delivery insight
+            if (insights.fastestDelivery) {
+                insightsGrid.children[3].querySelector('p').textContent = insights.fastestDelivery.time;
+                insightsGrid.children[3].querySelector('span').textContent = insights.fastestDelivery.period;
+            }
+        }
+    }).catch(error => {
+        console.error('Error loading supplier insights:', error);
+    });
+}
+
 function setupOrderForm() {
     document.getElementById('orderForm').onsubmit = function(e) {
         e.preventDefault();
@@ -189,9 +232,9 @@ function setupOrderForm() {
         submitBtn.disabled = true;
         
         // Send order to backend
-        apiService.post('/shop/orders', orderData).then(res => {
+        apiService.post('/shop/suppliers/' + supplierId + '/orders', orderData).then(res => {
             if (res.success) {
-                alert(`Order placed successfully! Order Number: ${res.order.orderNumber}`);
+                alert(`Order placed successfully! Order Number: ${res.data.order.orderNumber}`);
                 selectedProducts = {};
                 updateOrderSection();
                 
@@ -235,6 +278,65 @@ function closeAutoOrderModal() {
     document.getElementById('autoOrderForm').reset();
 }
 
+function exportProducts() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const supplierId = urlParams.get('supplierId');
+    
+    if (!supplierProducts || !supplierProducts.length) {
+        alert('No products available to export.');
+        return;
+    }
+    
+    // Convert products to CSV
+    let csv = 'Name,Category,Price,Stock,Description\n';
+    
+    supplierProducts.forEach(p => {
+        const row = [
+            '"' + p.name + '"',
+            '"' + (p.category || '') + '"',
+            p.price,
+            p.stock,
+            '"' + (p.description || '').replace(/"/g, '""') + '"'
+        ];
+        csv += row.join(',') + '\n';
+    });
+    
+    // Create download link
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'supplier-products-' + supplierId + '.csv');
+    document.body.appendChild(a);
+    
+    a.click();
+    
+    // Clean up
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function contactSupplier() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const supplierId = urlParams.get('supplierId');
+    
+    apiService.get('/shop/orders/suppliers').then(res => {
+        if (res.success) {
+            const supplier = res.suppliers.find(s => s._id === supplierId);
+            if (supplier && supplier.email) {
+                window.location.href = 'mailto:' + supplier.email + '?subject=Inquiry about products from ' + (supplier.shopName || 'your company');
+            } else {
+                alert('Supplier contact information not found.');
+            }
+        } else {
+            alert('Failed to retrieve supplier contact information.');
+        }
+    }).catch(() => {
+        alert('Failed to retrieve supplier contact information. Please try again later.');
+    });
+}
+
 function setupAutoOrderModal(supplierId) {
     document.getElementById('autoOrderForm').onsubmit = function(e) {
         e.preventDefault();
@@ -250,7 +352,7 @@ function setupAutoOrderModal(supplierId) {
         submitBtn.textContent = 'Setting up...';
         submitBtn.disabled = true;
         
-        apiService.post('/auto-orders', data).then(res => {
+        apiService.post('/shop/suppliers/' + supplierId + '/auto-orders', data).then(res => {
             if (res.success) {
                 closeAutoOrderModal();
                 alert('Auto-order set up successfully! Your products will be automatically ordered based on the schedule.');

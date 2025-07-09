@@ -35,6 +35,17 @@
         <div class="main-content">
             <!-- Dashboard Content -->
             <div class="dashboard-content" id="dashboardContent">
+                <div class="content-header">
+                    <h1>Supplier Dashboard</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="document.getElementById('addProductModal').style.display='flex'">
+                            <i class="fas fa-plus"></i> Add Product
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportDashboardData()">
+                            <i class="fas fa-download"></i> Export Data
+                        </button>
+                    </div>
+                </div>
             <!-- Quick Stats -->
             <section class="stats-section">
                 <div class="stats-grid">
@@ -78,29 +89,6 @@
                             <span class="stat-change positive">+15%</span>
                         </div>
                     </div>
-                </div>
-            </section>
-
-            <!-- Quick Actions -->
-            <section class="quick-actions-section">
-                <h2>Quick Actions</h2>
-                <div class="actions-grid">
-                    <button class="action-card" onclick="showSection('products')">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>Add Product</span>
-                    </button>
-                    <button class="action-card" onclick="showSection('orders')">
-                        <i class="fas fa-eye"></i>
-                        <span>View Orders</span>
-                    </button>
-                    <button class="action-card" onclick="showSection('inventory')">
-                        <i class="fas fa-warehouse"></i>
-                        <span>Update Inventory</span>
-                    </button>
-                    <button class="action-card" onclick="showSection('analytics')">
-                        <i class="fas fa-chart-line"></i>
-                        <span>View Reports</span>
-                    </button>
                 </div>
             </section>
 
@@ -212,16 +200,67 @@
                     </div>
                 </div>
             </section>
-        </div>
 
-        <!-- Products Section (Hidden by default) -->
+            <!-- Key Insights Section -->
+            <section class="content-card" style="margin-bottom: 32px;">
+                <div class="card-header">
+                    <h2>Key Insights</h2>
+                </div>
+                <div class="insights-grid">
+                    <div class="insight-item">
+                        <div class="insight-icon success">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h3>Best Seller</h3>
+                            <p>Wireless Bluetooth Earbuds</p>
+                            <span>145 units sold this month</span>
+                        </div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon warning">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h3>Top Region</h3>
+                            <p>North America</p>
+                            <span>42% of total sales</span>
+                        </div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon info">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h3>Avg Rating</h3>
+                            <p>4.8/5</p>
+                            <span>Based on 234 reviews</span>
+                        </div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon primary">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h3>Peak Hours</h3>
+                            <p>2PM - 4PM</p>
+                            <span>Highest order volume</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Products Section (Hidden by default) -->
         <div class="section-content" id="productsSection" style="display: none;">
             <div class="section-header">
                 <h2>My Products</h2>
-                <button class="btn-primary" id="addProductBtn">
-                    <i class="fas fa-plus"></i>
-                    Add New Product
-                </button>
+                <div>
+                    <button class="btn-primary" id="addProductBtn">
+                        <i class="fas fa-plus"></i>
+                        Add New Product
+                    </button>
+                    <button class="view-all-btn" onclick="showSection('products')">View All</button>
+                </div>
             </div>
             
             <div class="products-filters">

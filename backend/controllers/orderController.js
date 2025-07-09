@@ -321,22 +321,110 @@ exports.getOrderStats = async (req, res) => {
   }
 };
 
-// Get available suppliers for orders (shopowner only)
+// Get available suppliers for orders
 exports.getAvailableSuppliers = async (req, res) => {
   try {
-    if (req.user.role !== 'shopowner') {
-      return res.status(403).json({ success: false, error: 'Access denied' });
+    // Verify that the user is a shop owner
+    if (req.user.role !== 'shopowner' && req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Access denied. Only shop owners or admins can view suppliers.'
+      });
     }
+
+    // Find all users with the role 'supplier'
+    const suppliers = await User.find({ role: 'supplier' })
+      .select('firstName lastName email shopName companyName profilePicture contactNumber address status businessDetails')
+      .lean();
+
+    // Get all orders from this shop owner to analyze supplier relationships
+    const shopOrders = await Order.find({ shopId: req.user._id })
+      .sort({ orderDate: -1 })
+      .populate('supplierId', '_id');
+
+    // Create a map of supplier orders for quick lookup
+    const supplierOrdersMap = {};
+    shopOrders.forEach(order => {
+      if (!order.supplierId || !order.supplierId._id) return;
+      
+      const supplierId = order.supplierId._id.toString();
+      
+      if (!supplierOrdersMap[supplierId]) {
+        supplierOrdersMap[supplierId] = {
+          orders: [],
+          lastOrderDate: null,
+          totalRating: 0,
+          ratingCount: 0
+        };
+      }
+      
+      supplierOrdersMap[supplierId].orders.push(order);
+      
+      // Track the last order date
+      if (!supplierOrdersMap[supplierId].lastOrderDate || 
+          new Date(order.orderDate) > new Date(supplierOrdersMap[supplierId].lastOrderDate)) {
+        supplierOrdersMap[supplierId].lastOrderDate = order.orderDate;
+      }
+      
+      // Track ratings
+      if (order.rating) {
+        supplierOrdersMap[supplierId].totalRating += order.rating;
+        supplierOrdersMap[supplierId].ratingCount++;
+      }
+    });
+
+    // Fetch product counts for all suppliers in a single query
+    const productCounts = await Product.aggregate([
+      { 
+        $match: { 
+          'supplierInfo.supplierId': { $in: suppliers.map(s => s._id) } 
+        } 
+      },
+      {
+        $group: {
+          _id: '$supplierInfo.supplierId',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
     
-    const suppliers = await User.find({ 
-      role: 'supplier', 
-      status: 'approved' 
-    }).select('firstName lastName email phone');
-    
-    res.status(200).json({ success: true, suppliers });
+    // Create a map of product counts for quick lookup
+    const productCountMap = {};
+    productCounts.forEach(item => {
+      productCountMap[item._id.toString()] = item.count;
+    });
+
+    // Process each supplier to add metadata
+    const suppliersWithMetadata = suppliers.map(supplier => {
+      const supplierId = supplier._id.toString();
+      const supplierOrders = supplierOrdersMap[supplierId] || { orders: [], lastOrderDate: null, totalRating: 0, ratingCount: 0 };
+      const productCount = productCountMap[supplierId] || 0;
+      
+      // Calculate average rating
+      const avgRating = supplierOrders.ratingCount > 0 
+        ? (supplierOrders.totalRating / supplierOrders.ratingCount).toFixed(1) 
+        : null;
+      
+      return {
+        ...supplier,
+        productCount,
+        orderCount: supplierOrders.orders.length,
+        rating: avgRating,
+        lastOrderDate: supplierOrders.lastOrderDate
+      };
+    });
+
+    return res.status(200).json({ 
+      success: true, 
+      suppliers: suppliersWithMetadata
+    });
   } catch (error) {
-    console.error('Error getting suppliers:', error);
-    res.status(500).json({ success: false, error: 'Failed to retrieve suppliers' });
+    console.error('Error fetching suppliers:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch suppliers',
+      error: error.message 
+    });
   }
 };
 
@@ -378,5 +466,65 @@ exports.getSupplierProducts = async (req, res) => {
   } catch (error) {
     console.error('Error getting supplier products:', error);
     res.status(500).json({ success: false, error: 'Failed to retrieve supplier products' });
+  }
+};
+
+// Rate an order and provide feedback on supplier performance
+exports.rateOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { rating, reviewComment } = req.body;
+    const shopId = req.user._id;
+    
+    // Validate input
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Rating must be a number between 1 and 5'
+      });
+    }
+    
+    // Find the order
+    const order = await Order.findOne({ 
+      _id: orderId,
+      shopId // Ensure the order belongs to this shop owner
+    });
+    
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found or you do not have permission to rate it'
+      });
+    }
+    
+    // Check if the order is in a status that can be rated (delivered)
+    if (order.status !== 'delivered') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only delivered orders can be rated'
+      });
+    }
+    
+    // Update the order with rating and review
+    order.rating = rating;
+    order.reviewComment = reviewComment || '';
+    await order.save();
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Order rated successfully',
+      data: {
+        orderId: order._id,
+        rating: order.rating,
+        reviewComment: order.reviewComment
+      }
+    });
+  } catch (error) {
+    console.error('Error rating order:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to rate order',
+      error: error.message
+    });
   }
 };

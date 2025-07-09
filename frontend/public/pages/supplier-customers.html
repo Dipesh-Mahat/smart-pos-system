@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Management - Smart POS Supplier</title>
     <link rel="stylesheet" href="../css/supplier-dashboard.css">
+    <link rel="stylesheet" href="../css/supplier-customers.css">
     <link rel="stylesheet" href="../css/menu.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -15,6 +16,17 @@
 
             <!-- Dashboard Content -->
             <div class="dashboard-content">
+                <div class="content-header">
+                    <h1>Customer Management</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openModal('addCustomerModal')">
+                            <i class="fas fa-user-plus"></i> Add Customer
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportCustomers()">
+                            <i class="fas fa-download"></i> Export Customers
+                        </button>
+                    </div>
+                </div>
                 <!-- Customer Statistics -->
                 <div class="stats-grid">
                     <div class="stat-card">
