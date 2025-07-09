@@ -268,7 +268,28 @@
                             <canvas id="userDistributionChart" class="chart-canvas"></canvas>
                         </div>
                     </div>
-                </section>                <!-- Recent Activity Section -->
+                </section>
+
+                <!-- Supplier Management Section -->
+                <section class="supplier-management-section">
+                    <div class="section-header">
+                        <h2>Supplier Applications</h2>
+                        <div class="section-actions">
+                            <button class="section-action" title="Refresh Applications" onclick="adminDashboard.loadPendingSuppliers()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="section-action" title="View All Suppliers">
+                                <i class="fas fa-external-link-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="supplier-applications" id="supplierApplications">
+                        <!-- Supplier applications will be loaded here -->
+                    </div>
+                </section>
+
+                <!-- Recent Activity Section -->
                 <section class="activity-section">
                     <div class="section-header">
                         <h2>Recent Activity</h2>

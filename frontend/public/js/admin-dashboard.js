@@ -17,8 +17,130 @@ class AdminDashboard {
             storage: { status: 'online', details: '48% utilized' }
         };
         
+        this.checkAuthentication();
         this.init();
-    }    async init() {
+    }
+
+    // Check if user is authenticated as admin
+    checkAuthentication() {
+        const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+        const userRole = localStorage.getItem('userRole');
+        
+        if (!token || userRole !== 'admin') {
+            // Redirect to login page or show login modal
+            this.showLoginModal();
+            return false;
+        }
+        return true;
+    }
+
+    // Show admin login modal
+    showLoginModal() {
+        const modal = document.createElement('div');
+        modal.className = 'admin-login-modal';
+        modal.innerHTML = `
+            <div class="modal-overlay">
+                <div class="login-modal-content">
+                    <div class="login-header">
+                        <h2>Admin Access Required</h2>
+                        <p>Please login with your admin credentials</p>
+                    </div>
+                    <form id="adminLoginForm" class="admin-login-form">
+                        <div class="form-group">
+                            <label for="adminEmail">Email</label>
+                            <input type="email" id="adminEmail" required placeholder="admin@smartpos.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="adminPassword">Password</label>
+                            <input type="password" id="adminPassword" required placeholder="Enter your password">
+                        </div>
+                        <button type="submit" class="login-btn">
+                            <i class="fas fa-sign-in-alt"></i> Login as Admin
+                        </button>
+                        <div class="login-help">
+                            <p>Demo credentials: admin@smartpos.com / Admin123!</p>
+                        </div>
+                    </form>
+                    <div id="loginError" class="error-message" style="display: none;"></div>
+                </div>
+            </div>
+        `;
+
+        // Add styles
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        `;
+
+        document.body.appendChild(modal);
+
+        // Handle form submission
+        const form = modal.querySelector('#adminLoginForm');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await this.handleAdminLogin(form, modal);
+        });
+    }
+
+    // Handle admin login
+    async handleAdminLogin(form, modal) {
+        const email = form.querySelector('#adminEmail').value;
+        const password = form.querySelector('#adminPassword').value;
+        const submitBtn = form.querySelector('.login-btn');
+        const errorDiv = modal.querySelector('#loginError');
+
+        try {
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            submitBtn.disabled = true;
+            errorDiv.style.display = 'none';
+
+            const response = await fetch('/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                if (result.user.role === 'admin') {
+                    // Store admin token
+                    localStorage.setItem('adminToken', result.token);
+                    localStorage.setItem('authToken', result.token);
+                    localStorage.setItem('userRole', result.user.role);
+                    localStorage.setItem('adminUser', JSON.stringify(result.user));
+
+                    // Remove modal and initialize dashboard
+                    modal.remove();
+                    this.showMessage('Welcome back, Admin!', 'success');
+                    return true;
+                } else {
+                    throw new Error('Access denied. Admin privileges required.');
+                }
+            } else {
+                throw new Error(result.message || 'Login failed');
+            }
+        } catch (error) {
+            console.error('Admin login error:', error);
+            errorDiv.textContent = error.message;
+            errorDiv.style.display = 'block';
+        } finally {
+            submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login as Admin';
+            submitBtn.disabled = false;
+        }
+    }
+
+    async init() {
         try {
             await this.loadUsers();
             this.setupEventListeners();
@@ -28,6 +150,7 @@ class AdminDashboard {
             this.startRealTimeUpdates();
             this.updateSystemHealth();
             this.setLastLoginTime();
+            this.loadPendingSuppliers(); // Load pending supplier applications
         } catch (error) {
             console.error('Failed to initialize admin dashboard:', error);
             this.showMessage('Failed to load dashboard data', 'error');
@@ -970,20 +1093,11 @@ class AdminDashboard {
     }
 }
 
-// Initialize admin dashboard when DOM is loaded
+// Initialize the admin dashboard when the page loads
+let adminDashboard;
 document.addEventListener('DOMContentLoaded', () => {
-    // Wait for DOM to be fully ready
-    setTimeout(() => {
-        try {
-            // Initialize navbar only (no menu sidebar)
-            window.adminNavbar = new AdminNavbar();
-            
-            // Wait a bit more for components to render
-            setTimeout(() => {
-                window.adminDashboard = new AdminDashboard();
-            }, 200);
-        } catch (error) {
-            console.error('Failed to initialize admin dashboard:', error);
-        }
-    }, 100);
+    adminDashboard = new AdminDashboard();
 });
+
+// Make admin dashboard globally accessible for inline onclick handlers
+window.adminDashboard = adminDashboard;
