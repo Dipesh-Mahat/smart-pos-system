@@ -225,36 +225,80 @@ function isValidEmail(email) {
 }
 
 // Form Submission
-function submitForm(form) {
+async function submitForm(form) {
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
     
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
     submitBtn.disabled = true;
     
-    // Simulate form submission
-    setTimeout(() => {
-        // Show success message
-        showSuccessNotification('Thank you! Your supplier application has been submitted successfully. We will review it and contact you within 24-48 hours.');
+    try {
+        // Collect form data
+        const formData = new FormData(form);
         
-        // Reset form
-        form.reset();
+        // Get selected categories
+        const categories = Array.from(form.querySelectorAll('input[name="categories"]:checked'))
+                                .map(checkbox => checkbox.value);
         
-        // Remove validation classes
-        form.querySelectorAll('.form-group').forEach(group => {
-            group.classList.remove('error', 'success');
+        // Build the request payload
+        const supplierData = {
+            businessName: formData.get('businessName'),
+            businessType: formData.get('businessType'),
+            registrationNumber: formData.get('registrationNumber'),
+            panNumber: formData.get('panNumber'),
+            businessAddress: formData.get('businessAddress'),
+            contactPerson: formData.get('contactPerson'),
+            position: formData.get('position'),
+            email: formData.get('email'),
+            phone: formData.get('phone'),
+            productCategories: categories,
+            yearsInBusiness: formData.get('yearsInBusiness'),
+            deliveryAreas: formData.get('deliveryAreas'),
+            businessDescription: formData.get('businessDescription'),
+            website: formData.get('website'),
+            references: formData.get('references')
+        };
+
+        // Submit to backend API
+        const response = await fetch('/auth/register-supplier', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(supplierData)
         });
-        
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            // Show success message
+            showSuccessNotification(result.message || 'Thank you! Your supplier application has been submitted successfully. We will review it and contact you within 2-3 business days.');
+            
+            // Reset form
+            form.reset();
+            
+            // Remove validation classes
+            form.querySelectorAll('.form-group').forEach(group => {
+                group.classList.remove('error', 'success');
+            });
+            
+            // Scroll to top
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        } else {
+            // Show error message
+            showErrorNotification(result.message || 'Failed to submit application. Please try again.');
+        }
+    } catch (error) {
+        console.error('Form submission error:', error);
+        showErrorNotification('Network error. Please check your connection and try again.');
+    } finally {
         // Reset button
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
-        
-        // Scroll to top
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    }, 2000);
+    }
 }
 
 // Success Notification
@@ -290,26 +334,73 @@ function showSuccessNotification(message) {
     // Add to page
     document.body.appendChild(notification);
     
+    // Close button functionality
+    const closeBtn = notification.querySelector('.close-notification');
+    closeBtn.addEventListener('click', () => {
+        removeNotification(notification);
+    });
+    
     // Auto remove after 8 seconds
     setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.5s ease forwards';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 500);
+        removeNotification(notification);
     }, 8000);
+}
+
+// Error Notification
+function showErrorNotification(message) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'error-notification';
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>${message}</span>
+            <button class="close-notification" aria-label="Close notification">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    // Add styles
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #e74c3c;
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        z-index: 10000;
+        max-width: 400px;
+        animation: slideInRight 0.5s ease;
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
     
     // Close button functionality
     const closeBtn = notification.querySelector('.close-notification');
     closeBtn.addEventListener('click', () => {
+        removeNotification(notification);
+    });
+    
+    // Auto remove after 10 seconds (longer for errors)
+    setTimeout(() => {
+        removeNotification(notification);
+    }, 10000);
+}
+
+// Helper function to remove notifications
+function removeNotification(notification) {
+    if (notification && notification.parentNode) {
         notification.style.animation = 'slideOutRight 0.5s ease forwards';
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.parentNode.removeChild(notification);
             }
         }, 500);
-    });
+    }
 }
 
 // Animation Observers

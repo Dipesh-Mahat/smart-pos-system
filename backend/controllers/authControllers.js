@@ -173,7 +173,122 @@ const register = async (req, res) => {
     }
     res.status(500).json({ 
       success: false,
-      message: 'Internal Server Error' 
+      message: 'Server error during registration' 
+    });
+  }
+};
+
+// Supplier registration function
+const registerSupplier = async (req, res) => {
+  try {
+    const {
+      businessName,
+      businessType,
+      registrationNumber,
+      panNumber,
+      businessAddress,
+      contactPerson,
+      position,
+      email,
+      phone,
+      productCategories,
+      yearsInBusiness,
+      deliveryAreas,
+      businessDescription,
+      website,
+      references
+    } = req.body;
+
+    // Required field validation
+    const requiredFields = [
+      'businessName', 'businessType', 'businessAddress', 'contactPerson', 
+      'position', 'email', 'phone', 'deliveryAreas', 'yearsInBusiness'
+    ];
+    
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required fields: ${missingFields.join(', ')}`
+      });
+    }
+
+    // Email format validation
+    const trimmedEmail = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format'
+      });
+    }
+
+    // Check if user already exists
+    const normalizedEmail = trimmedEmail.toLowerCase();
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'A user with this email already exists'
+      });
+    }
+
+    // Validate product categories
+    if (!productCategories || productCategories.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'At least one product category must be selected'
+      });
+    }
+
+    // Create supplier application
+    const supplierData = {
+      firstName: contactPerson.split(' ')[0] || contactPerson,
+      lastName: contactPerson.split(' ').slice(1).join(' ') || '',
+      email: normalizedEmail,
+      role: 'supplier',
+      status: 'pending',
+      businessName: businessName.trim(),
+      businessType,
+      registrationNumber: registrationNumber?.trim(),
+      panNumber: panNumber?.trim(),
+      businessAddress: businessAddress.trim(),
+      contactPerson: contactPerson.trim(),
+      position: position.trim(),
+      phone: phone.trim(),
+      productCategories: Array.isArray(productCategories) ? productCategories : [productCategories],
+      yearsInBusiness,
+      deliveryAreas: deliveryAreas.trim(),
+      businessDescription: businessDescription?.trim(),
+      website: website?.trim(),
+      references: references?.trim()
+    };
+
+    const newSupplier = new User(supplierData);
+    await newSupplier.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Supplier application submitted successfully. We will review your application and contact you within 2-3 business days.',
+      supplier: {
+        id: newSupplier._id,
+        businessName: newSupplier.businessName,
+        email: newSupplier.email,
+        status: newSupplier.status
+      }
+    });
+
+  } catch (error) {
+    console.error('Supplier registration error:', error);
+    // Handle duplicate key errors from MongoDB
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'A user with this email already exists'
+      });
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Server error during supplier registration'
     });
   }
 };
@@ -412,6 +527,7 @@ const googleAuth = async (req, res) => {
 module.exports = {
   login,
   register,
-  googleAuth
+  googleAuth,
+  registerSupplier
 };
 

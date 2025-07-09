@@ -36,32 +36,90 @@ class AdminDashboard {
 
     async loadUsers() {
         try {
+            // Show loading state
+            const userTableBody = document.getElementById('userTableBody');
+            if (userTableBody) {
+                userTableBody.innerHTML = '<tr><td colspan="6" class="text-center">Loading users...</td></tr>';
+            }
+
             // Fetch real user data from backend API
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
             const response = await fetch('/users', {
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
             });
-            if (!response.ok) throw new Error('Failed to fetch users');
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error('Unauthorized access. Please login again.');
+                }
+                throw new Error(`Failed to fetch users: ${response.status}`);
+            }
+
             const data = await response.json();
-            this.users = (data.users || []).map((user, idx) => ({
-                id: user._id || idx + 1,
-                name: user.firstName + ' ' + user.lastName,
-                email: user.email,
-                type: user.role,
-                status: user.status,
-                avatar: user.avatar || '../images/avatars/user-avatar.png',
-                joinDate: user.createdAt,
-                lastActive: user.updatedAt,
-                revenue: user.revenue || 0,
-                transactions: user.transactions || 0
-            }));
+            
+            if (data.success && data.users) {
+                this.users = data.users.map((user) => ({
+                    id: user._id,
+                    name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'N/A',
+                    email: user.email,
+                    type: user.role === 'shopowner' ? 'shop-owner' : user.role,
+                    status: user.status || 'active',
+                    joinDate: new Date(user.createdAt || Date.now()).toLocaleDateString(),
+                    lastActive: user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never',
+                    shopName: user.shopName,
+                    businessName: user.businessName,
+                    phone: user.phone || user.contactNumber,
+                    avatar: user.avatar || '../images/avatars/user-avatar.png'
+                }));
+
+                // Update statistics
+                this.updateRealTimeStatistics();
+            } else {
+                throw new Error('Invalid response format');
+            }
+
         } catch (error) {
-            this.showMessage('Failed to load users from server', 'error');
-            this.users = [];
+            console.error('Failed to load users:', error);
+            this.showMessage(error.message || 'Failed to load users', 'error');
+            
+            // Show error in table
+            const userTableBody = document.getElementById('userTableBody');
+            if (userTableBody) {
+                userTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center error">
+                            <i class="fas fa-exclamation-circle"></i> 
+                            Error loading users: ${error.message}
+                            <br>
+                            <button onclick="adminDashboard.loadUsers()" class="btn-retry">
+                                <i class="fas fa-refresh"></i> Retry
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
         }
         this.filteredUsers = [...this.users];
         this.renderUserTable();
+    }
+
+    // Update statistics from real data
+    updateRealTimeStatistics() {
+        const totalUsers = this.users.length;
+        const shopOwners = this.users.filter(u => u.type === 'shop-owner').length;
+        const suppliers = this.users.filter(u => u.type === 'supplier').length;
+
+        // Update DOM elements
+        const totalUsersEl = document.getElementById('totalUsers');
+        const totalShopOwnersEl = document.getElementById('totalShopOwners');
+        const totalSuppliersEl = document.getElementById('totalSuppliers');
+
+        if (totalUsersEl) totalUsersEl.textContent = totalUsers.toLocaleString();
+        if (totalShopOwnersEl) totalShopOwnersEl.textContent = shopOwners.toLocaleString();
+        if (totalSuppliersEl) totalSuppliersEl.textContent = suppliers.toLocaleString();
     }
 
     setupEventListeners() {
@@ -795,21 +853,50 @@ class AdminDashboard {
         });
     }
 
-    updateSystemHealth() {
-        // In production, this would be an API call to get system health metrics
+    async updateSystemHealth() {
+        try {
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+            const response = await fetch('/admin/system-health', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.health) {
+                    this.systemHealth = {
+                        api: { status: data.health.api, details: 'API is running' },
+                        database: { status: data.health.database, details: 'Database connected' },
+                        memory: { 
+                            status: data.health.memory.heapUsed > (data.health.memory.heapTotal * 0.8) ? 'warning' : 'online',
+                            details: `${Math.round((data.health.memory.heapUsed / data.health.memory.heapTotal) * 100)}% utilized`
+                        },
+                        storage: { status: 'online', details: data.health.storage }
+                    };
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch system health:', error);
+            // Use default values if API fails
+            this.systemHealth = {
+                api: { status: 'warning', details: 'API check failed' },
+                database: { status: 'warning', details: 'Database check failed' },
+                memory: { status: 'warning', details: 'Memory check failed' },
+                storage: { status: 'warning', details: 'Storage check failed' }
+            };
+        }
+
+        // Setup refresh button
         const refreshBtn = document.querySelector('.system-health-section .fa-sync-alt');
-        if (refreshBtn) {
-            refreshBtn.parentElement.addEventListener('click', () => {
+        if (refreshBtn && !refreshBtn.hasAttribute('data-listener')) {
+            refreshBtn.setAttribute('data-listener', 'true');
+            refreshBtn.parentElement.addEventListener('click', async () => {
                 refreshBtn.classList.add('fa-spin');
-                setTimeout(() => {
-                    // Simulate system health update
-                    this.systemHealth.memory.status = Math.random() > 0.7 ? 'warning' : 'online';
-                    this.systemHealth.memory.details = `${Math.floor(65 + Math.random() * 20)}% utilized`;
-                    
-                    this.updateSystemHealthDisplay();
-                    refreshBtn.classList.remove('fa-spin');
-                    this.showMessage('System health updated', 'success');
-                }, 1000);
+                await this.updateSystemHealth();
+                refreshBtn.classList.remove('fa-spin');
+                this.showMessage('System health updated', 'success');
             });
         }
         

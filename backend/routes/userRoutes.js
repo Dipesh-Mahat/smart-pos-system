@@ -183,6 +183,16 @@ router.get('/supplier/:supplierId/products', authenticateJWT, authorize('shopown
 // Bulk user actions (admin)
 router.post('/admin/bulk-action', authenticateJWT, authorize('admin'), adminController.bulkUserAction);
 
+// Individual user CRUD operations (admin)
+router.post('/admin/users', authenticateJWT, authorize('admin'), adminController.createUser);
+router.put('/admin/users/:userId', authenticateJWT, authorize('admin'), adminController.updateUser);
+router.delete('/admin/users/:userId', authenticateJWT, authorize('admin'), adminController.deleteUser);
+
+// Enhanced supplier management (admin)
+router.get('/admin/suppliers/:supplierId', authenticateJWT, authorize('admin'), adminController.getSupplierApplication);
+router.put('/admin/suppliers/:supplierId/approve', authenticateJWT, authorize('admin'), adminController.approveSupplier);
+router.put('/admin/suppliers/:supplierId/reject', authenticateJWT, authorize('admin'), adminController.rejectSupplier);
+
 // User activity logs (admin)
 router.get('/admin/activity-logs', authenticateJWT, authorize('admin'), adminController.getUserActivityLogs);
 

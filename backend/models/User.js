@@ -72,9 +72,44 @@ const userSchema = new mongoose.Schema({
   passwordResetExpires: Date,
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
-    default: function() { return this.role === 'supplier' ? 'pending' : 'approved'; }
-  }
+    enum: ['pending', 'approved', 'rejected', 'active', 'suspended', 'banned'],
+    default: function() { return this.role === 'supplier' ? 'pending' : 'active'; }
+  },
+  // Supplier-specific fields
+  businessName: {
+    type: String,
+    required: function() { return this.role === 'supplier'; }
+  },
+  businessType: {
+    type: String,
+    enum: ['wholesale', 'manufacturer', 'retailer', 'importer', 'other'],
+    required: function() { return this.role === 'supplier'; }
+  },
+  registrationNumber: String,
+  panNumber: String,
+  businessAddress: {
+    type: String,
+    required: function() { return this.role === 'supplier'; }
+  },
+  contactPerson: {
+    type: String,
+    required: function() { return this.role === 'supplier'; }
+  },
+  position: {
+    type: String,
+    required: function() { return this.role === 'supplier'; }
+  },
+  phone: {
+    type: String,
+    required: function() { return this.role === 'supplier'; }
+  },
+  productCategories: [String],
+  yearsInBusiness: String,
+  deliveryAreas: String,
+  businessDescription: String,
+  website: String,
+  references: String,
+  rejectionReason: String
 }, { timestamps: true });
 
 // Hash password before saving the user
