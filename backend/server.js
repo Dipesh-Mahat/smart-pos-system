@@ -35,7 +35,9 @@ app.use(cors({
       'http://localhost:8080',                     // Local development server
       'http://127.0.0.1:8080',                     // Alternative localhost
       'http://127.0.0.1:5000',                     // Alternative localhost
-      'http://127.0.0.1:3000'                      // Alternative localhost
+      'http://127.0.0.1:3000',                     // Alternative localhost
+      'http://localhost:5500',                     // Live Server default
+      'http://127.0.0.1:5500'                      // Live Server default
     ];
     
     // For development and debugging - uncomment this to see the actual origin

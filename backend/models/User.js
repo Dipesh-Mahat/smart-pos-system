@@ -41,10 +41,135 @@ const userSchema = new mongoose.Schema({
   lastName: { 
     type: String, 
     required: true 
-  },  shopName: { 
+  },
+  shopName: { 
     type: String, 
     required: function() { return this.role === 'shopowner'; }, // Only required for shopowners
     trim: true 
+  },
+  // Added for supplier profiles
+  companyName: {
+    type: String,
+    required: function() { return this.role === 'supplier'; }, // Only required for suppliers
+    trim: true
+  },
+  profilePicture: {
+    type: String,
+    default: '/images/avatars/user-avatar.png'
+  },
+  contactDetails: {
+    title: String,
+    secondaryEmail: String,
+    primaryPhone: String,
+    secondaryPhone: String
+  },
+  businessDetails: {
+    businessType: {
+      type: String,
+      enum: ['manufacturer', 'wholesaler', 'distributor', 'retailer'],
+      default: 'wholesaler'
+    },
+    businessRegistration: String,
+    taxId: String,
+    description: String,
+    website: String,
+    establishedYear: Number
+  },
+  billingAddress: {
+    street: String,
+    city: String,
+    state: String,
+    postalCode: String,
+    country: String
+  },
+  shippingAddress: {
+    street: String,
+    city: String,
+    state: String,
+    postalCode: String,
+    country: String
+  },
+  businessSettings: {
+    paymentTerms: {
+      type: String,
+      enum: ['cod', 'net15', 'net30', 'net60', 'prepaid'],
+      default: 'net30'
+    },
+    currency: {
+      type: String,
+      default: 'USD'
+    },
+    shippingMethod: {
+      type: String,
+      enum: ['standard', 'express', 'overnight', 'pickup'],
+      default: 'standard'
+    },
+    freeShippingThreshold: {
+      type: Number,
+      default: 500
+    },
+    leadTime: {
+      type: Number,
+      default: 3
+    },
+    maxOrderQuantity: {
+      type: Number,
+      default: 1000
+    },
+    businessHours: [
+      {
+        day: {
+          type: String,
+          enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        },
+        open: {
+          type: Boolean,
+          default: true
+        },
+        openTime: String,
+        closeTime: String
+      }
+    ]
+  },
+  notificationPreferences: {
+    email: {
+      newOrders: {
+        type: Boolean,
+        default: true
+      },
+      lowStock: {
+        type: Boolean,
+        default: true
+      },
+      paymentUpdates: {
+        type: Boolean,
+        default: true
+      },
+      weeklyReports: {
+        type: Boolean,
+        default: false
+      }
+    },
+    sms: {
+      urgentAlerts: {
+        type: Boolean,
+        default: true
+      },
+      orderUpdates: {
+        type: Boolean,
+        default: false
+      }
+    },
+    inApp: {
+      realtimeUpdates: {
+        type: Boolean,
+        default: true
+      },
+      soundAlerts: {
+        type: Boolean,
+        default: false
+      }
+    }
   },
   contactNumber: {
     type: String,
@@ -70,9 +195,46 @@ const userSchema = new mongoose.Schema({
   },
   passwordResetToken: String,
   passwordResetExpires: Date,
+  // Adding fields for supplier settings
+  preferences: {
+    language: { type: String, default: 'en' },
+    timezone: { type: String, default: 'UTC' },
+    currency: { type: String, default: 'USD' },
+    dateFormat: { type: String, default: 'MM/DD/YYYY' },
+    autoSave: { type: Boolean, default: true },
+    darkMode: { type: Boolean, default: false }
+  },
+  securitySettings: {
+    twoFactorEnabled: { type: Boolean, default: false },
+    loginNotifications: { type: Boolean, default: true }
+  },
+  integrations: [
+    {
+      name: { type: String },
+      type: { type: String },
+      apiKey: { type: String },
+      isActive: { type: Boolean, default: true },
+      connectedAt: { type: Date },
+      scopes: [{ type: String }]
+    }
+  ],
+  privacySettings: {
+    profileVisibility: { type: String, enum: ['public', 'private', 'customers_only'], default: 'public' },
+    contactVisibility: { type: String, enum: ['public', 'private', 'customers_only'], default: 'customers_only' }
+  },
+  activeSessions: [
+    {
+      id: { type: String },
+      deviceName: { type: String },
+      browser: { type: String },
+      ipAddress: { type: String },
+      location: { type: String },
+      lastActive: { type: Date, default: Date.now }
+    }
+  ],
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected', 'active', 'suspended', 'banned'],
+    enum: ['pending', 'approved', 'rejected', 'active', 'suspended', 'banned', 'inactive'],
     default: function() { return this.role === 'supplier' ? 'pending' : 'active'; }
   },
   // Supplier-specific fields

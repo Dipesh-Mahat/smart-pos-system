@@ -5,7 +5,15 @@
 
 class AuthService {
     constructor() {
-        this.apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
+        // Auto-detect API URL based on environment
+        const isLocalhost = window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1';
+        
+        this.apiBaseUrl = isLocalhost ? 
+                         'http://localhost:5000/api' : 
+                         'https://smart-pos-system.onrender.com/api';
+                         
+        console.log('Auth service initialized with API base URL:', this.apiBaseUrl);
         this.tokenKey = 'neopos_auth_token';
         this.userKey = 'neopos_user';
         this.refreshTokenKey = 'neopos_refresh_token';
@@ -340,6 +348,7 @@ class AuthService {
      */
     async register(userData) {
         try {
+            console.log('Auth service sending registration data:', userData);
             const response = await fetch(`${this.apiBaseUrl}/auth/register`, {
                 method: 'POST',
                 headers: {
@@ -349,10 +358,12 @@ class AuthService {
             });
 
             const data = await response.json();
+            console.log('Registration response:', data);
             
             return { 
                 success: response.ok && data.success, 
-                message: data.message
+                message: data.message,
+                errors: data.errors // Pass through any validation errors
             };
         } catch (error) {
             console.error('Registration error:', error);

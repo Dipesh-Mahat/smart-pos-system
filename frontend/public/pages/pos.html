@@ -9,8 +9,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">    <script src="../js/mobile-scanner-connection.js"></script>
-    <script src="../js/enhanced-scanner-connection.js"></script>    <script src="../js/auth-service.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../js/scanner-mobile.js"></script>
+    <script src="../js/scanner-connection.js"></script>
+    <script src="../js/scanner-unified.js"></script>
+    <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
     <script src="../js/demo-products.js"></script>    <!-- Preload menu styles to prevent flicker -->
     <style>
@@ -1293,6 +1296,208 @@
             visibility: visible;
         }
         
+        /* Smart Scan Dialog Styles */
+        .smart-scan-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .smart-scan-dialog {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        .scan-dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e9ecef;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .scan-dialog-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .close-scan-dialog {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+
+        .close-scan-dialog:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .scan-dialog-content {
+            padding: 24px;
+        }
+
+        .scan-dialog-content p {
+            margin: 0 0 20px 0;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .scan-connection-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background-color: #28a745;
+            animation: none;
+        }
+
+        .status-dot.connecting {
+            background-color: #ffc107;
+        }
+
+        .status-dot.disconnected {
+            background-color: #dc3545;
+            animation: none;
+        }
+
+        .scan-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .scan-action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .scan-action-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .scan-action-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .scan-action-btn.secondary {
+            background: #e9ecef;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+
+        .scan-action-btn.secondary:hover {
+            background: #dee2e6;
+            transform: translateY(-1px);
+        }
+
+        /* Scan notification */
+        .scan-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(40, 167, 69, 0.3);
+            z-index: 10001;
+            animation: slideInRight 0.3s ease;
+        }
+
+        .scan-notification-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from { 
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
         .mobile-scanner-content {
             background-color: white;
             border-radius: var(--border-radius);
@@ -1870,11 +2075,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             posSystem = new SmartPOSSystem();
             
+            // Initialize unified scanner connection
+            window.unifiedScannerConnection = new UnifiedScannerConnection();
+            
             // Set up event listeners
             const scanBtn = document.getElementById('scanBtn');
             if (scanBtn) {
                 scanBtn.addEventListener('click', function() {
-                    document.getElementById('scannerModal').classList.add('active');
+                    // Use the same smart scan dialog as navbar, but for product scanning only
+                    showProductScanDialog();
                 });
             }
             
@@ -1954,6 +2163,162 @@
                 });
             }
         });
+        
+        // Product scan dialog specifically for POS page
+        function showProductScanDialog() {
+            // Remove any existing scan dialog
+            const existingDialog = document.getElementById('productScanDialog');
+            if (existingDialog) {
+                existingDialog.remove();
+            }
+
+            // Create scan dialog overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'productScanDialog';
+            overlay.className = 'smart-scan-overlay';
+            
+            // Create dialog content
+            const dialog = document.createElement('div');
+            dialog.className = 'smart-scan-dialog';
+            
+            dialog.innerHTML = `
+                <div class="scan-dialog-header">
+                    <h3><i class="fas fa-barcode"></i> Product Scanner</h3>
+                    <button class="close-scan-dialog" id="closeProductScanDialog">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="scan-dialog-content">
+                    <p>Ready to scan product barcodes for quick checkout and inventory.</p>
+                    
+                    <div class="scan-connection-info">
+                        <div class="connection-status" id="productScanConnectionStatus">
+                            <div class="status-dot ${window.unifiedScannerConnection && window.unifiedScannerConnection.isConnected ? 'connected' : 'connecting'}"></div>
+                            <span>${window.unifiedScannerConnection && window.unifiedScannerConnection.isConnected ? 'Mobile scanner connected' : 'Connecting to mobile scanner...'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="scan-actions">
+                        <button class="scan-action-btn primary" id="startProductScan">
+                            <i class="fas fa-camera"></i>
+                            Start Product Scanning
+                        </button>
+                        <button class="scan-action-btn secondary" id="manualBarcodeEntry">
+                            <i class="fas fa-keyboard"></i>
+                            Manual Entry
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            
+            // Add event listeners
+            document.getElementById('closeProductScanDialog').addEventListener('click', () => {
+                overlay.remove();
+            });
+            
+            document.getElementById('startProductScan').addEventListener('click', () => {
+                if (window.unifiedScannerConnection) {
+                    // Check if already connected
+                    if (window.unifiedScannerConnection.isConnected) {
+                        // Already connected, close dialog and show scanning feedback
+                        overlay.remove();
+                        showScanningFeedback('Product');
+                    } else {
+                        // Connect specifically for barcode scanning
+                        window.unifiedScannerConnection.connectBarcode()
+                            .then(() => {
+                                overlay.remove();
+                                showScanningFeedback('Product');
+                            })
+                            .catch(error => {
+                                console.error('Failed to connect:', error);
+                                alert('Failed to connect to mobile scanner. Please try again.');
+                            });
+                    }
+                } else {
+                    // Fallback to direct scanning
+                    overlay.remove();
+                    document.getElementById('scannerModal').classList.add('active');
+                }
+            });
+            
+            document.getElementById('manualBarcodeEntry').addEventListener('click', () => {
+                overlay.remove();
+                showManualBarcodeEntry();
+            });
+            
+            // Close on overlay click
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            });
+            
+            // If unified scanner is available, listen for scan results
+            if (window.unifiedScannerConnection) {
+                window.unifiedScannerConnection.on('scan', (data) => {
+                    // Process the scanned barcode regardless of scan type for POS
+                    if (data.content || data.barcode) {
+                        const barcode = data.content || data.barcode;
+                        posSystem.processBarcode(barcode);
+                        overlay.remove();
+                    }
+                });
+                
+                // Update connection status
+                const statusElement = document.getElementById('productScanConnectionStatus');
+                if (statusElement) {
+                    window.unifiedScannerConnection.on('statusChange', (data) => {
+                        const dot = statusElement.querySelector('.status-dot');
+                        const text = statusElement.querySelector('span');
+                        
+                        if (data.status === 'connected') {
+                            dot.className = 'status-dot connected';
+                            text.textContent = 'Mobile scanner connected';
+                        } else if (data.status === 'connecting') {
+                            dot.className = 'status-dot connecting';
+                            text.textContent = 'Connecting to mobile scanner...';
+                        } else {
+                            dot.className = 'status-dot disconnected';
+                            text.textContent = 'Not connected';
+                        }
+                    });
+                }
+            }
+        }
+        
+        // Show scanning feedback
+        function showScanningFeedback(type) {
+            const notification = document.createElement('div');
+            notification.className = 'scan-notification';
+            notification.innerHTML = `
+                <div class="scan-notification-content">
+                    <i class="fas fa-camera"></i>
+                    <span>Ready to scan ${type.toLowerCase()}s. Point your mobile camera at a barcode.</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+        
+        // Manual barcode entry
+        function showManualBarcodeEntry() {
+            const barcode = prompt('Enter barcode:');
+            if (barcode && barcode.trim()) {
+                posSystem.processBarcode(barcode.trim());
+            }
+        }
     </script>
       <!-- Navbar and Menu Scripts -->
     <script src="../js/navbar.js"></script>
