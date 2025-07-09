@@ -11,7 +11,9 @@
     "seed:old": "node seed.js",
     "test": "jest",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "start:all": "node start-servers.js",
+    "dev:all": "nodemon start-servers.js"
   },
   "dependencies": {
     "axios": "^1.9.0",
@@ -22,7 +24,7 @@
     "csurf": "^1.2.2",
     "dotenv": "^8.6.0",
     "express": "^4.21.2",
-    "express-rate-limit": "^7.5.0",
+    "express-rate-limit": "^7.5.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
@@ -30,6 +32,7 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^2.7.0",
+    "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^9.0.0",
