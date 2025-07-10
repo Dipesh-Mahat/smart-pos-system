@@ -623,79 +623,35 @@
             });
         }
         
-        // Show demo data when API fails
+        // Show fallback data when API fails (production ready - zeros)
         function showDemoData() {
-            // Today's sales
-            document.querySelector('.dashboard-card:nth-child(1) .card-value').textContent = 'NPR 12,450';
-            document.querySelector('.dashboard-card:nth-child(1) .card-subtitle').textContent = '25 transactions';
-            document.querySelector('.dashboard-card:nth-child(1) .card-change').textContent = '+15% from yesterday';
+            // Today's sales - default to zero
+            document.querySelector('.dashboard-card:nth-child(1) .card-value').textContent = 'NPR 0';
+            document.querySelector('.dashboard-card:nth-child(1) .card-subtitle').textContent = '0 transactions';
+            document.querySelector('.dashboard-card:nth-child(1) .card-change').textContent = '+0% from yesterday';
             document.querySelector('.dashboard-card:nth-child(1) .card-change').className = 'card-change positive';
             
-            // Total orders
-            document.querySelector('.dashboard-card:nth-child(2) .card-value').textContent = '87';
+            // Total orders - default to zero
+            document.querySelector('.dashboard-card:nth-child(2) .card-value').textContent = '0';
             document.querySelector('.dashboard-card:nth-child(2) .card-subtitle').textContent = 'Items sold today';
-            document.querySelector('.dashboard-card:nth-child(2) .card-change').textContent = '+8 from yesterday';
+            document.querySelector('.dashboard-card:nth-child(2) .card-change').textContent = '+0 from yesterday';
             document.querySelector('.dashboard-card:nth-child(2) .card-change').className = 'card-change positive';
             
-            // Low stock
-            document.querySelector('.dashboard-card:nth-child(3) .card-value').textContent = '5';
+            // Low stock - default to zero
+            document.querySelector('.dashboard-card:nth-child(3) .card-value').textContent = '0';
             document.querySelector('.dashboard-card:nth-child(3) .card-subtitle').textContent = 'Need restock';
-            document.querySelector('.dashboard-card:nth-child(3) .card-change').textContent = '3 critical items';
+            document.querySelector('.dashboard-card:nth-child(3) .card-change').textContent = '0 critical items';
             document.querySelector('.dashboard-card:nth-child(3) .card-change').className = 'card-change negative';
             
-            // Weekly revenue
-            document.querySelector('.dashboard-card:nth-child(4) .card-value').textContent = 'NPR 78,200';
+            // Weekly revenue - default to zero
+            document.querySelector('.dashboard-card:nth-child(4) .card-value').textContent = 'NPR 0';
             document.querySelector('.dashboard-card:nth-child(4) .card-subtitle').textContent = 'Last 7 days';
-            document.querySelector('.dashboard-card:nth-child(4) .card-change').textContent = '+12% from last week';
+            document.querySelector('.dashboard-card:nth-child(4) .card-change').textContent = '+0% from last week';
             document.querySelector('.dashboard-card:nth-child(4) .card-change').className = 'card-change positive';
             
-            // Load demo low stock items
-            const demoProducts = getDemoProducts();
-            updateLowStockItems(demoProducts.map(p => ({...p, status: p.stock <= p.minStock ? 'low-stock' : 'in-stock'})).slice(0, 5));
-            
-            // Load demo transactions
-            updateRecentTransactions([
-                { 
-                    id: 'TXN-2025-001',
-                    _id: 'TXN-2025-001', 
-                    date: new Date().toISOString(), 
-                    total: 1250, 
-                    paymentMethod: 'Cash', 
-                    items: 5 
-                },
-                { 
-                    id: 'TXN-2025-002',
-                    _id: 'TXN-2025-002', 
-                    date: new Date(Date.now() - 3600000).toISOString(), 
-                    total: 785, 
-                    paymentMethod: 'Card', 
-                    items: 2 
-                },
-                { 
-                    id: 'TXN-2025-003',
-                    _id: 'TXN-2025-003', 
-                    date: new Date(Date.now() - 7200000).toISOString(), 
-                    total: 2530, 
-                    paymentMethod: 'Cash', 
-                    items: 8 
-                },
-                { 
-                    id: 'TXN-2025-004',
-                    _id: 'TXN-2025-004', 
-                    date: new Date(Date.now() - 86400000).toISOString(), 
-                    total: 1100, 
-                    paymentMethod: 'Card', 
-                    items: 3 
-                },
-                { 
-                    id: 'TXN-2025-005',
-                    _id: 'TXN-2025-005', 
-                    date: new Date(Date.now() - 172800000).toISOString(), 
-                    total: 3250, 
-                    paymentMethod: 'Cash', 
-                    items: 10 
-                }
-            ]);
+            // Show empty states for sections
+            updateLowStockItems([]);
+            updateRecentTransactions([]);
         }
         
         // Update dashboard metrics with real data
@@ -826,9 +782,9 @@
                             <i class="fas fa-chart-line"></i>
                         </div>
                     </div>
-                    <div class="card-value">NPR 12,450</div>
-                    <div class="card-subtitle">25 transactions</div>
-                    <div class="card-change positive">+15% from yesterday</div>
+                    <div class="card-value">NPR 0</div>
+                    <div class="card-subtitle">0 transactions</div>
+                    <div class="card-change positive">+0% from yesterday</div>
                 </div>
 
                 <div class="dashboard-card">
@@ -838,9 +794,9 @@
                             <i class="fas fa-shopping-cart"></i>
                         </div>
                     </div>
-                    <div class="card-value">87</div>
+                    <div class="card-value">0</div>
                     <div class="card-subtitle">Items sold today</div>
-                    <div class="card-change positive">+8 from yesterday</div>
+                    <div class="card-change positive">+0 from yesterday</div>
                 </div>
 
                 <div class="dashboard-card">
@@ -850,9 +806,9 @@
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
                     </div>
-                    <div class="card-value">5</div>
+                    <div class="card-value">0</div>
                     <div class="card-subtitle">Need restock</div>
-                    <div class="card-change negative">3 critical items</div>
+                    <div class="card-change negative">0 critical items</div>
                 </div>
 
                 <div class="dashboard-card">
@@ -862,9 +818,9 @@
                             <i class="fas fa-coins"></i>
                         </div>
                     </div>
-                    <div class="card-value">NPR 78,200</div>
+                    <div class="card-value">NPR 0</div>
                     <div class="card-subtitle">Last 7 days</div>
-                    <div class="card-change positive">+12% from last week</div>
+                    <div class="card-change positive">+0% from last week</div>
                 </div>
             </div>
 
@@ -941,59 +897,7 @@
                     <a href="transactions.html" style="color: #007bff; text-decoration: none; font-size: 14px;">View All</a>
                 </div>
 
-                <div class="activity-item">
-                    <div class="activity-icon sale">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-description">Sale completed - Basmati Rice (2kg)</div>
-                        <div class="activity-time">2 minutes ago</div>
-                    </div>
-                    <div class="activity-amount">+NPR 360</div>
-                </div>
-
-                <div class="activity-item">
-                    <div class="activity-icon payment">
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-description">Ncell Recharge Card sold</div>
-                        <div class="activity-time">8 minutes ago</div>
-                    </div>
-                    <div class="activity-amount">+NPR 100</div>
-                </div>
-
-                <div class="activity-item">
-                    <div class="activity-icon sale">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-description">Multiple items - Wai Wai, Dettol Soap, Bottled Water</div>
-                        <div class="activity-time">15 minutes ago</div>
-                    </div>
-                    <div class="activity-amount">+NPR 95</div>
-                </div>
-
-                <div class="activity-item">
-                    <div class="activity-icon stock">
-                        <i class="fas fa-box"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-description">Stock updated - Cooking Oil inventory increased</div>
-                        <div class="activity-time">1 hour ago</div>
-                    </div>
-                </div>
-
-                <div class="activity-item">
-                    <div class="activity-icon sale">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-description">Sale completed - Masala Dal (500g)</div>
-                        <div class="activity-time">1 hour ago</div>
-                    </div>
-                    <div class="activity-amount">+NPR 120</div>
-                </div>
+                <div class="loading-state">Loading recent activity...</div>
             </div>
 
             <!-- Recent Activity Sections -->

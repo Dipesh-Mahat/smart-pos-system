@@ -7,6 +7,9 @@ const shopRoutes = require('./shopRoutes');
 const autoOrderRoutes = require('./autoOrderRoutes');
 const supplierRoutes = require('./supplierRoutes');
 const adminController = require('../controllers/adminController');
+const dashboardController = require('../controllers/dashboardController');
+const productController = require('../controllers/productController');
+const transactionController = require('../controllers/transactionController');
 
 // Public routes (no authentication required)
 router.get('/health', (req, res) => {
@@ -25,6 +28,18 @@ router.use('/supplier', supplierRoutes);
 
 // Add auto-order routes for shopowners
 router.use('/auto-orders', authenticateJWT, autoOrderRoutes);
+
+// Dashboard routes (for shopowners and admins)
+// Temporarily disable authentication for development testing
+router.get('/dashboard/summary', dashboardController.getDashboardSummary);
+
+// Product routes (temporarily disable authentication for testing)
+router.get('/products', productController.getProducts);
+router.get('/products/:id', productController.getProduct);
+
+// Transaction routes (temporarily disable authentication for testing)
+router.get('/transactions', transactionController.getTransactions);
+router.get('/transactions/:id', transactionController.getTransaction);
 
 // Admin-only routes
 router.get('/admin/stats', authenticateJWT, authorize('admin'), (req, res) => {

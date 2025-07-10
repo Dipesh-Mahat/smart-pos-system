@@ -95,6 +95,7 @@ const seedUsers = async () => {
     email: 'krishna@wholesale.com.np',
     password: await bcrypt.hash('supplier123', salt),
     role: 'supplier',
+    companyName: 'Adhikari Wholesale Distribution',
     businessName: 'Adhikari Wholesale Distribution',
     businessType: 'wholesale',
     contactNumber: '+977-9800000001',
@@ -127,6 +128,7 @@ const seedUsers = async () => {
     email: 'sita@freshproduce.com.np',
     password: await bcrypt.hash('supplier123', salt),
     role: 'supplier',
+    companyName: 'Gurung Fresh Produce & Dairy',
     businessName: 'Gurung Fresh Produce & Dairy',
     businessType: 'wholesale',
     contactNumber: '+977-9800000002',
@@ -731,7 +733,217 @@ const seedSettings = async (shopOwner) => {
 const seedTransactions = async (shopOwner, customers, products) => {
   console.log('Seeding transactions...');
   
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  const weekAgo = new Date();
+  weekAgo.setDate(today.getDate() - 7);
+  const monthAgo = new Date();
+  monthAgo.setDate(today.getDate() - 30);
+  
   const transactions = [
+    // TODAY'S TRANSACTIONS
+    {
+      receiptNumber: `RCP-${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-001`,
+      shopId: shopOwner._id,
+      customerId: customers[0]._id,
+      items: [
+        {
+          productId: products[0]._id,
+          name: products[0].name,
+          price: products[0].price,
+          quantity: 3,
+          subtotal: products[0].price * 3,
+          tax: (products[0].price * 3) * 0.13
+        },
+        {
+          productId: products[2]._id,
+          name: products[2].name,
+          price: products[2].price,
+          quantity: 2,
+          subtotal: products[2].price * 2,
+          tax: (products[2].price * 2) * 0.13
+        }
+      ],
+      subtotal: (products[0].price * 3) + (products[2].price * 2),
+      tax: ((products[0].price * 3) + (products[2].price * 2)) * 0.13,
+      discount: 100,
+      total: ((products[0].price * 3) + (products[2].price * 2)) * 1.13 - 100,
+      amountPaid: ((products[0].price * 3) + (products[2].price * 2)) * 1.13 - 100,
+      change: 0,
+      paymentMethod: 'cash',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9, 30, 0)
+    },
+    {
+      receiptNumber: `RCP-${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-002`,
+      shopId: shopOwner._id,
+      customerId: customers[1]._id,
+      items: [
+        {
+          productId: products[1]._id,
+          name: products[1].name,
+          price: products[1].price,
+          quantity: 5,
+          subtotal: products[1].price * 5,
+          tax: (products[1].price * 5) * 0.13
+        }
+      ],
+      subtotal: products[1].price * 5,
+      tax: (products[1].price * 5) * 0.13,
+      discount: 0,
+      total: (products[1].price * 5) * 1.13,
+      amountPaid: (products[1].price * 5) * 1.13,
+      change: 0,
+      paymentMethod: 'card',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 11, 15, 0)
+    },
+    {
+      receiptNumber: `RCP-${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-003`,
+      shopId: shopOwner._id,
+      customerId: customers[2]._id,
+      items: [
+        {
+          productId: products[3]._id,
+          name: products[3].name,
+          price: products[3].price,
+          quantity: 1,
+          subtotal: products[3].price,
+          tax: products[3].price * 0.13
+        },
+        {
+          productId: products[4]._id,
+          name: products[4].name,
+          price: products[4].price,
+          quantity: 2,
+          subtotal: products[4].price * 2,
+          tax: (products[4].price * 2) * 0.13
+        }
+      ],
+      subtotal: products[3].price + (products[4].price * 2),
+      tax: (products[3].price + (products[4].price * 2)) * 0.13,
+      discount: 50,
+      total: (products[3].price + (products[4].price * 2)) * 1.13 - 50,
+      amountPaid: (products[3].price + (products[4].price * 2)) * 1.13 - 50,
+      change: 0,
+      paymentMethod: 'cash',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 45, 0)
+    },
+    {
+      receiptNumber: `RCP-${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-004`,
+      shopId: shopOwner._id,
+      customerId: customers[0]._id,
+      items: [
+        {
+          productId: products[5]._id,
+          name: products[5].name,
+          price: products[5].price,
+          quantity: 4,
+          subtotal: products[5].price * 4,
+          tax: (products[5].price * 4) * 0.13
+        }
+      ],
+      subtotal: products[5].price * 4,
+      tax: (products[5].price * 4) * 0.13,
+      discount: 0,
+      total: (products[5].price * 4) * 1.13,
+      amountPaid: (products[5].price * 4) * 1.13,
+      change: 0,
+      paymentMethod: 'digital',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 16, 20, 0)
+    },
+    // YESTERDAY'S TRANSACTIONS
+    {
+      receiptNumber: `RCP-${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}${String(yesterday.getDate()).padStart(2, '0')}-001`,
+      shopId: shopOwner._id,
+      customerId: customers[1]._id,
+      items: [
+        {
+          productId: products[6]._id,
+          name: products[6].name,
+          price: products[6].price,
+          quantity: 2,
+          subtotal: products[6].price * 2,
+          tax: (products[6].price * 2) * 0.13
+        }
+      ],
+      subtotal: products[6].price * 2,
+      tax: (products[6].price * 2) * 0.13,
+      discount: 0,
+      total: (products[6].price * 2) * 1.13,
+      amountPaid: (products[6].price * 2) * 1.13,
+      change: 0,
+      paymentMethod: 'cash',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 10, 30, 0)
+    },
+    {
+      receiptNumber: `RCP-${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}${String(yesterday.getDate()).padStart(2, '0')}-002`,
+      shopId: shopOwner._id,
+      customerId: customers[2]._id,
+      items: [
+        {
+          productId: products[7]._id,
+          name: products[7].name,
+          price: products[7].price,
+          quantity: 1,
+          subtotal: products[7].price,
+          tax: products[7].price * 0.13
+        }
+      ],
+      subtotal: products[7].price,
+      tax: products[7].price * 0.13,
+      discount: 25,
+      total: (products[7].price * 1.13) - 25,
+      amountPaid: (products[7].price * 1.13) - 25,
+      change: 0,
+      paymentMethod: 'card',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 15, 45, 0)
+    },
+    // WEEK'S TRANSACTIONS
+    {
+      receiptNumber: `RCP-${weekAgo.getFullYear()}-${String(weekAgo.getMonth() + 1).padStart(2, '0')}${String(weekAgo.getDate()).padStart(2, '0')}-001`,
+      shopId: shopOwner._id,
+      customerId: customers[0]._id,
+      items: [
+        {
+          productId: products[8]._id,
+          name: products[8].name,
+          price: products[8].price,
+          quantity: 3,
+          subtotal: products[8].price * 3,
+          tax: (products[8].price * 3) * 0.13
+        }
+      ],
+      subtotal: products[8].price * 3,
+      tax: (products[8].price * 3) * 0.13,
+      discount: 0,
+      total: (products[8].price * 3) * 1.13,
+      amountPaid: (products[8].price * 3) * 1.13,
+      change: 0,
+      paymentMethod: 'cash',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(weekAgo.getFullYear(), weekAgo.getMonth(), weekAgo.getDate(), 12, 30, 0)
+    },
+    // OLDER TRANSACTIONS FOR HISTORICAL DATA
     {
       receiptNumber: 'RCP-2024-001',
       shopId: shopOwner._id,
@@ -744,81 +956,19 @@ const seedTransactions = async (shopOwner, customers, products) => {
           quantity: 2,
           subtotal: products[0].price * 2,
           tax: (products[0].price * 2) * 0.13
-        },
-        {
-          productId: products[2]._id,
-          name: products[2].name,
-          price: products[2].price,
-          quantity: 5,
-          subtotal: products[2].price * 5,
-          tax: (products[2].price * 5) * 0.13
         }
       ],
-      subtotal: (products[0].price * 2) + (products[2].price * 5),
-      tax: ((products[0].price * 2) + (products[2].price * 5)) * 0.13,
+      subtotal: products[0].price * 2,
+      tax: (products[0].price * 2) * 0.13,
       discount: 50,
-      total: ((products[0].price * 2) + (products[2].price * 5)) * 1.13 - 50,
-      amountPaid: ((products[0].price * 2) + (products[2].price * 5)) * 1.13 - 50,
+      total: ((products[0].price * 2) * 1.13) - 50,
+      amountPaid: ((products[0].price * 2) * 1.13) - 50,
       change: 0,
+      paymentMethod: 'cash',
       status: 'completed',
       cashierId: shopOwner._id,
-      createdAt: new Date('2024-01-15T10:30:00')
-    },
-    {
-      receiptNumber: 'RCP-2024-002',
-      shopId: shopOwner._id,
-      customerId: customers[1]._id,
-      items: [
-        {
-          productId: products[1]._id,
-          name: products[1].name,
-          price: products[1].price,
-          quantity: 1,
-          subtotal: products[1].price,
-          tax: products[1].price * 0.13
-        },
-        {
-          productId: products[6]._id,
-          name: products[6].name,
-          price: products[6].price,
-          quantity: 3,
-          subtotal: products[6].price * 3,
-          tax: (products[6].price * 3) * 0.13
-        }
-      ],
-      subtotal: products[1].price + (products[6].price * 3),
-      tax: (products[1].price + (products[6].price * 3)) * 0.13,
-      discount: 0,
-      total: (products[1].price + (products[6].price * 3)) * 1.13,
-      amountPaid: (products[1].price + (products[6].price * 3)) * 1.13,
-      change: 0,
-      status: 'completed',
-      cashierId: shopOwner._id,
-      createdAt: new Date('2024-01-16T14:20:00')
-    },
-    {
-      receiptNumber: 'RCP-2024-003',
-      shopId: shopOwner._id,
-      customerId: customers[2]._id,
-      items: [
-        {
-          productId: products[8]._id,
-          name: products[8].name,
-          price: products[8].price,
-          quantity: 2,
-          subtotal: products[8].price * 2,
-          tax: (products[8].price * 2) * 0.13
-        }
-      ],
-      subtotal: products[8].price * 2,
-      tax: (products[8].price * 2) * 0.13,
-      discount: 20,
-      total: ((products[8].price * 2) * 1.13) - 20,
-      amountPaid: ((products[8].price * 2) * 1.13) - 20,
-      change: 0,
-      status: 'completed',
-      cashierId: shopOwner._id,
-      createdAt: new Date('2024-01-17T09:15:00')
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(monthAgo.getFullYear(), monthAgo.getMonth(), monthAgo.getDate(), 10, 30, 0)
     }
   ];
   

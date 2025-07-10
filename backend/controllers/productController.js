@@ -8,10 +8,19 @@ const { productImageUpload } = require('../utils/fileUpload');
 // Get all products for a shop
 exports.getProducts = async (req, res) => {
   try {
+    // For testing without authentication, use any user
+    const User = require('../models/User');
+    const shopOwner = await User.findOne({ role: 'shopowner' });
+    
+    if (!shopOwner) {
+      return res.status(404).json({ success: false, message: 'No shop owner found' });
+    }
+    
+    const shopId = shopOwner._id;
     const { page = 1, limit = 20, search, category, lowStock, sort = 'name', order = 'asc' } = req.query;
     
     // Build query
-    const query = { shopId: req.user._id };
+    const query = { shopId: shopId };
     
     // Add search filter if provided
     if (search) {

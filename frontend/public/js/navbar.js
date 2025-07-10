@@ -22,7 +22,7 @@ class SmartPOSNavbar {
             customActions: options.customActions || [],
             ...options
         };
-        this.notificationCount = 3; // Default notification count
+        this.notificationCount = 0; // Start with no notifications (will show dot based on actual unread count)
         this.init();
     }    init() {
         // Always ensure body can scroll on navbar initialization
@@ -102,7 +102,7 @@ class SmartPOSNavbar {
         const notifications = this.options.showNotifications ? 
             `<div class="navbar-notification-icon" id="navbarNotificationIcon">
                 <i class="fas fa-bell"></i>
-                <span class="navbar-notification-badge" id="navbarNotificationBadge">${this.notificationCount}</span>
+                <span class="navbar-notification-dot" id="navbarNotificationDot"></span>
             </div>` : '';        const profile = this.options.showProfile ? 
             `<div class="navbar-profile-icon" id="navbarProfileIcon">
                 <img src="../images/avatars/user-avatar.png" alt="Profile" id="navbarProfileImage" onerror="this.src='../images/avatars/user-avatar.png'">
@@ -297,6 +297,13 @@ class SmartPOSNavbar {
                 transition: all 0.3s ease;
                 color: #2c3e50;
                 font-size: 18px;
+            }
+
+            .navbar-notification-icon:hover {
+                background: #007bff;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,123,255,0.2);
             }
 
             .scan-button {
@@ -628,6 +635,44 @@ class SmartPOSNavbar {
                     min-width: 220px;
                 }
             }
+            
+            /* Notification dot indicator */
+            .navbar-notification-dot {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                width: 8px;
+                height: 8px;
+                background: #dc3545;
+                border-radius: 50%;
+                border: 2px solid white;
+                display: none;
+                animation: pulse-dot 2s infinite;
+            }
+            
+            .navbar-notification-dot.show {
+                display: block;
+            }
+            
+            @keyframes pulse-dot {
+                0% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+                50% {
+                    transform: scale(1.2);
+                    opacity: 0.8;
+                }
+                100% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+            
+            /* Hide old notification badge completely */
+            .navbar-notification-badge {
+                display: none !important;
+            }
         `;
         document.head.appendChild(styles);    }    attachEventListeners() {
         // Hamburger menu icon
@@ -769,6 +814,10 @@ class SmartPOSNavbar {
                 </div>
             </div>
         `).join('');
+        
+        // Count unread notifications and show dot if any
+        const unreadCount = notifications.filter(n => n.unread).length;
+        this.updateNotificationCount(unreadCount);
     }
 
     toggleNotificationPanel() {
@@ -780,6 +829,9 @@ class SmartPOSNavbar {
         
         if (panel?.classList.contains('active')) {
             document.body.style.overflow = 'hidden';
+            // When notification panel is opened, hide the red dot (mark as viewed)
+            this.showNotificationDot(false);
+            this.notificationCount = 0;
         } else {
             document.body.style.overflow = '';
         }
@@ -820,11 +872,39 @@ class SmartPOSNavbar {
 
     updateNotificationCount(count) {
         this.notificationCount = count;
+        const dot = document.getElementById('navbarNotificationDot');
         const badge = document.getElementById('navbarNotificationBadge');
-        if (badge) {
-            badge.textContent = count;
-            badge.style.display = count > 0 ? 'flex' : 'none';
+        
+        if (dot) {
+            // Show red dot if there are any notifications, hide if none
+            if (count > 0) {
+                dot.classList.add('show');
+            } else {
+                dot.classList.remove('show');
+            }
         }
+        
+        // Always hide the old badge system
+        if (badge) {
+            badge.style.display = 'none';
+        }
+    }
+
+    // Helper function to show/hide notification dot
+    showNotificationDot(show = true) {
+        const dot = document.getElementById('navbarNotificationDot');
+        if (dot) {
+            if (show) {
+                dot.classList.add('show');
+            } else {
+                dot.classList.remove('show');
+            }
+        }
+    }
+
+    // Helper function to check if there are unread notifications
+    hasUnreadNotifications() {
+        return this.notificationCount > 0;
     }
 
     handleScanButtonClick() {

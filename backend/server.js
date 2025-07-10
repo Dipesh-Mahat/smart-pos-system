@@ -137,12 +137,16 @@ app.use('/api/admin', adminLimiter); // Rate limiting for admin actions
 app.use('/api', apiLimiter); // General API rate limiting
 
 // Graceful shutdown for the server
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('Server shutting down gracefully...');
-  mongoose.connection.close(() => {
+  try {
+    await mongoose.connection.close();
     console.log('MongoDB connection closed');
     process.exit(0); // Exit process after MongoDB disconnects
-  });
+  } catch (error) {
+    console.error('Error closing MongoDB connection:', error);
+    process.exit(1);
+  }
 });
 
 // Connect to MongoDB

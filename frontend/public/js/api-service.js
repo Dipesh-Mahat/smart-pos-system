@@ -5,8 +5,8 @@
 
 class ApiService {
     constructor() {
-        // Use relative URL for API to work with both local development and production
-        this.baseUrl = '/api';
+        // Use full URL for API to work with both local development and production
+        this.baseUrl = 'http://localhost:5000/api';
         this.authService = window.authService;
     }
 
