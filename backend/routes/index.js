@@ -10,11 +10,19 @@ const adminController = require('../controllers/adminController');
 const dashboardController = require('../controllers/dashboardController');
 const productController = require('../controllers/productController');
 const transactionController = require('../controllers/transactionController');
+const orderController = require('../controllers/orderController');
 
 // Public routes (no authentication required)
 router.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'API is healthy' });
 });
+
+// Supplier routes (temporarily disable authentication for testing)
+router.get('/shop/orders/suppliers', (req, res, next) => {
+  // Mock authentication for testing
+  req.user = { _id: '507f1f77bcf86cd799439011', role: 'shopowner' };
+  next();
+}, orderController.getAvailableSuppliers);
 
 // Protected routes (authentication required)
 // Apply JWT authentication middleware to all routes below

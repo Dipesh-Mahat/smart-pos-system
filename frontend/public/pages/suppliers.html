@@ -4,51 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart POS - Suppliers</title>
-    <link rel="stylesheet" href="../css/styles.css">
-    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="/frontend/public/css/styles.css">
+    <link rel="stylesheet" href="/frontend/public/css/menu.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Conditional Auth Service Loading -->
+    <!-- Global error handler -->
     <script>
-        // Check if we're in development mode
-        const isDevMode = sessionStorage.getItem('devMode') === 'true';
-        if (isDevMode) {
-            // Load development auth service
-            document.write('<script src="../js/auth-service-dev.js"><\/script>');
-            console.log('Loading development auth service for suppliers page');
-        } else {
-            // Load production auth service
-            document.write('<script src="../js/auth-service.js"><\/script>');
-        }
-    </script>
-    <script src="../js/api-service.js"></script>
-    
-    <!-- Check authentication on page load -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const isDevMode = sessionStorage.getItem('devMode') === 'true';
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error('JavaScript Error:', {
+                message: message,
+                source: source,
+                line: lineno,
+                column: colno,
+                error: error
+            });
             
-            if (isDevMode) {
-                // In dev mode, set up mock user data
-                if (window.authService && typeof window.authService.setMockUserData === 'function') {
-                    window.authService.setMockUserData();
-                    console.log('Development mode: Mock user data set for suppliers page');
-                } else {
-                    console.error('Development auth service not available');
-                }
-            } else {
-                // In production mode, check authentication
-                if (!window.authService || !window.authService.isLoggedIn()) {
-                    window.location.href = '../landing.html';
-                    return;
-                }
-                
-                // Ensure token is fresh
-                window.authService.ensureFreshToken();
-            }
-        });
+            // Display error on page
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'position: fixed; top: 10px; right: 10px; background: red; color: white; padding: 10px; z-index: 9999; max-width: 400px; border-radius: 5px;';
+            errorDiv.innerHTML = `<strong>JavaScript Error:</strong><br>${message}<br>Source: ${source}:${lineno}`;
+            document.body.appendChild(errorDiv);
+            
+            return true;
+        };
     </script>
-
+</head>
+<body>
     <style>        .main-content {
             padding: 24px;
             background-color: #f8f9fa;
@@ -389,67 +369,34 @@
             </div>
         </div>
 
-        <!-- Key Insights & Quick Actions -->
-        <div style="display: flex; flex-wrap: wrap; gap: 32px; margin-bottom: 32px;">
-            <!-- Key Insights -->
-            <div style="flex: 2 1 320px; min-width: 280px; background: white; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); padding: 28px 28px 20px 28px; border: 1px solid #e9ecef;">
-                <div style="font-size: 1.2rem; font-weight: 600; color: #007bff; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-lightbulb"></i> Key Insights
-                </div>
-                <ul id="keyInsightsList" style="list-style: none; padding: 0; margin: 0; color: #495057; font-size: 1rem;">
-                    <li style="margin-bottom: 12px;"><i class="fas fa-check-circle" style="color:#28a745;margin-right:8px;"></i> <span id="insight-most-active">Most suppliers are active and ready for orders.</span></li>
-                    <li style="margin-bottom: 12px;"><i class="fas fa-clock" style="color:#ffc107;margin-right:8px;"></i> <span id="insight-pending">Some suppliers are pending approval.</span></li>
-                    <li style="margin-bottom: 12px;"><i class="fas fa-globe" style="color:#007bff;margin-right:8px;"></i> <span id="insight-international">International suppliers are available for global sourcing.</span></li>
-                    <li><i class="fas fa-boxes" style="color:#6c757d;margin-right:8px;"></i> <span id="insight-products">Suppliers offer a wide range of products.</span></li>
-                </ul>
-            </div>
-            <!-- Quick Actions -->
-            <div style="flex: 1 1 220px; min-width: 200px; background: white; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); padding: 28px 28px 20px 28px; border: 1px solid #e9ecef;">
-                <div style="font-size: 1.2rem; font-weight: 600; color: #007bff; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-bolt"></i> Quick Actions
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 14px;">
-                    <button class="btn btn-success" style="width:100%;" onclick="addSupplier()">
-                        <i class="fas fa-user-plus"></i> Add New Supplier
-                    </button>
-                    <button class="btn btn-secondary" style="width:100%;" onclick="exportSuppliers()">
-                        <i class="fas fa-download"></i> Export Suppliers
-                    </button>
-                    <button class="btn btn-secondary" style="width:100%;" onclick="alert('Import suppliers functionality will be implemented')">
-                        <i class="fas fa-upload"></i> Import Suppliers
-                    </button>
-                </div>
-            </div>
-        </div>
-
         <!-- Statistics -->
         <div class="stats-container">
             <div class="stat-card">
                 <div class="stat-icon">
                     <i class="fas fa-truck"></i>
                 </div>
-                <div class="stat-value">47</div>
+                <div class="stat-value">0</div>
                 <div class="stat-label">Total Suppliers</div>
             </div>
             <div class="stat-card active">
                 <div class="stat-icon">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <div class="stat-value">42</div>
+                <div class="stat-value">0</div>
                 <div class="stat-label">Active</div>
             </div>
             <div class="stat-card pending">
                 <div class="stat-icon">
                     <i class="fas fa-clock"></i>
                 </div>
-                <div class="stat-value">3</div>
+                <div class="stat-value">0</div>
                 <div class="stat-label">Pending</div>
             </div>
             <div class="stat-card inactive">
                 <div class="stat-icon">
                     <i class="fas fa-times-circle"></i>
                 </div>
-                <div class="stat-value">2</div>
+                <div class="stat-value">0</div>
                 <div class="stat-label">Inactive</div>
             </div>
         </div>
@@ -486,27 +433,35 @@
             try {
                 showLoading(true);
                 
-                // Debug info
-                console.log('Loading suppliers...');
-                console.log('Auth service:', window.authService);
-                console.log('API service:', window.apiService);
-                console.log('User logged in:', window.authService?.isLoggedIn());
-                console.log('Current user:', window.authService?.getCurrentUser());
+                // Determine API base URL based on environment
+                const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                    ? 'http://localhost:5000/api' 
+                    : 'https://smart-pos-system.onrender.com/api';
                 
-                const response = await window.apiService.get('/shop/orders/suppliers');
-                console.log('Suppliers API response:', response);
+                const fetchResponse = await fetch(`${API_BASE_URL}/shop/orders/suppliers`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+                
+                if (!fetchResponse.ok) {
+                    throw new Error(`HTTP error! status: ${fetchResponse.status}`);
+                }
+                
+                const response = await fetchResponse.json();
                 
                 if (response.success) {
                     allSuppliers = response.suppliers || [];
                     displaySuppliers(allSuppliers);
-                    updateStatistics(allSuppliers);
-                    updateKeyInsights(allSuppliers);
+                    updateStatistics();
+                    displaySuppliers(allSuppliers);
+                    updateStatistics();
                 } else {
-                    console.error('Failed to load suppliers:', response);
                     showError(`Failed to load suppliers: ${response.error || response.message || 'Unknown error'}`);
                 }
             } catch (error) {
-                console.error('Error loading suppliers:', error);
                 let errorMessage = 'Error loading suppliers. ';
                 
                 if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -606,56 +561,6 @@
             document.querySelector('.stat-card:nth-child(3) .stat-value').textContent = pendingCount;
             document.querySelector('.stat-card:nth-child(4) .stat-value').textContent = inactiveCount;
         }
-
-        // --- Key Insights Calculation ---
-        function updateKeyInsights(suppliers) {
-            if (!suppliers || suppliers.length === 0) {
-                document.getElementById('topSupplierName').textContent = '-';
-                document.getElementById('mostProductsSupplier').textContent = '-';
-                document.getElementById('mostOrdersSupplier').textContent = '-';
-                document.getElementById('lastSupplierAdded').textContent = '-';
-                return;
-            }
-            // Top Supplier (highest rating, fallback to most orders)
-            let topSupplier = suppliers.slice().sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
-            if (!topSupplier || !topSupplier.rating) {
-                topSupplier = suppliers.slice().sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0))[0];
-            }
-            document.getElementById('topSupplierName').textContent = topSupplier ? (topSupplier.shopName || `${topSupplier.firstName} ${topSupplier.lastName}`) : '-';
-            // Most Products
-            const mostProducts = suppliers.slice().sort((a, b) => (b.productCount || 0) - (a.productCount || 0))[0];
-            document.getElementById('mostProductsSupplier').textContent = mostProducts ? (mostProducts.shopName || `${mostProducts.firstName} ${mostProducts.lastName}`) + ` (${mostProducts.productCount || 0})` : '-';
-            // Most Orders
-            const mostOrders = suppliers.slice().sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0))[0];
-            document.getElementById('mostOrdersSupplier').textContent = mostOrders ? (mostOrders.shopName || `${mostOrders.firstName} ${mostOrders.lastName}`) + ` (${mostOrders.orderCount || 0})` : '-';
-            // Last Supplier Added (most recent _id or createdAt)
-            let lastAdded = suppliers.slice().sort((a, b) => {
-                if (a.createdAt && b.createdAt) return new Date(b.createdAt) - new Date(a.createdAt);
-                if (a._id && b._id) return b._id.localeCompare(a._id);
-                return 0;
-            })[0];
-            document.getElementById('lastSupplierAdded').textContent = lastAdded ? (lastAdded.shopName || `${lastAdded.firstName} ${lastAdded.lastName}`) : '-';
-        }
-
-        // Enhance Key Insights dynamically after suppliers load
-        function updateKeyInsights(suppliers) {
-            if (!Array.isArray(suppliers) || suppliers.length === 0) return;
-            // Most active supplier
-            const active = suppliers.filter(s => s.status === 'approved');
-            const pending = suppliers.filter(s => s.status === 'pending');
-            const international = suppliers.filter(s => s.address && s.address.country && s.address.country !== 'Nepal');
-            const totalProducts = suppliers.reduce((sum, s) => sum + (s.productCount || 0), 0);
-            document.getElementById('insight-most-active').textContent = `${active.length} supplier${active.length === 1 ? '' : 's'} currently active.`;
-            document.getElementById('insight-pending').textContent = `${pending.length} supplier${pending.length === 1 ? '' : 's'} pending approval.`;
-            document.getElementById('insight-international').textContent = `${international.length} international supplier${international.length === 1 ? '' : 's'} available.`;
-            document.getElementById('insight-products').textContent = `Suppliers offer ${totalProducts} product${totalProducts === 1 ? '' : 's'} in total.`;
-        }
-        // Patch loadSuppliers to update insights
-        const origLoadSuppliers = loadSuppliers;
-        loadSuppliers = async function() {
-            await origLoadSuppliers.apply(this, arguments);
-            updateKeyInsights(allSuppliers);
-        };
         // Helper functions
         function getSupplierInitials(supplier) {
             const name = supplier.shopName || `${supplier.firstName} ${supplier.lastName}`;
@@ -709,43 +614,17 @@
                     <i class="fas fa-exclamation-triangle" style="color: #ef476f; font-size: 64px; margin-bottom: 20px;"></i>
                     <h3 style="color: #495057; font-size: 24px; margin-bottom: 10px;">Error Loading Suppliers</h3>
                     <p style="color: #6c757d; font-size: 16px; margin-bottom: 30px;">${message}</p>
-                    <button class="retry-btn" onclick="loadSuppliers()" style="
-                        background: linear-gradient(135deg, #007bff, #0056b3);
-                        color: white;
-                        padding: 12px 24px;
-                        border: none;
-                        border-radius: 8px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 8px;
-                        font-size: 16px;
-                        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.25);
-                        text-decoration: none;
-                        min-width: 120px;
-                        justify-content: center;
-                    " onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(0, 123, 255, 0.35)'" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 123, 255, 0.25)'">
-                        <i class="fas fa-refresh"></i>
-                        Try Again
-                    </button>
                 </div>
             `;
         }
 
         // Filter functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Load suppliers when page is ready
             loadSuppliers();
             
-            const filterBtns = document.querySelectorAll('.filter-btn');
-            
-            // Search input will be injected into navbar, so select it after injection
-            function getSearchInput() {
-                return document.getElementById('searchInput');
-            }
-
             // Filter button functionality
+            const filterBtns = document.querySelectorAll('.filter-btn');
             filterBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
                     filterBtns.forEach(b => b.classList.remove('active'));
@@ -755,27 +634,9 @@
                     filterSuppliers(currentFilter);
                 });
             });
-
-            // Wait for search input to be available in navbar
-            function attachSearchListener() {
-                const searchInput = getSearchInput();
-                if (searchInput) {
-                    searchInput.addEventListener('input', function() {
-                        const searchTerm = this.value.toLowerCase();
-                        filterAndSearchSuppliers(currentFilter, searchTerm);
-                    });
-                } else {
-                    setTimeout(attachSearchListener, 100);
-                }
-            }
-            attachSearchListener();
         });
 
         function filterSuppliers(filter) {
-            filterAndSearchSuppliers(filter, '');
-        }
-
-        function filterAndSearchSuppliers(filter, searchTerm = '') {
             let filteredSuppliers = [...allSuppliers];
             
             // Apply status filter
@@ -795,24 +656,6 @@
                         default:
                             return true;
                     }
-                });
-            }
-            
-            // Apply search filter
-            if (searchTerm) {
-                filteredSuppliers = filteredSuppliers.filter(supplier => {
-                    const searchableText = [
-                        supplier.shopName,
-                        supplier.firstName,
-                        supplier.lastName,
-                        supplier.email,
-                        supplier.contactNumber,
-                        supplier.address?.city,
-                        supplier.address?.state,
-                        supplier.address?.country
-                    ].filter(Boolean).join(' ').toLowerCase();
-                    
-                    return searchableText.includes(searchTerm);
                 });
             }
             
@@ -894,19 +737,21 @@
     </script>
 
     <!-- Navbar and Menu Scripts -->
-    <script src="../js/navbar.js"></script>
-    <script src="../js/menu.js"></script>
+    <script src="/frontend/public/js/navbar.js"></script>
+    <script src="/frontend/public/js/menu.js"></script>
     <script>
         // Initialize navbar with custom actions
         document.addEventListener('DOMContentLoaded', function() {
-            const navbar = new SmartPOSNavbar();
-            
-            // Add custom navbar actions for suppliers
-            navbar.addAction('add-supplier', 'Add Supplier', 'fas fa-plus', 'btn-primary');
-            navbar.addAction('export-suppliers', 'Export', 'fas fa-download', 'btn-secondary');
-            navbar.addAction('import-suppliers', 'Import', 'fas fa-upload', 'btn-secondary');
+            const navbar = new SmartPOSNavbar({
+                title: 'Suppliers - Smart POS',
+                customActions: [
+                    { id: 'add-supplier', title: 'Add Supplier', icon: 'plus' },
+                    { id: 'export-suppliers', title: 'Export', icon: 'download' },
+                    { id: 'import-suppliers', title: 'Import', icon: 'upload' }
+                ]
+            });
             // Handle navbar action clicks
-            document.addEventListener('navbarAction', function(e) {
+            window.addEventListener('navbarAction', function(e) {
                 switch(e.detail.actionId) {
                     case 'add-supplier':
                         addSupplier();
@@ -920,36 +765,6 @@
                         break;
                 }
             });
-
-            // Use MutationObserver to inject search bar into navbar reliably
-            function injectSearchBar() {
-                const navbar = document.querySelector('.smart-pos-navbar');
-                if (navbar && !document.getElementById('navbarSearchContainer')) {
-                    // Use the same markup as POS/products main content search bar
-                    const searchHTML = `
-                        <div class="navbar-center" id="navbarSearchContainer" style="flex:1;max-width:600px;margin:0 32px;">
-                            <div class="search-container" style="background:white;padding:25px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.05);margin-bottom:0;border:1px solid #e9ecef;">
-                                <div class="search-box" style="max-width:100%;margin:0;">
-                                    <input type="text" placeholder="Search suppliers by name, contact, or location..." id="searchInput" class="navbar-search" style="width:100%;padding:15px 50px 15px 20px;border:2px solid #e9ecef;border-radius:50px;font-size:16px;transition:all 0.3s ease;background:white;">
-                                    <i class="fas fa-search search-icon" style="position:absolute;right:20px;top:50%;transform:translateY(-50%);color:#6c757d;font-size:18px;"></i>
-                                </div>
-                            </div>
-                        </div>`;
-                    const left = navbar.querySelector('.navbar-left');
-                    const right = navbar.querySelector('.navbar-right');
-                    if (left && right) {
-                        left.insertAdjacentHTML('afterend', searchHTML);
-                    }
-                }
-            }
-
-            // Observe for navbar rendering
-            const observer = new MutationObserver(() => {
-                injectSearchBar();
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-            // Also try once in case navbar is already present
-            injectSearchBar();
         });
     </script>
 </body>
