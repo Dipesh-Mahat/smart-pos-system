@@ -126,244 +126,29 @@
     <div class="dev-warning">
         DEVELOPMENT MODE - Not for production use
     </div>
-    
     <div class="dev-container">
-        <h1 class="dev-title">Smart POS System - Development Mode</h1>        <h2 class="section-title shop-owner">
-            <i class="fas fa-store"></i> Shop Owner Pages
-        </h2>
-        
+        <h1 class="dev-title">Smart POS System - Development Mode</h1>
         <div class="dev-options">
             <div class="dev-option" onclick="navigateTo('dashboard')">
-                <i class="fas fa-chart-line"></i>
-                <h3>Dashboard</h3>
-                <p>View shop performance metrics</p>
+                <i class="fas fa-store"></i>
+                <h3>Shop Owner</h3>
+                <p>Go to Shop Owner Dashboard</p>
             </div>
-            
-            <div class="dev-option" onclick="navigateTo('pos')">
-                <i class="fas fa-cash-register"></i>
-                <h3>Point of Sale</h3>
-                <p>Process sales transactions</p>
+            <div class="dev-option" onclick="navigateToSupplier('supplier-dashboard')">
+                <i class="fas fa-truck" style="color: #28a745;"></i>
+                <h3>Supplier</h3>
+                <p>Go to Supplier Dashboard</p>
             </div>
-            
-            <div class="dev-option" onclick="navigateTo('inventory')">
-                <i class="fas fa-boxes"></i>
-                <h3>Inventory</h3>
-                <p>Manage product inventory</p>
-            </div>
-            
-            <div class="dev-option" onclick="navigateTo('transactions')">
-                <i class="fas fa-receipt"></i>
-                <h3>Transactions</h3>
-                <p>View sales history</p>
-            </div>
-            
-            <div class="dev-option" onclick="navigateTo('products')">
-                <i class="fas fa-tag"></i>
-                <h3>Products</h3>
-                <p>Manage product catalog</p>
-            </div>
-            
-            <div class="dev-option" onclick="navigateTo('item-management')">
-                <i class="fas fa-cubes"></i>
-                <h3>Item Management</h3>
-                <p>Add and edit items</p>
-            </div>
-            
-            <div class="dev-option" onclick="navigateTo('suppliers')">
-                <i class="fas fa-truck"></i>
-                <h3>Suppliers</h3>
-                <p>Browse and order from suppliers</p>
-            </div>
-        </div>
-        
-        <h2 class="section-title supplier">
-            <i class="fas fa-shield-alt"></i> Admin Pages
-        </h2>
-        
-        <div class="dev-options">
             <div class="dev-option" onclick="navigateTo('admin-dashboard')">
                 <i class="fas fa-users-cog" style="color: #dc3545;"></i>
-                <h3>Admin Dashboard</h3>
-                <p>Complete system administration</p>
+                <h3>Admin</h3>
+                <p>Go to Admin Dashboard</p>
             </div>
         </div>
-        
-        <h2 class="section-title supplier">
-            <i class="fas fa-truck"></i> Supplier Pages
-        </h2>
-        
-        <div class="dev-options">
-            <div class="dev-option" onclick="navigateToSupplier('supplier-dashboard')">
-                <i class="fas fa-tachometer-alt" style="color: #28a745;"></i>
-                <h3>Supplier Dashboard</h3>
-                <p>View supplier analytics and overview</p>
-            </div>
-            
-            <div class="dev-option" onclick="navigateToSupplier('supplier-products')">
-                <i class="fas fa-box-open" style="color: #28a745;"></i>
-                <h3>Product Catalog</h3>
-                <p>Manage supplier product listings</p>
-            </div>
-            
-            <div class="dev-option" onclick="navigateToSupplier('supplier-orders')">
-                <i class="fas fa-shopping-cart" style="color: #28a745;"></i>
-                <h3>Orders</h3>
-                <p>View and manage orders from shops</p>
-            </div>
-            
-            <div class="dev-option" onclick="navigateToSupplier('supplier-customers')">
-                <i class="fas fa-users" style="color: #28a745;"></i>
-                <h3>Customers</h3>
-                <p>Manage shop relationships</p>
-            </div>
-            
-            <div class="dev-option" onclick="navigateToSupplier('supplier-inventory')">
-                <i class="fas fa-warehouse" style="color: #28a745;"></i>
-                <h3>Inventory</h3>
-                <p>Track supplier stock levels</p>
-            </div>
-            
-            <div class="dev-option" onclick="navigateToSupplier('supplier-analytics')">
-                <i class="fas fa-chart-bar" style="color: #28a745;"></i>
-                <h3>Analytics</h3>
-                <p>View sales and performance data</p>
-            </div>
-            
-            <div class="dev-option" onclick="navigateToSupplier('supplier-profile')">
-                <i class="fas fa-user-cog" style="color: #28a745;"></i>
-                <h3>Profile</h3>
-                <p>Manage supplier profile settings</p>
-            </div>
-            
-            <div class="dev-option" onclick="navigateToSupplier('supplier-settings')">
-                <i class="fas fa-cog" style="color: #28a745;"></i>
-                <h3>Settings</h3>
-                <p>Configure supplier preferences</p>
-            </div>
-        </div>
-        
         <div class="dev-note">
             <p><strong>Note:</strong> This page is for development and testing purposes only. It bypasses authentication and uses mock data. Do not use this in production environments.</p>
             <p>For production use, please use the regular login flow through the landing page.</p>
         </div>
-        
-        <div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #007bff;">
-            <h3 style="margin: 0 0 15px 0; color: #333; display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-tools"></i> Backend Connectivity Diagnostics
-            </h3>
-            <div id="diagnostics" style="font-family: 'Courier New', monospace; font-size: 14px; color: #495057;">
-                <div>Checking backend connectivity...</div>
-            </div>
-            <button onclick="runDiagnostics()" style="
-                margin-top: 15px;
-                background: #007bff;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 14px;
-            ">
-                <i class="fas fa-refresh"></i> Run Diagnostics
-            </button>
-        </div>
     </div>
-
-    <script>
-        async function runDiagnostics() {
-            const diagnosticsEl = document.getElementById('diagnostics');
-            diagnosticsEl.innerHTML = '<div style="color: #007bff;">Running diagnostics...</div>';
-            
-            const results = [];
-            
-            // Test 1: Check if auth service is loaded
-            results.push(`🔐 Auth Service: ${window.authService ? '✅ Loaded (dev mode)' : '❌ Not loaded'}`);
-            
-            // Test 2: Check user data
-            if (window.authService) {
-                const user = window.authService.getCurrentUser();
-                results.push(`👤 User Data: ${user ? '✅ Available' : '❌ Missing'}`);
-                if (user) {
-                    results.push(`   └─ Name: ${user.name || 'N/A'}`);
-                    results.push(`   └─ Role: ${user.role || 'N/A'}`);
-                }
-            }
-            
-            // Test 3: Check API service
-            results.push(`🌐 API Service: ${window.ApiService ? '✅ Available' : '❌ Not loaded'}`);
-            
-            // Test 4: Test backend connection
-            try {
-                results.push('🔌 Testing backend connection...');
-                const response = await fetch('https://smart-pos-system.onrender.com/api/health', {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    results.push(`✅ Backend: Connected (${response.status})`);
-                    results.push(`   └─ Response: ${JSON.stringify(data)}`);
-                } else {
-                    results.push(`❌ Backend: Error ${response.status}`);
-                }
-            } catch (error) {
-                results.push(`❌ Backend: Connection failed - ${error.message}`);
-            }
-            
-            // Test 5: Test products endpoint
-            if (window.authService && window.ApiService) {
-                try {
-                    results.push('📦 Testing products endpoint...');
-                    const apiService = new window.ApiService();
-                    const productsResponse = await apiService.request('/products');
-                    
-                    if (productsResponse.success) {
-                        results.push(`✅ Products API: Success (${productsResponse.data?.length || 0} products)`);
-                    } else {
-                        results.push(`❌ Products API: ${productsResponse.error || 'Unknown error'}`);
-                    }
-                } catch (error) {
-                    results.push(`❌ Products API: ${error.message}`);
-                }
-            }
-            
-            // Test 6: Test suppliers endpoint
-            if (window.authService && window.ApiService) {
-                try {
-                    results.push('🚚 Testing suppliers endpoint...');
-                    const apiService = new window.ApiService();
-                    const suppliersResponse = await apiService.request('/shop/suppliers');
-                    
-                    if (suppliersResponse.success) {
-                        results.push(`✅ Suppliers API: Success (${suppliersResponse.data?.length || 0} suppliers)`);
-                    } else {
-                        results.push(`❌ Suppliers API: ${suppliersResponse.error || 'Unknown error'}`);
-                    }
-                } catch (error) {
-                    results.push(`❌ Suppliers API: ${error.message}`);
-                }
-            }
-            
-            diagnosticsEl.innerHTML = results.map(result => `<div style="margin: 5px 0;">${result}</div>`).join('');
-        }
-        
-        // Run initial diagnostics
-        document.addEventListener('DOMContentLoaded', function() {
-            // Ensure we're using the dev auth service
-            if (window.authService && typeof window.authService.setMockUserData === 'function') {
-                console.log('Development auth service loaded');
-                
-                // Force mock user data to be fresh
-                window.authService.setMockUserData();
-                
-                // Run diagnostics after a short delay to ensure everything is loaded
-                setTimeout(runDiagnostics, 1000);
-            } else {
-                console.error('Development auth service not loaded correctly');
-                document.getElementById('diagnostics').innerHTML = '<div style="color: #dc3545;">❌ Development auth service not loaded correctly</div>';
-            }
-        });
-    </script>
 </body>
 </html>
