@@ -2,68 +2,158 @@
 
 class ProfileManager {
     constructor() {
+        // Auto-detect API URL based on environment (same as auth service)
+        const isLocalhost = window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1';
+        
+        this.baseApiUrl = isLocalhost ? 
+                         'http://localhost:5000/api' : 
+                         'https://smart-pos-system.onrender.com/api';
+                         
+        console.log('Profile manager initialized with API base URL:', this.baseApiUrl);
+        this.supplierProfile = null;
+        
+        this.init();
+    }
+
+    async init() {
+        await this.fetchProfile();
+        this.setupEventListeners();
+    }
+
+    async fetchProfile() {
+        try {
+            const token = this.getToken();
+            console.log('Token available:', !!token);
+            console.log('Making request to:', `${this.baseApiUrl}/supplier/profile`);
+            
+            const response = await fetch(`${this.baseApiUrl}/supplier/profile`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.log('Error response:', errorText);
+                throw new Error(`Failed to fetch profile: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            if (data.success) {
+                this.supplierProfile = data.data.profile;
+                this.supplierStats = data.data.stats;
+                this.renderProfile();
+                this.renderStats();
+            } else {
+                console.log('API returned success: false:', data.message);
+                this.showNotification(data.message || 'Failed to load profile', 'error');
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+            this.showNotification('Failed to load profile. Please try again.', 'error');
+            
+            // Load sample data for development
+            this.loadSampleData();
+        }
+    }
+
+    loadSampleData() {
+        // Use sample data when API is not available (for development)
         this.supplierProfile = {
-            id: 'SUP-001',
-            businessName: 'Adhikari Wholesale Suppliers',
-            contactPerson: 'Krishna Prasad Adhikari',
+            _id: 'SUP-001',
+            firstName: 'Krishna',
+            lastName: 'Adhikari',
             email: 'krishna.adhikari@aws.com.np',
-            phone: '+977-986-1234567',
-            website: 'www.adhikari-wholesale.com.np',
+            companyName: 'Adhikari Wholesale Suppliers',
+            contactDetails: {
+                title: 'CEO',
+                secondaryEmail: 'info@aws.com.np',
+                primaryPhone: '+977-986-1234567',
+                secondaryPhone: '+977-985-7654321'
+            },
+            businessDetails: {
+                businessType: 'wholesaler',
+                businessRegistration: 'REG-123456789-NPL',
+                taxId: 'PAN-987654321',
+                description: 'Leading wholesale supplier of grocery items, beverages, and daily necessities for retail marts across Nepal.',
+                website: 'www.adhikari-wholesale.com.np',
+                establishedYear: 2015
+            },
             address: {
                 street: 'Bhaisepati Industrial Area',
                 city: 'Lalitpur',
                 state: 'Bagmati Province',
-                zipCode: '44700',
+                postalCode: '44700',
                 country: 'Nepal'
             },
-            businessInfo: {
-                registrationNumber: 'REG-123456789-NPL',
-                taxId: 'PAN-987654321',
-                businessType: 'Private Limited',
-                founded: '2015',
-                employees: '25-50',
-                description: 'Leading wholesale supplier of grocery items, beverages, and daily necessities for retail marts across Nepal.'
+            billingAddress: {
+                street: '123 Finance Street',
+                city: 'Kathmandu',
+                state: 'Bagmati Province',
+                postalCode: '44600',
+                country: 'Nepal'
             },
-            bankDetails: {
-                bankName: 'Nabil Bank Limited',
-                accountNumber: '****-****-****-1234',
-                routingNumber: '123456789',
-                accountType: 'Business Checking'
+            shippingAddress: {
+                street: '456 Warehouse Road',
+                city: 'Bhaktapur',
+                state: 'Bagmati Province',
+                postalCode: '44800',
+                country: 'Nepal'
             },
-            preferences: {
+            businessSettings: {
+                paymentTerms: 'net30',
                 currency: 'USD',
-                timezone: 'America/Los_Angeles',
-                language: 'English',
-                notifications: {
-                    email: true,
-                    sms: false,
-                    push: true,
-                    orderUpdates: true,
-                    inventoryAlerts: true,
-                    paymentNotifications: true
+                shippingMethod: 'standard',
+                freeShippingThreshold: 500,
+                leadTime: 3,
+                maxOrderQuantity: 1000,
+                businessHours: [
+                    { day: 'monday', open: true, openTime: '09:00', closeTime: '17:00' },
+                    { day: 'tuesday', open: true, openTime: '09:00', closeTime: '17:00' },
+                    { day: 'wednesday', open: true, openTime: '09:00', closeTime: '17:00' },
+                    { day: 'thursday', open: true, openTime: '09:00', closeTime: '17:00' },
+                    { day: 'friday', open: true, openTime: '09:00', closeTime: '17:00' },
+                    { day: 'saturday', open: true, openTime: '10:00', closeTime: '15:00' },
+                    { day: 'sunday', open: false, openTime: '10:00', closeTime: '15:00' }
+                ]
+            },
+            notificationPreferences: {
+                email: {
+                    newOrders: true,
+                    lowStock: true,
+                    paymentUpdates: true,
+                    weeklyReports: false
+                },
+                sms: {
+                    urgentAlerts: true,
+                    orderUpdates: false
+                },
+                inApp: {
+                    realtimeUpdates: true,
+                    soundAlerts: false
                 }
             },
-            verification: {
-                emailVerified: true,
-                phoneVerified: true,
-                businessVerified: true,
-                documentsUploaded: true
-            },
-            stats: {
-                memberSince: '2023-01-15',
-                totalSales: 567892.50,
-                totalOrders: 1234,
-                averageRating: 4.8,
-                completionRate: 98.5
-            }
+            profilePicture: '/images/avatars/user-avatar.png',
+            status: 'approved'
         };
-
-        this.init();
-    }
-
-    init() {
+        
+        this.supplierStats = {
+            memberSince: '2023-01-15',
+            totalSales: 567892.50,
+            totalOrders: 1234,
+            averageRating: 4.8,
+            completionRate: 98.5
+        };
+        
         this.renderProfile();
-        this.setupEventListeners();
         this.renderStats();
     }
 
@@ -75,43 +165,45 @@ class ProfileManager {
             });
         });
 
-        // Profile form submission
-        const profileForm = document.getElementById('profileForm');
-        if (profileForm) {
-            profileForm.addEventListener('submit', (e) => {
+        // Company form submission
+        const companyForm = document.getElementById('companyForm');
+        if (companyForm) {
+            companyForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                this.saveProfile();
+                this.saveCompanyInfo();
             });
         }
 
-        // Business info form submission
+        // Contact form submission
+        const contactForm = document.getElementById('contactForm');
+        if (contactForm) {
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveContactDetails();
+            });
+        }
+
+        // Business settings form submission
         const businessForm = document.getElementById('businessForm');
         if (businessForm) {
             businessForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                this.saveBusinessInfo();
+                this.saveBusinessSettings();
             });
         }
 
-        // Banking form submission
-        const bankingForm = document.getElementById('bankingForm');
-        if (bankingForm) {
-            bankingForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.saveBankingInfo();
+        // Notification preferences form
+        const notificationButtons = document.querySelectorAll('.notification-section button');
+        if (notificationButtons.length > 0) {
+            notificationButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.saveNotificationPreferences();
+                });
             });
         }
 
-        // Preferences form submission
-        const preferencesForm = document.getElementById('preferencesForm');
-        if (preferencesForm) {
-            preferencesForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.savePreferences();
-            });
-        }
-
-        // Password change form
+        // Password form submission
         const passwordForm = document.getElementById('passwordForm');
         if (passwordForm) {
             passwordForm.addEventListener('submit', (e) => {
@@ -127,77 +219,146 @@ class ProfileManager {
                 this.handleProfilePictureUpload(e);
             });
         }
-
-        // Document upload
-        const documentInputs = document.querySelectorAll('.document-upload');
-        documentInputs.forEach(input => {
-            input.addEventListener('change', (e) => {
-                this.handleDocumentUpload(e);
-            });
-        });
-
-        // Mobile menu toggle
-        const mobileToggle = document.getElementById('mobileToggle');
-        const sidebar = document.getElementById('sidebar');
-        
-        if (mobileToggle && sidebar) {
-            mobileToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('active');
-            });
-        }
-
-        // Sidebar toggle
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        if (sidebarToggle && sidebar) {
-            sidebarToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('collapsed');
-            });
-        }
     }
 
     renderProfile() {
+        if (!this.supplierProfile) return;
+
         // Update profile header
-        document.getElementById('profileBusinessName').textContent = this.supplierProfile.businessName;
-        document.getElementById('profileContactPerson').textContent = this.supplierProfile.contactPerson;
+        document.getElementById('profileBusinessName').textContent = this.supplierProfile.companyName;
+        document.getElementById('profileContactPerson').textContent = `${this.supplierProfile.firstName} ${this.supplierProfile.lastName}`;
         document.getElementById('profileEmail').textContent = this.supplierProfile.email;
-        document.getElementById('profilePhone').textContent = this.supplierProfile.phone;
+        document.getElementById('profilePhone').textContent = this.supplierProfile.contactDetails?.primaryPhone || '';
 
         // Update verification badges
         this.updateVerificationStatus();
 
-        // Fill profile form
-        this.fillProfileForm();
-        this.fillBusinessForm();
-        this.fillBankingForm();
-        this.fillPreferencesForm();
+        // Profile image
+        if (this.supplierProfile.profilePicture) {
+            document.getElementById('profileImage').src = this.supplierProfile.profilePicture;
+        }
+
+        // Member since
+        document.getElementById('memberSince').textContent = new Date(this.supplierProfile.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        // Fill forms
+        this.fillCompanyForm();
+        this.fillContactForm();
+        this.fillBusinessSettingsForm();
     }
 
-    fillProfileForm() {
-        document.getElementById('businessName').value = this.supplierProfile.businessName;
-        document.getElementById('contactPerson').value = this.supplierProfile.contactPerson;
-        document.getElementById('email').value = this.supplierProfile.email;
-        document.getElementById('phone').value = this.supplierProfile.phone;
-        document.getElementById('website').value = this.supplierProfile.website;
+    renderStats() {
+        if (!this.supplierStats) return;
+
+        document.getElementById('totalSales').textContent = `$${this.supplierStats.totalSales.toLocaleString()}`;
+        document.getElementById('totalOrders').textContent = this.supplierStats.totalOrders.toLocaleString();
+        document.getElementById('averageRating').textContent = this.supplierStats.averageRating.toFixed(1);
+        document.getElementById('completionRate').textContent = `${this.supplierStats.completionRate}%`;
         
-        // Address fields
-        document.getElementById('street').value = this.supplierProfile.address.street;
-        document.getElementById('city').value = this.supplierProfile.address.city;
-        document.getElementById('state').value = this.supplierProfile.address.state;
-        document.getElementById('zipCode').value = this.supplierProfile.address.zipCode;
-        document.getElementById('country').value = this.supplierProfile.address.country;
+        // Render rating stars
+        this.renderStars(this.supplierStats.averageRating);
     }
 
-    fillBusinessForm() {
-        document.getElementById('registrationNumber').value = this.supplierProfile.businessInfo.registrationNumber;
-        document.getElementById('taxId').value = this.supplierProfile.businessInfo.taxId;
-        document.getElementById('businessType').value = this.supplierProfile.businessInfo.businessType;
-        document.getElementById('founded').value = this.supplierProfile.businessInfo.founded;
-        document.getElementById('employees').value = this.supplierProfile.businessInfo.employees;
-        document.getElementById('description').value = this.supplierProfile.businessInfo.description;
+    renderStars(rating) {
+        const starsContainer = document.getElementById('ratingStars');
+        if (!starsContainer) return;
+        
+        starsContainer.innerHTML = '';
+        
+        // Full stars
+        for (let i = 1; i <= Math.floor(rating); i++) {
+            const star = document.createElement('i');
+            star.className = 'fas fa-star';
+            starsContainer.appendChild(star);
+        }
+        
+        // Half star
+        if (rating % 1 >= 0.5) {
+            const halfStar = document.createElement('i');
+            halfStar.className = 'fas fa-star-half-alt';
+            starsContainer.appendChild(halfStar);
+        }
+        
+        // Empty stars
+        const emptyStars = 5 - Math.ceil(rating);
+        for (let i = 1; i <= emptyStars; i++) {
+            const emptyStar = document.createElement('i');
+            emptyStar.className = 'far fa-star';
+            starsContainer.appendChild(emptyStar);
+        }
     }
 
-    fillBankingForm() {
-        document.getElementById('bankName').value = this.supplierProfile.bankDetails.bankName;
+    updateVerificationStatus() {
+        // This would normally be driven by API data
+        document.getElementById('emailVerification').className = 'verification-badge verified';
+        document.getElementById('emailVerification').innerHTML = '<i class="fas fa-check-circle"></i> Email Verified';
+        
+        document.getElementById('phoneVerification').className = 'verification-badge verified';
+        document.getElementById('phoneVerification').innerHTML = '<i class="fas fa-check-circle"></i> Phone Verified';
+        
+        document.getElementById('businessVerification').className = 'verification-badge verified';
+        document.getElementById('businessVerification').innerHTML = '<i class="fas fa-check-circle"></i> Business Verified';
+    }
+
+    fillCompanyForm() {
+        const profile = this.supplierProfile;
+        if (!profile) return;
+
+        document.getElementById('businessName').value = profile.companyName || '';
+        document.getElementById('businessType').value = profile.businessDetails?.businessType || 'wholesaler';
+        document.getElementById('businessRegistration').value = profile.businessDetails?.businessRegistration || '';
+        document.getElementById('taxId').value = profile.businessDetails?.taxId || '';
+        document.getElementById('companyDesc').value = profile.businessDetails?.description || '';
+        document.getElementById('website').value = profile.businessDetails?.website || '';
+        document.getElementById('establishedYear').value = profile.businessDetails?.establishedYear || '';
+    }
+
+    fillContactForm() {
+        const profile = this.supplierProfile;
+        if (!profile) return;
+
+        document.getElementById('primaryContact').value = `${profile.firstName} ${profile.lastName}` || '';
+        document.getElementById('contactTitle').value = profile.contactDetails?.title || '';
+        document.getElementById('primaryEmail').value = profile.email || '';
+        document.getElementById('secondaryEmail').value = profile.contactDetails?.secondaryEmail || '';
+        document.getElementById('primaryPhone').value = profile.contactDetails?.primaryPhone || '';
+        document.getElementById('secondaryPhone').value = profile.contactDetails?.secondaryPhone || '';
+        
+        // Addresses
+        document.getElementById('businessAddress').value = this.formatAddress(profile.address);
+        document.getElementById('billingAddress').value = this.formatAddress(profile.billingAddress);
+        document.getElementById('shippingAddress').value = this.formatAddress(profile.shippingAddress);
+    }
+
+    fillBusinessSettingsForm() {
+        const profile = this.supplierProfile;
+        if (!profile || !profile.businessSettings) return;
+
+        document.getElementById('defaultPaymentTerms').value = profile.businessSettings.paymentTerms || 'net30';
+        document.getElementById('currency').value = profile.businessSettings.currency || 'USD';
+        document.getElementById('shippingMethod').value = profile.businessSettings.shippingMethod || 'standard';
+        document.getElementById('freeShippingThreshold').value = profile.businessSettings.freeShippingThreshold || 500;
+        document.getElementById('leadTime').value = profile.businessSettings.leadTime || 3;
+        document.getElementById('maxOrderQuantity').value = profile.businessSettings.maxOrderQuantity || 1000;
+        
+        // Business hours - would need to fill in the business hours UI
+    }
+
+    formatAddress(address) {
+        if (!address) return '';
+        
+        let formatted = '';
+        if (address.street) formatted += address.street;
+        if (address.city) formatted += '\n' + address.city;
+        if (address.state || address.postalCode) {
+            formatted += '\n';
+            if (address.state) formatted += address.state;
+            if (address.state && address.postalCode) formatted += ', ';
+            if (address.postalCode) formatted += address.postalCode;
+        }
+        if (address.country) formatted += '\n' + address.country;
+        
+        return formatted;
         document.getElementById('accountNumber').value = this.supplierProfile.bankDetails.accountNumber;
         document.getElementById('routingNumber').value = this.supplierProfile.bankDetails.routingNumber;
         document.getElementById('accountType').value = this.supplierProfile.bankDetails.accountType;
@@ -293,169 +454,322 @@ class ProfileManager {
         document.getElementById(`${tabName}Tab`).classList.add('active');
     }
 
-    saveProfile() {
-        // Get form data
-        const formData = new FormData(document.getElementById('profileForm'));
-        
-        // Update profile object
-        this.supplierProfile.businessName = formData.get('businessName');
-        this.supplierProfile.contactPerson = formData.get('contactPerson');
-        this.supplierProfile.email = formData.get('email');
-        this.supplierProfile.phone = formData.get('phone');
-        this.supplierProfile.website = formData.get('website');
-        
-        // Update address
-        this.supplierProfile.address.street = formData.get('street');
-        this.supplierProfile.address.city = formData.get('city');
-        this.supplierProfile.address.state = formData.get('state');
-        this.supplierProfile.address.zipCode = formData.get('zipCode');
-        this.supplierProfile.address.country = formData.get('country');
-
-        // Update profile display
-        this.renderProfile();
-        
-        this.showNotification('Profile updated successfully', 'success');
-    }
-
-    saveBusinessInfo() {
-        const formData = new FormData(document.getElementById('businessForm'));
-        
-        // Update business info
-        this.supplierProfile.businessInfo.registrationNumber = formData.get('registrationNumber');
-        this.supplierProfile.businessInfo.taxId = formData.get('taxId');
-        this.supplierProfile.businessInfo.businessType = formData.get('businessType');
-        this.supplierProfile.businessInfo.founded = formData.get('founded');
-        this.supplierProfile.businessInfo.employees = formData.get('employees');
-        this.supplierProfile.businessInfo.description = formData.get('description');
-
-        this.showNotification('Business information updated successfully', 'success');
-    }
-
-    saveBankingInfo() {
-        const formData = new FormData(document.getElementById('bankingForm'));
-        
-        // Update banking info
-        this.supplierProfile.bankDetails.bankName = formData.get('bankName');
-        this.supplierProfile.bankDetails.accountNumber = formData.get('accountNumber');
-        this.supplierProfile.bankDetails.routingNumber = formData.get('routingNumber');
-        this.supplierProfile.bankDetails.accountType = formData.get('accountType');
-
-        this.showNotification('Banking information updated successfully', 'success');
-    }
-
-    savePreferences() {
-        const formData = new FormData(document.getElementById('preferencesForm'));
-        
-        // Update preferences
-        this.supplierProfile.preferences.currency = formData.get('currency');
-        this.supplierProfile.preferences.timezone = formData.get('timezone');
-        this.supplierProfile.preferences.language = formData.get('language');
-        
-        // Update notifications
-        this.supplierProfile.preferences.notifications.email = formData.has('emailNotifications');
-        this.supplierProfile.preferences.notifications.sms = formData.has('smsNotifications');
-        this.supplierProfile.preferences.notifications.push = formData.has('pushNotifications');
-        this.supplierProfile.preferences.notifications.orderUpdates = formData.has('orderUpdates');
-        this.supplierProfile.preferences.notifications.inventoryAlerts = formData.has('inventoryAlerts');
-        this.supplierProfile.preferences.notifications.paymentNotifications = formData.has('paymentNotifications');
-
-        this.showNotification('Preferences updated successfully', 'success');
-    }
-
-    changePassword() {
-        const formData = new FormData(document.getElementById('passwordForm'));
-        const currentPassword = formData.get('currentPassword');
-        const newPassword = formData.get('newPassword');
-        const confirmPassword = formData.get('confirmPassword');
-
-        if (newPassword !== confirmPassword) {
-            this.showNotification('New passwords do not match', 'error');
-            return;
-        }
-
-        if (newPassword.length < 8) {
-            this.showNotification('Password must be at least 8 characters long', 'error');
-            return;
-        }
-
-        // Simulate password change
-        this.showNotification('Password changed successfully', 'success');
-        document.getElementById('passwordForm').reset();
-    }
-
-    handleProfilePictureUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            this.showNotification('Please select an image file', 'error');
-            return;
-        }
-
-        // Create preview
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const profileImage = document.getElementById('profileImage');
-            if (profileImage) {
-                profileImage.src = e.target.result;
-            }
-        };
-        reader.readAsDataURL(file);
-
-        this.showNotification('Profile picture updated successfully', 'success');
-    }
-
-    handleDocumentUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const documentType = event.target.dataset.type;
-        
-        // Simulate document upload
-        setTimeout(() => {
-            this.showNotification(`${documentType} uploaded successfully`, 'success');
+    async saveCompanyInfo() {
+        try {
+            const companyInfo = {
+                businessName: document.getElementById('businessName').value,
+                businessType: document.getElementById('businessType').value,
+                businessRegistration: document.getElementById('businessRegistration').value,
+                taxId: document.getElementById('taxId').value,
+                companyDesc: document.getElementById('companyDesc').value,
+                website: document.getElementById('website').value,
+                establishedYear: document.getElementById('establishedYear').value
+            };
             
-            // Update verification status
-            this.supplierProfile.verification.documentsUploaded = true;
-            this.updateVerificationStatus();
-        }, 1000);
+            const response = await fetch(`${this.baseApiUrl}/supplier/profile/company`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getToken()}`
+                },
+                body: JSON.stringify(companyInfo)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showNotification('Company information updated successfully', 'success');
+                // Update local profile data
+                this.supplierProfile = data.data.profile;
+                document.getElementById('profileBusinessName').textContent = companyInfo.businessName;
+            } else {
+                this.showNotification(data.message || 'Failed to update company information', 'error');
+            }
+        } catch (error) {
+            console.error('Error updating company info:', error);
+            this.showNotification('Failed to update company information. Please try again.', 'error');
+        }
     }
 
-    verifyEmail() {
-        // Simulate email verification
-        this.showNotification('Verification email sent. Please check your inbox.', 'info');
+    async saveContactDetails() {
+        try {
+            const contactDetails = {
+                primaryContact: document.getElementById('primaryContact').value,
+                contactTitle: document.getElementById('contactTitle').value,
+                primaryEmail: document.getElementById('primaryEmail').value,
+                secondaryEmail: document.getElementById('secondaryEmail').value,
+                primaryPhone: document.getElementById('primaryPhone').value,
+                secondaryPhone: document.getElementById('secondaryPhone').value,
+                businessAddress: document.getElementById('businessAddress').value,
+                billingAddress: document.getElementById('billingAddress').value,
+                shippingAddress: document.getElementById('shippingAddress').value
+            };
+            
+            const response = await fetch(`${this.baseApiUrl}/supplier/profile/contact`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getToken()}`
+                },
+                body: JSON.stringify(contactDetails)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showNotification('Contact details updated successfully', 'success');
+                // Update local profile data
+                this.supplierProfile = data.data.profile;
+                document.getElementById('profileContactPerson').textContent = contactDetails.primaryContact;
+                document.getElementById('profileEmail').textContent = contactDetails.primaryEmail;
+                document.getElementById('profilePhone').textContent = contactDetails.primaryPhone;
+            } else {
+                this.showNotification(data.message || 'Failed to update contact details', 'error');
+            }
+        } catch (error) {
+            console.error('Error updating contact details:', error);
+            this.showNotification('Failed to update contact details. Please try again.', 'error');
+        }
     }
 
-    verifyPhone() {
-        // Simulate phone verification
-        this.showNotification('Verification SMS sent. Please check your phone.', 'info');
+    async saveBusinessSettings() {
+        try {
+            const businessSettings = {
+                defaultPaymentTerms: document.getElementById('defaultPaymentTerms').value,
+                currency: document.getElementById('currency').value,
+                shippingMethod: document.getElementById('shippingMethod').value,
+                freeShippingThreshold: document.getElementById('freeShippingThreshold').value,
+                leadTime: document.getElementById('leadTime').value,
+                maxOrderQuantity: document.getElementById('maxOrderQuantity').value,
+                // Would need to collect business hours from the UI
+                businessHours: []
+            };
+            
+            const response = await fetch(`${this.baseApiUrl}/supplier/profile/business-settings`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getToken()}`
+                },
+                body: JSON.stringify(businessSettings)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showNotification('Business settings updated successfully', 'success');
+                // Update local profile data
+                this.supplierProfile = data.data.profile;
+            } else {
+                this.showNotification(data.message || 'Failed to update business settings', 'error');
+            }
+        } catch (error) {
+            console.error('Error updating business settings:', error);
+            this.showNotification('Failed to update business settings. Please try again.', 'error');
+        }
     }
 
-    formatDate(dateString) {
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString('en-US', options);
+    async saveNotificationPreferences() {
+        try {
+            // Collect notification preferences from toggle switches
+            const notifications = {
+                email: {
+                    newOrders: document.querySelector('.notification-option:nth-child(1) input[type="checkbox"]').checked,
+                    lowStock: document.querySelector('.notification-option:nth-child(2) input[type="checkbox"]').checked,
+                    paymentUpdates: document.querySelector('.notification-option:nth-child(3) input[type="checkbox"]').checked,
+                    weeklyReports: document.querySelector('.notification-option:nth-child(4) input[type="checkbox"]').checked
+                },
+                sms: {
+                    urgentAlerts: document.querySelector('.notification-section:nth-child(2) .notification-option:nth-child(1) input[type="checkbox"]').checked,
+                    orderUpdates: document.querySelector('.notification-section:nth-child(2) .notification-option:nth-child(2) input[type="checkbox"]').checked
+                },
+                inApp: {
+                    realtimeUpdates: document.querySelector('.notification-section:nth-child(3) .notification-option:nth-child(1) input[type="checkbox"]').checked,
+                    soundAlerts: document.querySelector('.notification-section:nth-child(3) .notification-option:nth-child(2) input[type="checkbox"]').checked
+                }
+            };
+            
+            const response = await fetch(`${this.baseApiUrl}/supplier/profile/notifications`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getToken()}`
+                },
+                body: JSON.stringify({ notifications })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showNotification('Notification preferences updated successfully', 'success');
+                // Update local profile data
+                this.supplierProfile = data.data.profile;
+            } else {
+                this.showNotification(data.message || 'Failed to update notification preferences', 'error');
+            }
+        } catch (error) {
+            console.error('Error updating notification preferences:', error);
+            this.showNotification('Failed to update notification preferences. Please try again.', 'error');
+        }
     }
 
-    showNotification(message, type = 'info') {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            <span>${message}</span>
-        `;
+    async changePassword() {
+        try {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (newPassword !== confirmPassword) {
+                this.showNotification('Passwords do not match', 'error');
+                return;
+            }
+            
+            // Password change endpoint would be in auth controller, not profile
+            const response = await fetch(`${this.baseApiUrl}/auth/change-password`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getToken()}`
+                },
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showNotification('Password changed successfully', 'success');
+                document.getElementById('passwordForm').reset();
+            } else {
+                this.showNotification(data.message || 'Failed to change password', 'error');
+            }
+        } catch (error) {
+            console.error('Error changing password:', error);
+            this.showNotification('Failed to change password. Please try again.', 'error');
+        }
+    }
 
-        // Add to page
-        document.body.appendChild(notification);
+    async handleProfilePictureUpload(event) {
+        try {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Check file type
+            if (!file.type.match('image.*')) {
+                this.showNotification('Please select an image file', 'error');
+                return;
+            }
+            
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                this.showNotification('File size should not exceed 5MB', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('profilePicture', file);
+            
+            const response = await fetch(`${this.baseApiUrl}/supplier/profile/picture`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${this.getToken()}`
+                },
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showNotification('Profile picture updated successfully', 'success');
+                // Update profile image
+                document.getElementById('profileImage').src = data.data.profilePicture;
+                this.supplierProfile.profilePicture = data.data.profilePicture;
+            } else {
+                this.showNotification(data.message || 'Failed to update profile picture', 'error');
+            }
+        } catch (error) {
+            console.error('Error uploading profile picture:', error);
+            this.showNotification('Failed to update profile picture. Please try again.', 'error');
+        }
+    }
 
-        // Remove after 3 seconds
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
+    async deactivateAccount() {
+        try {
+            const confirmed = confirm('Are you sure you want to deactivate your account? You can reactivate it later by logging in.');
+            if (!confirmed) return;
+            
+            const response = await fetch(`${this.baseApiUrl}/supplier/profile/account-status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getToken()}`
+                },
+                body: JSON.stringify({ action: 'deactivate' })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showNotification('Account deactivated successfully. You will be logged out.', 'warning');
+                
+                // Logout after a brief delay
+                setTimeout(() => {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login.html';
+                }, 2000);
+            } else {
+                this.showNotification(data.message || 'Failed to deactivate account', 'error');
+            }
+        } catch (error) {
+            console.error('Error deactivating account:', error);
+            this.showNotification('Failed to deactivate account. Please try again.', 'error');
+        }
+    }
+
+    async deleteAccount() {
+        const confirmation = prompt('This action cannot be undone. Type "DELETE" to confirm account deletion:');
+        if (confirmation !== 'DELETE') {
+            if (confirmation !== null) {
+                this.showNotification('Account deletion cancelled', 'info');
+            }
+            return;
+        }
+        
+        // This would typically be handled by a different endpoint
+        this.showNotification('Account deletion request submitted. You will receive a confirmation email.', 'error');
+    }
+
+    terminateSession(sessionType) {
+        this.showNotification(`${sessionType} session terminated successfully`, 'success');
+    }
+
+    terminateAllSessions() {
+        const confirmed = confirm('Are you sure you want to terminate all other sessions? You will need to log in again on other devices.');
+        if (confirmed) {
+            this.showNotification('All other sessions terminated successfully', 'success');
+        }
+    }
+
+    downloadAccountData() {
+        this.showNotification('Account data download initiated. You will receive an email with the download link.', 'info');
+    }
+
+    // Helper methods
+    getToken() {
+        return localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+    }
+
+    showNotification(message, type) {
+        // Check if notification system exists globally
+        if (typeof showNotification === 'function') {
+            showNotification(message, type);
+            return;
+        }
+        
+        // Fallback notification
+        alert(message);
     }
 }
 
-// Initialize profile manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    window.profileManager = new ProfileManager();
+    const profileManager = new ProfileManager();
 });

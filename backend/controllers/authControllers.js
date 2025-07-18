@@ -10,14 +10,14 @@ const validateLoginInput = (email, password) => {
   
   if (!email) {
     errors.email = 'Email is required';
-  } else if (!/\S+@\S+\.\S+/.test(email)) {
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
     errors.email = 'Email is invalid';
   }
   
   if (!password) {
     errors.password = 'Password is required';
-  } else if (password.length < 8) { // Changed from 6 to 8 for consistency
-    errors.password = 'Password must be at least 8 characters';
+  } else if (password.length < 6) { // Changed from 8 to 6 to match frontend
+    errors.password = 'Password must be at least 6 characters';
   }
   
   return {
@@ -29,16 +29,21 @@ const validateLoginInput = (email, password) => {
 // Login function with improved security
 const login = async (req, res) => {
   try {
+    console.log('Login attempt received:', { email: req.body.email });
     const { email, password } = req.body;
     
     // Validate input
     const { errors, isValid } = validateLoginInput(email, password);
     if (!isValid) {
-      return res.status(400).json({ success: false, errors });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Please fix the validation errors',
+        errors: errors
+      });
     }
 
     // Check if user exists - use normalized email for lookup
-    const normalizedEmail = email.toLowerCase();
+    const normalizedEmail = email.trim().toLowerCase();
     const user = await User.findOne({ email: normalizedEmail });
     
     // Check if account is locked
@@ -85,11 +90,13 @@ const login = async (req, res) => {
       success: true,
       message: 'Login successful',
       token: accessToken, // Still include token for clients that need it
+      refreshToken, // Return the refresh token for clients without cookie support
       user: {
         id: user._id,
         role: user.role,
         firstName: user.firstName,
-        lastName: user.lastName
+        lastName: user.lastName,
+        shopName: user.shopName
       }
     });
   } catch (error) {
@@ -105,13 +112,22 @@ const login = async (req, res) => {
 // Register function with improved security
 const register = async (req, res) => {
   try {
+    console.log('Registration request received:', JSON.stringify(req.body));
+    console.log('Request headers:', JSON.stringify(req.headers));
     const { email, password, confirmPassword, shopName } = req.body;
 
-    // Basic validation
-    if (!email || !password || !confirmPassword || !shopName) {
+    // Basic validation with consistent error structure
+    const errors = {};
+    if (!email) errors.email = 'Email is required';
+    if (!password) errors.password = 'Password is required';
+    if (!confirmPassword) errors.confirmPassword = 'Confirm password is required';
+    if (!shopName) errors.shopName = 'Shop name is required';
+    
+    if (Object.keys(errors).length > 0) {
       return res.status(400).json({ 
         success: false,
-        message: 'Shop name, email, password, and confirm password are required' 
+        message: 'Please fix the validation errors',
+        errors: errors
       });
     }
     if (password !== confirmPassword) {
@@ -130,11 +146,11 @@ const register = async (req, res) => {
       });
     }
 
-    // Password strength validation
-    if (password.length < 8) {
+    // Password strength validation - match frontend requirement of 6 characters
+    if (password.length < 6) {
       return res.status(400).json({ 
         success: false,
-        message: 'Password must be at least 8 characters long' 
+        message: 'Password must be at least 6 characters long' 
       });
     }
 
@@ -148,22 +164,62 @@ const register = async (req, res) => {
       });
     }
 
-    // Create new user with normalized data - let the pre-save hook handle password hashing
-    const newUser = new User({ 
+    // Generate a username from email if not provided
+    const username = normalizedEmail.split('@')[0];
+    
+    // Create new user with normalized data and generate missing required fields
+    const userData = { 
       email: normalizedEmail, 
       password, // Pass password directly, pre-save hook will hash it
       role: 'shopowner',
-      shopName: shopName.trim()
-    });
+      shopName: shopName.trim(),
+      username: username, // Generate username from email
+      firstName: shopName.trim().split(' ')[0] || 'Shop', // Use first part of shop name as firstName
+      lastName: shopName.trim().split(' ').slice(1).join(' ') || 'Owner' // Use rest of shop name as lastName or default
+    };
     
-    await newUser.save();
-
-    res.status(201).json({ 
-      success: true,
-      message: 'User registered successfully' 
-    });
+    console.log('Creating user with data:', JSON.stringify(userData));
+    
+    try {
+      // Use User.create() which is more atomic and handles validation/saving in one step
+      const newUser = await User.create(userData);
+      console.log('User registered successfully:', newUser.email);
+      
+      // Return user ID for debugging purposes
+      return res.status(201).json({ 
+        success: true,
+        message: 'User registered successfully',
+        userId: newUser._id
+      });
+    } catch (saveError) {
+      console.error('Error saving user:', saveError);
+      
+      // Handle Mongoose validation errors
+      if (saveError.name === 'ValidationError') {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation error',
+          errors: saveError.errors
+        });
+      }
+      
+      // Handle duplicate key errors from MongoDB
+      if (saveError.code === 11000) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'User with this email already exists' 
+        });
+      }
+      
+      // Re-throw for the outer catch block
+      throw saveError;
+    }
   } catch (error) {
     console.error('Registration error:', error);
+    // Log full error details for debugging
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    
     // Handle duplicate key errors from MongoDB
     if (error.code === 11000) {
       return res.status(400).json({ 
@@ -171,9 +227,128 @@ const register = async (req, res) => {
         message: 'User with this email already exists' 
       });
     }
+    
+    // Return more detailed error message for debugging
     res.status(500).json({ 
       success: false,
-      message: 'Internal Server Error' 
+      message: 'Internal Server Error: ' + error.message,
+      errorType: error.name || 'Unknown Error'
+    });
+  }
+};
+
+// Supplier registration function
+const registerSupplier = async (req, res) => {
+  try {
+    const {
+      businessName,
+      businessType,
+      registrationNumber,
+      panNumber,
+      businessAddress,
+      contactPerson,
+      position,
+      email,
+      phone,
+      productCategories,
+      yearsInBusiness,
+      deliveryAreas,
+      businessDescription,
+      website,
+      references
+    } = req.body;
+
+    // Required field validation
+    const requiredFields = [
+      'businessName', 'businessType', 'businessAddress', 'contactPerson', 
+      'position', 'email', 'phone', 'deliveryAreas', 'yearsInBusiness'
+    ];
+    
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required fields: ${missingFields.join(', ')}`
+      });
+    }
+
+    // Email format validation
+    const trimmedEmail = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format'
+      });
+    }
+
+    // Check if user already exists
+    const normalizedEmail = trimmedEmail.toLowerCase();
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'A user with this email already exists'
+      });
+    }
+
+    // Validate product categories
+    if (!productCategories || productCategories.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'At least one product category must be selected'
+      });
+    }
+
+    // Create supplier application
+    const supplierData = {
+      firstName: contactPerson.split(' ')[0] || contactPerson,
+      lastName: contactPerson.split(' ').slice(1).join(' ') || '',
+      email: normalizedEmail,
+      role: 'supplier',
+      status: 'pending',
+      businessName: businessName.trim(),
+      businessType,
+      registrationNumber: registrationNumber?.trim(),
+      panNumber: panNumber?.trim(),
+      businessAddress: businessAddress.trim(),
+      contactPerson: contactPerson.trim(),
+      position: position.trim(),
+      phone: phone.trim(),
+      productCategories: Array.isArray(productCategories) ? productCategories : [productCategories],
+      yearsInBusiness,
+      deliveryAreas: deliveryAreas.trim(),
+      businessDescription: businessDescription?.trim(),
+      website: website?.trim(),
+      references: references?.trim()
+    };
+
+    const newSupplier = new User(supplierData);
+    await newSupplier.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Supplier application submitted successfully. We will review your application and contact you within 2-3 business days.',
+      supplier: {
+        id: newSupplier._id,
+        businessName: newSupplier.businessName,
+        email: newSupplier.email,
+        status: newSupplier.status
+      }
+    });
+
+  } catch (error) {
+    console.error('Supplier registration error:', error);
+    // Handle duplicate key errors from MongoDB
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'A user with this email already exists'
+      });
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error: ' + error.message,
+      errorType: error.name || 'Unknown Error'
     });
   }
 };
@@ -412,6 +587,7 @@ const googleAuth = async (req, res) => {
 module.exports = {
   login,
   register,
-  googleAuth
+  googleAuth,
+  registerSupplier
 };
 

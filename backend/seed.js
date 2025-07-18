@@ -19,7 +19,7 @@ const bcrypt = require('bcryptjs');
 // Connect to MongoDB
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect('mongodb+srv://smartpos-admin:QsIKePK7zpwmpmv8@smart-pos-cluster.lpptxzc.mongodb.net/smart-pos-system');
     console.log('MongoDB connected for seeding');
   } catch (err) {
     console.error('Database connection error:', err);
@@ -47,171 +47,366 @@ const seedUsers = async () => {
   console.log('Seeding users...');
   
   const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash('Password123!', salt);
   
+  // Admin User - Production Ready
+  const admin = new User({
+    username: 'admin',
+    firstName: 'System',
+    lastName: 'Administrator',
+    email: 'admin@smartpos.com',
+    password: await bcrypt.hash('admin123', salt),
+    role: 'admin',
+    status: 'active',
+    isVerified: true,
+    createdAt: new Date('2024-01-01'),
+    lastLogin: new Date()
+  });
+
+  // Shop Owner - Production Ready
   const shopOwner = new User({
-    username: 'testshopowner',
-    firstName: 'Ram Bahadur',
-    lastName: 'Sharma',
-    email: 'ram.sharma@example.com',
-    password: hashedPassword,
+    username: 'shopowner1',
+    firstName: 'Rajesh',
+    lastName: 'Shrestha',
+    email: 'rajesh.shrestha@smartpos.com',
+    password: await bcrypt.hash('shop123', salt),
     role: 'shopowner',
-    shopName: 'Sharma General Store & Mart',
-    contactNumber: '9876543210',
+    shopName: 'Shrestha Electronics & General Store',
+    contactNumber: '+977-9841234567',
     address: {
-      street: 'Thamel Chowk',
+      street: 'New Road, Commercial Area',
       city: 'Kathmandu',
       state: 'Bagmati',
       postalCode: '44600',
       country: 'Nepal'
     },
-    isVerified: true
+    status: 'active',
+    isVerified: true,
+    businessLicense: 'BL-2024-001',
+    panNumber: 'PAN123456789',
+    createdAt: new Date('2024-01-05'),
+    lastLogin: new Date()
   });
   
-  const admin = new User({
-    username: 'admin',
-    firstName: 'Admin',
-    lastName: 'User',
-    email: 'admin@example.com',
-    password: hashedPassword,
-    role: 'admin',
-    isVerified: true
-  });
-
-  // Add a supplier user
-  const supplier = new User({
+  // Multiple Suppliers - Production Ready
+  const supplier1 = new User({
     username: 'supplier1',
-    firstName: 'Krishna Prasad',
+    firstName: 'Krishna',
     lastName: 'Adhikari',
-    email: 'krishna.adhikari@nepal.com',
-    password: hashedPassword,
+    email: 'krishna@wholesale.com.np',
+    password: await bcrypt.hash('supplier123', salt),
     role: 'supplier',
-    contactNumber: '9800000001',
+    companyName: 'Adhikari Wholesale Distribution',
+    businessName: 'Adhikari Wholesale Distribution',
+    businessType: 'wholesale',
+    contactNumber: '+977-9800000001',
     address: {
-      street: 'Bhaisepati Industrial Area',
-      city: 'Lalitpur',
+      street: 'Industrial District, Balaju',
+      city: 'Kathmandu',
       state: 'Bagmati',
-      postalCode: '44700',
+      postalCode: '44600',
       country: 'Nepal'
     },
-    status: 'approved'
+    businessAddress: 'Industrial District, Balaju, Kathmandu',
+    contactPerson: 'Krishna Adhikari',
+    position: 'Managing Director',
+    phone: '+977-9800000001',
+    productCategories: ['groceries', 'beverages', 'household'],
+    yearsInBusiness: '10+',
+    deliveryAreas: 'Kathmandu Valley, Pokhara, Chitwan',
+    businessDescription: 'Leading wholesale distributor of FMCG products across Nepal',
+    status: 'approved',
+    isVerified: true,
+    businessLicense: 'SUP-2024-001',
+    panNumber: 'SUP123456789',
+    createdAt: new Date('2024-01-03')
   });
 
-  await shopOwner.save();
-  await admin.save();
-  await supplier.save();
+  const supplier2 = new User({
+    username: 'supplier2',
+    firstName: 'Sita',
+    lastName: 'Gurung',
+    email: 'sita@freshproduce.com.np',
+    password: await bcrypt.hash('supplier123', salt),
+    role: 'supplier',
+    companyName: 'Gurung Fresh Produce & Dairy',
+    businessName: 'Gurung Fresh Produce & Dairy',
+    businessType: 'wholesale',
+    contactNumber: '+977-9800000002',
+    address: {
+      street: 'Kalimati Vegetable Market',
+      city: 'Kathmandu',
+      state: 'Bagmati',
+      postalCode: '44600',
+      country: 'Nepal'
+    },
+    businessAddress: 'Kalimati Vegetable Market, Kathmandu',
+    contactPerson: 'Sita Gurung',
+    position: 'Owner',
+    phone: '+977-9800000002',
+    productCategories: ['dairy', 'vegetables', 'fruits'],
+    yearsInBusiness: '5-10',
+    deliveryAreas: 'Kathmandu Valley',
+    businessDescription: 'Fresh produce and dairy products supplier',
+    status: 'pending',
+    isVerified: false,
+    createdAt: new Date('2024-01-10')
+  });
 
-  console.log('Users seeded');
-  return { shopOwner, admin, supplier };
+  await admin.save();
+  await shopOwner.save();
+  await supplier1.save();
+  await supplier2.save();
+
+  console.log('Users seeded - Admin, Shop Owner, and Suppliers created');
+  return { admin, shopOwner, supplier1, supplier2 };
 };
 
-// Seed Products for the supplier
-const seedProducts = async (supplier) => {
+// Seed Products - Comprehensive Product Catalog
+const seedProducts = async (shopOwner, supplier1) => {
   console.log('Seeding products...');
+  
   const products = [
+    // Grocery Items
     {
-      name: 'Basmati Rice (5kg)',
-      barcode: 'RICE-BASMATI-5KG',
-      description: 'Premium quality Basmati rice from India',
+      name: 'Basmati Rice Premium (5kg)',
+      barcode: 'RICE001',
+      description: 'Premium quality aged Basmati rice imported from India',
       category: 'Groceries',
-      price: 850,
-      costPrice: 700,
-      stock: 50,
+      price: 950,
+      costPrice: 780,
+      stock: 45,
       minStockLevel: 10,
-      unit: 'bag',
-      imageUrl: '',
-      shopId: supplier._id, // For demo, use supplier as shopId
+      unit: 'pack',
+      imageUrl: '/images/products/basmati-rice.jpg',
+      shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier._id,
-        supplierName: supplier.firstName + ' ' + supplier.lastName,
+        supplierId: supplier1._id,
+        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
         supplierCode: 'SUP001'
       },
-      tax: 13
+      tax: 13,
+      brand: 'India Gate',
+      expiryDate: new Date('2025-12-31'),
+      createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Nepali Tea (250g)',
-      barcode: 'TEA-NEPALI-250G',
-      description: 'Fresh Nepali black tea leaves from Ilam',
-      category: 'Beverages',
-      price: 180,
-      costPrice: 120,
-      stock: 75,
+      name: 'Nepali Local Rice (10kg)',
+      barcode: 'RICE002',
+      description: 'Fresh local rice from Chitwan valley',
+      category: 'Groceries',
+      price: 650,
+      costPrice: 520,
+      stock: 60,
       minStockLevel: 15,
-      unit: 'packet',
-      imageUrl: '',
-      shopId: supplier._id,
+      unit: 'pack',
+      imageUrl: '/images/products/local-rice.jpg',
+      shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier._id,
-        supplierName: supplier.firstName + ' ' + supplier.lastName,
+        supplierId: supplier1._id,
+        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
         supplierCode: 'SUP001'
       },
-      tax: 13
+      tax: 13,
+      brand: 'Nepal Agro',
+      createdAt: new Date('2024-01-06')
     },
+    
+    // Beverages
     {
-      name: 'Wai Wai Noodles',
-      barcode: 'NOODLES-WAIWAI',
-      description: 'Popular instant noodles - chicken flavor',
-      category: 'Snacks & Confectionery',
-      price: 30,
-      costPrice: 22,
+      name: 'Coca Cola (330ml)',
+      barcode: 'COKE330',
+      description: 'Refreshing Coca Cola soft drink',
+      category: 'Beverages',
+      price: 45,
+      costPrice: 32,
       stock: 200,
       minStockLevel: 50,
-      unit: 'pack',
-      imageUrl: '',
-      shopId: supplier._id,
+      unit: 'piece',
+      imageUrl: '/images/products/coca-cola.jpg',
+      shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier._id,
-        supplierName: supplier.firstName + ' ' + supplier.lastName,
+        supplierId: supplier1._id,
+        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
         supplierCode: 'SUP001'
       },
-      tax: 13
+      tax: 13,
+      brand: 'Coca Cola',
+      expiryDate: new Date('2024-12-31'),
+      createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Lux Soap (100g)',
-      barcode: 'SOAP-LUX-100G',
+      name: 'Nepali Tea Premium (500g)',
+      barcode: 'TEA001',
+      description: 'Premium quality orthodox black tea from Ilam',
+      category: 'Beverages',
+      price: 380,
+      costPrice: 280,
+      stock: 85,
+      minStockLevel: 20,
+      unit: 'pack',
+      imageUrl: '/images/products/nepali-tea.jpg',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier1._id,
+        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
+        supplierCode: 'SUP001'
+      },
+      tax: 13,
+      brand: 'Himalayan Tea',
+      createdAt: new Date('2024-01-06')
+    },
+    
+    // Snacks
+    {
+      name: 'Wai Wai Noodles Chicken',
+      barcode: 'WAIWAI001',
+      description: 'Popular instant noodles with chicken flavor',
+      category: 'Snacks',
+      price: 32,
+      costPrice: 24,
+      stock: 300,
+      minStockLevel: 100,
+      unit: 'pack',
+      imageUrl: '/images/products/waiwai.jpg',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier1._id,
+        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
+        supplierCode: 'SUP001'
+      },
+      tax: 13,
+      brand: 'Wai Wai',
+      expiryDate: new Date('2024-08-31'),
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Rara Noodles Vegetarian',
+      barcode: 'RARA001',
+      description: 'Healthy vegetarian instant noodles',
+      category: 'Snacks',
+      price: 28,
+      costPrice: 21,
+      stock: 250,
+      minStockLevel: 80,
+      unit: 'pack',
+      imageUrl: '/images/products/rara.jpg',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier1._id,
+        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
+        supplierCode: 'SUP001'
+      },
+      tax: 13,
+      brand: 'Rara',
+      expiryDate: new Date('2024-09-30'),
+      createdAt: new Date('2024-01-06')
+    },
+    
+    // Personal Care
+    {
+      name: 'Lux Beauty Soap (100g)',
+      barcode: 'LUX100',
       description: 'Premium beauty soap with rose fragrance',
       category: 'Personal Care',
-      price: 45,
-      costPrice: 35,
-      stock: 80,
-      minStockLevel: 20,
+      price: 48,
+      costPrice: 36,
+      stock: 120,
+      minStockLevel: 30,
       unit: 'piece',
-      imageUrl: '',
-      shopId: supplier._id,
+      imageUrl: '/images/products/lux-soap.jpg',
+      shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier._id,
-        supplierName: supplier.firstName + ' ' + supplier.lastName,
+        supplierId: supplier1._id,
+        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
         supplierCode: 'SUP001'
       },
-      tax: 13
+      tax: 13,
+      brand: 'Lux',
+      createdAt: new Date('2024-01-06')
     },
     {
-      name: 'DDC Milk (1 Liter)',
-      barcode: 'MILK-DDC-1L',
-      description: 'Fresh pasteurized milk from DDC',
-      category: 'Dairy Products',
-      price: 85,
-      costPrice: 70,
-      stock: 40,
-      minStockLevel: 10,
-      unit: 'liter',
-      imageUrl: '',
-      shopId: supplier._id,
+      name: 'Colgate Toothpaste (175g)',
+      barcode: 'COLGATE175',
+      description: 'Advanced whitening toothpaste for healthy teeth',
+      category: 'Personal Care',
+      price: 185,
+      costPrice: 140,
+      stock: 90,
+      minStockLevel: 25,
+      unit: 'pack',
+      imageUrl: '/images/products/colgate.jpg',
+      shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier._id,
-        supplierName: supplier.firstName + ' ' + supplier.lastName,
+        supplierId: supplier1._id,
+        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
         supplierCode: 'SUP001'
       },
-      tax: 13
+      tax: 13,
+      brand: 'Colgate',
+      expiryDate: new Date('2026-01-31'),
+      createdAt: new Date('2024-01-06')
+    },
+    
+    // Dairy Products
+    {
+      name: 'DDC Fresh Milk (1L)',
+      barcode: 'DDC1L',
+      description: 'Fresh pasteurized milk from DDC dairy',
+      category: 'Dairy',
+      price: 92,
+      costPrice: 75,
+      stock: 35,
+      minStockLevel: 10,
+      unit: 'liter',
+      imageUrl: '/images/products/ddc-milk.jpg',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier1._id,
+        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
+        supplierCode: 'SUP001'
+      },
+      tax: 13,
+      brand: 'DDC',
+      expiryDate: new Date('2024-02-15'),
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Local Paneer (250g)',
+      barcode: 'PANEER250',
+      description: 'Fresh homemade paneer from local dairy',
+      category: 'Dairy',
+      price: 180,
+      costPrice: 140,
+      stock: 25,
+      minStockLevel: 8,
+      unit: 'pack',
+      imageUrl: '/images/products/paneer.jpg',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier1._id,
+        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
+        supplierCode: 'SUP001'
+      },
+      tax: 13,
+      brand: 'Local Dairy',
+      expiryDate: new Date('2024-02-10'),
+      createdAt: new Date('2024-01-06')
     }
   ];
-  await Product.insertMany(products);
-  console.log('Products seeded');
+  
+  const createdProducts = await Product.insertMany(products);
+  console.log(`Created ${createdProducts.length} products`);
+  return createdProducts;
 };
 
 // Seed Categories
@@ -402,11 +597,13 @@ const seedOrders = async (shopOwner, supplier, products) => {
           totalPrice: 24000.00
         }
       ],
-      totalAmount: 36500.00,
+      subtotal: 36500.00,
+      tax: 4745.00,
+      total: 41245.00,
       status: 'pending',
       orderDate: new Date('2024-01-15'),
       notes: 'Urgent order for new store opening',
-      requestedDeliveryDate: new Date('2024-01-20')
+      expectedDeliveryDate: new Date('2024-01-20')
     },
     {
       orderNumber: 'ORD-002-2024',
@@ -422,10 +619,12 @@ const seedOrders = async (shopOwner, supplier, products) => {
           totalPrice: 15000.00
         }
       ],
-      totalAmount: 15000.00,
+      subtotal: 15000.00,
+      tax: 1950.00,
+      total: 16950.00,
       status: 'confirmed',
       orderDate: new Date('2024-01-10'),
-      estimatedDeliveryDate: new Date('2024-01-18'),
+      expectedDeliveryDate: new Date('2024-01-18'),
       notes: 'Regular monthly order'
     },
     {
@@ -450,10 +649,12 @@ const seedOrders = async (shopOwner, supplier, products) => {
           totalPrice: 5000.00
         }
       ],
-      totalAmount: 11000.00,
+      subtotal: 11000.00,
+      tax: 1430.00,
+      total: 12430.00,
       status: 'shipped',
       orderDate: new Date('2024-01-05'),
-      estimatedDeliveryDate: new Date('2024-01-12'),
+      expectedDeliveryDate: new Date('2024-01-12'),
       notes: 'Special promotional items'
     }
   ];
@@ -512,8 +713,7 @@ const seedSettings = async (shopOwner) => {
     pos: {
       allowDiscount: true,
       maxDiscountPercent: 15,
-      requireCustomer: false,
-      defaultPaymentMethod: 'cash'
+      requireCustomer: false
     },
     notifications: {
       lowStock: true,
@@ -529,6 +729,416 @@ const seedSettings = async (shopOwner) => {
   return settings;
 };
 
+// Seed Transactions - Sales Data
+const seedTransactions = async (shopOwner, customers, products) => {
+  console.log('Seeding transactions...');
+  
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  const weekAgo = new Date();
+  weekAgo.setDate(today.getDate() - 7);
+  const monthAgo = new Date();
+  monthAgo.setDate(today.getDate() - 30);
+  
+  const transactions = [
+    // TODAY'S TRANSACTIONS
+    {
+      receiptNumber: `RCP-${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-001`,
+      shopId: shopOwner._id,
+      customerId: customers[0]._id,
+      items: [
+        {
+          productId: products[0]._id,
+          name: products[0].name,
+          price: products[0].price,
+          quantity: 3,
+          subtotal: products[0].price * 3,
+          tax: (products[0].price * 3) * 0.13
+        },
+        {
+          productId: products[2]._id,
+          name: products[2].name,
+          price: products[2].price,
+          quantity: 2,
+          subtotal: products[2].price * 2,
+          tax: (products[2].price * 2) * 0.13
+        }
+      ],
+      subtotal: (products[0].price * 3) + (products[2].price * 2),
+      tax: ((products[0].price * 3) + (products[2].price * 2)) * 0.13,
+      discount: 100,
+      total: ((products[0].price * 3) + (products[2].price * 2)) * 1.13 - 100,
+      amountPaid: ((products[0].price * 3) + (products[2].price * 2)) * 1.13 - 100,
+      change: 0,
+      paymentMethod: 'cash',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9, 30, 0)
+    },
+    {
+      receiptNumber: `RCP-${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-002`,
+      shopId: shopOwner._id,
+      customerId: customers[1]._id,
+      items: [
+        {
+          productId: products[1]._id,
+          name: products[1].name,
+          price: products[1].price,
+          quantity: 5,
+          subtotal: products[1].price * 5,
+          tax: (products[1].price * 5) * 0.13
+        }
+      ],
+      subtotal: products[1].price * 5,
+      tax: (products[1].price * 5) * 0.13,
+      discount: 0,
+      total: (products[1].price * 5) * 1.13,
+      amountPaid: (products[1].price * 5) * 1.13,
+      change: 0,
+      paymentMethod: 'card',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 11, 15, 0)
+    },
+    {
+      receiptNumber: `RCP-${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-003`,
+      shopId: shopOwner._id,
+      customerId: customers[2]._id,
+      items: [
+        {
+          productId: products[3]._id,
+          name: products[3].name,
+          price: products[3].price,
+          quantity: 1,
+          subtotal: products[3].price,
+          tax: products[3].price * 0.13
+        },
+        {
+          productId: products[4]._id,
+          name: products[4].name,
+          price: products[4].price,
+          quantity: 2,
+          subtotal: products[4].price * 2,
+          tax: (products[4].price * 2) * 0.13
+        }
+      ],
+      subtotal: products[3].price + (products[4].price * 2),
+      tax: (products[3].price + (products[4].price * 2)) * 0.13,
+      discount: 50,
+      total: (products[3].price + (products[4].price * 2)) * 1.13 - 50,
+      amountPaid: (products[3].price + (products[4].price * 2)) * 1.13 - 50,
+      change: 0,
+      paymentMethod: 'cash',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 45, 0)
+    },
+    {
+      receiptNumber: `RCP-${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-004`,
+      shopId: shopOwner._id,
+      customerId: customers[0]._id,
+      items: [
+        {
+          productId: products[5]._id,
+          name: products[5].name,
+          price: products[5].price,
+          quantity: 4,
+          subtotal: products[5].price * 4,
+          tax: (products[5].price * 4) * 0.13
+        }
+      ],
+      subtotal: products[5].price * 4,
+      tax: (products[5].price * 4) * 0.13,
+      discount: 0,
+      total: (products[5].price * 4) * 1.13,
+      amountPaid: (products[5].price * 4) * 1.13,
+      change: 0,
+      paymentMethod: 'digital',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 16, 20, 0)
+    },
+    // YESTERDAY'S TRANSACTIONS
+    {
+      receiptNumber: `RCP-${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}${String(yesterday.getDate()).padStart(2, '0')}-001`,
+      shopId: shopOwner._id,
+      customerId: customers[1]._id,
+      items: [
+        {
+          productId: products[6]._id,
+          name: products[6].name,
+          price: products[6].price,
+          quantity: 2,
+          subtotal: products[6].price * 2,
+          tax: (products[6].price * 2) * 0.13
+        }
+      ],
+      subtotal: products[6].price * 2,
+      tax: (products[6].price * 2) * 0.13,
+      discount: 0,
+      total: (products[6].price * 2) * 1.13,
+      amountPaid: (products[6].price * 2) * 1.13,
+      change: 0,
+      paymentMethod: 'cash',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 10, 30, 0)
+    },
+    {
+      receiptNumber: `RCP-${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}${String(yesterday.getDate()).padStart(2, '0')}-002`,
+      shopId: shopOwner._id,
+      customerId: customers[2]._id,
+      items: [
+        {
+          productId: products[7]._id,
+          name: products[7].name,
+          price: products[7].price,
+          quantity: 1,
+          subtotal: products[7].price,
+          tax: products[7].price * 0.13
+        }
+      ],
+      subtotal: products[7].price,
+      tax: products[7].price * 0.13,
+      discount: 25,
+      total: (products[7].price * 1.13) - 25,
+      amountPaid: (products[7].price * 1.13) - 25,
+      change: 0,
+      paymentMethod: 'card',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 15, 45, 0)
+    },
+    // WEEK'S TRANSACTIONS
+    {
+      receiptNumber: `RCP-${weekAgo.getFullYear()}-${String(weekAgo.getMonth() + 1).padStart(2, '0')}${String(weekAgo.getDate()).padStart(2, '0')}-001`,
+      shopId: shopOwner._id,
+      customerId: customers[0]._id,
+      items: [
+        {
+          productId: products[8]._id,
+          name: products[8].name,
+          price: products[8].price,
+          quantity: 3,
+          subtotal: products[8].price * 3,
+          tax: (products[8].price * 3) * 0.13
+        }
+      ],
+      subtotal: products[8].price * 3,
+      tax: (products[8].price * 3) * 0.13,
+      discount: 0,
+      total: (products[8].price * 3) * 1.13,
+      amountPaid: (products[8].price * 3) * 1.13,
+      change: 0,
+      paymentMethod: 'cash',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(weekAgo.getFullYear(), weekAgo.getMonth(), weekAgo.getDate(), 12, 30, 0)
+    },
+    // OLDER TRANSACTIONS FOR HISTORICAL DATA
+    {
+      receiptNumber: 'RCP-2024-001',
+      shopId: shopOwner._id,
+      customerId: customers[0]._id,
+      items: [
+        {
+          productId: products[0]._id,
+          name: products[0].name,
+          price: products[0].price,
+          quantity: 2,
+          subtotal: products[0].price * 2,
+          tax: (products[0].price * 2) * 0.13
+        }
+      ],
+      subtotal: products[0].price * 2,
+      tax: (products[0].price * 2) * 0.13,
+      discount: 50,
+      total: ((products[0].price * 2) * 1.13) - 50,
+      amountPaid: ((products[0].price * 2) * 1.13) - 50,
+      change: 0,
+      paymentMethod: 'cash',
+      status: 'completed',
+      cashierId: shopOwner._id,
+      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
+      createdAt: new Date(monthAgo.getFullYear(), monthAgo.getMonth(), monthAgo.getDate(), 10, 30, 0)
+    }
+  ];
+  
+  const createdTransactions = await Transaction.insertMany(transactions);
+  console.log(`Created ${createdTransactions.length} transactions`);
+  return createdTransactions;
+};
+
+// Seed Expenses - Business Expenses
+const seedExpenses = async (shopOwner) => {
+  console.log('Seeding expenses...');
+  
+  const expenses = [
+    {
+      shopId: shopOwner._id,
+      title: 'Monthly Rent',
+      description: 'Shop rent for January 2024',
+      amount: 25000,
+      category: 'rent',
+      date: new Date('2024-01-01'),
+      addedBy: shopOwner._id,
+      recurring: true,
+      recurringDetails: {
+        frequency: 'monthly'
+      }
+    },
+    {
+      shopId: shopOwner._id,
+      description: 'Monthly electricity charges',
+      amount: 3500,
+      category: 'utilities',
+      date: new Date('2024-01-05'),
+      addedBy: shopOwner._id,
+      recurring: true,
+      recurringDetails: {
+        frequency: 'monthly'
+      }
+    },
+    {
+      shopId: shopOwner._id,
+      description: 'Monthly internet and phone charges',
+      amount: 1800,
+      category: 'utilities',
+      date: new Date('2024-01-03'),
+      addedBy: shopOwner._id,
+      recurring: true,
+      recurringDetails: {
+        frequency: 'monthly'
+      }
+    },
+    {
+      shopId: shopOwner._id,
+      description: 'Stock replenishment from supplier',
+      amount: 45000,
+      category: 'inventory',
+      date: new Date('2024-01-08'),
+      addedBy: shopOwner._id,
+      recurring: false
+    },
+    {
+      shopId: shopOwner._id,
+      description: 'Monthly salary for shop assistant',
+      amount: 18000,
+      category: 'salary',
+      date: new Date('2024-01-10'),
+      addedBy: shopOwner._id,
+      recurring: true,
+      recurringDetails: {
+        frequency: 'monthly'
+      }
+    }
+  ];
+  
+  const createdExpenses = await Expense.insertMany(expenses);
+  console.log(`Created ${createdExpenses.length} expenses`);
+  return createdExpenses;
+};
+
+// Seed Inventory Logs - Stock Movement
+const seedInventoryLogs = async (shopOwner, products) => {
+  console.log('Seeding inventory logs...');
+  
+  const inventoryLogs = [
+    {
+      productId: products[0]._id,
+      shopId: shopOwner._id,
+      type: 'purchase',
+      quantity: 50,
+      previousStock: 0,
+      newStock: 50,
+      notes: 'Opening inventory for new product',
+      performedBy: shopOwner._id
+    },
+    {
+      productId: products[0]._id,
+      shopId: shopOwner._id,
+      type: 'sale',
+      quantity: -2,
+      previousStock: 50,
+      newStock: 48,
+      notes: 'Sold to customer Maya Tamang',
+      performedBy: shopOwner._id
+    },
+    {
+      productId: products[1]._id,
+      shopId: shopOwner._id,
+      type: 'purchase',
+      quantity: 60,
+      previousStock: 0,
+      newStock: 60,
+      notes: 'Opening inventory',
+      performedBy: shopOwner._id
+    },
+    {
+      productId: products[2]._id,
+      shopId: shopOwner._id,
+      type: 'purchase',
+      quantity: 300,
+      previousStock: 0,
+      newStock: 300,
+      notes: 'Bulk purchase for snacks category',
+      performedBy: shopOwner._id
+    },
+    {
+      productId: products[2]._id,
+      shopId: shopOwner._id,
+      type: 'sale',
+      quantity: -5,
+      previousStock: 300,
+      newStock: 295,
+      notes: 'Sold to customer Maya Tamang',
+      performedBy: shopOwner._id
+    },
+    {
+      productId: products[8]._id,
+      shopId: shopOwner._id,
+      type: 'purchase',
+      quantity: 40,
+      previousStock: 0,
+      newStock: 40,
+      notes: 'Fresh dairy products delivery',
+      performedBy: shopOwner._id
+    },
+    {
+      productId: products[8]._id,
+      shopId: shopOwner._id,
+      type: 'sale',
+      quantity: -2,
+      previousStock: 40,
+      newStock: 38,
+      notes: 'Sold to customer Binita Shrestha',
+      performedBy: shopOwner._id
+    },
+    {
+      productId: products[8]._id,
+      shopId: shopOwner._id,
+      type: 'loss',
+      quantity: -3,
+      previousStock: 38,
+      newStock: 35,
+      notes: 'Removed expired milk products',
+      performedBy: shopOwner._id
+    }
+  ];
+  
+  const createdInventoryLogs = await InventoryLog.insertMany(inventoryLogs);
+  console.log(`Created ${createdInventoryLogs.length} inventory logs`);
+  return createdInventoryLogs;
+};
+
 // Main seed function
 const seedDB = async () => {
   try {
@@ -536,31 +1146,53 @@ const seedDB = async () => {
     await clearDB();
     
     // Seed in order (users first, then dependent data)
-    const { shopOwner, supplier } = await seedUsers();
+    const { admin, shopOwner, supplier1, supplier2 } = await seedUsers();
     const categories = await seedCategories(shopOwner);
     const customers = await seedCustomers(shopOwner);
-    const products = await seedProducts(supplier);
-    const orders = await seedOrders(shopOwner, supplier, products);
+    const products = await seedProducts(shopOwner, supplier1);
+    const transactions = await seedTransactions(shopOwner, customers, products);
+    const expenses = await seedExpenses(shopOwner);
+    const inventoryLogs = await seedInventoryLogs(shopOwner, products);
+    const orders = await seedOrders(shopOwner, supplier1, products);
     const settings = await seedSettings(shopOwner);
     
-    console.log('Database seeded successfully!');
-    console.log('=================================');
-    console.log('Test Shop Owner Credentials:');
-    console.log('Email: ram.sharma@example.com');
-    console.log('Password: Password123!');
-    console.log('=================================');
-    console.log('Test Supplier Credentials:');
-    console.log('Email: krishna.adhikari@nepal.com');
-    console.log('Password: Password123!');
-    console.log('=================================');
-    console.log(`Created:`);
-    console.log(`- 2 Users (1 shopowner, 1 supplier)`);
-    console.log(`- ${categories.length} Categories`);
-    console.log(`- ${customers.length} Customers`);
-    console.log(`- ${products.length} Products`);
-    console.log(`- ${orders.length} Orders`);
-    console.log(`- 1 Settings configuration`);
-    console.log('=================================');
+    console.log('\n🎉 Database seeded successfully with production-ready data!');
+    console.log('='.repeat(60));
+    console.log('🔑 LOGIN CREDENTIALS:');
+    console.log('='.repeat(60));
+    console.log('👑 ADMIN ACCESS:');
+    console.log('Email: admin@smartpos.com');
+    console.log('Password: admin123');
+    console.log('');
+    console.log('🏪 SHOP OWNER ACCESS:');
+    console.log('Email: rajesh.shrestha@smartpos.com');
+    console.log('Password: shop123');
+    console.log('');
+    console.log('📦 SUPPLIER ACCESS (Approved):');
+    console.log('Email: krishna@wholesale.com.np');
+    console.log('Password: supplier123');
+    console.log('');
+    console.log('📦 SUPPLIER PENDING APPROVAL:');
+    console.log('Email: sita@freshproduce.com.np');
+    console.log('Password: supplier123');
+    console.log('='.repeat(60));
+    console.log('📊 DATA CREATED:');
+    console.log(`- 4 Users (1 admin, 1 shopowner, 2 suppliers)`);
+    console.log(`- ${categories.length} Product Categories`);
+    console.log(`- ${customers.length} Customers with purchase history`);
+    console.log(`- ${products.length} Products with realistic pricing`);
+    console.log(`- ${transactions.length} Sales Transactions`);
+    console.log(`- ${expenses.length} Business Expenses`);
+    console.log(`- ${inventoryLogs.length} Inventory Movement Logs`);
+    console.log(`- ${orders.length} Supplier Orders`);
+    console.log(`- 1 Complete Settings Configuration`);
+    console.log('='.repeat(60));
+    console.log('🌐 ACCESS POINTS:');
+    console.log('Admin Dashboard: http://localhost:8080/pages/admin-dashboard.html');
+    console.log('POS System: http://localhost:8080');
+    console.log('Supplier Portal: http://localhost:8080/supplier-landing.html');
+    console.log('='.repeat(60));
+    console.log('✅ Your Smart POS System is now ready for production use!');
     
     process.exit(0);
   } catch (err) {

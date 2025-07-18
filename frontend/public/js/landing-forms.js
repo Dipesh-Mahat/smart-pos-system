@@ -1,29 +1,57 @@
 /**
- * Landing page forms functionality
+ * Landing page forms functionality - COMPLETELY REWRITTEN
  * Handles login/registration popups and form submissions
  */
 
-// Email validation function - simplified and more practical
+// Simple and reliable email validation
 function isValidEmail(email) {
-    // Basic email validation - checks for @ and at least one dot in domain
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email.trim()) && email.trim().length > 0;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email.trim());
 }
 
-// Popup functionality        
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Landing forms script loaded');
-    
-    // Hide all error messages initially
-    const errorMessages = document.querySelectorAll('.error-message');
-    errorMessages.forEach(error => {
+// Clear all form errors
+function clearFormErrors() {
+    document.querySelectorAll('.error-message').forEach(error => {
         error.style.display = 'none';
     });
-    console.log('Error messages hidden initially');
+    document.querySelectorAll('input').forEach(input => {
+        input.style.borderColor = '';
+    });
+}
+
+// Show error message
+function showError(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    }
+}
+
+// Auto-detect API URL based on environment
+function getApiBaseUrl() {
+    // Auto-detect based on hostname
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1';
     
+    // Use localhost for development, Render for production
+    const apiUrl = isLocalhost ? 'http://localhost:5000/api' : 'https://smart-pos-system.onrender.com/api';
+    
+    console.log(`🌐 Environment: ${isLocalhost ? 'Development' : 'Production'}`);
+    console.log(`🌐 API URL: ${apiUrl}`);
+    
+    return apiUrl;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const apiBaseUrl = getApiBaseUrl();
+    
+    // Get all popup elements
     const loginPopup = document.getElementById('loginPopup');
     const registerPopup = document.getElementById('registerPopup');
     const forgotPasswordPopup = document.getElementById('forgotPasswordPopup');
+    
+    // Get all button elements
     const loginBtn = document.getElementById('loginBtn');
     const registerBtn = document.getElementById('registerBtn');
     const switchToRegister = document.getElementById('switchToRegister');
@@ -31,383 +59,361 @@ document.addEventListener('DOMContentLoaded', function() {
     const forgotPasswordLink = document.getElementById('forgotPassword');
     const backToLoginLink = document.getElementById('backToLogin');
     const closePopupButtons = document.querySelectorAll('.close-popup');
-            
-            // Show login popup
-            loginBtn.addEventListener('click', function(e) {
-                e.preventDefault();
+    
+    // Get form elements
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    
+    // Initially hide all error messages
+    clearFormErrors();
+    
+    // Popup show/hide functionality
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearFormErrors();
+            if (loginPopup) {
                 loginPopup.style.display = 'flex';
-            });
-            
-            // Show register popup
-            registerBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                registerPopup.style.display = 'flex';
-            });
-            
-            // Get Started button in hero section
-            const heroGetStarted = document.getElementById('heroGetStarted');
-            if (heroGetStarted) {
-                heroGetStarted.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    registerPopup.style.display = 'flex';
-                });
             }
-            
-            // Pricing "Get Started" buttons
-            const pricingGetStartedButtons = document.querySelectorAll('.pricing-get-started');
-            pricingGetStartedButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    registerPopup.style.display = 'flex';
-                });
-            });
-            
-            // CTA "Get Started Today" button
-            const ctaGetStarted = document.getElementById('ctaGetStarted');
-            if (ctaGetStarted) {
-                ctaGetStarted.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    registerPopup.style.display = 'flex';
-                });
-            }
-            
-            // Switch between popups
-            switchToRegister.addEventListener('click', function(e) {
-                e.preventDefault();
-                loginPopup.style.display = 'none';
+        });
+    }
+    
+    if (registerBtn) {
+        registerBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearFormErrors();
+            if (registerPopup) {
                 registerPopup.style.display = 'flex';
+            }
+        });
+    }
+    
+    // Hero and other Get Started buttons
+    const heroGetStarted = document.getElementById('heroGetStarted');
+    if (heroGetStarted) {
+        heroGetStarted.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearFormErrors();
+            if (registerPopup) {
+                registerPopup.style.display = 'flex';
+            }
+        });
+    }
+    
+    const pricingButtons = document.querySelectorAll('.pricing-get-started');
+    pricingButtons.forEach((button) => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearFormErrors();
+            if (registerPopup) {
+                registerPopup.style.display = 'flex';
+            }
+        });
+    });
+    
+    const ctaGetStarted = document.getElementById('ctaGetStarted');
+    if (ctaGetStarted) {
+        ctaGetStarted.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearFormErrors();
+            if (registerPopup) {
+                registerPopup.style.display = 'flex';
+            }
+        });
+    }
+    
+    // Switch between popups
+    switchToRegister?.addEventListener('click', function(e) {
+        e.preventDefault();
+        clearFormErrors();
+        loginPopup.style.display = 'none';
+        registerPopup.style.display = 'flex';
+    });
+    
+    switchToLogin?.addEventListener('click', function(e) {
+        e.preventDefault();
+        clearFormErrors();
+        registerPopup.style.display = 'none';
+        loginPopup.style.display = 'flex';
+    });
+    
+    // Forgot password functionality
+    forgotPasswordLink?.addEventListener('click', function(e) {
+        e.preventDefault();
+        clearFormErrors();
+        loginPopup.style.display = 'none';
+        forgotPasswordPopup.style.display = 'flex';
+    });
+    
+    backToLoginLink?.addEventListener('click', function(e) {
+        e.preventDefault();
+        clearFormErrors();
+        forgotPasswordPopup.style.display = 'none';
+        loginPopup.style.display = 'flex';
+    });
+    
+    // Close popups
+    closePopupButtons.forEach((button) => {
+        button.addEventListener('click', function() {
+            clearFormErrors();
+            if (loginPopup) loginPopup.style.display = 'none';
+            if (registerPopup) registerPopup.style.display = 'none';
+            if (forgotPasswordPopup) forgotPasswordPopup.style.display = 'none';
+        });
+    });
+    
+    // Close popup when clicking outside
+    window.addEventListener('click', function(e) {
+        if (e.target === loginPopup) {
+            clearFormErrors();
+            loginPopup.style.display = 'none';
+        }
+        if (e.target === registerPopup) {
+            clearFormErrors();
+            registerPopup.style.display = 'none';
+        }
+        if (e.target === forgotPasswordPopup) {
+            clearFormErrors();
+            forgotPasswordPopup.style.display = 'none';
+        }
+    });
+    
+    // LOGIN FORM HANDLING
+    loginForm?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Clear previous errors
+        clearFormErrors();
+        document.getElementById('loginErrorAlert').style.display = 'none';
+        
+        // Get form values
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        
+        // Validate inputs
+        let hasError = false;
+        
+        if (!email) {
+            showError('loginEmailError', 'Email is required');
+            hasError = true;
+        } else if (!isValidEmail(email)) {
+            showError('loginEmailError', 'Please enter a valid email address');
+            hasError = true;
+        }
+        
+        if (!password) {
+            showError('loginPasswordError', 'Password is required');
+            hasError = true;
+        }
+        
+        if (hasError) return;
+        
+        // Show loading state
+        const loginLoading = loginPopup.querySelector('.loading-popup');
+        loginForm.style.display = 'none';
+        loginLoading.style.display = 'block';
+        
+        try {
+            const response = await fetch(`${apiBaseUrl}/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ email, password })
             });
             
-            switchToLogin.addEventListener('click', function(e) {
-                e.preventDefault();
-                registerPopup.style.display = 'none';
-                loginPopup.style.display = 'flex';
-            });
+            const data = await response.json();
             
-            // Forgot Password functionality
-            forgotPasswordLink.addEventListener('click', function(e) {
-                e.preventDefault();
-                loginPopup.style.display = 'none';
-                forgotPasswordPopup.style.display = 'flex';
-            });
-            
-            backToLoginLink.addEventListener('click', function(e) {
-                e.preventDefault();
-                forgotPasswordPopup.style.display = 'none';
-                loginPopup.style.display = 'flex';
-            });
-            
-            // Close popups
-            closePopupButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    loginPopup.style.display = 'none';
-                    registerPopup.style.display = 'none';
-                    forgotPasswordPopup.style.display = 'none';
-                });
-            });
-            
-            // Close popup when clicking outside
-            window.addEventListener('click', function(e) {
-                if (e.target === loginPopup) {
-                    loginPopup.style.display = 'none';
+            if (response.ok && data.success) {
+                // Store user data using auth service if available
+                if (window.authService) {
+                    const refreshToken = data.refreshToken || getCookieValue('refresh_token');
+                    window.authService.saveTokenData(data.token, refreshToken, data.user);
                 }
-                if (e.target === registerPopup) {
-                    registerPopup.style.display = 'none';
-                }
-                if (e.target === forgotPasswordPopup) {
-                    forgotPasswordPopup.style.display = 'none';
-                }
-            });
-            
-            // Login form handling
-            const loginForm = document.getElementById('loginForm');
-            const loginLoading = loginPopup.querySelector('.loading-popup');
-            const loginErrorAlert = document.getElementById('loginErrorAlert');
-            
-            // Hide loading spinner initially
-            loginLoading.style.display = 'none';
-            
-            // Set API base URL to Render backend only (no local testing)
-const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
-            
-            loginForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
                 
-                // Clear previous error messages
-                document.getElementById('loginEmailError').style.display = 'none';
-                document.getElementById('loginPasswordError').style.display = 'none';
-                loginErrorAlert.style.display = 'none';
-                
-                const email = document.getElementById('loginEmail').value.trim();
-                const password = document.getElementById('loginPassword').value;
-
-                console.log('Login form values:', { email, password: '***' });
-
-                // Validate email
-                if (!email) {
-                    document.getElementById('loginEmailError').textContent = 'Email is required';
-                    document.getElementById('loginEmailError').style.display = 'block';
-                    return;
-                } else if (!isValidEmail(email)) {
-                    document.getElementById('loginEmailError').textContent = 'Please enter a valid email address';
-                    document.getElementById('loginEmailError').style.display = 'block';
-                    console.log('Login email validation failed for:', email);
-                    return;
-                }
-                
-                // Validate password
-                if (!password) {
-                    document.getElementById('loginPasswordError').textContent = 'Password is required';
-                    document.getElementById('loginPasswordError').style.display = 'block';
-                    return;
-                }
-
-                console.log('Login validation passed, proceeding...');
-
-    // Show loading spinner
-    loginForm.style.display = 'none';
-    loginLoading.style.display = 'block';
-    loginErrorAlert.style.display = 'none';
-    try {
-        const result = await window.authService.login(email, password);
-        if (result.success) {
-            // Redirect to dashboard
-            window.location.href = 'pages/dashboard.html';
-        } else {
+                // Redirect to dashboard
+                window.location.href = 'pages/dashboard.html';
+            } else {
+                // Show error
+                loginForm.style.display = 'block';
+                loginLoading.style.display = 'none';
+                const errorAlert = document.getElementById('loginErrorAlert');
+                errorAlert.textContent = data.message || 'Login failed';
+                errorAlert.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Login error:', error);
             loginForm.style.display = 'block';
             loginLoading.style.display = 'none';
-            // Show error message
-            loginErrorAlert.textContent = result.message || 'Login failed';
-            loginErrorAlert.style.display = 'block';
+            const errorAlert = document.getElementById('loginErrorAlert');
+            errorAlert.textContent = 'Network error. Please try again.';
+            errorAlert.style.display = 'block';
         }
-    } catch (err) {
-        loginForm.style.display = 'block';
-        loginLoading.style.display = 'none';
-        loginErrorAlert.textContent = 'Network error. Please try again.';
-        loginErrorAlert.style.display = 'block';
-    }
-});
-            
-            // Register form handling
-            const registerForm = document.getElementById('registerForm');
-            const registerLoading = registerPopup.querySelector('.loading-popup');
-            const registerErrorAlert = document.getElementById('registerErrorAlert');
-            // Hide loading spinner initially
-            registerLoading.style.display = 'none';
-            
-            registerForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                // Clear all previous error messages
-                document.getElementById('emailError').style.display = 'none';
-                document.getElementById('shopNameError').style.display = 'none';
-                document.getElementById('registerPasswordError').style.display = 'none';
-                document.getElementById('confirmPasswordError').style.display = 'none';
-                registerErrorAlert.style.display = 'none';
-                
-                // Get form values
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('registerPassword').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                const shopName = document.getElementById('shopName') ? document.getElementById('shopName').value.trim() : '';
-                
-                console.log('Registration form values:', { email, password: '***', shopName });
-                
-                let hasError = false;
-                
-                // Validate email
-                if (!email) {
-                    document.getElementById('emailError').textContent = 'Email is required';
-                    document.getElementById('emailError').style.display = 'block';
-                    hasError = true;
-                } else if (!isValidEmail(email)) {
-                    document.getElementById('emailError').textContent = 'Please enter a valid email address';
-                    document.getElementById('emailError').style.display = 'block';
-                    hasError = true;
-                    console.log('Email validation failed for:', email);
-                }
-                
-                // Validate shop name
-                if (!shopName) {
-                    document.getElementById('shopNameError').textContent = 'Shop name is required';
-                    document.getElementById('shopNameError').style.display = 'block';
-                    hasError = true;
-                }
-                
-                // Validate password
-                if (!password) {
-                    document.getElementById('registerPasswordError').textContent = 'Password is required';
-                    document.getElementById('registerPasswordError').style.display = 'block';
-                    hasError = true;
-                } else if (password.length < 6) {
-                    document.getElementById('registerPasswordError').textContent = 'Password must be at least 6 characters';
-                    document.getElementById('registerPasswordError').style.display = 'block';
-                    hasError = true;
-                }
-                
-                // Validate password confirmation
-                if (!confirmPassword) {
-                    document.getElementById('confirmPasswordError').textContent = 'Please confirm your password';
-                    document.getElementById('confirmPasswordError').style.display = 'block';
-                    hasError = true;
-                } else if (password !== confirmPassword) {
-                    document.getElementById('confirmPasswordError').textContent = 'Passwords do not match';
-                    document.getElementById('confirmPasswordError').style.display = 'block';
-                    hasError = true;
-                }
-                
-                if (hasError) {
-                    console.log('Registration validation failed');
-                    return;
-                }
-                
-                console.log('Registration validation passed, proceeding...');
-                // Show loading spinner
-                registerForm.style.display = 'none';
-                registerLoading.style.display = 'block';
-                registerErrorAlert.style.display = 'none';
-                try {
-                    // Prepare user data for registration
-                    const userData = {
-                        email: email.trim(),
-                        password,
-                        confirmPassword,
-                        shopName: shopName,
-                        role: 'shopowner' // Default role
-                    };
-                    const result = await window.authService.register(userData);
-                    if (result.success) {
-                        // Show login popup after successful registration
-                        registerPopup.style.display = 'none';
-                        loginPopup.style.display = 'flex';
-                        registerForm.style.display = 'block';
-                        registerLoading.style.display = 'none';
-                        // Show success message in login popup
-                        loginErrorAlert.textContent = 'Registration successful! Please log in.';
-                        loginErrorAlert.style.color = '#28a745';
-                        loginErrorAlert.style.display = 'block';
-                    } else {
-                        registerForm.style.display = 'block';
-                        registerLoading.style.display = 'none';
-                        registerErrorAlert.textContent = result.message || 'Registration failed';
-                        registerErrorAlert.style.display = 'block';
-                    }
-                } catch (err) {
-                    registerForm.style.display = 'block';
-                    registerLoading.style.display = 'none';
-                    registerErrorAlert.textContent = 'Network error. Please try again.';
-                    registerErrorAlert.style.display = 'block';
-                }
-            });
-            
-            // Forgot Password form handling
-            const forgotPasswordForm = document.getElementById('forgotPasswordForm');
-            const forgotPasswordLoading = forgotPasswordPopup.querySelector('.loading-popup');
-            const forgotPasswordAlert = document.getElementById('forgotPasswordAlert');
-            
-            // Hide loading spinner initially
-            forgotPasswordLoading.style.display = 'none';
-            
-            forgotPasswordForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const email = document.getElementById('resetEmail').value.trim();
-                // Robust email validation
-                if (!isValidEmail(email)) {
-                    document.getElementById('resetEmailError').style.display = 'block';
-                    return;
-                } else {
-                    document.getElementById('resetEmailError').style.display = 'none';
-                }
-                
-                // Show loading spinner
-                forgotPasswordForm.style.display = 'none';
-                forgotPasswordLoading.style.display = 'block';
-                forgotPasswordAlert.style.display = 'none';
-                
-                // Send password reset request to backend
-                try {
-                    const response = await fetch(`${apiBaseUrl}/auth/reset-password`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ email })
-                    });
-                    
-                    // Hide loading spinner
-                    forgotPasswordLoading.style.display = 'none';
-                    forgotPasswordForm.style.display = 'block';
-                    
-                    if (response.ok) {
-                        // Show success message
-                        forgotPasswordAlert.textContent = 'Password reset link has been sent to your email address.';
-                        forgotPasswordAlert.className = 'message-alert success';
-                        forgotPasswordAlert.style.display = 'block';
-                        
-                        // Clear the email field
-                        document.getElementById('resetEmail').value = '';
-                    } else {
-                        // Show error message
-                        forgotPasswordAlert.textContent = 'Failed to send password reset link. Please try again.';
-                        forgotPasswordAlert.className = 'message-alert error';
-                        forgotPasswordAlert.style.display = 'block';
-                    }
-                } catch (err) {
-                    // Hide loading spinner
-                    forgotPasswordLoading.style.display = 'none';
-                    forgotPasswordForm.style.display = 'block';
-                    
-                    // Show error message
-                    forgotPasswordAlert.textContent = 'Network error. Please try again.';
-                    forgotPasswordAlert.className = 'message-alert error';
-                    forgotPasswordAlert.style.display = 'block';
-                }
-            });
-            
-            // Debug function for testing email validation
-            window.testEmailValidation = function(email) {
-                console.log('Testing email:', email);
-                console.log('Is valid:', isValidEmail(email));
-                return isValidEmail(email);
+    });
+    
+    // REGISTRATION FORM HANDLING
+    registerForm?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Clear ALL previous errors completely
+        clearFormErrors();
+        const registerErrorAlert = document.getElementById('registerErrorAlert');
+        if (registerErrorAlert) {
+            registerErrorAlert.style.display = 'none';
+        }
+        
+        // Get form values with proper element checking
+        const shopNameInput = document.getElementById('shopName');
+        const regEmailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('registerPassword');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        
+        const shopName = shopNameInput ? shopNameInput.value.trim() : '';
+        const email = regEmailInput ? regEmailInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value : '';
+        const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : '';
+        
+        // Validate inputs
+        let hasError = false;
+        
+        // Shop name validation
+        if (!shopName || shopName === '') {
+            showError('shopNameError', 'Shop name is required');
+            hasError = true;
+        }
+        
+        // Email validation
+        if (!email || email === '' || email.length === 0) {
+            showError('emailError', 'Email is required');
+            hasError = true;
+        } else if (!isValidEmail(email)) {
+            showError('emailError', 'Please enter a valid email address');
+            hasError = true;
+        }
+        
+        // Password validation
+        if (!password || password === '') {
+            showError('registerPasswordError', 'Password is required');
+            hasError = true;
+        } else if (password.length < 6) {
+            showError('registerPasswordError', 'Password must be at least 6 characters');
+            hasError = true;
+        }
+        
+        // Confirm password validation
+        if (!confirmPassword || confirmPassword === '') {
+            showError('confirmPasswordError', 'Please confirm your password');
+            hasError = true;
+        } else if (password !== confirmPassword) {
+            showError('confirmPasswordError', 'Passwords do not match');
+            hasError = true;
+        }
+        
+        if (hasError) return;
+        
+        // Show loading state
+        const registerLoading = registerPopup.querySelector('.loading-popup');
+        registerForm.style.display = 'none';
+        registerLoading.style.display = 'block';
+        
+        try {
+            const requestData = {
+                email,
+                password,
+                confirmPassword,
+                shopName,
+                role: 'shopowner'
             };
             
-            // Add real-time email validation feedback
-            document.getElementById('email').addEventListener('input', function() {
-                const email = this.value.trim();
-                const errorElement = document.getElementById('emailError');
-                
-                if (email.length > 0) {
-                    if (isValidEmail(email)) {
-                        errorElement.style.display = 'none';
-                        this.style.borderColor = '#28a745'; // Green border for valid email
-                    } else {
-                        errorElement.textContent = 'Please enter a valid email address';
-                        errorElement.style.display = 'block';
-                        this.style.borderColor = '#dc3545'; // Red border for invalid email
-                    }
-                } else {
-                    errorElement.style.display = 'none';
-                    this.style.borderColor = ''; // Reset border
-                }
+            const response = await fetch(`${apiBaseUrl}/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
             });
             
-            // Add real-time email validation feedback for login
-            document.getElementById('loginEmail').addEventListener('input', function() {
-                const email = this.value.trim();
-                const errorElement = document.getElementById('loginEmailError');
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                // Clear form
+                if (shopNameInput) shopNameInput.value = '';
+                if (regEmailInput) regEmailInput.value = '';
+                if (passwordInput) passwordInput.value = '';
+                if (confirmPasswordInput) confirmPasswordInput.value = '';
                 
-                if (email.length > 0) {
-                    if (isValidEmail(email)) {
-                        errorElement.style.display = 'none';
-                        this.style.borderColor = '#28a745'; // Green border for valid email
-                    } else {
-                        errorElement.textContent = 'Please enter a valid email address';
-                        errorElement.style.display = 'block';
-                        this.style.borderColor = '#dc3545'; // Red border for invalid email
-                    }
-                } else {
-                    errorElement.style.display = 'none';
-                    this.style.borderColor = ''; // Reset border
+                // Show success and switch to login
+                registerPopup.style.display = 'none';
+                loginPopup.style.display = 'flex';
+                registerForm.style.display = 'block';
+                registerLoading.style.display = 'none';
+                
+                const loginErrorAlert = document.getElementById('loginErrorAlert');
+                if (loginErrorAlert) {
+                    loginErrorAlert.textContent = 'Registration successful! Please log in.';
+                    loginErrorAlert.style.color = '#28a745';
+                    loginErrorAlert.style.display = 'block';
                 }
-            });
+                
+                // Pre-fill email in login form
+                const loginEmailInputField = document.getElementById('loginEmail');
+                if (loginEmailInputField) loginEmailInputField.value = email;
+                
+            } else {
+                // Show errors
+                registerForm.style.display = 'block';
+                registerLoading.style.display = 'none';
+                
+                // Handle specific validation errors
+                if (data.errors) {
+                    Object.keys(data.errors).forEach(field => {
+                        const errorElementId = field + 'Error';
+                        showError(errorElementId, data.errors[field]);
+                    });
+                }
+                
+                // Show general error
+                if (registerErrorAlert) {
+                    registerErrorAlert.textContent = data.message || 'Registration failed';
+                    registerErrorAlert.style.display = 'block';
+                }
+            }
+        } catch (error) {
+            console.error('Registration network error:', error);
+            registerForm.style.display = 'block';
+            registerLoading.style.display = 'none';
+            if (registerErrorAlert) {
+                registerErrorAlert.textContent = 'Network error. Please try again.';
+                registerErrorAlert.style.display = 'block';
+            }
+        }
+    });
+    
+    // Real-time email validation feedback (but don't show errors while typing)
+    const registerEmailInput = document.getElementById('email');
+    if (registerEmailInput) {
+        registerEmailInput.addEventListener('input', function() {
+            const emailError = document.getElementById('emailError');
+            if (emailError && emailError.style.display === 'block') {
+                // Only hide the error if it's currently showing
+                if (this.value.trim() && isValidEmail(this.value.trim())) {
+                    emailError.style.display = 'none';
+                    this.style.borderColor = '#28a745';
+                }
+            }
         });
+    }
+    
+    // Helper function to get cookie value
+    function getCookieValue(name) {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(name + '=')) {
+                return cookie.substring(name.length + 1);
+            }
+        }
+        return null;
+    }
+});

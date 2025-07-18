@@ -22,7 +22,7 @@ class SmartPOSNavbar {
             customActions: options.customActions || [],
             ...options
         };
-        this.notificationCount = 3; // Default notification count
+        this.notificationCount = 0; // Start with no notifications (will show dot based on actual unread count)
         this.init();
     }    init() {
         // Always ensure body can scroll on navbar initialization
@@ -102,7 +102,7 @@ class SmartPOSNavbar {
         const notifications = this.options.showNotifications ? 
             `<div class="navbar-notification-icon" id="navbarNotificationIcon">
                 <i class="fas fa-bell"></i>
-                <span class="navbar-notification-badge" id="navbarNotificationBadge">${this.notificationCount}</span>
+                <span class="navbar-notification-dot" id="navbarNotificationDot"></span>
             </div>` : '';        const profile = this.options.showProfile ? 
             `<div class="navbar-profile-icon" id="navbarProfileIcon">
                 <img src="../images/avatars/user-avatar.png" alt="Profile" id="navbarProfileImage" onerror="this.src='../images/avatars/user-avatar.png'">
@@ -147,6 +147,10 @@ class SmartPOSNavbar {
                 </div>
                 <div class="navbar-right">
                     ${customActions}
+                    <div class="scan-button" id="navbarScanButton" title="Quick Scan">
+                        <i class="fas fa-qrcode"></i>
+                        <span class="scan-label">Scan</span>
+                    </div>
                     ${notifications}
                     ${profile}
                 </div>
@@ -292,29 +296,60 @@ class SmartPOSNavbar {
                 cursor: pointer;
                 transition: all 0.3s ease;
                 color: #2c3e50;
+                font-size: 18px;
             }
 
             .navbar-notification-icon:hover {
                 background: #007bff;
                 color: white;
-                transform: scale(1.05);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,123,255,0.2);
             }
 
-            .navbar-notification-badge {
-                position: absolute;
-                top: -8px;
-                right: -8px;
-                background: #dc3545;
-                color: white;
-                border-radius: 50%;
-                width: 18px;
-                height: 18px;
-                font-size: 10px;
+            .scan-button {
+                position: relative;
                 display: flex;
                 align-items: center;
-                justify-content: center;
+                gap: 8px;
+                padding: 8px 16px;
+                background: linear-gradient(135deg, #28a745, #20c997);
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                color: white;
+                font-size: 14px;
                 font-weight: 600;
-                border: 2px solid white;
+                box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+            }
+
+            .scan-button:hover {
+                background: linear-gradient(135deg, #20c997, #28a745);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+            }
+
+            .scan-button i {
+                font-size: 16px;
+            }
+
+            .scan-label {
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            @media (max-width: 768px) {
+                .scan-label {
+                    display: none;
+                }
+                
+                .scan-button {
+                    padding: 10px;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 10px;
+                    justify-content: center;
+                }
             }
 
             .navbar-profile-icon {
@@ -600,6 +635,44 @@ class SmartPOSNavbar {
                     min-width: 220px;
                 }
             }
+            
+            /* Notification dot indicator */
+            .navbar-notification-dot {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                width: 8px;
+                height: 8px;
+                background: #dc3545;
+                border-radius: 50%;
+                border: 2px solid white;
+                display: none;
+                animation: pulse-dot 2s infinite;
+            }
+            
+            .navbar-notification-dot.show {
+                display: block;
+            }
+            
+            @keyframes pulse-dot {
+                0% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+                50% {
+                    transform: scale(1.2);
+                    opacity: 0.8;
+                }
+                100% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+            
+            /* Hide old notification badge completely */
+            .navbar-notification-badge {
+                display: none !important;
+            }
         `;
         document.head.appendChild(styles);    }    attachEventListeners() {
         // Hamburger menu icon
@@ -622,6 +695,15 @@ class SmartPOSNavbar {
                 } else {
                     window.history.back();
                 }
+            });
+        }
+
+        // Scan button
+        const scanButton = document.getElementById('navbarScanButton');
+        if (scanButton) {
+            scanButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleScanButtonClick();
             });
         }
 
@@ -732,6 +814,10 @@ class SmartPOSNavbar {
                 </div>
             </div>
         `).join('');
+        
+        // Count unread notifications and show dot if any
+        const unreadCount = notifications.filter(n => n.unread).length;
+        this.updateNotificationCount(unreadCount);
     }
 
     toggleNotificationPanel() {
@@ -743,6 +829,9 @@ class SmartPOSNavbar {
         
         if (panel?.classList.contains('active')) {
             document.body.style.overflow = 'hidden';
+            // When notification panel is opened, hide the red dot (mark as viewed)
+            this.showNotificationDot(false);
+            this.notificationCount = 0;
         } else {
             document.body.style.overflow = '';
         }
@@ -783,37 +872,486 @@ class SmartPOSNavbar {
 
     updateNotificationCount(count) {
         this.notificationCount = count;
+        const dot = document.getElementById('navbarNotificationDot');
         const badge = document.getElementById('navbarNotificationBadge');
-        if (badge) {
-            badge.textContent = count;
-            badge.style.display = count > 0 ? 'flex' : 'none';
-        }
-    }    logout() {
-        if (confirm('Are you sure you want to logout?')) {
-            // Use auth service for logout if available
-            if (window.authService) {
-                window.authService.logout();
+        
+        if (dot) {
+            // Show red dot if there are any notifications, hide if none
+            if (count > 0) {
+                dot.classList.add('show');
             } else {
-                // Fallback to basic logout
-                localStorage.clear();
-                sessionStorage.clear();
-                
-                // Redirect to login/landing page
-                window.location.href = '../landing.html';
+                dot.classList.remove('show');
+            }
+        }
+        
+        // Always hide the old badge system
+        if (badge) {
+            badge.style.display = 'none';
+        }
+    }
+
+    // Helper function to show/hide notification dot
+    showNotificationDot(show = true) {
+        const dot = document.getElementById('navbarNotificationDot');
+        if (dot) {
+            if (show) {
+                dot.classList.add('show');
+            } else {
+                dot.classList.remove('show');
             }
         }
     }
 
-    destroy() {
-        const container = document.getElementById('navbarContainer');
-        const styles = document.getElementById('smartPOSNavbarStyles');
+    // Helper function to check if there are unread notifications
+    hasUnreadNotifications() {
+        return this.notificationCount > 0;
+    }
+
+    handleScanButtonClick() {
+        // Create Smart Scan Dialog
+        this.showSmartScanDialog();
+    }
+
+    showSmartScanDialog() {
+        // Remove any existing scan dialog
+        const existingDialog = document.getElementById('smartScanDialog');
+        if (existingDialog) {
+            existingDialog.remove();
+        }
+
+        // Create scan dialog overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'smartScanDialog';
+        overlay.className = 'smart-scan-overlay';
         
-        container?.remove();
-        styles?.remove();
+        // Create dialog content
+        const dialog = document.createElement('div');
+        dialog.className = 'smart-scan-dialog';
+        
+        dialog.innerHTML = `
+            <div class="scan-dialog-header">
+                <h3><i class="fas fa-qrcode"></i> Smart Scanner</h3>
+                <button class="close-scan-dialog" id="closeScanDialog">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="scan-dialog-content">
+                <p>Choose what you want to scan:</p>
+                
+                <div class="scan-options">
+                    <div class="scan-option" data-scan-type="barcode">
+                        <div class="scan-option-icon">
+                            <i class="fas fa-barcode"></i>
+                        </div>
+                        <div class="scan-option-content">
+                            <h4>Product Scanner</h4>
+                            <p>Scan product barcodes for quick checkout or inventory</p>
+                        </div>
+                        <div class="scan-option-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="scan-option" data-scan-type="bill">
+                        <div class="scan-option-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="scan-option-content">
+                            <h4>Bill Scanner</h4>
+                            <p>Scan supplier bills and invoices for inventory updates</p>
+                        </div>
+                        <div class="scan-option-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="scan-connection-info">
+                    <div class="connection-status" id="scanConnectionStatus">
+                        <div class="status-dot connecting"></div>
+                        <span>Preparing scanner...</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+        
+        // Add CSS for the dialog
+        this.addScanDialogStyles();
+        
+        // Show with animation
+        setTimeout(() => {
+            overlay.classList.add('show');
+        }, 10);
+        
+        // Setup event listeners
+        this.setupScanDialogEvents(overlay);
+        
+        // Initialize scanner connection
+        this.initializeScannerConnection();
+    }
+
+    addScanDialogStyles() {
+        if (document.getElementById('smartScanDialogStyles')) return;
+        
+        const styles = document.createElement('style');
+        styles.id = 'smartScanDialogStyles';
+        styles.textContent = `
+            .smart-scan-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(5px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            
+            .smart-scan-overlay.show {
+                opacity: 1;
+            }
+            
+            .smart-scan-dialog {
+                background: white;
+                border-radius: 16px;
+                max-width: 500px;
+                width: 90%;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                transform: scale(0.9);
+                transition: transform 0.3s ease;
+            }
+            
+            .smart-scan-overlay.show .smart-scan-dialog {
+                transform: scale(1);
+            }
+            
+            .scan-dialog-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 24px;
+                border-bottom: 1px solid #e9ecef;
+            }
+            
+            .scan-dialog-header h3 {
+                margin: 0;
+                color: #2c3e50;
+                font-size: 20px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .close-scan-dialog {
+                background: none;
+                border: none;
+                font-size: 18px;
+                color: #6c757d;
+                cursor: pointer;
+                padding: 8px;
+                border-radius: 50%;
+                transition: all 0.3s ease;
+            }
+            
+            .close-scan-dialog:hover {
+                background: #f8f9fa;
+                color: #2c3e50;
+            }
+            
+            .scan-dialog-content {
+                padding: 24px;
+            }
+            
+            .scan-dialog-content p {
+                margin: 0 0 20px 0;
+                color: #6c757d;
+            }
+            
+            .scan-options {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .scan-option {
+                display: flex;
+                align-items: center;
+                padding: 16px;
+                border: 2px solid #e9ecef;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                gap: 16px;
+            }
+            
+            .scan-option:hover {
+                border-color: #007bff;
+                background: #f8f9ff;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+            }
+            
+            .scan-option-icon {
+                width: 48px;
+                height: 48px;
+                background: linear-gradient(135deg, #007bff, #0056b3);
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 20px;
+            }
+            
+            .scan-option[data-scan-type="bill"] .scan-option-icon {
+                background: linear-gradient(135deg, #28a745, #1e7e34);
+            }
+            
+            .scan-option-content {
+                flex: 1;
+            }
+            
+            .scan-option-content h4 {
+                margin: 0 0 4px 0;
+                color: #2c3e50;
+                font-size: 16px;
+            }
+            
+            .scan-option-content p {
+                margin: 0;
+                color: #6c757d;
+                font-size: 14px;
+            }
+            
+            .scan-option-arrow {
+                color: #007bff;
+                font-size: 16px;
+            }
+            
+            .scan-connection-info {
+                background: #f8f9fa;
+                border-radius: 8px;
+                padding: 16px;
+                text-align: center;
+            }
+            
+            .connection-status {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                color: #6c757d;
+                font-size: 14px;
+            }
+            
+            .status-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #dc3545;
+                animation: pulse 2s infinite;
+            }
+            
+            .status-dot.connecting {
+                background: #ffc107;
+                animation: pulse 1s infinite;
+            }
+            
+            .status-dot.connected {
+                background: #28a745;
+                animation: none;
+            }
+            
+            @keyframes pulse {
+                0% { opacity: 1; }
+                50% { opacity: 0.5; }
+                100% { opacity: 1; }
+            }
+        `;
+        
+        document.head.appendChild(styles);
+    }
+
+    setupScanDialogEvents(overlay) {
+        // Close dialog events
+        const closeBtn = overlay.querySelector('#closeScanDialog');
+        closeBtn?.addEventListener('click', () => {
+            this.closeScanDialog(overlay);
+        });
+        
+        // Click outside to close
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                this.closeScanDialog(overlay);
+            }
+        });
+        
+        // Scan option clicks
+        const scanOptions = overlay.querySelectorAll('.scan-option');
+        scanOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const scanType = option.dataset.scanType;
+                this.openMobileScanner(scanType);
+                this.closeScanDialog(overlay);
+            });
+        });
+        
+        // ESC key to close
+        const handleEsc = (e) => {
+            if (e.key === 'Escape') {
+                this.closeScanDialog(overlay);
+                document.removeEventListener('keydown', handleEsc);
+            }
+        };
+        document.addEventListener('keydown', handleEsc);
+    }
+
+    closeScanDialog(overlay) {
+        overlay.classList.remove('show');
+        setTimeout(() => {
+            overlay.remove();
+        }, 300);
+    }
+
+    initializeScannerConnection() {
+        // Simulate scanner initialization
+        const statusEl = document.getElementById('scanConnectionStatus');
+        if (!statusEl) return;
+        
+        setTimeout(() => {
+            const statusDot = statusEl.querySelector('.status-dot');
+            const statusText = statusEl.querySelector('span');
+            
+            if (statusDot && statusText) {
+                statusDot.className = 'status-dot connected';
+                statusText.textContent = 'Scanner ready - Select scan type above';
+            }
+        }, 1500);
+    }
+
+    openMobileScanner(scanType) {
+        // Generate room code and token
+        const roomCode = 'SC' + Math.floor(100000 + Math.random() * 900000);
+        const token = this.generateSecureToken();
+        
+        // Create mobile scanner URL
+        const baseUrl = window.location.origin;
+        const mobileUrl = `${baseUrl}/mobile-scanner.html?room=${encodeURIComponent(roomCode)}&mode=${scanType}&token=${encodeURIComponent(token)}`;
+        
+        // Check if user is on mobile
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            // On mobile, redirect to scanner
+            window.location.href = mobileUrl;
+        } else {
+            // On desktop, open in new tab and show connection instructions
+            window.open(mobileUrl, '_blank');
+            this.showConnectionInstructions(roomCode, mobileUrl, scanType);
+        }
+    }
+
+    showConnectionInstructions(roomCode, mobileUrl, scanType) {
+        // Show a notification about the mobile scanner
+        this.showNotification(`Mobile scanner opened. Room code: ${roomCode}`, 'info');
+        
+        // You could also show a more detailed connection dialog here
+        console.log(`Scanner Type: ${scanType}, Room: ${roomCode}, URL: ${mobileUrl}`);
+    }
+
+    generateSecureToken() {
+        return Math.random().toString(36).substring(2, 15) + 
+               Math.random().toString(36).substring(2, 15);
+    }
+
+    showNotification(message, type = 'info') {
+        // Create a simple notification
+        const notification = document.createElement('div');
+        notification.className = `navbar-notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        `;
+        
+        // Add notification styles if not present
+        if (!document.getElementById('navbarNotificationStyles')) {
+            const styles = document.createElement('style');
+            styles.id = 'navbarNotificationStyles';
+            styles.textContent = `
+                .navbar-notification {
+                    position: fixed;
+                    top: 100px;
+                    right: 20px;
+                    background: white;
+                    border-radius: 8px;
+                    padding: 16px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                    z-index: 10001;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    max-width: 400px;
+                    border-left: 4px solid #007bff;
+                    transform: translateX(100%);
+                    transition: transform 0.3s ease;
+                }
+                
+                .navbar-notification.show {
+                    transform: translateX(0);
+                }
+                
+                .navbar-notification.success {
+                    border-left-color: #28a745;
+                }
+                
+                .navbar-notification.error {
+                    border-left-color: #dc3545;
+                }
+                
+                .navbar-notification i {
+                    color: #007bff;
+                }
+                
+                .navbar-notification.success i {
+                    color: #28a745;
+                }
+                
+                .navbar-notification.error i {
+                    color: #dc3545;
+                }
+            `;
+            document.head.appendChild(styles);
+        }
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
     }
 }
 
-// Legacy compatibility class that emits events in old format
+/**
+ * Legacy Compatible Smart POS Navbar
+ * This class extends the SmartPOSNavbar to provide compatibility with older versions
+ */
 class LegacyCompatibleSmartPOSNavbar extends SmartPOSNavbar {
     handleCustomAction(actionId) {
         // Emit event in legacy format with 'action' instead of 'actionId'

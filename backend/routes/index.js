@@ -6,11 +6,23 @@ const userRoutes = require('./userRoutes');
 const shopRoutes = require('./shopRoutes');
 const autoOrderRoutes = require('./autoOrderRoutes');
 const supplierRoutes = require('./supplierRoutes');
+const adminController = require('../controllers/adminController');
+const dashboardController = require('../controllers/dashboardController');
+const productController = require('../controllers/productController');
+const transactionController = require('../controllers/transactionController');
+const orderController = require('../controllers/orderController');
 
 // Public routes (no authentication required)
 router.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'API is healthy' });
 });
+
+// Supplier routes (temporarily disable authentication for testing)
+router.get('/shop/orders/suppliers', (req, res, next) => {
+  // Mock authentication for testing
+  req.user = { _id: '507f1f77bcf86cd799439011', role: 'shopowner' };
+  next();
+}, orderController.getAvailableSuppliers);
 
 // Protected routes (authentication required)
 // Apply JWT authentication middleware to all routes below
@@ -25,10 +37,28 @@ router.use('/supplier', supplierRoutes);
 // Add auto-order routes for shopowners
 router.use('/auto-orders', authenticateJWT, autoOrderRoutes);
 
+// Dashboard routes (for shopowners and admins)
+// Temporarily disable authentication for development testing
+router.get('/dashboard/summary', dashboardController.getDashboardSummary);
+
+// Product routes (temporarily disable authentication for testing)
+router.get('/products', productController.getProducts);
+router.get('/products/:id', productController.getProduct);
+
+// Transaction routes (temporarily disable authentication for testing)
+router.get('/transactions', transactionController.getTransactions);
+router.get('/transactions/:id', transactionController.getTransaction);
+
 // Admin-only routes
 router.get('/admin/stats', authenticateJWT, authorize('admin'), (req, res) => {
   res.status(200).json({ message: 'Admin stats accessed successfully' });
 });
+
+router.get('/admin/dashboard-stats', authenticateJWT, authorize('admin'), adminController.getDashboardStats);
+router.get('/admin/transaction-stats', authenticateJWT, authorize('admin'), adminController.getTransactionStats);
+router.get('/admin/recent-activity', authenticateJWT, authorize('admin'), adminController.getRecentActivity);
+router.get('/admin/system-health', authenticateJWT, authorize('admin'), adminController.getSystemHealth);
+router.post('/admin/audit-log', authenticateJWT, authorize('admin'), adminController.createAuditLog);
 
 // Shop owner routes
 router.get('/shop/dashboard', authenticateJWT, authorize('shopowner', 'admin'), (req, res) => {

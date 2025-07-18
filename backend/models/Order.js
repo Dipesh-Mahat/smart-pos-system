@@ -104,6 +104,13 @@ const OrderSchema = new Schema({
     enum: ['pending', 'paid', 'partial', 'failed', 'refunded'],
     default: 'pending'
   },
+  rating: {
+    type: Number,
+    min: 1,
+    max: 5,
+    default: null
+  },
+  reviewComment: String,
   notes: String,
   trackingNumber: String,
   cancelReason: String,

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Order Management - Smart POS Supplier</title>
     <link rel="stylesheet" href="../css/supplier-dashboard.css">
+    <link rel="stylesheet" href="../css/supplier-orders.css">
     <link rel="stylesheet" href="../css/menu.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"></head>
 <body>    <div class="container">
@@ -14,6 +15,17 @@
 
             <!-- Dashboard Content -->
             <div class="dashboard-content">
+                <div class="content-header">
+                    <h1>Order Management</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openAddOrderModal()">
+                            <i class="fas fa-plus"></i> Add Order
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportOrders()">
+                            <i class="fas fa-download"></i> Export Orders
+                        </button>
+                    </div>
+                </div>
                 <!-- Order Statistics -->
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -90,23 +102,17 @@
                 </div>
 
                 <!-- Orders Table -->
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3>Recent Orders</h3>
-                        <div class="table-actions">
-                            <button class="btn-secondary" id="bulkActionsBtn">
-                                <i class="fas fa-tasks"></i>
-                                Bulk Actions
-                            </button>
-                        </div>
+                <div class="section-header">
+                    <h2>Recent Orders</h2>
+                    <div class="table-actions">
+                        <button class="btn-secondary"><i class="fas fa-tasks"></i> Bulk Actions</button>
                     </div>
+                </div>
+                <div class="table-container">
                     <div class="table-responsive">
-                        <table class="data-table" id="ordersTable">
+                        <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>
-                                        <input type="checkbox" id="selectAllOrders">
-                                    </th>
                                     <th>Order ID</th>
                                     <th>Customer</th>
                                     <th>Products</th>
@@ -116,72 +122,206 @@
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="ordersTableBody">
-                                <!-- Orders will be loaded here via JavaScript -->
+                            <tbody>
+                                <tr>
+                                    <td>ORD-2024-001</td>
+                                    <td>
+                                        <div class="customer-info">
+                                            <div>
+                                                <div><strong>Maya Tamang</strong></div>
+                                                <div style="font-size:12px;color:#718096;">maya.tamang@example.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>Basmati Rice 5kg +1 more 2 item(s)</td>
+                                    <td>₹9,400</td>
+                                    <td><span class="status-badge pending">Pending</span></td>
+                                    <td>8 Jun 2024</td>
+                                    <td class="actions-cell">
+                                        <button title="Mark as Processing"><i class="fas fa-spinner"></i></button>
+                                        <button title="Mark as Shipped"><i class="fas fa-shipping-fast"></i></button>
+                                        <button title="Mark as Delivered"><i class="fas fa-check"></i></button>
+                                        <button title="Generate Invoice"><i class="fas fa-file-invoice"></i></button>
+                                        <button title="Print Label"><i class="fas fa-print"></i></button>
+                                        <button title="Cancel Order"><i class="fas fa-times"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ORD-2024-002</td>
+                                    <td>
+                                        <div class="customer-info">
+                                            <div>
+                                                <div><strong>Suresh Rai</strong></div>
+                                                <div style="font-size:12px;color:#718096;">suresh.rai@example.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>Wai Wai Noodles Carton 1 item(s)</td>
+                                    <td>₹4,320</td>
+                                    <td><span class="status-badge processing">Processing</span></td>
+                                    <td>7 Jun 2024</td>
+                                    <td class="actions-cell">
+                                        <button title="Mark as Processing"><i class="fas fa-spinner"></i></button>
+                                        <button title="Mark as Shipped"><i class="fas fa-shipping-fast"></i></button>
+                                        <button title="Mark as Delivered"><i class="fas fa-check"></i></button>
+                                        <button title="Generate Invoice"><i class="fas fa-file-invoice"></i></button>
+                                        <button title="Print Label"><i class="fas fa-print"></i></button>
+                                        <button title="Cancel Order"><i class="fas fa-times"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ORD-2024-003</td>
+                                    <td>
+                                        <div class="customer-info">
+                                            <div>
+                                                <div><strong>Binita Shrestha</strong></div>
+                                                <div style="font-size:12px;color:#718096;">binita.shrestha@example.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>DDC Milk 1L Crate +1 more 2 item(s)</td>
+                                    <td>₹9,420</td>
+                                    <td><span class="status-badge shipped">Shipped</span></td>
+                                    <td>6 Jun 2024</td>
+                                    <td class="actions-cell">
+                                        <button title="Mark as Processing"><i class="fas fa-spinner"></i></button>
+                                        <button title="Mark as Shipped"><i class="fas fa-shipping-fast"></i></button>
+                                        <button title="Mark as Delivered"><i class="fas fa-check"></i></button>
+                                        <button title="Generate Invoice"><i class="fas fa-file-invoice"></i></button>
+                                        <button title="Print Label"><i class="fas fa-print"></i></button>
+                                        <button title="Cancel Order"><i class="fas fa-times"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ORD-2024-004</td>
+                                    <td>
+                                        <div class="customer-info">
+                                            <div>
+                                                <div><strong>Dipak Thapa</strong></div>
+                                                <div style="font-size:12px;color:#718096;">dipak.thapa@example.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>Teer Detergent Case 1 item(s)</td>
+                                    <td>₹10,080</td>
+                                    <td><span class="status-badge delivered">Delivered</span></td>
+                                    <td>5 Jun 2024</td>
+                                    <td class="actions-cell">
+                                        <button title="Mark as Processing"><i class="fas fa-spinner"></i></button>
+                                        <button title="Mark as Shipped"><i class="fas fa-shipping-fast"></i></button>
+                                        <button title="Mark as Delivered"><i class="fas fa-check"></i></button>
+                                        <button title="Generate Invoice"><i class="fas fa-file-invoice"></i></button>
+                                        <button title="Print Label"><i class="fas fa-print"></i></button>
+                                        <button title="Cancel Order"><i class="fas fa-times"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ORD-2024-005</td>
+                                    <td>
+                                        <div class="customer-info">
+                                            <div>
+                                                <div><strong>Anita Gurung</strong></div>
+                                                <div style="font-size:12px;color:#718096;">anita.gurung@example.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>Khukri Rum Case 1 item(s)</td>
+                                    <td>₹11,760</td>
+                                    <td><span class="status-badge cancelled">Cancelled</span></td>
+                                    <td>4 Jun 2024</td>
+                                    <td class="actions-cell">
+                                        <button title="Mark as Processing"><i class="fas fa-spinner"></i></button>
+                                        <button title="Mark as Shipped"><i class="fas fa-shipping-fast"></i></button>
+                                        <button title="Mark as Delivered"><i class="fas fa-check"></i></button>
+                                        <button title="Generate Invoice"><i class="fas fa-file-invoice"></i></button>
+                                        <button title="Print Label"><i class="fas fa-print"></i></button>
+                                        <button title="Cancel Order"><i class="fas fa-times"></i></button>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                     <div class="table-pagination">
                         <div class="pagination-info">
-                            Showing <span id="showingStartOrders">1</span> to <span id="showingEndOrders">10</span> of <span id="totalOrderRows">236</span> orders
-                        </div>
-                        <div class="pagination-controls">
-                            <button class="pagination-btn" id="prevPageOrders" disabled>
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <span class="pagination-numbers" id="paginationNumbersOrders">
-                                <!-- Page numbers will be generated here -->
-                            </span>
-                            <button class="pagination-btn" id="nextPageOrders">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
+                            Showing <span>1</span> to <span>5</span> of <span>5</span> orders
                         </div>
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div class="quick-actions-section">
-                    <h3>Quick Actions</h3>
-                    <div class="quick-actions-grid">
-                        <div class="quick-action-card" onclick="bulkUpdateStatus('processing')">
-                            <div class="action-icon info">
-                                <i class="fas fa-cogs"></i>
+                <!-- Key Insights Section -->
+                <div class="content-card" style="margin-bottom: 32px;">
+                    <div class="card-header">
+                        <h2>Key Insights</h2>
+                    </div>
+                    <div class="insights-grid">
+                        <div class="insight-item">
+                            <div class="insight-icon warning">
+                                <i class="fas fa-clock"></i>
                             </div>
-                            <div class="action-content">
-                                <h4>Process Selected</h4>
-                                <p>Mark selected orders as processing</p>
+                            <div class="insight-content">
+                                <h3>Fastest Fulfillment</h3>
+                                <p>2h 15m</p>
+                                <span>Best this week</span>
                             </div>
                         </div>
-                        <div class="quick-action-card" onclick="bulkUpdateStatus('shipped')">
-                            <div class="action-icon primary">
+                        <div class="insight-item">
+                            <div class="insight-icon success">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h3>Completion Rate</h3>
+                                <p>97.2%</p>
+                                <span>+2.1% vs last month</span>
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon primary">
                                 <i class="fas fa-truck"></i>
                             </div>
-                            <div class="action-content">
-                                <h4>Ship Selected</h4>
-                                <p>Mark selected orders as shipped</p>
+                            <div class="insight-content">
+                                <h3>Avg. Delivery Time</h3>
+                                <p>1d 4h</p>
+                                <span>Down 10%</span>
                             </div>
                         </div>
-                        <div class="quick-action-card" onclick="generateInvoices()">
-                            <div class="action-icon success">
-                                <i class="fas fa-file-invoice"></i>
+                        <div class="insight-item">
+                            <div class="insight-icon info">
+                                <i class="fas fa-cogs"></i>
                             </div>
-                            <div class="action-content">
-                                <h4>Generate Invoices</h4>
-                                <p>Create invoices for selected orders</p>
-                            </div>
-                        </div>
-                        <div class="quick-action-card" onclick="printShippingLabels()">
-                            <div class="action-icon warning">
-                                <i class="fas fa-print"></i>
-                            </div>
-                            <div class="action-content">
-                                <h4>Print Labels</h4>
-                                <p>Print shipping labels for orders</p>
+                            <div class="insight-content">
+                                <h3>Orders in Process</h3>
+                                <p>15</p>
+                                <span>+5 today</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>        </main>
+
+                <!-- Quick Actions Section -->
+                <div class="quick-actions-section" style="margin-bottom: 32px;">
+                    <h2>Quick Actions</h2>
+                    <div class="actions-grid">
+                        <a href="#" class="action-card" onclick="openAddOrderModal()">
+                            <i class="fas fa-plus"></i>
+                            <span>Add New Order</span>
+                        </a>
+                        <a href="#" class="action-card" onclick="exportOrders()">
+                            <i class="fas fa-download"></i>
+                            <span>Export Orders</span>
+                        </a>
+                        <a href="#" class="action-card" onclick="bulkUpdateStatus()">
+                            <i class="fas fa-tasks"></i>
+                            <span>Bulk Update Status</span>
+                        </a>
+                        <a href="#" class="action-card" onclick="generateInvoices()">
+                            <i class="fas fa-file-invoice"></i>
+                            <span>Generate Invoices</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- End of orders table and pagination, Quick Actions section removed -->
+            </main>
     </div>
 
     <!-- JavaScript -->

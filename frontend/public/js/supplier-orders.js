@@ -1,100 +1,137 @@
-// Supplier Orders JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    initializeOrdersPage();
-});
+/**
+ * Supplier Order Management
+ * Smart POS System - Supplier Portal
+ */
 
-// Sample orders data
-let ordersData = [
-    {
-        id: 'ORD-2024-001',
-        customerId: 1,
-        customerName: 'Maya Tamang',
-        customerEmail: 'maya.tamang@example.com',
-        products: [
-            { name: 'Basmati Rice 5kg', quantity: 10, price: 850 },
-            { name: 'Nepali Tea 250g', quantity: 5, price: 180 }
-        ],
-        totalAmount: 9400,
-        status: 'pending',
-        orderDate: new Date('2024-06-08'),
-        shippingAddress: 'Boudha Stupa Area, Kathmandu, Nepal',
-        paymentMethod: 'Cash on Delivery',
-        notes: 'Urgent order for store opening'
-    },
-    {
-        id: 'ORD-2024-002',
-        customerId: 2,
-        customerName: 'Suresh Rai',
-        customerEmail: 'suresh.rai@example.com',
-        products: [
-            { name: 'Wai Wai Noodles Carton', quantity: 3, price: 1440 }
-        ],
-        totalAmount: 4320,
-        status: 'processing',
-        orderDate: new Date('2024-06-07'),
-        shippingAddress: 'Patan Durbar Square, Lalitpur, Nepal',
-        paymentMethod: 'Bank Transfer',
-        notes: ''
-    },
-    {
-        id: 'ORD-2024-003',
-        customerId: 3,
-        customerName: 'Binita Shrestha',
-        customerEmail: 'binita.shrestha@example.com',
-        products: [
-            { name: 'DDC Milk 1L Crate', quantity: 5, price: 1020 },
-            { name: 'Lux Soap Box', quantity: 2, price: 2160 }
-        ],
-        totalAmount: 9420,
-        status: 'shipped',
-        orderDate: new Date('2024-06-06'),
-        shippingAddress: 'Newroad Commercial Area, Kathmandu, Nepal',
-        paymentMethod: 'Bank Transfer',
-        notes: 'Corporate order'
-    },
-    {
-        id: 'ORD-2024-004',
-        customerId: 4,
-        customerName: 'Dipak Thapa',
-        customerEmail: 'dipak.thapa@example.com',
-        products: [
-            { name: 'Teer Detergent Case', quantity: 3, price: 3360 }
-        ],
-        totalAmount: 10080,
-        status: 'delivered',
-        orderDate: new Date('2024-06-05'),
-        shippingAddress: 'Durbarmarg Shopping District, Kathmandu, Nepal',
-        paymentMethod: 'Cash on Delivery',
-        notes: 'Regular monthly order'
-    },
-    {
-        id: 'ORD-2024-005',
-        customerId: 5,
-        customerName: 'Anita Gurung',
-        customerEmail: 'anita.gurung@example.com',
-        products: [
-            { name: 'Khukri Rum Case', quantity: 1, price: 11760 }
-        ],
-        totalAmount: 11760,
-        status: 'cancelled',
-        orderDate: new Date('2024-06-04'),
-        shippingAddress: 'Lakeside Road, Pokhara, Nepal',
-        paymentMethod: 'Bank Transfer',
-        notes: 'Customer requested cancellation'
+class OrderManager {
+    constructor() {
+        this.orders = [];
+        this.filteredOrders = [];
+        this.currentPage = 1;
+        this.itemsPerPage = 10;
+        this.totalPages = 1;
+        this.totalItems = 0;
+        this.filters = {};
+        this.selectedOrders = new Set();
+        this.apiService = window.apiService || {};
+        
+        this.init();
     }
-];
 
-let filteredOrders = [...ordersData];
-let currentOrderPage = 1;
-let ordersPerPage = 10;
+    async init() {
+        try {
+            await this.loadOrders();
+            await this.loadOrderStats();
+            await this.loadOrderInsights();
+            this.setupEventListeners();
+        } catch (error) {
+            console.error("Error initializing order manager:", error);
+            this.showNotification("Failed to load order data", "error");
+        }
+    }
 
-function initializeOrdersPage() {
-    loadOrdersTable();
-    updateOrderStatistics();
-    setupOrdersEventListeners();
-    setupOrdersPagination();
+    async loadOrders(page = 1, filters = {}) {
+        try {
+            this.showLoader();
+            
+            // Build query parameters for API request
+            const queryParams = new URLSearchParams();
+            queryParams.append('page', page);
+            queryParams.append('limit', this.itemsPerPage);
+            
+            // Add filters if provided
+            if (filters.search) queryParams.append('search', filters.search);
+            if (filters.status) queryParams.append('status', filters.status);
+            if (filters.startDate) queryParams.append('startDate', filters.startDate);
+            if (filters.endDate) queryParams.append('endDate', filters.endDate);
+            
+            // Make API request to get order data
+            const response = await this.apiService.request(`/supplier/orders?${queryParams.toString()}`);
+            
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to load order data');
+            }
+            
+            this.orders = response.data.orders;
+            this.filteredOrders = this.orders;
+            this.currentPage = page;
+            this.totalPages = response.data.pagination.pages;
+            this.totalItems = response.data.pagination.total;
+            this.filters = filters;
+            
+            this.renderOrdersTable();
+            this.renderPagination();
+            
+            // Update order counts in statistics
+            const stats = response.data.stats;
+            if (stats) {
+                this.updateOrderStatistics(stats);
+            }
+        } catch (error) {
+            console.error("Error loading orders:", error);
+            this.showNotification("Failed to load orders", "error");
+        } finally {
+            this.hideLoader();
+        }
+    }
+    
+    async loadOrderStats() {
+        try {
+            const response = await this.apiService.request('/supplier/orders/stats');
+            
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to load order statistics');
+            }
+            
+            this.updateOrderStatistics(response.data.stats);
+        } catch (error) {
+            console.error("Error loading order statistics:", error);
+        }
+    }
+    
+    async loadOrderInsights() {
+        try {
+            // Load insights data
+            this.updateOrderStatistics();
+            this.setupEventListeners();
+        } catch (error) {
+            console.error("Error loading order insights:", error);
+        }
+    }
+
+    setupEventListeners() {
+        // Search and filters
+        const orderSearch = document.getElementById('orderSearch');
+        const statusFilter = document.getElementById('statusFilter');
+        const dateFilter = document.getElementById('dateFilter');
+        const filterBtn = document.getElementById('filterBtn');
+        
+        if (orderSearch) orderSearch.addEventListener('input', () => this.handleOrderSearch());
+        if (statusFilter) statusFilter.addEventListener('change', () => this.handleOrderFilter());
+        if (dateFilter) dateFilter.addEventListener('change', () => this.handleOrderFilter());
+        if (filterBtn) filterBtn.addEventListener('click', () => this.applyOrderFilters());
+        
+        // Action buttons
+        const exportBtn = document.getElementById('exportOrdersBtn');
+        const newOrderBtn = document.getElementById('newOrderBtn');
+        const bulkActionsBtn = document.getElementById('bulkActionsBtn');
+        
+        if (exportBtn) exportBtn.addEventListener('click', () => this.exportOrders());
+        if (newOrderBtn) newOrderBtn.addEventListener('click', () => this.createNewOrder());
+        if (bulkActionsBtn) bulkActionsBtn.addEventListener('click', () => this.showBulkActions());
+        
+        // Select all checkbox
+        const selectAllOrders = document.getElementById('selectAllOrders');
+        if (selectAllOrders) selectAllOrders.addEventListener('change', () => this.handleSelectAllOrders());
+    }
 }
 
+// Initialize the order manager when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    new OrderManager();
+});
+
+// Standalone functions (keeping them separate for now)
 function setupOrdersEventListeners() {
     // Search and filters
     document.getElementById('orderSearch').addEventListener('input', handleOrderSearch);
