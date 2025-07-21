@@ -109,8 +109,8 @@ class SmartPOSNavbar {
                 <div class="profile-dropdown" id="navbarProfileDropdown">
                     <div class="profile-dropdown-header">
                         <div class="profile-info">
-                            <div class="profile-name">Store Manager</div>
-                            <div class="profile-email">admin@smartpos.np</div>
+                            <div class="profile-name" id="navbarProfileName">Loading...</div>
+                            <div class="profile-email" id="navbarProfileEmail">Loading...</div>
                         </div>
                     </div>
                     <div class="profile-dropdown-menu">
@@ -675,6 +675,11 @@ class SmartPOSNavbar {
             }
         `;
         document.head.appendChild(styles);    }    attachEventListeners() {
+        // Load user profile data after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            this.loadUserProfile();
+        }, 50);
+        
         // Hamburger menu icon
         const hamburgerMenuIcon = document.getElementById('hamburgerMenuIcon');
         if (hamburgerMenuIcon) {
@@ -752,6 +757,54 @@ class SmartPOSNavbar {
                 this.handleCustomAction(actionId);
             });
         });
+    }
+
+    loadUserProfile() {
+        // Check if auth service is available
+        if (window.authService && window.authService.isLoggedIn()) {
+            const user = window.authService.getUser();
+            if (user) {
+                // Update profile name and email with real user data
+                const profileNameElement = document.getElementById('navbarProfileName');
+                const profileEmailElement = document.getElementById('navbarProfileEmail');
+                
+                if (profileNameElement) {
+                    // Use fullName if available, otherwise construct from firstName and lastName
+                    const displayName = user.fullName || 
+                                       (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName) ||
+                                       user.username || 
+                                       'User';
+                    profileNameElement.textContent = displayName;
+                }
+                
+                if (profileEmailElement) {
+                    profileEmailElement.textContent = user.email || 'No email';
+                }
+                
+                console.log('User profile loaded:', { name: user.fullName || user.username, email: user.email });
+            } else {
+                console.warn('User data not found in auth service');
+                // Set fallback values
+                const profileNameElement = document.getElementById('navbarProfileName');
+                const profileEmailElement = document.getElementById('navbarProfileEmail');
+                
+                if (profileNameElement) profileNameElement.textContent = 'Guest User';
+                if (profileEmailElement) profileEmailElement.textContent = 'Not logged in';
+            }
+        } else {
+            console.warn('Auth service not available or user not logged in');
+            // Set fallback values
+            const profileNameElement = document.getElementById('navbarProfileName');
+            const profileEmailElement = document.getElementById('navbarProfileEmail');
+            
+            if (profileNameElement) profileNameElement.textContent = 'Guest User';
+            if (profileEmailElement) profileEmailElement.textContent = 'Not logged in';
+        }
+    }
+
+    // Public method to refresh user profile (can be called from outside)
+    refreshUserProfile() {
+        this.loadUserProfile();
     }
 
     loadNotifications() {
