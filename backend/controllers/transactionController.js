@@ -411,6 +411,59 @@ exports.processRefund = async (req, res) => {
   }
 };
 
+// Get transaction summary for dashboard stats
+exports.getTransactionSummary = async (req, res) => {
+  try {
+    // For testing without authentication, use any user
+    const User = require('../models/User');
+    const shopOwner = await User.findOne({ role: 'shopowner' });
+    
+    if (!shopOwner) {
+      return res.status(404).json({ success: false, message: 'No shop owner found' });
+    }
+    
+    const shopId = shopOwner._id;
+    
+    // Get today's date range
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Get all transactions for the shop
+    const allTransactions = await Transaction.find({ shopId: shopId }).lean();
+    
+    // Get today's transactions
+    const todayTransactions = await Transaction.find({
+      shopId: shopId,
+      createdAt: { $gte: today, $lt: tomorrow }
+    }).lean();
+    
+    // Calculate stats
+    const completedCount = allTransactions.filter(t => t.status === 'completed').length;
+    const pendingCount = allTransactions.filter(t => t.status === 'pending').length;
+    const totalSalesAmount = allTransactions
+      .filter(t => t.status === 'completed')
+      .reduce((sum, t) => sum + t.total, 0);
+    const todayCount = todayTransactions.length;
+    
+    res.status(200).json({
+      completedCount,
+      pendingCount,
+      totalSalesAmount,
+      todayCount
+    });
+  } catch (error) {
+    console.error('Error getting transaction summary:', error);
+    res.status(500).json({ 
+      completedCount: 0,
+      pendingCount: 0,
+      totalSalesAmount: 0,
+      todayCount: 0
+    });
+  }
+};
+
 // Get daily sales summary
 exports.getDailySalesSummary = async (req, res) => {
   try {

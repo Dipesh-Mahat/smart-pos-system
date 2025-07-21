@@ -653,28 +653,28 @@
                 <div class="stat-icon">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <div class="stat-value" id="completedCount">247</div>
+                <div class="stat-value" id="completedCount">0</div>
                 <div class="stat-label">Completed</div>
             </div>
             <div class="stat-card warning">
                 <div class="stat-icon">
                     <i class="fas fa-clock"></i>
                 </div>
-                <div class="stat-value" id="pendingCount">12</div>
+                <div class="stat-value" id="pendingCount">0</div>
                 <div class="stat-label">Pending</div>
             </div>
             <div class="stat-card info">
                 <div class="stat-icon">
                     <i class="fas fa-rupee-sign"></i>
                 </div>
-                <div class="stat-value" id="totalSalesAmount">NPR 125,450</div>
+                <div class="stat-value" id="totalSalesAmount">NPR 0.00</div>
                 <div class="stat-label">Total Sales</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">
                     <i class="fas fa-calendar-day"></i>
                 </div>
-                <div class="stat-value" id="todayCount">48</div>
+                <div class="stat-value" id="todayCount">0</div>
                 <div class="stat-label">Today</div>
             </div>
         </div>
@@ -884,66 +884,98 @@
             }
 
             init() {
-                this.generateDemoTransactions();
+                this.loadTransactionData();
                 this.setupEventListeners();
-                this.renderTransactions();
-                this.updateStats();
             }
 
-            generateDemoTransactions() {
-                const demoProducts = getDemoProducts();
-                const statuses = ['completed', 'pending'];
-                const now = new Date();
-                
-                this.transactions = [];
-                
-                // Generate transactions for the last 30 days
-                for (let i = 0; i < 50; i++) {
-                    const transactionDate = new Date(now - Math.random() * 30 * 24 * 60 * 60 * 1000);
-                    const itemCount = Math.floor(Math.random() * 5) + 1;
-                    const items = [];
-                    let subtotal = 0;
+            async loadTransactionData() {
+                try {
+                    // Fetch transaction summary statistics
+                    await this.fetchTransactionSummary();
                     
-                    // Generate random items for this transaction
-                    for (let j = 0; j < itemCount; j++) {
-                        const product = demoProducts[Math.floor(Math.random() * demoProducts.length)];
-                        const quantity = Math.floor(Math.random() * 3) + 1;
-                        const total = product.price * quantity;
-                        
-                        items.push({
-                            id: product.id,
-                            name: product.name,
-                            price: product.price,
-                            quantity: quantity,
-                            total: total,
-                            category: product.category,
-                            icon: this.getProductIcon(product.category)
+                    // Fetch actual transactions from database
+                    await this.fetchTransactions();
+                    
+                    this.renderTransactions();
+                } catch (error) {
+                    console.error('Error loading transaction data:', error);
+                    // Fallback to empty data
+                    this.transactions = [];
+                    this.filteredTransactions = [];
+                    this.renderTransactions();
+                }
+            }
+
+            async fetchTransactionSummary() {
+                try {
+                    const response = await fetch('/api/shop/transaction-summary', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.updateStatsDisplay(data);
+                    } else {
+                        console.error('Failed to fetch transaction summary');
+                        this.updateStatsDisplay({
+                            completedCount: 0,
+                            pendingCount: 0,
+                            totalSalesAmount: 0,
+                            todayCount: 0
                         });
-                        
-                        subtotal += total;
                     }
-                    
-                    const tax = subtotal * 0.08; // 8% tax
-                    const total = subtotal + tax;
-                    const status = statuses[Math.floor(Math.random() * statuses.length)];
-                    
-                    this.transactions.push({
-                        id: `TXN-2025-${String(i + 1).padStart(3, '0')}`,
-                        date: transactionDate,
-                        items: items,
-                        subtotal: subtotal,
-                        tax: tax,
-                        total: total,
-                        status: status,
-                        paymentMethod: 'Cash',
-                        customerName: `Customer ${i + 1}`,
-                        receiptNumber: `R${String(Date.now() + i).slice(-8)}`
+                } catch (error) {
+                    console.error('Error fetching transaction summary:', error);
+                    this.updateStatsDisplay({
+                        completedCount: 0,
+                        pendingCount: 0,
+                        totalSalesAmount: 0,
+                        todayCount: 0
                     });
                 }
-                
-                // Sort by date (newest first)
-                this.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-                this.filteredTransactions = [...this.transactions];
+            }
+
+            updateStatsDisplay(data) {
+                document.getElementById('completedCount').textContent = data.completedCount || 0;
+                document.getElementById('pendingCount').textContent = data.pendingCount || 0;
+                document.getElementById('totalSalesAmount').textContent = `NPR ${(data.totalSalesAmount || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+                document.getElementById('todayCount').textContent = data.todayCount || 0;
+            }
+
+            async fetchTransactions() {
+                try {
+                    const response = await fetch('/api/shop/transactions', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.transactions = data.transactions || [];
+                        this.filteredTransactions = [...this.transactions];
+                    } else {
+                        console.error('Failed to fetch transactions');
+                        this.transactions = [];
+                        this.filteredTransactions = [];
+                    }
+                } catch (error) {
+                    console.error('Error fetching transactions:', error);
+                    this.transactions = [];
+                    this.filteredTransactions = [];
+                }
+            }
+
+            // Demo transactions generation removed - now using real database data
+            generateDemoTransactions() {
+                // This function is no longer needed as we fetch real data
+                console.log('Using real transaction data from database');
             }
 
             getProductIcon(category) {
@@ -1026,6 +1058,7 @@
 
                 this.filteredTransactions = filtered;
                 this.renderTransactions();
+                this.updateStats();
             }
 
             renderTransactions() {
@@ -1077,18 +1110,16 @@
             }
 
             updateStats() {
-                const completed = this.transactions.filter(t => t.status === 'completed').length;
-                const pending = this.transactions.filter(t => t.status === 'pending').length;
-                const totalSales = this.transactions.filter(t => t.status === 'completed').reduce((sum, t) => sum + t.total, 0);
+                // Stats are now updated via API call in fetchTransactionSummary()
+                // This function is kept for filtering operations
+                const completed = this.filteredTransactions.filter(t => t.status === 'completed').length;
+                const pending = this.filteredTransactions.filter(t => t.status === 'pending').length;
                 
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const todayCount = this.transactions.filter(t => new Date(t.date) >= today).length;
-
-                document.getElementById('completedCount').textContent = completed;
-                document.getElementById('pendingCount').textContent = pending;
-                document.getElementById('totalSalesAmount').textContent = `NPR ${totalSales.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-                document.getElementById('todayCount').textContent = todayCount;
+                // Only update if we're filtering, otherwise use API data
+                if (this.currentFilter !== 'all' || this.searchTerm) {
+                    document.getElementById('completedCount').textContent = completed;
+                    document.getElementById('pendingCount').textContent = pending;
+                }
             }
 
             showTransactionDetails(transactionId) {
