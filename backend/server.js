@@ -11,10 +11,13 @@ const fs = require('fs');
 
 // Import middleware
 const helmetConfig = require('./middleware/helmetConfig');
-const { identifyDevice, apiLimiter, authLimiter, registerLimiter, adminLimiter } = require('./middleware/rateLimiter');
+const { identifyDevice, createDynamicRateLimiter } = require('./middleware/rateLimiter');
 const authenticateJWT = require('./middleware/authJWT');
 const { csrfProtection, handleCsrfError } = require('./middleware/csrfProtection');
 const errorLogger = require('./middleware/errorLogger');
+const { sanitizeRequest, preventSqlInjection } = require('./middleware/sanitizer');
+const { sessionConfig, secureSession, trackSessionActivity } = require('./middleware/sessionSecurity');
+const { apiRequestLogger, logApiError } = require('./middleware/requestLogger');
 const swagger = require('./config/swagger');
 
 // Create an Express app (This should come first)
@@ -22,6 +25,23 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // Middleware (after app initialization)
+// Essential middleware
+app.use(cookieParser(process.env.COOKIE_SECRET));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Session security
+app.use(session(sessionConfig));
+app.use(secureSession);
+app.use(trackSessionActivity);
+
+// Request logging
+app.use(apiRequestLogger);
+
+// Request sanitization middleware
+app.use(sanitizeRequest);
+app.use(preventSqlInjection);
+
 app.use(cors({
   origin: function(origin, callback) {
     // Allow requests with no origin (like mobile apps, curl requests)
@@ -114,7 +134,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // API Documentation with Swagger (only in non-production for security)
 if (process.env.NODE_ENV !== 'production') {
-  app.use('/api-docs', swagger.serve, swagger.setup);
+  // Initialize secure Swagger documentation
+  swagger(app);
   console.log('API documentation available at /api-docs');
 }
 
@@ -131,10 +152,24 @@ app.get('/', (req, res) => {
 app.use(identifyDevice);
 
 // Apply rate-limiting to specific routes
-app.use('/api/auth/login', authLimiter); // Rate limiting for login
-app.use('/api/auth/register', registerLimiter); // Rate limiting for registration
-app.use('/api/admin', adminLimiter); // Rate limiting for admin actions
-app.use('/api', apiLimiter); // General API rate limiting
+// Apply dynamic rate limiting with specific configurations
+app.use('/api/auth/login', createDynamicRateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5 // Strict limit for login attempts
+}));
+
+app.use('/api/auth/register', createDynamicRateLimiter({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3 // Very strict limit for registration
+}));
+
+app.use('/api/admin', createDynamicRateLimiter({
+    windowMs: 15 * 60 * 1000,
+    // Dynamic limit based on role handled in the limiter
+}));
+
+// General API rate limiting
+app.use('/api', createDynamicRateLimiter());
 
 // Graceful shutdown for the server
 process.on('SIGINT', async () => {
@@ -198,6 +233,12 @@ if (!process.env.MONGODB_URI) {
 // Default error handling middleware for any undefined routes
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Route not found' });
+});
+
+// API error logging middleware
+app.use((err, req, res, next) => {
+  logApiError(err, req, res);
+  next(err);
 });
 
 // Global error handler for uncaught errors
