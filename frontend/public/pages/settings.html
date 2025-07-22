@@ -372,37 +372,7 @@
             flex: 1;
         }
         
-        .profile-stats {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(0,0,0,0.1);
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            text-align: center;
-        }
-        
-        .profile-stat {
-            background: rgba(0,123,255,0.05);
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid rgba(0,123,255,0.1);
-        }
-        
-        .profile-stat-number {
-            font-size: 16px;
-            font-weight: 700;
-            color: #007bff;
-            display: block;
-        }
-        
-        .profile-stat-label {
-            font-size: 11px;
-            color: #6c757d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 2px;
-        }
+
         
         /* Grid area assignments */
         .main-settings-group {
@@ -957,52 +927,42 @@
                 </div>                <div class="profile-content">
                     <div class="profile-header-info">
                         <img src="../images/avatars/user-avatar.png" alt="Profile" class="profile-avatar" id="profileAvatar" onerror="this.src='../images/avatars/user-avatar.png'">
-                        <div class="profile-name" id="profileName">John Doe</div>
-                        <div class="profile-role" id="profileRole">Store Manager</div>
+                        <div class="profile-name" id="profileName">Loading...</div>
+                        <div class="profile-role" id="profileRole">Loading...</div>
                     </div>
                     
                     <div class="profile-details">
                         <div class="profile-detail-item">
                             <i class="fas fa-envelope profile-detail-icon"></i>
                             <span class="profile-detail-label">Email:</span>
-                            <span class="profile-detail-value" id="profileEmail">john.doe@smartpos.com</span>
+                            <span class="profile-detail-value" id="profileEmail">Loading...</span>
                         </div>
                         
                         <div class="profile-detail-item">
                             <i class="fas fa-phone profile-detail-icon"></i>
                             <span class="profile-detail-label">Phone:</span>
-                            <span class="profile-detail-value" id="profilePhone">+1 (555) 123-4567</span>
+                            <span class="profile-detail-value" id="profilePhone">Loading...</span>
                         </div>
                         
                         <div class="profile-detail-item">
                             <i class="fas fa-store profile-detail-icon"></i>
                             <span class="profile-detail-label">Store:</span>
-                            <span class="profile-detail-value" id="profileStore">Smart Store #001</span>
+                            <span class="profile-detail-value" id="profileStore">Loading...</span>
                         </div>
                         
                         <div class="profile-detail-item">
                             <i class="fas fa-calendar-alt profile-detail-icon"></i>
                             <span class="profile-detail-label">Joined:</span>
-                            <span class="profile-detail-value" id="profileJoined">Jan 15, 2024</span>
+                            <span class="profile-detail-value" id="profileJoined">Loading...</span>
                         </div>
                         
                         <div class="profile-detail-item">
                             <i class="fas fa-clock profile-detail-icon"></i>
                             <span class="profile-detail-label">Last Login:</span>
-                            <span class="profile-detail-value" id="profileLastLogin">Today, 9:30 AM</span>
+                            <span class="profile-detail-value" id="profileLastLogin">Loading...</span>
                         </div>
                     </div>
                     
-                    <div class="profile-stats">
-                        <div class="profile-stat">
-                            <span class="profile-stat-number" id="profileTransactions">1,247</span>
-                            <span class="profile-stat-label">Transactions</span>
-                        </div>
-                        <div class="profile-stat">
-                            <span class="profile-stat-number" id="profileDaysActive">156</span>
-                            <span class="profile-stat-label">Days Active</span>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -1146,7 +1106,7 @@
         function clearCache() {
             if (confirm('Are you sure you want to clear the cache? This may improve performance but will require reloading some data.')) {
                 // Clear localStorage except for important settings
-                const importantKeys = ['notifications', 'userToken'];
+                const importantKeys = ['notifications'];
                 const storage = {};
                 
                 importantKeys.forEach(key => {
@@ -1162,17 +1122,11 @@
                     localStorage.setItem(key, storage[key]);
                 });
                 
-                showToast('Cache cleared successfully!');
+                // Refresh profile data after clearing cache
+                loadProfileData();
+                
+                showToast('Cache cleared and profile refreshed!');
             }
-        }
-
-        function showAppInfo() {
-            alert(`Smart POS System
-Version: 1.0.0
-Built with: HTML5, CSS3, JavaScript
-Last Updated: June 2025
-
-© 2025 Smart POS Systems. All rights reserved.`);
         }
 
         function logout() {
@@ -1206,73 +1160,123 @@ Last Updated: June 2025
             }, 3000);
         }        function loadUserProfile() {
             // Load user profile data from localStorage or API
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const defaultData = {
-                name: 'Ram Bahadur Thapa',
-                email: 'ram.thapa@smartpos.com',
-                role: 'Store Manager',
-                phone: '+977-9812345678',
-                storeName: 'Thapa General Store',
-                location: 'Thamel, Kathmandu',
-                joinDate: '2024-01-15',
-                userId: 'USR-2024-001'
+        // Load profile data from auth service
+        function loadProfileData() {
+            console.log('loadProfileData called');
+            
+            // Set initial loading state
+            const elements = {
+                name: document.getElementById('profileName'),
+                email: document.getElementById('profileEmail'),
+                role: document.getElementById('profileRole'),
+                phone: document.getElementById('profilePhone'),
+                store: document.getElementById('profileStore'),
+                joined: document.getElementById('profileJoined'),
+                lastLogin: document.getElementById('profileLastLogin')
             };
 
-            // Merge default data with stored data
-            const profileData = { ...defaultData, ...userData };
-
-            // Update profile display with user data
-            document.getElementById('profileName').textContent = profileData.name;
-            document.getElementById('profileEmail').textContent = profileData.email;
-            document.getElementById('profileRole').textContent = profileData.role;
-            document.getElementById('profilePhone').textContent = profileData.phone || 'Not provided';
-            document.getElementById('profileStore').textContent = profileData.storeName;
-            
-            // Set join date
-            const joinDate = new Date(profileData.joinDate);
-            const formattedJoinDate = joinDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
+            // Set loading state
+            Object.values(elements).forEach(el => {
+                if (el) el.textContent = 'Loading...';
             });
-            document.getElementById('profileJoined').textContent = formattedJoinDate;
-            
-            // Set last login time
-            const lastLogin = localStorage.getItem('lastLogin') || new Date().toISOString();
-            const loginDate = new Date(lastLogin);
-            const now = new Date();
-            const diffHours = Math.abs(now - loginDate) / 36e5;
 
-            let lastLoginText;
-            if (diffHours < 1) {
-                lastLoginText = 'Just now';
-            } else if (diffHours < 24) {
-                lastLoginText = `${Math.floor(diffHours)} hours ago`;
-            } else {
-                lastLoginText = loginDate.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
+            // Create a promise that will resolve with the user data or reject after 5 seconds
+            const getUserData = new Promise((resolve, reject) => {
+                if (window.authService) {
+                    const user = window.authService.getUser();
+                    if (user) {
+                        resolve(user);
+                    } else {
+                        setTimeout(() => reject(new Error('Unable to load user data')), 5000);
+                    }
+                } else {
+                    setTimeout(() => reject(new Error('Auth service not available')), 5000);
+                }
+            });
+
+            // Handle the user data
+            getUserData
+                .then(user => {
+                    // Update name
+                    const displayName = user.fullName || 
+                        (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName) ||
+                        user.username || 
+                        'No Username';
+                    if (elements.name) elements.name.textContent = displayName;
+
+                    // Update email
+                    if (elements.email) elements.email.textContent = user.email || 'No Email';
+
+                    // Update role
+                    const userRole = user.role || 'shopowner';
+                    const formattedRole = userRole === 'shopowner' ? 'Shop Owner' : 
+                                        userRole === 'admin' ? 'Administrator' : 
+                                        userRole === 'supplier' ? 'Supplier' : 
+                                        userRole.charAt(0).toUpperCase() + userRole.slice(1);
+                    if (elements.role) elements.role.textContent = formattedRole;
+
+                    // Update other fields
+                    if (elements.phone) elements.phone.textContent = user.phone || 'No Phone Number';
+                    if (elements.store) elements.store.textContent = user.shopName || 'No Store Name';
+
+                    // Set join date
+                    const joinDate = user.createdAt ? new Date(user.createdAt) : new Date();
+                    const formattedJoinDate = joinDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                    if (elements.joined) elements.joined.textContent = formattedJoinDate;
+
+                    // Set last login
+                    const now = new Date();
+                    const lastLoginFormatted = now.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    }) + ', ' + now.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+                    if (elements.lastLogin) elements.lastLogin.textContent = lastLoginFormatted;
+
+                    console.log('Profile data loaded successfully');
+                })
+                .catch(error => {
+                    console.warn('Failed to load profile data:', error);
+                    // Set default values if data loading fails
+                    if (elements.name) elements.name.textContent = 'No Username';
+                    if (elements.email) elements.email.textContent = 'No Email';
+                    if (elements.role) elements.role.textContent = 'Shop Owner';
+                    if (elements.phone) elements.phone.textContent = 'No Phone Number';
+                    if (elements.store) elements.store.textContent = 'No Store Name';
+                    if (elements.joined) elements.joined.textContent = 'Not Available';
+                    if (elements.lastLogin) elements.lastLogin.textContent = 'Not Available';
                 });
-            }
-            document.getElementById('profileLastLogin').textContent = lastLoginText;
-            
-            // Load and display stats (same as user profile page)
-            const transactionCount = localStorage.getItem('userTransactionCount') || '247';
-            const daysActive = localStorage.getItem('userDaysActive') || '156';
-            
-            document.getElementById('profileTransactions').textContent = parseInt(transactionCount).toLocaleString();
-            document.getElementById('profileDaysActive').textContent = daysActive;
-            
-            // Update profile avatar if available
-            if (profileData.avatar) {
-                document.getElementById('profileAvatar').src = profileData.avatar;
-            }
+        }
 
-            // Store current timestamp as last login
-            localStorage.setItem('lastLogin', new Date().toISOString());
+        // Debug function to clear all data and force fresh login
+        function clearAllDataAndRelogin() {
+            console.log('Clearing all stored data...');
+            
+            // Clear localStorage
+            localStorage.clear();
+            
+            // Clear sessionStorage
+            sessionStorage.clear();
+            
+            // Clear IndexedDB if any
+            if ('indexedDB' in window) {
+                indexedDB.deleteDatabase('smart-pos-db');
+            }
+            
+            // Redirect to login
+            window.location.href = '../landing.html';
+        }
+
+        // Add this to browser console for debugging: clearAllDataAndRelogin()
+        window.clearAllDataAndRelogin = clearAllDataAndRelogin;
         }
 
         function updateUserStats() {
@@ -1510,8 +1514,10 @@ Last Updated: June 2025
 
         // Load saved settings on page load and setup password functionality
         document.addEventListener('DOMContentLoaded', function() {
-            // Load user profile information
-            loadUserProfile();
+            // Load user profile information with a small delay to ensure auth service is ready
+            setTimeout(() => {
+                loadProfileData();
+            }, 100);
             
             // Load notification setting
             const notificationsEnabled = localStorage.getItem('notifications') !== 'false';

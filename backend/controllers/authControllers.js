@@ -93,9 +93,11 @@ const login = async (req, res) => {
       refreshToken, // Return the refresh token for clients without cookie support
       user: {
         id: user._id,
+        email: user.email, // Include email for frontend display
         role: user.role,
         firstName: user.firstName,
         lastName: user.lastName,
+        username: user.username, // Include username for frontend display
         shopName: user.shopName
       }
     });

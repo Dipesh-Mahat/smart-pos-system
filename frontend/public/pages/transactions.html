@@ -27,10 +27,12 @@
         });
     </script>
 
-    <style>        .main-content {
+    <style>
+        .main-content {
             padding: 20px;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: auto;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            color: #495057;
         }
 
         @media (max-width: 768px) {
@@ -38,6 +40,140 @@
                 margin-left: 0;
                 padding: 15px;
             }
+        }
+
+        /* Updated Styles for Dark Theme */
+        .transactions-grid {
+            margin-top: 20px;
+        }
+
+        .transaction-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: #495057;
+            display: block;
+            border: 1px solid #e9ecef;
+        }
+
+        .transaction-item:hover {
+            transform: translateY(-2px);
+            background: white;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .filter-btn {
+            padding: 12px 28px;
+            border: 2px solid #e9ecef;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #6c757d;
+            margin: 0 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: #4361ee;
+            border-color: #4361ee;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.25);
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+            justify-content: flex-start;
+            margin-left: 2px;
+        }
+
+        .action-btns-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .detail-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .detail-value {
+            color: white;
+        }
+
+        .transaction-amount {
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .status-completed {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .status-pending {
+            background: rgba(234, 179, 8, 0.2);
+            color: #facc15;
+            border: 1px solid rgba(250, 204, 21, 0.3);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #4361ee;
+            color: white;
+            border: none;
+            box-shadow: 0 2px 4px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #3730a3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
         }
 
         .stats-container {
@@ -51,21 +187,36 @@
             background: white;
             padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             text-align: center;
-            border-top: 4px solid #007bff;
+            border: 1px solid #e9ecef;
+            color: #495057;
         }
 
         .stat-card.success {
-            border-top-color: #28a745;
+            border-left: 4px solid #28a745;
         }
 
         .stat-card.warning {
-            border-top-color: #ffc107;
+            border-left: 4px solid #ffc107;
         }
 
         .stat-card.info {
-            border-top-color: #17a2b8;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6c757d;
         }
 
         .stat-icon {
@@ -187,13 +338,15 @@
         }
 
         .status-completed {
-            background: #d4edda;
-            color: #155724;
+            background: #d1fae5;
+            color: #059669;
+            border: 1px solid #34d399;
         }
 
         .status-pending {
-            background: #fff3cd;
-            color: #856404;
+            background: #fef3c7;
+            color: #d97706;
+            border: 1px solid #fbbf24;
         }
 
         .filters-container {
@@ -201,25 +354,6 @@
             gap: 15px;
             flex-wrap: wrap;
             margin-bottom: 20px;
-        }
-
-        .filter-btn {
-            padding: 10px 20px;
-            border: 2px solid #e9ecef;
-            background: white;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #6c757d;
-        }
-
-        .filter-btn.active,
-        .filter-btn:hover {
-            border-color: #007bff;
-            background: #007bff;
-            color: white;
         }
 
         .empty-state {
@@ -249,8 +383,9 @@
         .action-buttons {
             display: flex;
             gap: 10px;
-            justify-content: flex-end;
+            align-items: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -647,58 +782,58 @@
     </style>
 </head>
 <body>    <div class="main-content">
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <div></div>
+            <div class="action-btns-right">
+                <a href="pos.html" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    New Transaction
+                </a>
+                <button class="btn btn-secondary" onclick="exportTransactions()">
+                    <i class="fas fa-download"></i>
+                    Export
+                </button>
+            </div>
+        </div>
+
         <!-- Statistics Cards -->
         <div class="stats-container">
             <div class="stat-card success">
                 <div class="stat-icon">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <div class="stat-value" id="completedCount">247</div>
+                <div class="stat-value" id="completedCount">0</div>
                 <div class="stat-label">Completed</div>
             </div>
             <div class="stat-card warning">
                 <div class="stat-icon">
                     <i class="fas fa-clock"></i>
                 </div>
-                <div class="stat-value" id="pendingCount">12</div>
+                <div class="stat-value" id="pendingCount">0</div>
                 <div class="stat-label">Pending</div>
             </div>
             <div class="stat-card info">
                 <div class="stat-icon">
                     <i class="fas fa-rupee-sign"></i>
                 </div>
-                <div class="stat-value" id="totalSalesAmount">NPR 125,450</div>
+                <div class="stat-value" id="totalSalesAmount">NPR 0.00</div>
                 <div class="stat-label">Total Sales</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">
                     <i class="fas fa-calendar-day"></i>
                 </div>
-                <div class="stat-value" id="todayCount">48</div>
+                <div class="stat-value" id="todayCount">0</div>
                 <div class="stat-label">Today</div>
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <a href="pos.html" class="btn btn-primary">
-                <i class="fas fa-plus"></i>
-                New Transaction
-            </a>
-            <button class="btn btn-secondary" onclick="exportTransactions()">
-                <i class="fas fa-download"></i>
-                Export
-            </button>
-        </div>
-
         <!-- Filter Buttons -->
-        <div class="filters-container">
-            <button class="filter-btn active" data-filter="all">All Transactions</button>
+        <div class="filter-buttons">
             <button class="filter-btn" data-filter="today">Today</button>
             <button class="filter-btn" data-filter="week">This Week</button>
             <button class="filter-btn" data-filter="month">This Month</button>
-            <button class="filter-btn" data-filter="completed">Completed</button>
-            <button class="filter-btn" data-filter="pending">Pending</button>
         </div>
 
         <!-- Transactions Grid -->
@@ -878,72 +1013,104 @@
             constructor() {
                 this.transactions = [];
                 this.filteredTransactions = [];
-                this.currentFilter = 'all';
+                this.currentFilter = 'today';
                 this.searchTerm = '';
                 this.init();
             }
 
             init() {
-                this.generateDemoTransactions();
+                this.loadTransactionData();
                 this.setupEventListeners();
-                this.renderTransactions();
-                this.updateStats();
             }
 
-            generateDemoTransactions() {
-                const demoProducts = getDemoProducts();
-                const statuses = ['completed', 'pending'];
-                const now = new Date();
-                
-                this.transactions = [];
-                
-                // Generate transactions for the last 30 days
-                for (let i = 0; i < 50; i++) {
-                    const transactionDate = new Date(now - Math.random() * 30 * 24 * 60 * 60 * 1000);
-                    const itemCount = Math.floor(Math.random() * 5) + 1;
-                    const items = [];
-                    let subtotal = 0;
+            async loadTransactionData() {
+                try {
+                    // Fetch transaction summary statistics
+                    await this.fetchTransactionSummary();
                     
-                    // Generate random items for this transaction
-                    for (let j = 0; j < itemCount; j++) {
-                        const product = demoProducts[Math.floor(Math.random() * demoProducts.length)];
-                        const quantity = Math.floor(Math.random() * 3) + 1;
-                        const total = product.price * quantity;
-                        
-                        items.push({
-                            id: product.id,
-                            name: product.name,
-                            price: product.price,
-                            quantity: quantity,
-                            total: total,
-                            category: product.category,
-                            icon: this.getProductIcon(product.category)
+                    // Fetch actual transactions from database
+                    await this.fetchTransactions();
+                    
+                    this.renderTransactions();
+                } catch (error) {
+                    console.error('Error loading transaction data:', error);
+                    // Fallback to empty data
+                    this.transactions = [];
+                    this.filteredTransactions = [];
+                    this.renderTransactions();
+                }
+            }
+
+            async fetchTransactionSummary() {
+                try {
+                    const response = await fetch('/api/shop/transaction-summary', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.updateStatsDisplay(data);
+                    } else {
+                        console.error('Failed to fetch transaction summary');
+                        this.updateStatsDisplay({
+                            completedCount: 0,
+                            pendingCount: 0,
+                            totalSalesAmount: 0,
+                            todayCount: 0
                         });
-                        
-                        subtotal += total;
                     }
-                    
-                    const tax = subtotal * 0.08; // 8% tax
-                    const total = subtotal + tax;
-                    const status = statuses[Math.floor(Math.random() * statuses.length)];
-                    
-                    this.transactions.push({
-                        id: `TXN-2025-${String(i + 1).padStart(3, '0')}`,
-                        date: transactionDate,
-                        items: items,
-                        subtotal: subtotal,
-                        tax: tax,
-                        total: total,
-                        status: status,
-                        paymentMethod: 'Cash',
-                        customerName: `Customer ${i + 1}`,
-                        receiptNumber: `R${String(Date.now() + i).slice(-8)}`
+                } catch (error) {
+                    console.error('Error fetching transaction summary:', error);
+                    this.updateStatsDisplay({
+                        completedCount: 0,
+                        pendingCount: 0,
+                        totalSalesAmount: 0,
+                        todayCount: 0
                     });
                 }
-                
-                // Sort by date (newest first)
-                this.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-                this.filteredTransactions = [...this.transactions];
+            }
+
+            updateStatsDisplay(data) {
+                document.getElementById('completedCount').textContent = data.completedCount || 0;
+                document.getElementById('pendingCount').textContent = data.pendingCount || 0;
+                document.getElementById('totalSalesAmount').textContent = `NPR ${(data.totalSalesAmount || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+                document.getElementById('todayCount').textContent = data.todayCount || 0;
+            }
+
+            async fetchTransactions() {
+                try {
+                    const response = await fetch('/api/shop/transactions', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.transactions = data.transactions || [];
+                        this.filteredTransactions = [...this.transactions];
+                    } else {
+                        console.error('Failed to fetch transactions');
+                        this.transactions = [];
+                        this.filteredTransactions = [];
+                    }
+                } catch (error) {
+                    console.error('Error fetching transactions:', error);
+                    this.transactions = [];
+                    this.filteredTransactions = [];
+                }
+            }
+
+            // Demo transactions generation removed - now using real database data
+            generateDemoTransactions() {
+                // This function is no longer needed as we fetch real data
+                console.log('Using real transaction data from database');
             }
 
             getProductIcon(category) {
@@ -1026,6 +1193,7 @@
 
                 this.filteredTransactions = filtered;
                 this.renderTransactions();
+                this.updateStats();
             }
 
             renderTransactions() {
@@ -1077,18 +1245,16 @@
             }
 
             updateStats() {
-                const completed = this.transactions.filter(t => t.status === 'completed').length;
-                const pending = this.transactions.filter(t => t.status === 'pending').length;
-                const totalSales = this.transactions.filter(t => t.status === 'completed').reduce((sum, t) => sum + t.total, 0);
+                // Stats are now updated via API call in fetchTransactionSummary()
+                // This function is kept for filtering operations
+                const completed = this.filteredTransactions.filter(t => t.status === 'completed').length;
+                const pending = this.filteredTransactions.filter(t => t.status === 'pending').length;
                 
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const todayCount = this.transactions.filter(t => new Date(t.date) >= today).length;
-
-                document.getElementById('completedCount').textContent = completed;
-                document.getElementById('pendingCount').textContent = pending;
-                document.getElementById('totalSalesAmount').textContent = `NPR ${totalSales.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-                document.getElementById('todayCount').textContent = todayCount;
+                // Only update if we're filtering, otherwise use API data
+                if (this.currentFilter !== 'all' || this.searchTerm) {
+                    document.getElementById('completedCount').textContent = completed;
+                    document.getElementById('pendingCount').textContent = pending;
+                }
             }
 
             showTransactionDetails(transactionId) {

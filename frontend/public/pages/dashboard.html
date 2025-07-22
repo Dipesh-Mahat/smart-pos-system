@@ -551,6 +551,13 @@
                 .then(() => {
                     // Load dashboard data
                     loadDashboardData();
+                    
+                    // Refresh user profile in navbar after a small delay to ensure navbar is ready
+                    setTimeout(() => {
+                        if (window.smartPOSNavbar && typeof window.smartPOSNavbar.refreshUserProfile === 'function') {
+                            window.smartPOSNavbar.refreshUserProfile();
+                        }
+                    }, 100);
                 })
                 .catch(error => {
                     console.error('Error refreshing token:', error);
@@ -942,6 +949,9 @@
                     { id: 'quick-sale', icon: 'cash-register', title: 'Quick Sale' }
                 ]
             });
+
+            // Store navbar instance globally so we can update user profile later
+            window.smartPOSNavbar = navbar;
 
             // Handle custom navbar actions
             window.addEventListener('navbarAction', (event) => {

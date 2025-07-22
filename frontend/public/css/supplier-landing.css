@@ -1,3 +1,65 @@
+/* --- Compact footer styles moved from HTML --- */
+.footer {
+    padding: 16px 0 4px 0 !important;
+    color: #fff !important;
+}
+
+.footer-content,
+.footer-section,
+.footer-section ul,
+.footer-section h3,
+.footer-section h4,
+.footer-section p,
+.footer-section li,
+.footer-bottom {
+    color: #fff !important;
+}
+.footer-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0 !important;
+}
+.footer-section {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+.footer-section ul {
+    margin-bottom: 0 !important;
+}
+.footer-bottom {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    text-align: center;
+    font-size: 14px;
+    color: #fff;
+}
+@media (max-width: 900px) {
+    .footer-content {
+        flex-direction: column;
+        gap: 8px 0;
+    }
+}
+
+/* --- Steps grid layout moved from HTML --- */
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    margin-top: 32px;
+}
+@media (max-width: 900px) {
+    .steps-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 600px) {
+    .steps-grid {
+        grid-template-columns: 1fr;
+    }
+}
 /* Supplier Landing Page Specific Styles */
 
 /* ===== CSS Variables ===== */
@@ -373,24 +435,7 @@
     z-index: 2;
 }
 
-.steps-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 60px;
-    margin-top: 80px;
-    position: relative;
-}
 
-.steps-grid::before {
-    content: '';
-    position: absolute;
-    top: 40px;
-    left: 10%;
-    right: 10%;
-    height: 2px;
-    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-    z-index: 0;
-}
 
 .step {
     text-align: center;
