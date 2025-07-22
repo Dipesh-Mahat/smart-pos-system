@@ -1163,90 +1163,97 @@
         // Load profile data from auth service
         function loadProfileData() {
             console.log('loadProfileData called');
-            console.log('authService available:', !!window.authService);
             
-            // Get user data from auth service
-            const user = window.authService ? window.authService.getUser() : null;
-            console.log('User data from auth service:', user);
-            
-            if (user) {
-                // Use real user data from authentication
-                const displayName = user.fullName || 
-                                   (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName) ||
-                                   user.username || 
-                                   'User';
-                
-                // Update profile display with real user data
-                document.getElementById('profileName').textContent = displayName;
-                document.getElementById('profileEmail').textContent = user.email || 'Not provided';
-                
-                // Format role display nicely
-                const userRole = user.role || 'shopowner';
-                const formattedRole = userRole === 'shopowner' ? 'Shop Owner' : 
-                                     userRole === 'admin' ? 'Administrator' : 
-                                     userRole === 'supplier' ? 'Supplier' : 
-                                     userRole.charAt(0).toUpperCase() + userRole.slice(1);
-                document.getElementById('profileRole').textContent = formattedRole;
-                
-                document.getElementById('profilePhone').textContent = user.phone || 'Not provided';
-                document.getElementById('profileStore').textContent = user.shopName || 'Store Name';
-                
-                // Set join date if available from user creation date
-                const joinDate = user.createdAt ? new Date(user.createdAt) : new Date();
-                const formattedJoinDate = joinDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-                document.getElementById('profileJoined').textContent = formattedJoinDate;
-                
-                // Update user ID if available
-                const userIdElement = document.getElementById('profileUserId');
-                if (userIdElement) {
-                    userIdElement.textContent = user.id || user._id || 'Not available';
+            // Set initial loading state
+            const elements = {
+                name: document.getElementById('profileName'),
+                email: document.getElementById('profileEmail'),
+                role: document.getElementById('profileRole'),
+                phone: document.getElementById('profilePhone'),
+                store: document.getElementById('profileStore'),
+                joined: document.getElementById('profileJoined'),
+                lastLogin: document.getElementById('profileLastLogin')
+            };
+
+            // Set loading state
+            Object.values(elements).forEach(el => {
+                if (el) el.textContent = 'Loading...';
+            });
+
+            // Create a promise that will resolve with the user data or reject after 5 seconds
+            const getUserData = new Promise((resolve, reject) => {
+                if (window.authService) {
+                    const user = window.authService.getUser();
+                    if (user) {
+                        resolve(user);
+                    } else {
+                        setTimeout(() => reject(new Error('Unable to load user data')), 5000);
+                    }
+                } else {
+                    setTimeout(() => reject(new Error('Auth service not available')), 5000);
                 }
-                
-                // Set last login to current time (since they're logged in now)
-                const now = new Date();
-                const lastLoginFormatted = now.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                }) + ', ' + now.toLocaleTimeString('en-US', {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
+            });
+
+            // Handle the user data
+            getUserData
+                .then(user => {
+                    // Update name
+                    const displayName = user.fullName || 
+                        (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName) ||
+                        user.username || 
+                        'No Username';
+                    if (elements.name) elements.name.textContent = displayName;
+
+                    // Update email
+                    if (elements.email) elements.email.textContent = user.email || 'No Email';
+
+                    // Update role
+                    const userRole = user.role || 'shopowner';
+                    const formattedRole = userRole === 'shopowner' ? 'Shop Owner' : 
+                                        userRole === 'admin' ? 'Administrator' : 
+                                        userRole === 'supplier' ? 'Supplier' : 
+                                        userRole.charAt(0).toUpperCase() + userRole.slice(1);
+                    if (elements.role) elements.role.textContent = formattedRole;
+
+                    // Update other fields
+                    if (elements.phone) elements.phone.textContent = user.phone || 'No Phone Number';
+                    if (elements.store) elements.store.textContent = user.shopName || 'No Store Name';
+
+                    // Set join date
+                    const joinDate = user.createdAt ? new Date(user.createdAt) : new Date();
+                    const formattedJoinDate = joinDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                    if (elements.joined) elements.joined.textContent = formattedJoinDate;
+
+                    // Set last login
+                    const now = new Date();
+                    const lastLoginFormatted = now.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    }) + ', ' + now.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+                    if (elements.lastLogin) elements.lastLogin.textContent = lastLoginFormatted;
+
+                    console.log('Profile data loaded successfully');
+                })
+                .catch(error => {
+                    console.warn('Failed to load profile data:', error);
+                    // Set default values if data loading fails
+                    if (elements.name) elements.name.textContent = 'No Username';
+                    if (elements.email) elements.email.textContent = 'No Email';
+                    if (elements.role) elements.role.textContent = 'Shop Owner';
+                    if (elements.phone) elements.phone.textContent = 'No Phone Number';
+                    if (elements.store) elements.store.textContent = 'No Store Name';
+                    if (elements.joined) elements.joined.textContent = 'Not Available';
+                    if (elements.lastLogin) elements.lastLogin.textContent = 'Not Available';
                 });
-                document.getElementById('profileLastLogin').textContent = lastLoginFormatted;
-                
-                // Set transaction and days active stats to placeholder values
-                document.getElementById('profileTransactions').textContent = '-';
-                document.getElementById('profileDaysActive').textContent = '-';
-                
-                console.log('Profile data loaded from auth service:', {
-                    name: displayName,
-                    email: user.email,
-                    role: user.role,
-                    shopName: user.shopName
-                });
-            } else {
-                console.warn('No user data available from auth service');
-                // Fallback: set empty/default values
-                document.getElementById('profileName').textContent = 'User';
-                document.getElementById('profileEmail').textContent = 'Not provided';
-                document.getElementById('profileRole').textContent = 'Shop Owner';
-                document.getElementById('profilePhone').textContent = 'Not provided';
-                document.getElementById('profileStore').textContent = 'Store Name';
-                document.getElementById('profileJoined').textContent = 'Not available';
-                document.getElementById('profileLastLogin').textContent = 'Not available';
-                document.getElementById('profileTransactions').textContent = '-';
-                document.getElementById('profileDaysActive').textContent = '-';
-                
-                const userIdElement = document.getElementById('profileUserId');
-                if (userIdElement) {
-                    userIdElement.textContent = 'Not available';
-                }
-            }
         }
 
         // Debug function to clear all data and force fresh login
