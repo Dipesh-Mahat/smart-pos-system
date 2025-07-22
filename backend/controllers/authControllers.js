@@ -2,7 +2,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { logSecurityEvent } = require('../utils/securityLogger');
-const axios = require('axios'); // Add this dependency to your package.json
+const { initializeSession } = require('../middleware/sessionSecurity');
+const axios = require('axios');
 
 // Basic input validation
 const validateLoginInput = (email, password) => {
