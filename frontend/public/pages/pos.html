@@ -580,9 +580,12 @@
             flex-direction: column;
             min-width: 350px;
             max-width: 400px;
-            min-height: 0;
-            height: 80vh;
-            max-height: 80vh;
+            min-height: fit-content;
+            height: auto;
+            max-height: calc(100vh - 140px); /* Maximum height limit */
+            position: sticky;
+            top: 24px; /* Matches the pos-main top padding */
+            align-self: flex-start; /* Prevents stretching with flex container */
         }
         
         .cart-header {
@@ -617,8 +620,9 @@
             flex: 1;
             overflow-y: auto;
             padding: 12px 20px;
-            max-height: calc(80vh - 250px);
-            min-height: 300px;
+            min-height: 150px; /* Smaller minimum height */
+            max-height: calc(100vh - 320px); /* Leaves space for header and footer */
+            height: auto; /* Allows content to determine height */
         }
         
         .cart-empty {
@@ -819,8 +823,12 @@
             
             .cart-panel {
                 min-width: 100%;
-                max-height: 400px;
-                height: 400px;
+                max-height: 500px;
+                height: auto;
+                min-height: fit-content;
+                position: relative; /* Reset sticky position on mobile */
+                top: 0;
+                margin-top: 20px;
             }
             
             .products-grid {
