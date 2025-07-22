@@ -1299,9 +1299,13 @@ class SmartPOSNavbar {
         const roomCode = 'SC' + Math.floor(100000 + Math.random() * 900000);
         const token = this.generateSecureToken();
         
-        // Create mobile scanner URL
+        // Create mobile scanner URL - ensure we use the correct path relative to the server root
         const baseUrl = window.location.origin;
-        const mobileUrl = `${baseUrl}/mobile-scanner.html?room=${encodeURIComponent(roomCode)}&mode=${scanType}&token=${encodeURIComponent(token)}`;
+        // Get the correct path by removing the current path and adding mobile-scanner.html
+        // This ensures it works regardless of which page we're currently on
+        const currentPath = window.location.pathname;
+        const pathPrefix = currentPath.includes('/pages/') ? '../' : '';
+        const mobileUrl = `${baseUrl}/${pathPrefix}mobile-scanner.html?room=${encodeURIComponent(roomCode)}&mode=${scanType}&token=${encodeURIComponent(token)}`;
         
         // Check if user is on mobile
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);

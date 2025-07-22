@@ -161,6 +161,8 @@
             background-color: var(--primary-dark) !important;
             box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3) !important;
         }
+        
+        /* Content below is for the scan button in the page content, not navbar */
           body {
             font-family: var(--font-family);
             color: var(--gray-800);
@@ -1296,154 +1298,9 @@
             visibility: visible;
         }
         
-        /* Smart Scan Dialog Styles */
-        .smart-scan-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .smart-scan-dialog {
-            background: white;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.3s ease;
-        }
-
-        .scan-dialog-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 24px;
-            border-bottom: 1px solid #e9ecef;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 12px 12px 0 0;
-        }
-
-        .scan-dialog-header h3 {
-            margin: 0;
-            font-size: 1.2rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .close-scan-dialog {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: background-color 0.2s ease;
-        }
-
-        .close-scan-dialog:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .scan-dialog-content {
-            padding: 24px;
-        }
-
-        .scan-dialog-content p {
-            margin: 0 0 20px 0;
-            color: #666;
-            line-height: 1.5;
-        }
-
-        .scan-connection-info {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-            color: #495057;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        .status-dot.connected {
-            background-color: #28a745;
-            animation: none;
-        }
-
-        .status-dot.connecting {
-            background-color: #ffc107;
-        }
-
-        .status-dot.disconnected {
-            background-color: #dc3545;
-            animation: none;
-        }
-
-        .scan-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .scan-action-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 14px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-
-        .scan-action-btn.primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .scan-action-btn.primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .scan-action-btn.secondary {
-            background: #e9ecef;
-            color: #495057;
-            border: 1px solid #dee2e6;
-        }
-
-        .scan-action-btn.secondary:hover {
-            background: #dee2e6;
-            transform: translateY(-1px);
-        }
+        /* The smart scan dialog styles are now provided by navbar.js */
+        
+        /* The scan dialog styles are now provided by navbar.js */
 
         /* Scan notification */
         .scan-notification {
@@ -1502,7 +1359,7 @@
             background-color: white;
             border-radius: var(--border-radius);
             width: 90%;
-            max-width: 500px;
+            max-width: 550px;
             padding: 24px;
             box-shadow: var(--box-shadow-md);
             transform: translateY(20px);
@@ -1513,6 +1370,132 @@
         .mobile-scanner-modal.active .mobile-scanner-content {
             transform: translateY(0);
             opacity: 1;
+        }
+        
+        /* Connection steps styles */
+        .connection-steps {
+            padding: 0 10px;
+        }
+        
+        .step {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        
+        .step.active {
+            opacity: 1;
+        }
+        
+        .step-number {
+            width: 36px;
+            height: 36px;
+            background: #e9ecef;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .step.active .step-number {
+            background: #007bff;
+            color: white;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-content h4 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+        }
+        
+        .step-content p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .qr-container {
+            margin: 20px auto;
+            width: 200px;
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e9ecef;
+        }
+        
+        .qr-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: #6c757d;
+        }
+        
+        .qr-loading i {
+            font-size: 24px;
+        }
+        
+        .connection-info {
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .scanner-url {
+            display: flex;
+            margin: 10px auto;
+            max-width: 400px;
+        }
+        
+        .scanner-url input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-right: none;
+            border-radius: 4px 0 0 4px;
+            font-size: 14px;
+        }
+        
+        .scanner-url button {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            background: #f8f9fa;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        
+        .scanner-url button:hover {
+            background: #e9ecef;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .status-spinner {
+            animation: spin 2s infinite linear;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         .scanner-header {
@@ -2047,6 +2030,66 @@
     </div>
     </div>
 
+    <!-- Mobile Scanner Connection Modal -->
+    <div class="mobile-scanner-modal" id="mobileScannerModal">
+        <div class="mobile-scanner-content">
+            <div class="mobile-scanner-header">
+                <h3><i class="fas fa-mobile-alt"></i> Mobile Scanner Connection</h3>
+                <button class="close-modal" id="closeMobileScannerModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="connection-steps">
+                <div class="step active" id="step1">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Connect your mobile device</h4>
+                        <p>Make sure your mobile device is connected to the same WiFi network as this computer.</p>
+                    </div>
+                </div>
+                
+                <div class="step" id="step2">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Scan this QR code</h4>
+                        <p>Use your mobile camera to scan this QR code</p>
+                        <div class="qr-container" id="qrCodeContainer">
+                            <!-- QR code will be inserted here -->
+                            <div class="qr-loading">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Generating QR code...</span>
+                            </div>
+                        </div>
+                        <div class="connection-info">
+                            <p>Room code: <strong id="roomCodeDisplay">------</strong></p>
+                            <p>Or open this URL on your mobile device:</p>
+                            <div class="scanner-url">
+                                <input type="text" id="scannerUrlInput" readonly>
+                                <button id="copyUrlButton" title="Copy URL">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step" id="step3">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Waiting for connection...</h4>
+                        <p>The scanner will automatically start when your device connects</p>
+                        <div class="connection-status">
+                            <div class="status-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                            <span id="connectionStatus">Waiting for mobile device...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="bill-modal" id="billModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:3000; justify-content:center; align-items:center;">
   <div style="background:#fff; border-radius:12px; max-width:400px; width:95%; padding:24px; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
     <h2 style="margin-top:0; text-align:center;">Bill Summary</h2>
@@ -2183,7 +2226,7 @@
             
             dialog.innerHTML = `
                 <div class="scan-dialog-header">
-                    <h3><i class="fas fa-barcode"></i> Product Scanner</h3>
+                    <h3><i class="fas fa-qrcode"></i> Smart Scanner</h3>
                     <button class="close-scan-dialog" id="closeProductScanDialog">
                         <i class="fas fa-times"></i>
                     </button>
@@ -2199,15 +2242,32 @@
                         </div>
                     </div>
                     
-                    <div class="scan-actions">
-                        <button class="scan-action-btn primary" id="startProductScan">
-                            <i class="fas fa-camera"></i>
-                            Start Product Scanning
-                        </button>
-                        <button class="scan-action-btn secondary" id="manualBarcodeEntry">
-                            <i class="fas fa-keyboard"></i>
-                            Manual Entry
-                        </button>
+                    <div class="scan-options">
+                        <div class="scan-option" id="startProductScan">
+                            <div class="scan-option-icon">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            <div class="scan-option-content">
+                                <h4>Start Product Scanning</h4>
+                                <p>Scan product barcodes using camera</p>
+                            </div>
+                            <div class="scan-option-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="scan-option" id="manualBarcodeEntry">
+                            <div class="scan-option-icon">
+                                <i class="fas fa-keyboard"></i>
+                            </div>
+                            <div class="scan-option-content">
+                                <h4>Manual Entry</h4>
+                                <p>Enter product barcode manually</p>
+                            </div>
+                            <div class="scan-option-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
