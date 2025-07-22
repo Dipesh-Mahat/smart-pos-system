@@ -27,10 +27,12 @@
         });
     </script>
 
-    <style>        .main-content {
+    <style>
+        .main-content {
             padding: 20px;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: auto;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            color: #495057;
         }
 
         @media (max-width: 768px) {
@@ -38,6 +40,140 @@
                 margin-left: 0;
                 padding: 15px;
             }
+        }
+
+        /* Updated Styles for Dark Theme */
+        .transactions-grid {
+            margin-top: 20px;
+        }
+
+        .transaction-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: #495057;
+            display: block;
+            border: 1px solid #e9ecef;
+        }
+
+        .transaction-item:hover {
+            transform: translateY(-2px);
+            background: white;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .filter-btn {
+            padding: 12px 28px;
+            border: 2px solid #e9ecef;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #6c757d;
+            margin: 0 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: #4361ee;
+            border-color: #4361ee;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.25);
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+            justify-content: flex-start;
+            margin-left: 2px;
+        }
+
+        .action-btns-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .detail-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .detail-value {
+            color: white;
+        }
+
+        .transaction-amount {
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .status-completed {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .status-pending {
+            background: rgba(234, 179, 8, 0.2);
+            color: #facc15;
+            border: 1px solid rgba(250, 204, 21, 0.3);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #4361ee;
+            color: white;
+            border: none;
+            box-shadow: 0 2px 4px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #3730a3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
         }
 
         .stats-container {
@@ -51,21 +187,36 @@
             background: white;
             padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             text-align: center;
-            border-top: 4px solid #007bff;
+            border: 1px solid #e9ecef;
+            color: #495057;
         }
 
         .stat-card.success {
-            border-top-color: #28a745;
+            border-left: 4px solid #28a745;
         }
 
         .stat-card.warning {
-            border-top-color: #ffc107;
+            border-left: 4px solid #ffc107;
         }
 
         .stat-card.info {
-            border-top-color: #17a2b8;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6c757d;
         }
 
         .stat-icon {
@@ -187,13 +338,15 @@
         }
 
         .status-completed {
-            background: #d4edda;
-            color: #155724;
+            background: #d1fae5;
+            color: #059669;
+            border: 1px solid #34d399;
         }
 
         .status-pending {
-            background: #fff3cd;
-            color: #856404;
+            background: #fef3c7;
+            color: #d97706;
+            border: 1px solid #fbbf24;
         }
 
         .filters-container {
@@ -201,25 +354,6 @@
             gap: 15px;
             flex-wrap: wrap;
             margin-bottom: 20px;
-        }
-
-        .filter-btn {
-            padding: 10px 20px;
-            border: 2px solid #e9ecef;
-            background: white;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #6c757d;
-        }
-
-        .filter-btn.active,
-        .filter-btn:hover {
-            border-color: #007bff;
-            background: #007bff;
-            color: white;
         }
 
         .empty-state {
@@ -249,8 +383,9 @@
         .action-buttons {
             display: flex;
             gap: 10px;
-            justify-content: flex-end;
+            align-items: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -647,6 +782,21 @@
     </style>
 </head>
 <body>    <div class="main-content">
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <div></div>
+            <div class="action-btns-right">
+                <a href="pos.html" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    New Transaction
+                </a>
+                <button class="btn btn-secondary" onclick="exportTransactions()">
+                    <i class="fas fa-download"></i>
+                    Export
+                </button>
+            </div>
+        </div>
+
         <!-- Statistics Cards -->
         <div class="stats-container">
             <div class="stat-card success">
@@ -679,26 +829,11 @@
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <a href="pos.html" class="btn btn-primary">
-                <i class="fas fa-plus"></i>
-                New Transaction
-            </a>
-            <button class="btn btn-secondary" onclick="exportTransactions()">
-                <i class="fas fa-download"></i>
-                Export
-            </button>
-        </div>
-
         <!-- Filter Buttons -->
-        <div class="filters-container">
-            <button class="filter-btn active" data-filter="all">All Transactions</button>
+        <div class="filter-buttons">
             <button class="filter-btn" data-filter="today">Today</button>
             <button class="filter-btn" data-filter="week">This Week</button>
             <button class="filter-btn" data-filter="month">This Month</button>
-            <button class="filter-btn" data-filter="completed">Completed</button>
-            <button class="filter-btn" data-filter="pending">Pending</button>
         </div>
 
         <!-- Transactions Grid -->
@@ -878,7 +1013,7 @@
             constructor() {
                 this.transactions = [];
                 this.filteredTransactions = [];
-                this.currentFilter = 'all';
+                this.currentFilter = 'today';
                 this.searchTerm = '';
                 this.init();
             }
