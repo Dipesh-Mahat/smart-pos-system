@@ -732,10 +732,9 @@ class AdminDashboard {
         const modal = document.getElementById('actionModal');
         if (!modal) return;
 
-        const userId = parseInt(modal.dataset.userId);
+        const userId = modal.dataset.userId;
         const action = modal.dataset.action;
-        const user = this.users.find(u => u.id === userId);
-
+        const user = this.users.find(u => u.id == userId);
         if (!user) return;
 
         try {
@@ -744,10 +743,18 @@ class AdminDashboard {
             confirmBtn.innerHTML = '<span class="loading"></span> Processing...';
             confirmBtn.disabled = true;
 
-            // Simulate API call
-            await this.simulateAPICall(1000);
+            // Real API call to backend
+            const response = await fetch('/api/users/admin/bulk-action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify({ userIds: [user.id], action })
+            });
+            if (!response.ok) throw new Error('Failed to execute action');
 
-            // Update user status
+            // Update user status locally
             switch (action) {
                 case 'ban':
                     user.status = 'banned';
@@ -760,20 +767,15 @@ class AdminDashboard {
                     break;
             }
 
-            // Update UI
             this.renderUserTable();
             this.updateStatistics();
             this.hideModal();
-            this.showMessage(`User ${action}ed successfully`, 'success');
-
-            // Log activity
-            this.logActivity('user-action', `${action}ed user: ${user.name}`, 'now');
-
+            this.showMessage(`User ${action}d successfully`, 'success');
+            this.logActivity('user-action', `${action}d user: ${user.name}`, 'now');
         } catch (error) {
             console.error('Failed to execute user action:', error);
             this.showMessage('Failed to execute action', 'error');
         } finally {
-            // Reset button state
             const confirmBtn = document.getElementById('confirmAction');
             confirmBtn.innerHTML = 'Confirm';
             confirmBtn.disabled = false;
@@ -981,6 +983,51 @@ class AdminDashboard {
             });
         } catch (error) {
             console.error('Error creating user distribution chart:', error);
+        }
+    }
+
+    // Fetch and display audit logs
+    async loadAuditLogs() {
+        try {
+            const response = await fetch('/api/users/admin/audit-logs', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch audit logs');
+            const data = await response.json();
+            // Render logs in the UI (implement renderAuditLogs)
+            this.renderAuditLogs(data.logs);
+        } catch (error) {
+            this.showMessage('Failed to load audit logs', 'error');
+        }
+    }
+
+    // Fetch and display system health
+    async updateSystemHealth() {
+        try {
+            const response = await fetch('/api/users/admin/system-health', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch system health');
+            const data = await response.json();
+            // Render health in the UI (implement renderSystemHealth)
+            this.renderSystemHealth(data.health);
+        } catch (error) {
+            this.showMessage('Failed to load system health', 'error');
+        }
+    }
+
+    // Fetch and display activity logs
+    async loadRecentActivity() {
+        try {
+            const response = await fetch('/api/users/admin/activity-logs', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch activity logs');
+            const data = await response.json();
+            // Render activities in the UI (implement renderActivityLogs)
+            this.renderActivityLogs(data.logs);
+        } catch (error) {
+            this.showMessage('Failed to load activity logs', 'error');
         }
     }
 

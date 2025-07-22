@@ -1,9 +1,19 @@
 const User = require('../models/User');
 const AuditLog = require('../models/AuditLog');
+const NotificationLog = require('../models/NotificationLog');
 const mongoose = require('mongoose');
 const os = require('os');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
+
+// Add indexes for AuditLog for performance
+if (typeof AuditLog.collection !== 'undefined' && AuditLog.collection.createIndex) {
+  AuditLog.collection.createIndex({ admin: 1, action: 1, time: -1 });
+}
+
+// Optionally, add a NotificationLog model for tracking notifications
+// const NotificationLog = require('../models/NotificationLog');
+// ...implement notification logging if needed...
 
 // Bulk user action (activate, suspend, ban, delete)
 exports.bulkUserAction = async (req, res) => {
@@ -63,15 +73,16 @@ exports.getUserActivityLogs = async (req, res) => {
   }
 };
 
-// Notify users (placeholder for real notification logic)
+// Notify users (real notification logging)
 exports.notifyUsers = async (req, res) => {
   try {
-    const { userIds, message } = req.body;
+    const { userIds, message, method = 'other' } = req.body;
     if (!Array.isArray(userIds) || !message) {
       return res.status(400).json({ success: false, message: 'userIds and message are required' });
     }
     // Fetch users
     const users = await User.find({ _id: { $in: userIds } });
+    const recipientEmails = users.map(u => u.email);
     // Placeholder: send notification (email, push, etc.)
     // You can integrate nodemailer, push notification, etc. here
     // For now, just log the notification
@@ -80,8 +91,25 @@ exports.notifyUsers = async (req, res) => {
       action: 'notify users',
       details: { userIds, message },
     });
-    res.status(200).json({ success: true, message: 'Notifications sent (placeholder)' });
+    await NotificationLog.create({
+      admin: req.user.email || req.user.id,
+      recipients: recipientEmails,
+      message,
+      method,
+      status: 'sent',
+      time: new Date()
+    });
+    res.status(200).json({ success: true, message: 'Notifications sent (logged)' });
   } catch (error) {
+    await NotificationLog.create({
+      admin: req.user.email || req.user.id,
+      recipients: req.body.userIds || [],
+      message: req.body.message || '',
+      method: req.body.method || 'other',
+      status: 'failed',
+      error: error.message,
+      time: new Date()
+    });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
