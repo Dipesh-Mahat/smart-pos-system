@@ -496,25 +496,15 @@
 
         // Update the analytics display with real data
         function updateAnalyticsDisplay(data) {
-            if (!data) {
-                // Keep everything as 0 if no data
-                console.log('No analytics data available, keeping values at 0');
-                return;
-            }
+            // Get data values or use 0 as default
+            const totalRevenue = data ? (data.totalSales || 0) : 0;
+            const totalSales = data ? (data.transactionCount || 0) : 0;
+            const productsSold = data ? (data.totalItemsSold || 0) : 0;
 
-            // Update Total Revenue
-            const totalRevenue = data.totalSales || 0;
+            // Always update the display with actual values or zeros
             document.getElementById('totalRevenue').textContent = `NPR ${totalRevenue.toLocaleString()}`;
-
-            // Update Total Sales (transaction count)
-            const totalSales = data.transactionCount || 0;
             document.getElementById('totalSales').textContent = totalSales.toLocaleString();
-
-            // Update New Customers (for now, show 0 as we don't track customers separately)
             document.getElementById('newCustomers').textContent = '0';
-
-            // Update Products Sold (we'll calculate this from transactions)
-            const productsSold = data.totalItemsSold || 0;
             document.getElementById('productsSold').textContent = productsSold.toLocaleString();
 
             // Update percentage changes if data is available
