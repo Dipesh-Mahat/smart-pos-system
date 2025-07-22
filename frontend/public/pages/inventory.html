@@ -285,28 +285,28 @@
                         <div class="stat-icon">
                             <i class="fas fa-cubes"></i>
                         </div>
-                        <div class="stat-number">1,247</div>
+                        <div class="stat-number" id="totalItems">0</div>
                         <div class="stat-label">Total Items</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
-                        <div class="stat-number">23</div>
+                        <div class="stat-number" id="lowStockItems">0</div>
                         <div class="stat-label">Low Stock Alerts</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
                             <i class="fas fa-calendar-times"></i>
                         </div>
-                        <div class="stat-number">8</div>
+                        <div class="stat-number" id="expiringItems">0</div>
                         <div class="stat-label">Expiring Soon</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
                             <i class="fas fa-dollar-sign"></i>
                         </div>
-                        <div class="stat-number">NPR 847K</div>
+                        <div class="stat-number" id="totalValue">NPR 0</div>
                         <div class="stat-label">Total Value</div>                    </div>
                 </div>
             </div>
@@ -460,26 +460,32 @@
                 if (statusFilter === 'out-of-stock') queryParams += 'stock=0&';
                 if (searchQuery) queryParams += `search=${encodeURIComponent(searchQuery)}&`;
                 
-                // Fetch inventory data from API
-                apiService.request(`/products${queryParams}`)
-                    .then(response => {
-                        if (response.success && response.data.products) {
-                            displayInventory(response.data.products);
-                            updateInventorySummary(response.data.products);
-                        } else {
-                            console.error('Failed to load inventory:', response.message);
-                            // Fallback to demo products
-                            const demoProducts = getDemoProducts();
-                            displayInventory(demoProducts);
-                            updateInventorySummary(demoProducts);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error loading inventory:', error);
-                        // Fallback to demo products
-                        const demoProducts = getDemoProducts();
-                        displayInventory(demoProducts);
-                        updateInventorySummary(demoProducts);
+                // Fetch inventory data and statistics from API
+                Promise.all([
+                    apiService.request(`/products${queryParams}`),
+                    apiService.request('/inventory/stats')
+                ])
+                .then(([productsResponse, statsResponse]) => {
+                    if (productsResponse.success && productsResponse.data.products) {
+                        displayInventory(productsResponse.data.products);
+                    } else {
+                        console.error('Failed to load inventory:', productsResponse.message);
+                        displayInventory(getDemoProducts());
+                    }
+
+                    // Update statistics
+                    if (statsResponse.success) {
+                        updateInventorySummary(statsResponse);
+                    } else {
+                        console.error('Failed to load statistics:', statsResponse.message);
+                        updateInventorySummary(null);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading inventory data:', error);
+                    // Fallback to demo data
+                    displayInventory(getDemoProducts());
+                    updateInventorySummary(null);
                     });
             } else {
                 // Fallback to demo products
@@ -571,18 +577,34 @@
             }).join('');
         }
         
-        function updateInventorySummary(products) {
-            // Calculate inventory summary
-            const totalItems = products.length;
-            const totalValue = products.reduce((sum, product) => sum + (product.cost || 0) * product.stock, 0);
-            const lowStockItems = products.filter(p => p.stock <= (p.minStockLevel || p.minStock)).length;
-            const outOfStockItems = products.filter(p => p.stock === 0).length;
+        // Function to format currency values
+        function formatCurrency(value) {
+            const num = parseFloat(value);
+            if (num >= 1000000) {
+                return `NPR ${(num / 1000000).toFixed(1)}M`;
+            } else if (num >= 1000) {
+                return `NPR ${(num / 1000).toFixed(1)}K`;
+            }
+            return `NPR ${num.toFixed(2)}`;
+        }
+
+        function updateInventorySummary(response) {
+            if (!response || !response.data) {
+                // Set defaults if no data
+                document.getElementById('totalItems').textContent = '0';
+                document.getElementById('lowStockItems').textContent = '0';
+                document.getElementById('expiringItems').textContent = '0';
+                document.getElementById('totalValue').textContent = 'NPR 0';
+                return;
+            }
+
+            const { stats } = response.data;
             
-            // Update summary display
-            document.getElementById('totalItems').textContent = totalItems;
-            document.getElementById('totalValue').textContent = `₹${totalValue.toLocaleString()}`;
-            document.getElementById('lowStockItems').textContent = lowStockItems;
-            document.getElementById('outOfStockItems').textContent = outOfStockItems;
+            // Update summary display with real data
+            document.getElementById('totalItems').textContent = stats.totalProducts || '0';
+            document.getElementById('lowStockItems').textContent = stats.lowStockItems || '0';
+            document.getElementById('expiringItems').textContent = stats.expiringItems || '0';
+            document.getElementById('totalValue').textContent = formatCurrency(stats.inventoryValue || 0);
         }
         
         function setupFilters() {
