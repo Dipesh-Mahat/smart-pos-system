@@ -122,10 +122,6 @@ class SmartPOSNavbar {
                             <i class="fas fa-cog"></i>
                             <span>Settings</span>
                         </a>
-                        <a href="notifications.html" class="profile-menu-item">
-                            <i class="fas fa-bell"></i>
-                            <span>Notifications</span>
-                        </a>
                         <div class="profile-menu-divider"></div>
                         <a href="support.html" class="profile-menu-item">
                             <i class="fas fa-life-ring"></i>
