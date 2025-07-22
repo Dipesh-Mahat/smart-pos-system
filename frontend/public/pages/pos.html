@@ -298,6 +298,11 @@
             box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
         }
         
+        /* Link scan button to product scanner */
+        .scan-btn[data-scan-type="barcode"] {
+            cursor: pointer;
+        }
+        
         .categories-bar {
             display: flex;
             flex-direction: row;
@@ -1750,8 +1755,8 @@
                     <!-- 1. Search bar and scan button at the very top -->
                     <div class="search-bar">
                         <input type="text" class="search-input" id="searchInput" placeholder="Search products or scan barcode...">
-                        <button class="scan-btn" id="scanBtn">
-                            <i class="fas fa-qrcode"></i> Scan
+                        <button class="scan-btn" id="scanBtn" data-scan-type="barcode">
+                            <i class="fas fa-barcode"></i> Scan Product
                         </button>
                     </div>
                     <!-- 2. Categories bar below search bar -->
@@ -2125,8 +2130,11 @@
             const scanBtn = document.getElementById('scanBtn');
             if (scanBtn) {
                 scanBtn.addEventListener('click', function() {
-                    // Use the same smart scan dialog as navbar, but for product scanning only
-                    showProductScanDialog();
+                    // Get navbar instance and directly open product scanner
+                    const navbar = document.querySelector('smart-pos-navbar');
+                    if (navbar) {
+                        navbar.openMobileScanner('barcode');
+                    }
                 });
             }
             
