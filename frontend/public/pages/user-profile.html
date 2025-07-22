@@ -755,21 +755,48 @@
         }
 
         function loadUserProfile() {
-            // Load user profile data from localStorage or API
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const defaultData = {
-                name: 'Ram Bahadur Thapa',
-                email: 'ram.thapa@smartpos.com',
-                role: 'Store Manager',
-                phone: '+977-9812345678',
-                storeName: 'Thapa General Store',
-                location: 'Thamel, Kathmandu',
-                joinDate: '2024-01-15',
-                userId: 'USR-2024-001'
-            };
-
-            // Merge default data with stored data
-            const profileData = { ...defaultData, ...userData };
+            // Get user data from auth service
+            const user = window.authService ? window.authService.getUser() : null;
+            
+            let profileData;
+            
+            if (user) {
+                // Use real user data from authentication
+                const displayName = user.fullName || 
+                                   (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName) ||
+                                   user.username || 
+                                   'User';
+                
+                profileData = {
+                    name: displayName,
+                    email: user.email || 'Not provided',
+                    role: user.role === 'shopowner' ? 'Shop Owner' : 
+                          user.role === 'admin' ? 'Administrator' : 
+                          user.role === 'supplier' ? 'Supplier' : 
+                          (user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Shop Owner'),
+                    phone: user.phone || '',
+                    storeName: user.shopName || '',
+                    location: user.location || '',
+                    joinDate: user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                    userId: user.id || user._id || 'Not available'
+                };
+                
+                console.log('Loading profile data from auth service:', profileData);
+            } else {
+                // Fallback data if no user is found
+                profileData = {
+                    name: 'User',
+                    email: 'Not provided',
+                    role: 'Shop Owner',
+                    phone: '',
+                    storeName: '',
+                    location: '',
+                    joinDate: new Date().toISOString().split('T')[0],
+                    userId: 'Not available'
+                };
+                
+                console.warn('No user data available from auth service, using fallback');
+            }
 
             // Update header display
             updateHeaderDisplay(profileData);

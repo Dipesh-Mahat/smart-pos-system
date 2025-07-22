@@ -99,24 +99,24 @@ class MobileScanner {
     async updateConnectionStatus() {
         const statusDot = document.getElementById('statusDot');
         const connectionStatus = document.getElementById('connectionStatus');
-        
+
         // First attempt to connect
         statusDot.classList.add('connecting');
         connectionStatus.textContent = 'Connecting to POS Terminal...';
-        
+
         // Simulate connection process
         setTimeout(() => {
             this.showNotification('Finding POS terminal...', 'info');
         }, 500);
-        
+
         setTimeout(() => {
             this.showNotification(`Authenticating with room code: ${this.roomCode}`, 'info');
         }, 1200);
-        
-        setTimeout(() => {
+
+        setTimeout(async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
-            
+
             // Connect to room using the connection module
             if (typeof mobileScannerConnection !== 'undefined') {
                 this.deviceId = mobileScannerConnection.connectDevice(
@@ -135,20 +135,22 @@ class MobileScanner {
                     },
                     token
                 );
-                
                 this.setupReconnectionHandling();
             }
-            
+
             // Connection established
             if (this.deviceId) {
                 statusDot.classList.remove('connecting');
                 statusDot.classList.add('connected');
                 connectionStatus.textContent = 'Connected to POS Terminal';
                 this.showNotification('Connected to POS Terminal', 'success');
-                
+
                 if ('vibrate' in navigator) {
                     navigator.vibrate([200, 100, 200]);
                 }
+
+                // Auto-start camera and scanning UI
+                await this.requestCamera();
             } else {
                 statusDot.classList.remove('connecting');
                 statusDot.className = 'status-dot';

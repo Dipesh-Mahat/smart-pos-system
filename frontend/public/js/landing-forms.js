@@ -17,6 +17,13 @@ function clearFormErrors() {
     document.querySelectorAll('input').forEach(input => {
         input.style.borderColor = '';
     });
+    
+    // Reset alert elements to default error styling
+    const loginErrorAlert = document.getElementById('loginErrorAlert');
+    if (loginErrorAlert) {
+        loginErrorAlert.className = 'error-alert';
+        loginErrorAlert.style.display = 'none';
+    }
 }
 
 // Show error message
@@ -184,7 +191,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Clear previous errors
         clearFormErrors();
-        document.getElementById('loginErrorAlert').style.display = 'none';
         
         // Get form values
         const email = document.getElementById('loginEmail').value.trim();
@@ -240,6 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 loginLoading.style.display = 'none';
                 const errorAlert = document.getElementById('loginErrorAlert');
                 errorAlert.textContent = data.message || 'Login failed';
+                errorAlert.className = 'error-alert';  // Reset to error styling
                 errorAlert.style.display = 'block';
             }
         } catch (error) {
@@ -248,6 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loginLoading.style.display = 'none';
             const errorAlert = document.getElementById('loginErrorAlert');
             errorAlert.textContent = 'Network error. Please try again.';
+            errorAlert.className = 'error-alert';  // Reset to error styling
             errorAlert.style.display = 'block';
         }
     });
@@ -352,7 +360,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const loginErrorAlert = document.getElementById('loginErrorAlert');
                 if (loginErrorAlert) {
                     loginErrorAlert.textContent = 'Registration successful! Please log in.';
-                    loginErrorAlert.style.color = '#28a745';
+                    // Remove error styling and add success styling
+                    loginErrorAlert.className = 'success-alert';
                     loginErrorAlert.style.display = 'block';
                 }
                 

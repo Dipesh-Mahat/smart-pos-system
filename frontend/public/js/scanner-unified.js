@@ -119,10 +119,23 @@ class ScannerUnified {
         const overlay = document.createElement('div');
         overlay.id = 'unifiedScannerDialog';
         overlay.className = 'unified-scanner-overlay';
-        
+
         const dialog = document.createElement('div');
         dialog.className = 'unified-scanner-dialog';
-        
+
+        // Show connected device info if connected
+        let connectedDeviceHtml = '';
+        if (this.isConnected && this.deviceId) {
+            connectedDeviceHtml = `
+                <div class="connected-device-info" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
+                    <span style="color:#28a745;font-weight:600;"><i class="fas fa-link"></i> Connected: <span id="connectedDeviceName">${this.deviceId}</span></span>
+                    <button class="btn secondary" id="disconnectMobileBtn" style="margin-left:16px;"><i class="fas fa-unlink"></i> Disconnect</button>
+                </div>
+            `;
+        }
+
+        // Only show 'Open in New Tab' button if on mobile device
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0);
         dialog.innerHTML = `
             <div class="scanner-dialog-header">
                 <h3><i class="fas fa-mobile-alt"></i> Connect Mobile Scanner</h3>
@@ -130,8 +143,8 @@ class ScannerUnified {
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
             <div class="scanner-dialog-content">
+                ${connectedDeviceHtml}
                 <div class="connection-info">
                     <div class="room-code-display">
                         <span class="room-label">Room Code:</span>
@@ -142,7 +155,7 @@ class ScannerUnified {
                         <span>${scanType === 'barcode' ? 'Product Scanner' : scanType === 'bill' ? 'Bill Scanner' : 'Smart Scanner'}</span>
                     </div>
                 </div>
-                
+                <div style="margin:12px 0 20px 0;color:#555;font-size:15px;">Scan the QR code below with your mobile device to connect and start scanning. Once connected, your mobile camera will open automatically.</div>
                 <div class="connection-methods">
                     <div class="connection-method">
                         <h4><i class="fas fa-qrcode"></i> Scan QR Code</h4>
@@ -153,7 +166,6 @@ class ScannerUnified {
                             </div>
                         </div>
                     </div>
-                    
                     <div class="connection-method">
                         <h4><i class="fas fa-link"></i> Open on Mobile</h4>
                         <div class="mobile-url-input">
@@ -164,41 +176,48 @@ class ScannerUnified {
                         </div>
                     </div>
                 </div>
-                
                 <div class="connection-status-display" id="connectionStatusDisplay">
                     <div class="status-indicator">
-                        <div class="status-dot connecting"></div>
-                        <span>Waiting for mobile device...</span>
+                        <div class="status-dot ${this.isConnected ? 'connected' : 'connecting'}"></div>
+                        <span>${this.isConnected ? 'Mobile device connected!' : 'Waiting for mobile device...'}</span>
                     </div>
                 </div>
-                
                 <div class="scanner-dialog-actions">
-                    <button class="btn secondary" id="openInNewTabBtn">
-                        <i class="fas fa-external-link-alt"></i> Open in New Tab
-                    </button>
+                    ${isMobile ? `<button class="btn secondary" id="openInNewTabBtn"><i class="fas fa-external-link-alt"></i> Open in New Tab</button>` : ''}
                     <button class="btn primary" id="testConnectionBtn">
                         <i class="fas fa-wifi"></i> Test Connection
                     </button>
                 </div>
             </div>
         `;
-        
+
         overlay.appendChild(dialog);
         document.body.appendChild(overlay);
-        
+
         // Add styles if not present
         this.addDialogStyles();
-        
+
         // Show with animation
         setTimeout(() => {
             overlay.classList.add('show');
         }, 10);
-        
+
         // Setup event handlers
         this.setupDialogEvents(overlay, mobileUrl);
-        
+
         // Generate QR code
         this.generateQRCode(mobileUrl);
+
+        // Disconnect button event
+        if (this.isConnected) {
+            const disconnectBtn = overlay.querySelector('#disconnectMobileBtn');
+            if (disconnectBtn) {
+                disconnectBtn.addEventListener('click', () => {
+                    this.disconnect();
+                    this.closeConnectionDialog(overlay);
+                });
+            }
+        }
     }
 
     /**
@@ -217,11 +236,13 @@ class ScannerUnified {
             this.copyToClipboard(mobileUrl);
         });
         
-        // Open in new tab
+        // Open in new tab (only if button exists, i.e., on mobile)
         const newTabBtn = overlay.querySelector('#openInNewTabBtn');
-        newTabBtn?.addEventListener('click', () => {
-            window.open(mobileUrl, '_blank');
-        });
+        if (newTabBtn) {
+            newTabBtn.addEventListener('click', () => {
+                window.open(mobileUrl, '_blank');
+            });
+        }
         
         // Test connection
         const testBtn = overlay.querySelector('#testConnectionBtn');
@@ -368,8 +389,8 @@ class ScannerUnified {
         this.deviceId = data.deviceId;
         this.setConnectionStatus('connected');
         this.saveConnection();
-        
-        // Update connection dialog
+
+        // Update connection dialog and auto-close after short delay
         const statusDisplay = document.getElementById('connectionStatusDisplay');
         if (statusDisplay) {
             statusDisplay.innerHTML = `
@@ -379,12 +400,18 @@ class ScannerUnified {
                 </div>
             `;
         }
-        
+
         this.showNotification('Mobile scanner connected!', 'success');
         this.emit('connected', data);
-        
+
         // Start heartbeat
         this.startHeartbeat();
+
+        // Auto-close dialog after 1s
+        setTimeout(() => {
+            const overlay = document.getElementById('unifiedScannerDialog');
+            if (overlay) this.closeConnectionDialog(overlay);
+        }, 1000);
     }
 
     /**

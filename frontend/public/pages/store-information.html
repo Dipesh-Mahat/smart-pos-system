@@ -533,22 +533,8 @@
                     </div>
                     
                     <div class="profile-stats">
-                        <div class="stat-item">
-                            <span class="stat-value" id="totalProducts">0</span>
-                            <span class="stat-label">Products</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="totalEmployees">0</span>
-                            <span class="stat-label">Employees</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="monthlyRevenue">NPR 0</span>
-                            <span class="stat-label">Monthly Revenue</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="storeRating">4.5</span>
-                            <span class="stat-label">Rating</span>
-                        </div>
+                        <!-- Store statistics removed as requested -->
+                        <!-- Users can add their own statistics when needed -->
                     </div>
                 </div>
             </div>
@@ -743,17 +729,17 @@
             // Load store information from localStorage or API
             const storeData = JSON.parse(localStorage.getItem('storeData') || '{}');
             const defaultData = {
-                name: 'Thapa General Store',
+                name: 'Store Name',
                 type: 'General Store',
-                email: 'info@thapastore.com',
-                phone: '+977-1-4567890',
-                address: 'Thamel Marg, Ward 29',
-                city: 'Kathmandu',
-                province: 'Bagmati Province',
-                postalCode: '44600',
-                pan: '301234567',
-                vat: '123456789',
-                openDate: '2020-03-15'
+                email: 'store@gmail.com',
+                phone: '',
+                address: '',
+                city: '',
+                province: '',
+                postalCode: '',
+                pan: '',
+                vat: '',
+                openDate: new Date().toISOString().split('T')[0] // Today's date
             };
 
             // Merge default data with stored data
@@ -783,15 +769,8 @@
             });
             document.getElementById('storeOpened').textContent = formattedOpenDate;
 
-            // Load and display stats
-            const totalProducts = localStorage.getItem('storeTotalProducts') || '1,247';
-            const totalEmployees = localStorage.getItem('storeTotalEmployees') || '8';
-            const monthlyRevenue = localStorage.getItem('storeMonthlyRevenue') || '445200';
-
-            document.getElementById('totalProducts').textContent = totalProducts;
-            document.getElementById('totalEmployees').textContent = totalEmployees;
-            document.getElementById('monthlyRevenue').textContent = `NPR ${parseInt(monthlyRevenue).toLocaleString()}`;
-            document.getElementById('storeRating').textContent = '4.5';
+            // Statistics removed as requested by user
+            // Users can add their own store statistics when needed
 
             // Update store logo if available
             if (storeInfo.logo) {

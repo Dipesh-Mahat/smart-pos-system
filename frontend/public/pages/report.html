@@ -295,10 +295,10 @@
                 <div class="card-header">
                     <div>
                         <h3 class="card-title">Total Revenue</h3>
-                        <div class="metric-value">NPR 24,589</div>
-                        <div class="metric-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            +12.5% vs last month
+                        <div class="metric-value" id="totalRevenue">NPR 0</div>
+                        <div class="metric-change" id="revenueChange">
+                            <i class="fas fa-minus"></i>
+                            No data
                         </div>
                     </div>
                     <div class="card-icon revenue-icon">
@@ -311,10 +311,10 @@
                 <div class="card-header">
                     <div>
                         <h3 class="card-title">Total Sales</h3>
-                        <div class="metric-value">1,247</div>
-                        <div class="metric-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            +8.3% vs last month
+                        <div class="metric-value" id="totalSales">0</div>
+                        <div class="metric-change" id="salesChange">
+                            <i class="fas fa-minus"></i>
+                            No data
                         </div>
                     </div>
                     <div class="card-icon sales-icon">
@@ -327,10 +327,10 @@
                 <div class="card-header">
                     <div>
                         <h3 class="card-title">New Customers</h3>
-                        <div class="metric-value">89</div>
-                        <div class="metric-change negative">
-                            <i class="fas fa-arrow-down"></i>
-                            -3.2% vs last month
+                        <div class="metric-value" id="newCustomers">0</div>
+                        <div class="metric-change" id="customersChange">
+                            <i class="fas fa-minus"></i>
+                            No data
                         </div>
                     </div>
                     <div class="card-icon customers-icon">
@@ -343,10 +343,10 @@
                 <div class="card-header">
                     <div>
                         <h3 class="card-title">Products Sold</h3>
-                        <div class="metric-value">3,456</div>
-                        <div class="metric-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            +15.7% vs last month
+                        <div class="metric-value" id="productsSold">0</div>
+                        <div class="metric-change" id="productsSoldChange">
+                            <i class="fas fa-minus"></i>
+                            No data
                         </div>
                     </div>
                     <div class="card-icon products-icon">
@@ -441,21 +441,6 @@
         </div>    </div>
 
     <script>
-        // Chart filter functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const filterBtns = document.querySelectorAll('.filter-btn');
-            
-            filterBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    filterBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Here you would update the chart based on the selected filter
-                    console.log('Updating chart for:', this.textContent);
-                });
-            });
-        });
-
         function generateReport(type) {
             alert(`Generating ${type} report...`);
             // Here you would implement the actual report generation logic
@@ -468,6 +453,138 @@
             alert('Opening email report interface...');
             // Here you would open an email configuration modal
         }
+
+        // Fetch analytics data from backend
+        async function fetchAnalyticsData(period = 'today') {
+            try {
+                // Show loading state
+                showLoadingState();
+                
+                const response = await fetch(`http://localhost:5000/api/dashboard/summary?period=${period}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${window.authService ? window.authService.getToken() : ''}`
+                    },
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    updateAnalyticsDisplay(data);
+                    console.log('Analytics data loaded:', data);
+                } else {
+                    console.error('Failed to fetch analytics data:', response.status);
+                    updateAnalyticsDisplay(null);
+                }
+            } catch (error) {
+                console.error('Error fetching analytics data:', error);
+                updateAnalyticsDisplay(null);
+            }
+        }
+
+        // Show loading state for all metrics
+        function showLoadingState() {
+            const loadingElements = ['totalRevenue', 'totalSales', 'newCustomers', 'productsSold'];
+            loadingElements.forEach(elementId => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.textContent = 'Loading...';
+                }
+            });
+        }
+
+        // Update the analytics display with real data
+        function updateAnalyticsDisplay(data) {
+            // Get data values or use 0 as default
+            const totalRevenue = data ? (data.totalSales || 0) : 0;
+            const totalSales = data ? (data.transactionCount || 0) : 0;
+            const productsSold = data ? (data.totalItemsSold || 0) : 0;
+
+            // Always update the display with actual values or zeros
+            document.getElementById('totalRevenue').textContent = `NPR ${totalRevenue.toLocaleString()}`;
+            document.getElementById('totalSales').textContent = totalSales.toLocaleString();
+            document.getElementById('newCustomers').textContent = '0';
+            document.getElementById('productsSold').textContent = productsSold.toLocaleString();
+
+            // Update percentage changes if data is available
+            updateChangeIndicators(data);
+        }
+
+        // Update change indicators (positive/negative changes)
+        function updateChangeIndicators(data) {
+            // For now, show "No comparison data" since we don't have historical comparison
+            const changeElements = ['revenueChange', 'salesChange', 'customersChange', 'productsSoldChange'];
+            
+            changeElements.forEach(elementId => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.innerHTML = '<i class="fas fa-minus"></i> No comparison data';
+                    element.className = 'metric-change';
+                }
+            });
+        }
+
+        // Load analytics data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load analytics data
+            fetchAnalyticsData('today');
+
+            // Setup filter buttons to fetch different periods
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Map button text to API period
+                    const periodMap = {
+                        '7 Days': 'week',
+                        '30 Days': 'month', 
+                        '90 Days': 'month', // Using month for now
+                        '1 Year': 'year'
+                    };
+                    
+                    const period = periodMap[this.textContent] || 'today';
+                    fetchAnalyticsData(period);
+                    
+                    console.log('Updating analytics for:', period);
+                });
+            });
+
+            // Auto-refresh data every 5 minutes
+            setInterval(() => {
+                const activeBtn = document.querySelector('.filter-btn.active');
+                const activePeriod = activeBtn ? activeBtn.textContent : '7 Days';
+                const periodMap = {
+                    '7 Days': 'week',
+                    '30 Days': 'month', 
+                    '90 Days': 'month',
+                    '1 Year': 'year'
+                };
+                const period = periodMap[activePeriod] || 'today';
+                fetchAnalyticsData(period);
+                console.log('Auto-refreshing analytics data...');
+            }, 300000); // 5 minutes
+        });
+
+        // Add manual refresh function
+        function refreshAnalytics() {
+            const activeBtn = document.querySelector('.filter-btn.active');
+            const activePeriod = activeBtn ? activeBtn.textContent : '7 Days';
+            const periodMap = {
+                '7 Days': 'week',
+                '30 Days': 'month', 
+                '90 Days': 'month',
+                '1 Year': 'year'
+            };
+            const period = periodMap[activePeriod] || 'today';
+            fetchAnalyticsData(period);
+        }
+
+        // Make refresh function available globally
+        window.refreshAnalytics = refreshAnalytics;
     </script>    <!-- Professional Reusable Menu Component -->
     <script src="../js/menu.js"></script>
     <!-- Professional Reusable Navbar Component -->

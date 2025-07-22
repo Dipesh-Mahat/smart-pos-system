@@ -539,6 +539,9 @@ router.post('/transactions/:id/refund', transactionController.processRefund);
  */
 router.get('/daily-sales', transactionController.getDailySalesSummary);
 
+// Transaction summary stats
+router.get('/transaction-summary', transactionController.getTransactionSummary);
+
 /**
  * @swagger
  * /shop/expenses:
