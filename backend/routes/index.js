@@ -7,6 +7,7 @@ const shopRoutes = require('./shopRoutes');
 const autoOrderRoutes = require('./autoOrderRoutes');
 const supplierRoutes = require('./supplierRoutes');
 const smartInventoryRoutes = require('./smartInventoryRoutes');
+const festivalIntelligenceRoutes = require('./festivalIntelligenceRoutes');
 const adminController = require('../controllers/adminController');
 const dashboardController = require('../controllers/dashboardController');
 const productController = require('../controllers/productController');
@@ -40,6 +41,9 @@ router.use('/auto-orders', authenticateJWT, autoOrderRoutes);
 
 // Add smart inventory routes for shopowners
 router.use('/smart-inventory', smartInventoryRoutes);
+
+// Add festival intelligence routes for Nepal-specific features
+router.use('/festival-intelligence', festivalIntelligenceRoutes);
 
 // Dashboard routes (for shopowners and admins)
 // Temporarily disable authentication for development testing

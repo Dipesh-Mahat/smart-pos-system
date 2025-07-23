@@ -2,6 +2,7 @@ const AutoOrder = require('../models/AutoOrder');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 const { logSecurityEvent } = require('../utils/securityLogger');
+const nepaliCalendarService = require('./nepaliCalendarService');
 
 /**
  * Smart Inventory Monitoring Service
@@ -356,6 +357,188 @@ class SmartInventoryService {
       return results;
     } catch (error) {
       console.error('Error in processAllAutoOrders:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Festival-aware inventory checking with seasonal adjustments
+   * @param {String} shopId - Shop ID to check inventory for
+   * @returns {Object} Enhanced summary with festival context
+   */
+  static async checkInventoryWithFestivalIntelligence(shopId) {
+    try {
+      // Get current festival intelligence
+      const festivalData = await nepaliCalendarService.getFestivalIntelligence();
+      
+      // Run standard inventory check
+      const standardCheck = await this.checkInventoryForShop(shopId);
+      
+      // Get products that need festival-aware analysis
+      const products = await Product.find({ shopId }).lean();
+      
+      // Analyze products with festival context
+      const festivalAnalysis = {
+        currentSeasonalFactor: festivalData.currentSeasonalFactor,
+        upcomingFestivals: festivalData.upcomingFestivals,
+        festivalAdjustedRecommendations: [],
+        urgentFestivalPreparations: []
+      };
+      
+      // Check each product against festival requirements
+      for (const product of products) {
+        const festivalAdjustment = nepaliCalendarService.calculateFestivalAdjustedQuantity(
+          product.quantity,
+          product.category
+        );
+        
+        if (festivalAdjustment.finalQuantity > product.quantity * 1.5) {
+          festivalAnalysis.festivalAdjustedRecommendations.push({
+            productId: product._id,
+            productName: product.name,
+            currentStock: product.quantity,
+            recommendedStock: festivalAdjustment.finalQuantity,
+            category: product.category,
+            reasoning: festivalAdjustment.reasoning,
+            urgency: festivalAdjustment.finalQuantity > product.quantity * 3 ? 'high' : 'medium'
+          });
+        }
+      }
+      
+      // Check for urgent festival preparations
+      const immediatePreparation = festivalData.immediatePreparation || [];
+      immediatePreparation.forEach(festival => {
+        if (festival.daysUntil <= 7) {
+          festivalAnalysis.urgentFestivalPreparations.push({
+            festival: festival.name,
+            daysUntil: festival.daysUntil,
+            seasonalFactor: festival.seasonalFactor,
+            recommendations: festival.recommendations,
+            action: 'immediate_stock_increase_required'
+          });
+        }
+      });
+      
+      return {
+        ...standardCheck,
+        festivalIntelligence: festivalAnalysis,
+        enhancedRecommendations: this.generateEnhancedRecommendations(
+          standardCheck,
+          festivalAnalysis
+        )
+      };
+      
+    } catch (error) {
+      console.error('Error in festival-aware inventory check:', error);
+      // Fallback to standard check if festival service fails
+      return await this.checkInventoryForShop(shopId);
+    }
+  }
+
+  /**
+   * Generate enhanced recommendations combining inventory and festival data
+   */
+  static generateEnhancedRecommendations(standardCheck, festivalAnalysis) {
+    const recommendations = [];
+    
+    // High priority festival preparations
+    if (festivalAnalysis.urgentFestivalPreparations.length > 0) {
+      recommendations.push({
+        type: 'urgent_festival_prep',
+        priority: 'critical',
+        message: `${festivalAnalysis.urgentFestivalPreparations.length} urgent festival preparations needed`,
+        actions: festivalAnalysis.urgentFestivalPreparations.map(prep => 
+          `Prepare for ${prep.festival} in ${prep.daysUntil} days`
+        )
+      });
+    }
+    
+    // Festival-adjusted stock recommendations
+    if (festivalAnalysis.festivalAdjustedRecommendations.length > 0) {
+      const highUrgency = festivalAnalysis.festivalAdjustedRecommendations.filter(r => r.urgency === 'high');
+      if (highUrgency.length > 0) {
+        recommendations.push({
+          type: 'festival_stock_adjustment',
+          priority: 'high',
+          message: `${highUrgency.length} products need immediate stock increase for festivals`,
+          products: highUrgency.map(r => r.productName)
+        });
+      }
+    }
+    
+    // Standard low stock with festival context
+    if (standardCheck.lowStockItems && standardCheck.lowStockItems.length > 0) {
+      const festivalAffected = standardCheck.lowStockItems.filter(item => {
+        return festivalAnalysis.festivalAdjustedRecommendations.some(rec => 
+          rec.productId.toString() === item.productId?.toString()
+        );
+      });
+      
+      if (festivalAffected.length > 0) {
+        recommendations.push({
+          type: 'low_stock_festival_risk',
+          priority: 'high',
+          message: `${festivalAffected.length} low stock items are needed for upcoming festivals`,
+          seasonalFactor: festivalAnalysis.currentSeasonalFactor
+        });
+      }
+    }
+    
+    // General seasonal advice
+    if (festivalAnalysis.currentSeasonalFactor > 1.5) {
+      recommendations.push({
+        type: 'seasonal_opportunity',
+        priority: 'medium',
+        message: `High demand season (${festivalAnalysis.currentSeasonalFactor}x factor) - consider increasing overall inventory`,
+        upcomingFestivals: festivalAnalysis.upcomingFestivals.slice(0, 3).map(f => f.name)
+      });
+    }
+    
+    return recommendations;
+  }
+
+  /**
+   * Auto-apply festival factors to auto-orders based on upcoming festivals
+   * @param {String} shopId - Shop ID
+   * @returns {Object} Update summary
+   */
+  static async autoApplyFestivalFactors(shopId) {
+    try {
+      const festivalData = await nepaliCalendarService.getFestivalIntelligence();
+      const upcomingMajorFestival = festivalData.upcomingFestivals.find(f => 
+        f.category === 'major' && f.daysUntil <= 30
+      );
+      
+      if (!upcomingMajorFestival) {
+        return { message: 'No major festivals in next 30 days', updatedCount: 0 };
+      }
+      
+      // Update auto-orders with festival seasonal factor
+      const updateResult = await AutoOrder.updateMany(
+        { 
+          shopId, 
+          isActive: true,
+          seasonalFactor: { $lt: upcomingMajorFestival.seasonalFactor }
+        },
+        {
+          $set: {
+            seasonalFactor: upcomingMajorFestival.seasonalFactor,
+            seasonalReason: `Auto-applied for ${upcomingMajorFestival.name} (${upcomingMajorFestival.daysUntil} days)`,
+            lastUpdated: new Date()
+          }
+        }
+      );
+      
+      return {
+        festival: upcomingMajorFestival.name,
+        daysUntil: upcomingMajorFestival.daysUntil,
+        seasonalFactor: upcomingMajorFestival.seasonalFactor,
+        updatedCount: updateResult.modifiedCount,
+        message: `Auto-applied ${upcomingMajorFestival.name} seasonal factor to ${updateResult.modifiedCount} auto-orders`
+      };
+      
+    } catch (error) {
+      console.error('Error auto-applying festival factors:', error);
       throw error;
     }
   }
