@@ -11,8 +11,7 @@ router.post('/login',
     createDynamicRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 }), // 5 attempts per 15 minutes
     bruteForceProtection,
     monitorSuspiciousActivity,
-    login,
-    resetLoginAttempts
+    login
 );
 
 router.post('/register',

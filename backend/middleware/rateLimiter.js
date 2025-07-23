@@ -152,6 +152,7 @@ const adminLimiter = rateLimit({
 
 module.exports = {
   identifyDevice,
+  createDynamicRateLimiter,
   apiLimiter,
   authLimiter,
   registerLimiter,

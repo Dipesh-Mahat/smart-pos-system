@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { logSecurityEvent } = require('../utils/securityLogger');
 const { initializeSession } = require('../middleware/sessionSecurity');
+const { resetLoginAttempts } = require('../middleware/bruteForceProtection');
 const axios = require('axios');
 
 // Basic input validation
@@ -83,6 +84,12 @@ const login = async (req, res) => {
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
+
+    // Initialize secure session
+    initializeSession(req, user);
+
+    // Reset brute force protection attempts on successful login
+    await resetLoginAttempts(req, res, () => {});
 
     logSecurityEvent('LOGIN_SUCCESS', { userId: user._id });
 
