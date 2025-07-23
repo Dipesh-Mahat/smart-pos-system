@@ -286,6 +286,25 @@ body.menu-closing .container {
     color: #007bff;
 }
 
+/* Menu Badge for new features */
+.menu-badge {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-left: auto;
+    animation: pulse 2s infinite;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+}
+
 /* Menu Toggle Button */
 .menu-toggle-btn {
     position: fixed;
