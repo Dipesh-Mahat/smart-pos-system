@@ -6,6 +6,7 @@ const userRoutes = require('./userRoutes');
 const shopRoutes = require('./shopRoutes');
 const autoOrderRoutes = require('./autoOrderRoutes');
 const supplierRoutes = require('./supplierRoutes');
+const smartInventoryRoutes = require('./smartInventoryRoutes');
 const adminController = require('../controllers/adminController');
 const dashboardController = require('../controllers/dashboardController');
 const productController = require('../controllers/productController');
@@ -36,6 +37,9 @@ router.use('/supplier', supplierRoutes);
 
 // Add auto-order routes for shopowners
 router.use('/auto-orders', authenticateJWT, autoOrderRoutes);
+
+// Add smart inventory routes for shopowners
+router.use('/smart-inventory', smartInventoryRoutes);
 
 // Dashboard routes (for shopowners and admins)
 // Temporarily disable authentication for development testing
