@@ -160,4 +160,96 @@ body {
 
 .back-button:hover {
     color: #007bff;
-} 
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .header {
+        padding: 12px;
+    }
+    
+    .app-title {
+        font-size: 16px;
+    }
+    
+    .menu-icon {
+        font-size: 22px;
+    }
+    
+    .header-icons {
+        gap: 12px;
+    }
+    
+    .notification-icon, .profile-icon {
+        font-size: 20px;
+    }
+    
+    /* Button responsive styles */
+    .btn, .btn-primary, .btn-secondary {
+        padding: 10px 16px;
+        font-size: 14px;
+        min-height: 44px; /* Touch target size */
+    }
+    
+    /* Form elements responsive */
+    input, select, textarea {
+        padding: 12px;
+        font-size: 16px; /* Prevents zoom on iOS */
+        min-height: 44px;
+    }
+    
+    /* Table responsive */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table {
+        min-width: 600px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: 10px;
+    }
+    
+    .app-title {
+        font-size: 14px;
+    }
+    
+    .menu-icon {
+        font-size: 20px;
+    }
+    
+    .header-icons {
+        gap: 10px;
+    }
+    
+    .notification-icon, .profile-icon {
+        font-size: 18px;
+    }
+    
+    /* Extra small button styles */
+    .btn, .btn-primary, .btn-secondary {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    /* Form elements extra small */
+    input, select, textarea {
+        padding: 10px;
+        font-size: 16px;
+    }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+    .header {
+        padding: 8px 12px;
+    }
+    
+    .app-title {
+        font-size: 14px;
+    }
+}

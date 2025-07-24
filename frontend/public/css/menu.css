@@ -31,7 +31,7 @@
     width: 300px;
     height: calc(100vh - 80px);
     background: white;
-    z-index: 999;
+    z-index: 1500;
     transition: all 0.15s ease-out;
     box-shadow: 4px 0 16px rgba(0,0,0,0.1);
     overflow-y: auto;
@@ -98,7 +98,7 @@ body.menu-closing .container {
     width: 100%;
     height: calc(100% - 72px);
     background: rgba(0,0,0,0.5);
-    z-index: 998;
+    z-index: 1400;
     opacity: 0;
     visibility: hidden;
     transition: all 0.4s ease;
@@ -899,6 +899,60 @@ body.menu-closing .container {
     .side-menu {
         top: 70px;
         height: calc(100vh - 70px);
+        width: 280px;
+    }
+    
+    .menu-icon {
+        font-size: 22px;
+        width: 44px;
+        height: 44px;
+    }
+    
+    .menu-item {
+        padding: 14px 20px;
+        min-height: 50px;
+    }
+    
+    .menu-text {
+        font-size: 15px;
+    }
+    
+    .menu-icon-folder {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+    
+    .menu-badge {
+        padding: 2px 6px;
+        font-size: 9px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .side-menu {
+        width: 260px;
+    }
+    
+    .menu-icon {
+        font-size: 20px;
+        width: 40px;
+        height: 40px;
+    }
+    
+    .menu-item {
+        padding: 12px 16px;
+        min-height: 46px;
+    }
+    
+    .menu-text {
+        font-size: 14px;
+    }
+    
+    .menu-icon-folder {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
     }
 }
 
@@ -911,4 +965,52 @@ body.menu-closing .container {
 
 .menu-title {
     text-align: center;
+}
+
+/* Mobile Menu Visibility Fixes */
+@media screen and (max-width: 1023px) {
+    .side-menu {
+        z-index: 1600 !important;
+        background: white !important;
+        border-right: 1px solid #e9ecef !important;
+    }
+    
+    .side-menu.open {
+        left: 0 !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateX(0) !important;
+    }
+    
+    .menu-overlay {
+        z-index: 1500 !important;
+        background: rgba(0,0,0,0.6) !important;
+    }
+    
+    .menu-overlay.active {
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    
+    /* Ensure menu items are visible */
+    .menu-item {
+        background: transparent !important;
+        color: #333 !important;
+        border-bottom: 1px solid #f1f1f1 !important;
+    }
+    
+    .menu-item:hover {
+        background: #f8f9fa !important;
+        color: #007bff !important;
+    }
+    
+    .menu-icon-folder {
+        background: #f1f3f4 !important;
+        color: #666 !important;
+    }
+    
+    .menu-text {
+        color: #333 !important;
+        font-weight: 500 !important;
+    }
 }

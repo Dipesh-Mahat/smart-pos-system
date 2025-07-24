@@ -819,87 +819,220 @@
             .pos-content {
                 flex-direction: column;
                 max-height: none;
+                gap: 16px;
             }
             
             .cart-panel {
+                order: -1; /* Move cart above products */
                 min-width: 100%;
-                max-height: 500px;
+                max-height: none;
                 height: auto;
-                min-height: fit-content;
-                position: relative; /* Reset sticky position on mobile */
+                min-height: 200px;
+                position: relative;
                 top: 0;
-                margin-top: 20px;
+                margin: 0;
+                margin-bottom: 16px;
+            }
+            
+            .cart-items {
+                max-height: 150px;
+                min-height: 100px;
             }
             
             .products-grid {
-                margin-bottom: 20px;
+                order: 1; /* Products come after cart */
+                margin: 0;
                 height: auto;
-                max-height: 60vh;
+                max-height: none;
+                min-height: 60vh;
             }
             
             .products-list {
-                max-height: calc(60vh - 100px);
+                max-height: none;
+                min-height: 60vh;
+                height: auto;
+            }
+            
+            .pos-main {
+                height: auto;
+                min-height: 100vh;
             }
         }
 
         @media screen and (max-width: 768px) {
-            .search-bar {
+            .main-content {
+                padding: 0;
+                margin-left: 0;
+            }
+            
+            .pos-main {
+                padding: 0;
+                height: auto;
+                min-height: 100vh;
+                display: flex;
                 flex-direction: column;
-                padding: 12px;
+            }
+            
+            .search-bar {
+                order: 1;
+                flex-direction: row;
+                padding: 16px;
+                gap: 12px;
+                background: white;
+                border-bottom: 1px solid var(--gray-200);
             }
             
             .search-input {
-                width: 100%;
+                flex: 1;
+                font-size: 16px;
+                padding: 14px 16px;
             }
             
             .scan-btn {
-                width: 100%;
+                min-width: 50px;
+                padding: 14px;
                 justify-content: center;
+            }
+            
+            .categories-bar {
+                order: 4;
+                padding: 12px 16px;
+                overflow-x: auto;
+                white-space: nowrap;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                background: white;
+                border-bottom: 1px solid var(--gray-200);
+            }
+            
+            .categories-bar::-webkit-scrollbar {
+                display: none;
             }
             
             .quick-actions {
                 display: none;
-            }            .products-list {
+            }
+            
+            .pos-content {
+                order: 2;
+                padding: 0;
+                gap: 0;
+                flex-direction: column;
+                display: flex;
+            }
+            
+            .cart-panel {
+                order: 1;
+                margin-bottom: 0;
+                padding: 16px;
+                border-radius: 0;
+                background: white;
+                border-bottom: 1px solid var(--gray-200);
+                box-shadow: none;
+            }
+            
+            .cart-items {
+                max-height: 200px;
+                min-height: 120px;
+            }
+            
+            .products-grid {
+                order: 2;
+                padding: 16px;
+                padding-top: 0;
+                height: auto;
+                max-height: none;
+                min-height: 70vh;
+                background: white;
+            }
+            
+            .products-list {
                 grid-template-columns: repeat(auto-fill, minmax(140px, 180px));
                 justify-content: start;
-                max-height: calc(50vh - 80px);
+                max-height: none;
+                height: auto;
+                min-height: 70vh;
+                gap: 12px;
+                overflow-y: auto;
+                padding-bottom: 20px;
             }
             
             .product-card {
                 height: 220px;
                 max-width: 180px;
+                padding: 12px;
             }
             
             .product-img {
                 height: 100px;
             }
             
-            .cart-panel {
-                max-height: 400px;
+            .product-name {
+                font-size: 14px;
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
             }
             
-            .pos-main {
-                padding: 15px;
-            }
-            
-            .products-grid {
-                height: auto;
-                max-height: 50vh;
+            .product-price {
+                font-size: 15px;
             }
         }
         
         @media screen and (max-width: 576px) {
             .pos-main {
-                padding: 10px;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .search-bar {
+                order: 1;
+                padding: 12px;
+                background: white;
+                border-bottom: 1px solid var(--gray-200);
+            }
+            
+            .categories-bar {
+                order: 4;
+                padding: 12px;
+                background: white;
+                border-bottom: 1px solid var(--gray-200);
+            }
+            
+            .pos-content {
+                order: 2;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .cart-panel {
+                order: 1;
+                padding: 12px;
+                background: white;
+                border-bottom: 1px solid var(--gray-200);
+                border-radius: 0;
+                box-shadow: none;
+            }
+            
+            .products-grid {
+                order: 2;
+                padding: 12px;
+                padding-top: 0;
+                background: white;
             }
             
             .products-list {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 10px;
+                min-height: 80vh;
+                overflow-y: auto;
+                padding-bottom: 20px;
             }
             
             .product-card {
                 padding: 10px;
+                height: 200px;
             }
             
             .product-img {
@@ -916,6 +1049,17 @@
             
             .cart-item {
                 flex-wrap: wrap;
+                padding: 8px 0;
+            }
+            
+            .cart-item-left {
+                flex: 1;
+                min-width: 100%;
+                margin-bottom: 8px;
+            }
+            
+            .item-price {
+                margin-left: auto;
             }
             
             .top-bar {
@@ -923,8 +1067,9 @@
                 margin-bottom: 15px;
             }
             
-            .categories-bar {
-                margin-bottom: 15px;
+            .checkout-btn {
+                padding: 14px;
+                font-size: 15px;
             }
         }
         
@@ -2107,11 +2252,31 @@
             // Initialize unified scanner connection
             window.unifiedScannerConnection = new UnifiedScannerConnection();
             
+            // Device detection function
+            function isMobileDevice() {
+                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                       window.innerWidth <= 768 || 
+                       ('ontouchstart' in window) || 
+                       (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+            }
+            
             // Set up event listeners
             const scanBtn = document.getElementById('scanBtn');
             if (scanBtn) {
                 scanBtn.addEventListener('click', function() {
-                    // Get navbar instance and directly open product scanner
+                    // Check if on mobile device
+                    if (isMobileDevice()) {
+                        // On mobile: directly open camera scanner
+                        document.getElementById('cameraModal').classList.add('active');
+                        if (posSystem && posSystem.startDirectScan) {
+                            posSystem.startDirectScan();
+                        }
+                    } else {
+                        // On laptop/desktop: show scanner connection options  
+                        document.getElementById('scannerModal').classList.add('active');
+                    }
+                    
+                    // Get navbar instance and notify of scanner activation
                     const navbar = document.querySelector('smart-pos-navbar');
                     if (navbar) {
                         navbar.openMobileScanner('barcode');
