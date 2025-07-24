@@ -101,9 +101,9 @@ class SmartPOSMenu {
                     '</a>' +
                     '<a href="ai-dashboard.html" class="menu-item" data-page="ai-dashboard">' +
                         '<div class="menu-icon-folder">' +
-                            '<i class="fas fa-lightbulb"></i>' +
+                            '<i class="fas fa-brain"></i>' +
                         '</div>' +
-                        '<div class="menu-text">Business Helper</div>' +
+                        '<div class="menu-text">AI Helper</div>' +
                         '<span class="menu-badge">NEW</span>' +
                     '</a>' +
                     '<a href="settings.html" class="menu-item" data-page="settings">' +
