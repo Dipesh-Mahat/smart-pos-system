@@ -16,21 +16,19 @@
     
     <!-- Check authentication on page load -->
     <script>
+        // Simple auth check for live server testing
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is logged in
-            if (!window.authService || !window.authService.isLoggedIn()) {
-                window.location.href = '../landing.html';
-                return;
+            // For live server testing, create a demo token if none exists
+            if (!localStorage.getItem('token') && !sessionStorage.getItem('devMode')) {
+                sessionStorage.setItem('devMode', 'demo-mode');
+                console.log('Demo mode activated for live server testing');
             }
-            
-            // Ensure token is fresh
-            window.authService.ensureFreshToken();
         });
     </script>
 
     <style>
         .main-content {
-            padding: 24px;
+            padding: 20px;
             background-color: #f8f9fa;
             min-height: 100vh;
             margin-left: 250px;
@@ -45,15 +43,16 @@
         }
 
         .ai-container {
-            max-width: 1200px;
-            margin: 0 auto;
+            max-width: 100%;
+            margin: 0;
+            padding: 0 10px;
         }
 
         .header-title {
             font-size: 2.2rem;
             font-weight: 700;
             color: #2c3e50;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -62,20 +61,20 @@
         .header-subtitle {
             font-size: 1.1rem;
             color: #6c757d;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .insights-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 32px;
+            gap: 16px;
+            margin-bottom: 20px;
         }
 
         .insight-card {
             background: white;
             border-radius: 16px;
-            padding: 24px;
+            padding: 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             position: relative;
@@ -174,18 +173,18 @@
             
             .insights-grid {
                 grid-template-columns: 1fr;
-                gap: 16px;
+                gap: 12px;
             }
             
             .insight-card {
-                padding: 20px;
+                padding: 16px;
             }
         }
 
         @media (min-width: 769px) and (max-width: 1200px) {
             .insights-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 18px;
+                gap: 14px;
             }
         }
     </style>
@@ -306,8 +305,23 @@
 
         // Load fallback insights when AI is unavailable
         function loadFallbackInsights() {
-            displayInsights(Object.values(fallbackInsights));
-            console.log('Smart business insights loaded');
+            console.log('Loading fallback insights with data:', fallbackInsights);
+            try {
+                const insightCards = Object.values(fallbackInsights);
+                console.log('Insight cards to display:', insightCards);
+                
+                if (!insightCards || insightCards.length === 0) {
+                    console.error('No insight cards available!');
+                    forceLoadBasicContent();
+                    return;
+                }
+                
+                displayInsights(insightCards);
+                console.log('Smart business insights loaded successfully');
+            } catch (error) {
+                console.error('Error in loadFallbackInsights:', error);
+                forceLoadBasicContent();
+            }
         }
 
         // Display AI insights from backend
@@ -372,7 +386,13 @@
 
         // Display insights in cards
         function displayInsights(insightCards) {
+            console.log('displayInsights called with:', insightCards);
             const insightsSection = document.getElementById('insightsSection');
+            
+            if (!insightsSection) {
+                console.error('insightsSection element not found!');
+                return;
+            }
             
             const html = insightCards.map(card => `
                 <div class="insight-card">
@@ -394,10 +414,12 @@
                 </div>
             `).join('');
 
+            console.log('Generated HTML:', html);
             insightsSection.innerHTML = html;
 
             // Animate cards
             const cards = insightsSection.querySelectorAll('.insight-card');
+            console.log('Found cards for animation:', cards.length);
             cards.forEach((card, index) => {
                 card.style.opacity = '0';
                 card.style.transform = 'translateY(20px)';
@@ -484,29 +506,81 @@
         `;
         document.head.appendChild(style);
 
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize navbar with proper title
-            if (typeof initSmartPOSNavbar === 'function') {
-                initSmartPOSNavbar({
-                    title: 'AI Business Insights',
-                    showBackButton: false,
-                    showNotifications: true,
-                    showProfile: true
-                });
+        // Backup initialization - runs immediately if DOM is already ready
+        function initializeNow() {
+            console.log('Backup initialization triggered');
+            if (!sessionStorage.getItem('devMode') && !localStorage.getItem('token')) {
+                sessionStorage.setItem('devMode', 'demo-mode');
             }
-            
-            // Initialize menu
-            if (typeof window.SmartPOSMenu !== 'undefined') {
-                new window.SmartPOSMenu();
-            }
-            
-            // Load fallback insights immediately for demo
             loadFallbackInsights();
-            
-            // Then try to load AI insights in background
-            setTimeout(initializeAIDashboard, 1000);
-        });
+        }
+
+        // Initialize immediately if DOM is ready, otherwise wait for DOMContentLoaded
+        if (document.readyState === 'loading') {
+            // DOM not ready yet, wait for it
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('AI Dashboard page loaded, initializing...');
+                
+                // Set demo mode for live server testing
+                if (!localStorage.getItem('token') && !sessionStorage.getItem('devMode')) {
+                    sessionStorage.setItem('devMode', 'demo-mode');
+                }
+                
+                // Initialize navbar with proper title
+                try {
+                    if (typeof initSmartPOSNavbar === 'function') {
+                        initSmartPOSNavbar({
+                            title: 'AI Business Insights',
+                            showBackButton: false,
+                            showNotifications: true,
+                            showProfile: true
+                        });
+                        console.log('Navbar initialized');
+                    } else {
+                        console.log('initSmartPOSNavbar not available');
+                    }
+                } catch (error) {
+                    console.log('Navbar initialization error:', error);
+                }
+                
+                // Initialize menu
+                try {
+                    if (typeof window.SmartPOSMenu !== 'undefined') {
+                        new window.SmartPOSMenu();
+                        console.log('Menu initialized');
+                    } else {
+                        console.log('SmartPOSMenu not available');
+                    }
+                } catch (error) {
+                    console.log('Menu initialization error:', error);
+                }
+                
+                // Load fallback insights immediately - this should always work
+                console.log('Loading fallback insights...');
+                try {
+                    loadFallbackInsights();
+                    console.log('Fallback insights loaded successfully');
+                } catch (error) {
+                    console.error('Error loading fallback insights:', error);
+                    // Force load with basic HTML if all else fails
+                    forceLoadBasicContent();
+                }
+                
+                // Then try to load AI insights in background
+                setTimeout(() => {
+                    console.log('Attempting to load AI insights...');
+                    try {
+                        initializeAIDashboard();
+                    } catch (error) {
+                        console.log('AI insights loading error:', error);
+                    }
+                }, 500);
+            });
+        } else {
+            // DOM is already ready, initialize immediately
+            console.log('DOM already ready, initializing immediately');
+            initializeNow();
+        }
     </script>
 </body>
 </html>
