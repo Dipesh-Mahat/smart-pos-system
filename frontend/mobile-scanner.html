@@ -3,11 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart POS - Mobile Scanner</title>
+    <title>Smart POS Mobile Scanner</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Add QuaggaJS for barcode scanning -->
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
     <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: #a5b4fc;
+            --text-color: #334155;
+            --light-bg: #f8fafc;
+            --dark-bg: #1e293b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --border-color: #e2e8f0;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -15,57 +28,246 @@
         }
         
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            color: #fff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            padding-top: 20px;
-            overflow-x: hidden;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            touch-action: manipulation;
         }
-
+        
         .scanner-container {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            position: relative;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
-
-        .camera-section {
-            background: white;
+        
+        .room-info {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .room-info h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .room-code {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
             border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+            margin: 8px 0;
+            font-size: 1.1rem;
         }
-
-        .camera-container {
+        
+        .camera-section {
             position: relative;
             width: 100%;
-            height: 300px;
-            background: #f8f9fa;
-            border-radius: 15px;
+            height: 100%;
+            background: #000;
             overflow: hidden;
-            margin-bottom: 20px;
+            z-index: 1;
         }
-
+        
+        .camera-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+        }
+        
         #mobileVideo {
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }        .scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .mobile-scanner-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .connection-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #dc3545;
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.connecting {
+            background: #ffc107;
+            animation: blink 1s infinite;
+        }
+
+        .status-dot.connected {
+            background: #4ade80;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .room-code {
+            padding: 5px 10px;
+            background: rgba(79, 70, 229, 0.2);
+            border: 1px solid rgba(79, 70, 229, 0.5);
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            display: inline-block;
+        }
+        
+        .floating-controls {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            z-index: 100;
+            padding: 0 20px;
+        }
+        
+        .control-btn {
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .back-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 18px;
+        }
+        
+        .scan-btn {
+            background: rgba(79, 70, 229, 0.8);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+        
+        .flash-btn.active {
+            background: rgba(250, 204, 21, 0.8);
+            box-shadow: 0 4px 15px rgba(250, 204, 21, 0.4);
+            color: #000;
+        }
+        
+        video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .no-camera {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #fff;
+            background-color: #1a1a1a;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .no-camera i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: var(--warning);
+        }
+        
+        .no-camera button {
+            margin-top: 20px;
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .scan-overlay {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 200px;
-            height: 200px;
-            border: 2px solid #007bff;
-            border-radius: 15px;
-            box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.3);
+            width: 280px;
+            height: 280px;
+            border: 3px solid rgba(79, 70, 229, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 0 0 3000px rgba(0, 0, 0, 0.6);
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 10;
         }
 
         .scan-line {
@@ -73,169 +275,217 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #007bff, transparent);
-            animation: scanning 2s infinite;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(79, 70, 229, 0.2), rgba(79, 70, 229, 0.9), rgba(79, 70, 229, 0.2));
+            animation: scanning 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.8);
         }
         
         @keyframes scanning {
             0% { top: 0; }
-            50% { top: calc(100% - 2px); }
+            50% { top: calc(100% - 4px); }
             100% { top: 0; }
         }
         
         .scan-overlay.scanning .scan-line {
-            animation: scanning 1s infinite;
+            animation: scanning 1.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
         }
-
+        
+        /* Add scanner corner accents */
+        .scan-overlay::before,
+        .scan-overlay::after,
+        .scan-overlay > span::before,
+        .scan-overlay > span::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-color: rgba(79, 70, 229, 1);
+            border-style: solid;
+        }
+        
+        .scan-overlay::before {
+            top: -3px;
+            left: -3px;
+            border-width: 3px 0 0 3px;
+            border-radius: 10px 0 0 0;
+        }
+        
+        .scan-overlay::after {
+            top: -3px;
+            right: -3px;
+            border-width: 3px 3px 0 0;
+            border-radius: 0 10px 0 0;
+        }
+        
+        .scan-overlay > span::before {
+            bottom: -3px;
+            left: -3px;
+            border-width: 0 0 3px 3px;
+            border-radius: 0 0 0 10px;
+        }
+        
+        .scan-overlay > span::after {
+            bottom: -3px;
+            right: -3px;
+            border-width: 0 3px 3px 0;
+            border-radius: 0 0 10px 0;
+        }
+        
         .scan-result {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 15px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
             opacity: 0;
-            transform: scale(0.9);
             transition: all 0.3s ease;
+            min-width: 250px;
             pointer-events: none;
         }
         
         .scan-result.show {
             opacity: 1;
-            transform: scale(1);
+            transform: translate(-50%, -50%) scale(1);
         }
         
         .scan-result i {
-            font-size: 48px;
-            color: #28a745;
+            font-size: 36px;
             margin-bottom: 10px;
         }
         
-        .scan-result.error i {
-            color: #dc3545;
+        .scan-result.success i {
+            color: var(--success);
         }
-
+        
+        .scan-result.error i {
+            color: var(--danger);
+        }
+        
         .camera-controls {
             display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-
-        .camera-btn {
-            flex: 1;
+            justify-content: space-evenly;
             padding: 15px;
+            background-color: #1a1a1a;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .camera-btn {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            color: white;
             border: none;
-            border-radius: 12px;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
             font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .camera-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .camera-btn:active {
+            transform: translateY(0);
+        }
+        
+        .camera-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .manual-input {
+            padding: 15px;
+            background-color: var(--light-bg);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .manual-input h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
             gap: 8px;
         }
-
-        .scan-btn {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-        }
-
-        .scan-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
-        }
-
-        .flash-btn {
-            background: linear-gradient(135deg, #ffc107, #e0a800);
-            color: white;
-        }
-
-        .flash-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
-        }
-
-        .manual-input {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .manual-input h3 {
-            margin-bottom: 15px;
-            color: #2c3e50;
-            text-align: center;
-        }
-
+        
         .barcode-input {
             display: flex;
             gap: 10px;
         }
-
+        
         .barcode-input input {
             flex: 1;
-            padding: 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
             font-size: 16px;
         }
-
-        .barcode-input input:focus {
-            outline: none;
-            border-color: #007bff;
-        }
-
+        
         .add-btn {
-            padding: 15px 20px;
-            background: linear-gradient(135deg, #28a745, #1e7e34);
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
             color: white;
             border: none;
-            border-radius: 12px;
-            font-weight: 600;
+            width: 44px;
+            height: 44px;
+            border-radius: 4px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
         }
-
+        
+        .add-btn:active {
+            transform: scale(0.95);
+        }
+        
         .scanned-items {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: var(--light-bg);
+            border-top: 1px solid var(--border-color);
+            max-height: 200px;
         }
-
+        
         .scanned-items h3 {
-            margin-bottom: 15px;
-            color: #2c3e50;
-            text-align: center;
+            margin: 0 0 10px;
+            font-size: 16px;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-
+        
         .scanned-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 12px;
+            padding: 10px 15px;
+            background-color: white;
+            border-radius: 8px;
             margin-bottom: 10px;
-            border-left: 4px solid #007bff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-
+        
         .item-info h4 {
-            color: #2c3e50;
-            margin-bottom: 5px;
+            margin: 0 0 5px;
+            color: var(--primary-dark);
         }
-
+        
         .item-info p {
+            margin: 0;
+            font-size: 12px;
             color: #6c757d;
-            font-size: 14px;
         }
 
         .item-price {
@@ -248,264 +498,192 @@
             position: fixed;
             top: 20px;
             left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-
-        .notification.show {
-            opacity: 1;
-        }
-
-        .notification.success {
-            border-left: 4px solid #28a745;
-        }
-
-        .notification.error {
-            border-left: 4px solid #dc3545;
-        }
-
-        .no-camera {
-            text-align: center;
-            padding: 50px 20px;
-            color: #6c757d;
-        }
-
-        .no-camera i {
-            font-size: 48px;
-            margin-bottom: 20px;
-        }        .room-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            text-align: center;
+            transform: translateX(-50%) translateY(-100px);
+            background-color: rgba(0, 0, 0, 0.8);
             color: white;
-        }
-
-        .room-code {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        
-        .connection-status {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.2);
             padding: 10px 20px;
             border-radius: 25px;
-            margin-top: 10px;
-            max-width: 220px;
-            margin: 10px auto 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.3s ease;
+            z-index: 1000;
         }
         
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #ff6b6b;
-            animation: pulse 2s infinite;
-        }
-
-        .status-dot.connected {
-            background: #51cf66;
-            animation: pulse 2s infinite;
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
         }
         
-        .status-dot.connecting {
-            background: #ffc107;
-            animation: pulse 1s infinite;
+        .notification.success {
+            background-color: rgba(16, 185, 129, 0.9);
         }
         
-        .status-dot.sending {
-            background: #339af0;
-            animation: pulse 0.5s infinite;
+        .notification.error {
+            background-color: rgba(239, 68, 68, 0.9);
         }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+        
+        .notification.info {
+            background-color: rgba(59, 130, 246, 0.9);
         }
-
+        
+        .notification.warning {
+            background-color: rgba(245, 158, 11, 0.9);
+        }
+        
         .desktop-scanner-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.8);
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 2000;
+            z-index: 1000;
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-
+        
         .desktop-scanner-overlay.show {
             opacity: 1;
         }
-
+        
         .desktop-scanner-dialog {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            position: relative;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
         }
-
+        
+        .desktop-scanner-overlay.show .desktop-scanner-dialog {
+            transform: scale(1);
+        }
+        
         .desktop-scanner-dialog h3 {
-            margin-bottom: 20px;
-            color: #2c3e50;
-            text-align: center;
-        }
-
-        .connection-methods {
+            margin: 0 0 15px;
+            color: var(--primary-dark);
             display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .connection-method {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
+            align-items: center;
             gap: 10px;
         }
-
+        
+        .connection-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .connection-method {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
         .connection-method h4 {
-            margin: 0;
-            font-size: 18px;
-            color: #007bff;
-        }
-
-        .qr-code-container {
+            margin: 0 0 10px;
+            color: var(--primary-color);
             display: flex;
-            justify-content: center;
             align-items: center;
-            height: 200px;
-            background: #ffffff;
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
+            gap: 8px;
         }
-
+        
         .qr-placeholder {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100%;
-            color: #6c757d;
+            justify-content: center;
+            height: 200px;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-top: 10px;
         }
-
+        
+        .qr-placeholder i {
+            font-size: 24px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
         .mobile-url {
             display: flex;
-            gap: 10px;
+            margin-top: 10px;
         }
-
+        
         .mobile-url input {
             flex: 1;
             padding: 10px;
-            border: 2px solid #007bff;
-            border-radius: 12px;
-            font-size: 16px;
-            color: #333;
-        }
-
-        .mobile-url button {
-            padding: 10px 15px;
-            background: linear-gradient(135deg, #28a745, #1e7e34);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .mobile-url button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
-        }
-
-        .room-code-display {
-            background: #007bff;
-            color: white;
-            padding: 10px;
-            border-radius: 12px;
-            text-align: center;
-            font-size: 18px;
-        }        .connection-status-info {
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 4px 0 0 4px;
             font-size: 14px;
-            color: #333;
-            margin-bottom: 15px;
         }
-
-        .close-dialog-btn {
-            padding: 10px 15px;
-            background: #dc3545;
+        
+        .mobile-url button {
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 12px;
+            padding: 0 15px;
+            border-radius: 0 4px 4px 0;
             cursor: pointer;
-            transition: all 0.3s ease;
         }
-
-        .close-dialog-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        
+        .room-code-display {
+            margin-top: 10px;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
         }
-
+        
+        .connection-status-info {
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+        
         .dialog-buttons {
             display: flex;
-            gap: 10px;
-            justify-content: center;
+            justify-content: space-between;
+            margin-top: 20px;
         }
-
+        
         .primary-btn {
-            padding: 10px 15px;
-            background: linear-gradient(135deg, #007bff, #0056b3);
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 12px;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
-            flex: 1;
         }
-
-        .primary-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        
+        .close-dialog-btn {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
         }
-
+        
         .alert-success {
-            background-color: rgba(40, 167, 69, 0.2);
-            border-left: 4px solid #28a745;
-            padding: 10px 15px;
-            border-radius: 8px;
             display: flex;
             align-items: center;
             gap: 10px;
+            color: var(--success);
         }
 
         .alert-success i {
@@ -517,46 +695,50 @@
     <script src="js/scanner-barcode.js"></script>
     <script src="js/mobile-scanner.js"></script>
 </head>
-<body>    <div class="scanner-container">
-        <div class="room-info" id="roomInfo">
-            <h1><i class="fas fa-mobile-alt"></i> Smart POS Mobile Scanner</h1>
-            <div class="room-code" id="roomCode">Room: ----</div>
-            <p>Connected to POS Terminal</p>
-            <div class="connection-status">
+<body>
+    <div class="scanner-container">
+        <div class="mobile-scanner-header" id="mobileHeader">
+            <div class="connection-info">
                 <div class="status-dot" id="statusDot"></div>
                 <span id="connectionStatus">Connecting...</span>
             </div>
+            <div class="room-code" id="roomCode">Room: ----</div>
         </div>
-
+        
         <div class="camera-section">
             <div class="camera-container">
-                <video id="mobileVideo" autoplay playsinline style="display: none;"></video>                <div class="no-camera" id="noCamera">
+                <video id="mobileVideo" autoplay playsinline style="display: none;"></video>
+                <div class="no-camera" id="noCamera">
                     <i class="fas fa-camera-slash"></i>
                     <h3>Camera Access Required</h3>
                     <p>Please allow camera access to scan barcodes</p>
-                    <button class="camera-btn scan-btn" id="enableCameraBtn" style="margin-top: 20px;">
+                    <button class="camera-btn scan-btn" id="enableCameraBtn">
                         <i class="fas fa-camera"></i> Enable Camera
                     </button>
                 </div>
                 <div class="scan-overlay" style="display: none;">
+                    <span></span>
                     <div class="scan-line"></div>
                 </div>
             </div>
-              <div class="camera-controls">
-                <button class="camera-btn scan-btn" id="scanButton" disabled>
-                    <i class="fas fa-qrcode"></i> Scan Barcode
-                </button>
-                <button class="camera-btn flash-btn" id="flashButton" disabled>
-                    <i class="fas fa-lightbulb"></i> Flash
-                </button>
-            </div>
+        </div>
+        
+        <div class="floating-controls">
+            <button class="control-btn back-btn" id="backButton">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <button class="control-btn scan-btn" id="scanButton" disabled>
+                <i class="fas fa-qrcode"></i>
+            </button>
+            <button class="control-btn flash-btn" id="flashButton" disabled>
+                <i class="fas fa-lightbulb"></i>
+            </button>
         </div>
 
         <div class="manual-input">
             <h3><i class="fas fa-keyboard"></i> Manual Entry</h3>            <div class="barcode-input">
                 <input type="text" id="manualBarcode" placeholder="Enter barcode number" maxlength="20">
                 <button class="add-btn" id="addBarcodeBtn">
-                    <i class="fas fa-plus"></i> Add
                 </button>
             </div>
         </div>
@@ -565,7 +747,6 @@
             <h3><i class="fas fa-list"></i> Scanned Items</h3>
             <div id="scannedItemsList">
                 <div style="text-align: center; color: #6c757d; padding: 20px;">
-                    No items scanned yet
                 </div>
             </div>
         </div>
@@ -593,11 +774,37 @@
                 this.extractRoomCode();
                 this.updateConnectionStatus();
                 this.requestCamera();
+                this.setupEventListeners();
+            }
+            
+            setupEventListeners() {
+                // Additional event listeners for new UI elements
+                const backButton = document.getElementById('backButton');
+                if (backButton) {
+                    backButton.addEventListener('click', () => {
+                        // First try to use the referrer if it exists
+                        if (document.referrer && !document.referrer.includes('mobile-scanner.html')) {
+                            window.location.href = document.referrer;
+                        } else {
+                            // If no referrer, check if we have a returnUrl param
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const returnUrl = urlParams.get('returnUrl');
+                            
+                            if (returnUrl) {
+                                window.location.href = decodeURIComponent(returnUrl);
+                            } else {
+                                // Default to going back in history
+                                window.history.back();
+                            }
+                        }
+                    });
+                }
             }
 
             extractRoomCode() {
                 const urlParams = new URLSearchParams(window.location.search);
                 this.roomCode = urlParams.get('room') || 'MOBILE';
+                this.sessionId = urlParams.get('sessionId');
                 document.getElementById('roomCode').textContent = `Room: ${this.roomCode}`;
             }
             
@@ -621,9 +828,15 @@
                 }, 1200);
                 
                 setTimeout(() => {
-                    // Extract token if available
+                    // Extract token and session ID if available
                     const urlParams = new URLSearchParams(window.location.search);
                     const token = urlParams.get('token');
+                    
+                    // Set the connection flag in localStorage for the desktop to detect
+                    if (this.sessionId && this.roomCode) {
+                        localStorage.setItem('mobileConnected_' + this.roomCode, this.sessionId);
+                        this.showNotification('Connection established with desktop', 'success');
+                    }
                     
                     // Connect to room using the connection module if available
                     if (typeof mobileScannerConnection !== 'undefined') {
@@ -821,13 +1034,6 @@
                 this.barcodeScanner.startScanning((barcode) => {
                     // Handle successful barcode detection
                     console.log('Barcode detected:', barcode);
-                    
-                    // Play success sound if supported
-                    if ('Audio' in window) {
-                        const beepSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...');
-                        beepSound.volume = 0.3;
-                        beepSound.play().catch(e => console.log('Audio play failed:', e));
-                    }
                     
                     // Vibrate device if supported
                     if ('vibrate' in navigator) {
@@ -1326,6 +1532,9 @@
                 mobileScanner.toggleFlash();
             });
             
+            // Back button is handled in the MobileScanner.setupEventListeners() method
+            });
+            
             document.getElementById('addBarcodeBtn').addEventListener('click', () => {
                 mobileScanner.addManualBarcode();
             });
@@ -1354,7 +1563,8 @@
                     }
                 }
             });
-        });        // Copy mobile URL to clipboard
+        
+        // Copy mobile URL to clipboard
         function copyMobileUrl() {
             const input = document.getElementById('mobileUrlInput');
             if (input) {

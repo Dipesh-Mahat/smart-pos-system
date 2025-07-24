@@ -434,3 +434,6 @@ class MobileScannerConnection {
             // Update room activity
             room.lastActivity = Date.now();
         }}}
+
+// Create global instance of the MobileScannerConnection
+const mobileScannerConnection = new MobileScannerConnection();

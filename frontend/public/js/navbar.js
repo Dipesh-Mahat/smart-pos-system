@@ -1299,7 +1299,8 @@ class SmartPOSNavbar {
         const baseUrl = window.location.origin;
         // Get the correct path by removing the current path and adding mobile-scanner.html
         // This ensures it works regardless of which page we're currently on
-        const mobileUrl = `${baseUrl}/mobile-scanner.html?room=${encodeURIComponent(roomCode)}&mode=${scanType}&token=${encodeURIComponent(token)}`;
+        const returnUrl = encodeURIComponent(window.location.href);
+        const mobileUrl = `${baseUrl}/frontend/mobile-scanner.html?room=${encodeURIComponent(roomCode)}&mode=${scanType}&token=${encodeURIComponent(token)}&returnUrl=${returnUrl}`;
         
         // Check if user is on mobile
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -1308,17 +1309,497 @@ class SmartPOSNavbar {
             // On mobile, redirect to scanner
             window.location.href = mobileUrl;
         } else {
-            // On desktop, open in new tab and show connection instructions
-            window.open(mobileUrl, '_blank');
-            this.showConnectionInstructions(roomCode, mobileUrl, scanType);
+            // On desktop, show QR code for connecting mobile
+            this.showDesktopScannerDialog(roomCode, mobileUrl, scanType, token);
         }
     }
 
-    showConnectionInstructions(roomCode, mobileUrl, scanType) {
-        // Show a notification about the mobile scanner
-        this.showNotification(`Mobile scanner opened. Room code: ${roomCode}`, 'info');
+    showDesktopScannerDialog(roomCode, mobileUrl, scanType, token) {
+        // Create the modal overlay for QR code scanning
+        const overlay = document.createElement('div');
+        overlay.className = 'qrcode-scanner-overlay';
+        overlay.id = 'qrcodeScannerOverlay';
         
-        // You could also show a more detailed connection dialog here
+        // Generate dialog content
+        const dialog = document.createElement('div');
+        dialog.className = 'qrcode-scanner-dialog';
+        dialog.innerHTML = `
+            <div class="qrcode-header">
+                <h3><i class="fas fa-qrcode"></i> Connect Mobile Scanner</h3>
+                <button class="close-btn" id="closeQrDialog"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="qrcode-content">
+                <p>Scan this QR code with your mobile device to connect the scanner:</p>
+                <div class="qrcode-container" id="qrCodeContainer">
+                    <div class="qr-loader"><i class="fas fa-spinner fa-spin"></i></div>
+                </div>
+                <div class="qrcode-info">
+                    <div class="manual-url">
+                        <div class="url-input-container">
+                            <input type="text" readonly value="${mobileUrl}" id="qrMobileUrl">
+                            <button class="copy-btn" id="copyQrUrl"><i class="fas fa-copy"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="connection-status" id="scannerConnectionStatus">
+                    <i class="fas fa-circle-notch fa-spin"></i>
+                    <span>Waiting for mobile device connection...</span>
+                </div>
+            </div>
+        `;
+        
+        // Append dialog to overlay
+        overlay.appendChild(dialog);
+        
+        // Add overlay to body
+        document.body.appendChild(overlay);
+        
+        // Add styles
+        this.addQrCodeStyles();
+        
+        // Show with animation
+        setTimeout(() => {
+            overlay.classList.add('show');
+        }, 10);
+        
+        // Add event listeners
+        document.getElementById('closeQrDialog').addEventListener('click', () => {
+            this.closeQrCodeDialog();
+        });
+        
+        // Close when clicking outside the dialog
+        overlay.addEventListener('click', (event) => {
+            if (event.target === overlay) {
+                this.closeQrCodeDialog();
+            }
+        });
+        
+        // Close with ESC key
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                this.closeQrCodeDialog();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+        
+        document.getElementById('copyQrUrl').addEventListener('click', () => {
+            const input = document.getElementById('qrMobileUrl');
+            input.select();
+            document.execCommand('copy');
+            this.showNotification('URL copied to clipboard', 'success');
+        });
+        
+        // Generate QR code
+        this.generateQrCode(mobileUrl);
+        
+        // Start listening for connections
+        this.setupConnectionListener(roomCode);
+    }
+    
+    addQrCodeStyles() {
+        // Add styles if they don't already exist
+        if (!document.getElementById('qrCodeDialogStyles')) {
+            const style = document.createElement('style');
+            style.id = 'qrCodeDialogStyles';
+            style.innerHTML = `
+                .qrcode-scanner-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(5px);
+                    -webkit-backdrop-filter: blur(5px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 9999;
+                    opacity: 0;
+                    transition: all 0.3s ease;
+                }
+                
+                .qrcode-scanner-overlay.show {
+                    opacity: 1;
+                }
+                
+                .qrcode-scanner-dialog {
+                    background: white;
+                    border-radius: 16px;
+                    width: 95%;
+                    max-width: 450px;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                    overflow: hidden;
+                    transform: scale(0.95);
+                    transition: transform 0.3s ease;
+                }
+                
+                .qrcode-scanner-overlay.show .qrcode-scanner-dialog {
+                    transform: scale(1);
+                }
+                
+                .qrcode-header {
+                    padding: 15px 20px;
+                    background: #4f46e5;
+                    color: white;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                
+                .qrcode-header h3 {
+                    margin: 0;
+                    font-size: 18px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                
+                .close-btn {
+                    background: none;
+                    border: none;
+                    color: white;
+                    font-size: 18px;
+                    cursor: pointer;
+                    padding: 5px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .qrcode-content {
+                    padding: 20px;
+                }
+                
+                .qrcode-container {
+                    background: #f8fafc;
+                    border-radius: 12px;
+                    padding: 20px;
+                    margin: 15px 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 220px;
+                    border: 2px dashed #e5e7eb;
+                    transition: all 0.2s ease;
+                }
+                
+                .qrcode-container:hover {
+                    border-color: #4f46e5;
+                    box-shadow: 0 0 10px rgba(79, 70, 229, 0.1);
+                }
+                
+                .qr-loader {
+                    font-size: 24px;
+                    color: #4f46e5;
+                    animation: spin 1s linear infinite;
+                }
+                
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+                
+                .qrcode-info {
+                    margin: 20px 0;
+                }
+                
+                .room-code {
+                    margin-bottom: 15px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                
+                .code {
+                    background: #f8fafc;
+                    padding: 5px 10px;
+                    border-radius: 5px;
+                    font-weight: bold;
+                    letter-spacing: 2px;
+                    border: 1px solid #e2e8f0;
+                }
+                
+                .manual-url {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 5px;
+                }
+                
+                .url-input-container {
+                    display: flex;
+                }
+                
+                .url-input-container input {
+                    flex: 1;
+                    padding: 10px;
+                    border: 1px solid #e2e8f0;
+                    border-right: none;
+                    border-radius: 5px 0 0 5px;
+                    font-size: 14px;
+                }
+                
+                .copy-btn {
+                    background: #4f46e5;
+                    color: white;
+                    border: none;
+                    padding: 0 15px;
+                    border-radius: 0 5px 5px 0;
+                    cursor: pointer;
+                }
+                
+                .connection-status {
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 5px;
+                    padding: 15px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    color: #64748b;
+                    margin-top: 15px;
+                }
+                
+                .connection-status.connected {
+                    background: #ecfdf5;
+                    border-color: #10b981;
+                    color: #10b981;
+                }
+                
+                .connection-status i {
+                    font-size: 18px;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+    
+    closeQrCodeDialog() {
+        const overlay = document.getElementById('qrcodeScannerOverlay');
+        if (overlay) {
+            // Add closing animation
+            overlay.classList.remove('show');
+            
+            // Clean up event listeners to prevent memory leaks
+            const closeButton = overlay.querySelector('#closeQrDialog');
+            if (closeButton) {
+                closeButton.removeEventListener('click', this.closeQrCodeDialog);
+            }
+            
+            const copyButton = overlay.querySelector('#copyQrUrl');
+            if (copyButton) {
+                copyButton.removeEventListener('click', () => {});
+            }
+            
+            // Remove the overlay from DOM after animation completes
+            setTimeout(() => {
+                overlay.remove();
+                
+                // If there's a connection checker interval, clear it
+                if (this.connectionChecker) {
+                    clearInterval(this.connectionChecker);
+                    this.connectionChecker = null;
+                }
+            }, 300);
+        }
+    }
+    
+    generateQrCode(url) {
+        // Use inline QR code generation for faster loading
+        // This avoids loading external libraries and is much faster
+        this.renderQrCode(url);
+        
+        // Pre-load the QR code library in the background for future use
+        // but don't wait for it as we're using the direct image fallback
+        if (typeof QRCode === 'undefined' && !window._qrCodeLoading) {
+            window._qrCodeLoading = true;
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js';
+            document.head.appendChild(script);
+        }
+    }
+    
+    renderQrCode(url) {
+        const container = document.getElementById('qrCodeContainer');
+        if (container) {
+            container.innerHTML = '';
+            
+            // Generate QR code using direct image API - much faster than loading a library
+            const img = document.createElement('img');
+            // Using Google Charts API for fast QR code generation
+            img.src = 'https://chart.googleapis.com/chart?cht=qr&chl=' + 
+                      encodeURIComponent(url) + 
+                      '&chs=200x200&chld=H|1&chco=4F46E5';
+            img.alt = 'Scanner URL QR Code';
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.margin = '0 auto';
+            img.style.display = 'block';
+            
+            // Show the QR code immediately
+            container.appendChild(img);
+            
+            // Try to use the QRCode library if it's already loaded
+            if (typeof QRCode !== 'undefined') {
+                try {
+                    // Clear container and use the library for better quality
+                    container.innerHTML = '';
+                    new QRCode(container, {
+                        text: url,
+                        width: 200,
+                        height: 200,
+                        colorDark: "#4f46e5",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                } catch (e) {
+                    console.log('Using fallback QR code as library failed:', e);
+                    container.appendChild(img); // Reattach the image if library fails
+                }
+            }
+        }
+    }
+    
+    setupConnectionListener(roomCode) {
+        // Clear any existing checkers first
+        if (this.connectionChecker) {
+            clearInterval(this.connectionChecker);
+        }
+        
+        // Clear any existing connection flags
+        localStorage.removeItem('mobileConnected_' + roomCode);
+        
+        // Set up real connection monitoring
+        const connectionCheckInterval = 2000; // Check every 2 seconds
+        let connectionAttempts = 0;
+        const maxAttempts = 30; // 1 minute total (30 * 2000ms)
+        
+        // Create a unique identifier for this connection session
+        const sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+        
+        // Store the session ID to verify connection
+        localStorage.setItem('scannerSessionId_' + roomCode, sessionId);
+        
+        // Update QR code with session ID
+        const qrUrl = document.getElementById('qrMobileUrl');
+        if (qrUrl && qrUrl.value) {
+            try {
+                const url = new URL(qrUrl.value);
+                url.searchParams.set('sessionId', sessionId);
+                qrUrl.value = url.toString();
+                
+                // Also update the QR code if it exists
+                const qrCodeElement = document.getElementById('qrcode');
+                if (qrCodeElement && typeof QRCode !== 'undefined') {
+                    qrCodeElement.innerHTML = '';  // Clear existing QR code
+                    new QRCode(qrCodeElement, {
+                        text: url.toString(),
+                        width: 200,
+                        height: 200,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                }
+            } catch (e) {
+                console.error('Error updating QR URL:', e);
+            }
+        }
+        
+        // Update status to show waiting for connection
+        const statusElement = document.getElementById('scannerConnectionStatus');
+        if (statusElement) {
+            statusElement.className = 'connection-status connecting';
+            statusElement.innerHTML = '<i class="fas fa-sync fa-spin"></i><span>Waiting for mobile device to connect...</span>';
+        }
+        
+        // Check for real connections
+        const connectionChecker = setInterval(() => {
+            connectionAttempts++;
+            
+            // Check if a mobile device has connected
+            const mobileConnected = this.checkMobileConnection(roomCode, sessionId);
+            
+            if (mobileConnected) {
+                // We have a real connection!
+                clearInterval(connectionChecker);
+                
+                const statusElement = document.getElementById('scannerConnectionStatus');
+                if (statusElement) {
+                    statusElement.className = 'connection-status connected';
+                    statusElement.innerHTML = '<i class="fas fa-check-circle"></i><span>Mobile device connected successfully!</span>';
+                }
+                
+                this.showNotification('Mobile scanner connected', 'success');
+                
+                // Enable any scan buttons or controls now that a device is connected
+                const scanButton = document.getElementById('startScanButton');
+                if (scanButton) {
+                    scanButton.disabled = false;
+                }
+            } else if (connectionAttempts >= maxAttempts) {
+                // Stop checking after max attempts
+                clearInterval(connectionChecker);
+                
+                const statusElement = document.getElementById('scannerConnectionStatus');
+                if (statusElement) {
+                    statusElement.className = 'connection-status failed';
+                    statusElement.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Connection timeout. Please try again.</span>';
+                }
+                
+                this.showNotification('Connection timeout. Please try scanning the QR code again.', 'error');
+            }
+        }, connectionCheckInterval);
+        
+        // Store the interval ID so we can clear it if the dialog is closed
+        this.connectionChecker = connectionChecker;
+    }
+    
+    checkMobileConnection(roomCode, sessionId) {
+        // Check if a real connection has been established
+        try {
+            // Check if the mobile device has set a flag in localStorage with our session ID
+            const mobileFlag = localStorage.getItem('mobileConnected_' + roomCode);
+            
+            // Log for debugging
+            console.log(`Checking mobile connection for room ${roomCode}:`, {
+                expectedSessionId: sessionId,
+                receivedFlag: mobileFlag,
+                matches: mobileFlag === sessionId
+            });
+            
+            // Primary connection method - check if the mobile device has acknowledged our session
+            if (mobileFlag && mobileFlag === sessionId) {
+                console.log('Mobile device connected with matching session ID');
+                return true;
+            }
+            
+            // Secondary connection method - check for connection module if available
+            if (typeof mobileScannerConnection !== 'undefined') {
+                // Check if the connection module reports devices in this room
+                const roomInfo = mobileScannerConnection.getRoomInfo?.(roomCode);
+                if (roomInfo && roomInfo.deviceCount > 0) {
+                    console.log('Mobile device connected via connection module:', roomInfo);
+                    
+                    // If we got here, we detected a connection but didn't get a session match
+                    // Let's store the session ID to maintain state across page refreshes
+                    localStorage.setItem('mobileConnected_' + roomCode, sessionId);
+                    
+                    return true;
+                }
+            }
+            
+            // No connection detected
+            return false;
+        } catch (e) {
+            console.error('Error checking mobile connection:', e);
+            return false;
+        }
+    }
+    
+    showConnectionInstructions(roomCode, mobileUrl, scanType) {
+        // Legacy method kept for backwards compatibility
         console.log(`Scanner Type: ${scanType}, Room: ${roomCode}, URL: ${mobileUrl}`);
     }
 
