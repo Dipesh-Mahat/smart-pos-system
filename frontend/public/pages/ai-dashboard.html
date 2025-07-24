@@ -167,8 +167,24 @@
         }
 
         @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 80px 10px 15px 10px;
+            }
+            
+            .ai-container {
+                padding: 0 5px;
+            }
+            
             .header-title {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
+                text-align: center;
+            }
+            
+            .header-subtitle {
+                font-size: 1rem;
+                text-align: center;
+                margin-bottom: 20px;
             }
             
             .insights-grid {
@@ -178,6 +194,55 @@
             
             .insight-card {
                 padding: 16px;
+            }
+            
+            .card-title {
+                font-size: 1.1rem;
+            }
+            
+            .card-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+            
+            .confidence-badge {
+                padding: 3px 8px;
+                font-size: 0.7rem;
+                top: 12px;
+                right: 12px;
+            }
+            
+            .insights-list li {
+                padding: 10px 0;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 70px 8px 10px 8px;
+            }
+            
+            .header-title {
+                font-size: 1.4rem;
+            }
+            
+            .header-subtitle {
+                font-size: 0.95rem;
+            }
+            
+            .insight-card {
+                padding: 14px;
+            }
+            
+            .card-title {
+                font-size: 1rem;
+            }
+            
+            .insights-list li {
+                font-size: 0.85rem;
+                padding: 8px 0;
             }
         }
 
@@ -471,6 +536,18 @@
                 max-width: 300px;
                 font-size: 14px;
             `;
+            
+            // Mobile responsive adjustments
+            if (window.innerWidth <= 768) {
+                toast.style.cssText += `
+                    top: 70px;
+                    right: 10px;
+                    left: 10px;
+                    max-width: none;
+                    font-size: 13px;
+                    padding: 12px 16px;
+                `;
+            }
             
             toast.textContent = message;
             document.body.appendChild(toast);
