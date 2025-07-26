@@ -8,7 +8,9 @@ class SmartPOSMenu {
         this.isMenuOpen = false;
         this.isDesktop = window.innerWidth >= 1024;
         this.init();
-    }    init() {
+    }
+
+    init() {
         // Always ensure body can scroll on page load
         document.body.style.overflow = '';
         
@@ -54,11 +56,16 @@ class SmartPOSMenu {
         if (!menuContainer) {
             menuContainer = document.createElement('div');
             menuContainer.id = 'menuContainer';
-            document.body.insertBefore(menuContainer, document.body.firstChild);        }        // Create menu HTML structure
+            document.body.insertBefore(menuContainer, document.body.firstChild);
+        }
+
+        // Create menu HTML structure
         const menuHTML = 
             '<!-- Menu Overlay for Mobile -->' +
-            '<div class="menu-overlay" id="menuOverlay"></div>' +            '<!-- Side Menu -->' +
-            '<div class="side-menu" id="sideMenu">' +                '<div class="menu-items" id="menuItems">' +
+            '<div class="menu-overlay" id="menuOverlay"></div>' +
+            '<!-- Side Menu -->' +
+            '<div class="side-menu" id="sideMenu">' +
+                '<div class="menu-items" id="menuItems">' +
                     '<a href="dashboard.html" class="menu-item" data-page="dashboard">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-tachometer-alt"></i>' +
@@ -81,12 +88,14 @@ class SmartPOSMenu {
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-tag"></i>' +
                         '</div>' +
-                        '<div class="menu-text">Products</div>' +                    '</a>' +
+                        '<div class="menu-text">Products</div>' +
+                    '</a>' +
                     '<a href="suppliers.html" class="menu-item" data-page="suppliers">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-truck"></i>' +
                         '</div>' +
-                        '<div class="menu-text">Suppliers</div>' +'</a>' +
+                        '<div class="menu-text">Suppliers</div>' +
+                    '</a>' +
                     '<a href="transactions.html" class="menu-item" data-page="transactions">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-receipt"></i>' +
@@ -122,7 +131,10 @@ class SmartPOSMenu {
             '</div>';
         
         menuContainer.innerHTML = menuHTML;
-    }    attachEventListeners() {        const menuOverlay = document.getElementById('menuOverlay');
+    }
+
+    attachEventListeners() {
+        const menuOverlay = document.getElementById('menuOverlay');
 
         // Close menu when clicking overlay
         if (menuOverlay) {
@@ -138,7 +150,9 @@ class SmartPOSMenu {
 
         // Handle responsive behavior
         window.addEventListener('resize', () => this.handleResponsive());
-    }    toggleMenu() {
+    }
+
+    toggleMenu() {
         // Toggle open/close for all screen sizes with animation
         if (this.isMenuOpen) {
             this.closeMenu();
@@ -154,7 +168,9 @@ class SmartPOSMenu {
         } else {
             this.openMenu(true); // true = show animation
         }
-    }    openMenu(withAnimation = false) {
+    }
+
+    openMenu(withAnimation = false) {
         // Prevent multiple simultaneous calls
         if (this.isMenuOpen) {
             return;
@@ -198,7 +214,9 @@ class SmartPOSMenu {
         } else {
             this.isMenuOpen = false; // Reset state on failure
         }
-    }    closeMenu() {
+    }
+
+    closeMenu() {
         // Prevent multiple simultaneous calls
         if (!this.isMenuOpen) {
             return;
@@ -240,7 +258,9 @@ class SmartPOSMenu {
         } else {
             this.isMenuOpen = true; // Reset state on failure
         }
-    }restoreMenuState() {
+    }
+
+    restoreMenuState() {
         // Always ensure body can scroll initially
         document.body.style.overflow = '';
         
@@ -286,7 +306,9 @@ class SmartPOSMenu {
             // Notify navbar about state
             this.notifyNavbarStateChange();
         }
-    }    ensureMenuClosed() {
+    }
+
+    ensureMenuClosed() {
         const sideMenu = document.getElementById('sideMenu');
         const menuOverlay = document.getElementById('menuOverlay');
 
@@ -307,10 +329,14 @@ class SmartPOSMenu {
                 }
             }, 150); // Match the synchronized timing
         }
-    }saveMenuState() {
+    }
+
+    saveMenuState() {
         // Save current menu state for persistence across pages
         localStorage.setItem('menuState', this.isMenuOpen ? 'open' : 'closed');
-    }    notifyNavbarStateChange() {
+    }
+
+    notifyNavbarStateChange() {
         // Notify navbar about menu state change
         window.dispatchEvent(new CustomEvent('menuStateChanged', { 
             detail: { isOpen: this.isMenuOpen } 
@@ -342,7 +368,10 @@ class SmartPOSMenu {
         }
         
         // Default to dashboard if no specific page
-        return 'dashboard';    }    handleResponsive() {
+        return 'dashboard';
+    }
+
+    handleResponsive() {
         const wasDesktop = this.isDesktop;
         this.isDesktop = window.innerWidth >= 1024;
         
@@ -405,7 +434,9 @@ class SmartPOSMenu {
         this.adjustMainContentMargin();
         this.saveMenuState();
         this.notifyNavbarStateChange();
-    }    adjustMainContentMargin() {
+    }
+
+    adjustMainContentMargin() {
         const mainContent = document.querySelector('.main-content') || 
                           document.querySelector('main') || 
                           document.querySelector('.content') ||
@@ -430,18 +461,36 @@ class SmartPOSMenu {
             // Synchronize transition timing with menu animation
             mainContent.style.transition = `margin-left ${transitionDuration} ${transitionTiming}`;
         }
-    }logout() {
-        // Show confirmation dialog
-        if (confirm('Are you sure you want to logout?')) {
-            // Use auth service for logout if available
-            if (window.authService) {
-                window.authService.logout();
-            } else {
-                // Fallback to basic logout
+    }
+
+    async logout() {
+        // Show custom confirmation dialog
+        const confirmLogout = await customConfirm({
+            title: 'Logout Confirmation',
+            message: 'Are you sure you want to logout? You will need to sign in again to access your account.',
+            confirmText: 'Logout',
+            cancelText: 'Cancel',
+            type: 'warning'
+        });
+
+        if (confirmLogout) {
+            try {
+                // Use auth service for logout if available
+                if (window.authService && typeof window.authService.logout === 'function') {
+                    window.authService.logout();
+                } else {
+                    // Fallback to basic logout
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    
+                    // Redirect to landing page
+                    window.location.href = '../landing.html';
+                }
+            } catch (error) {
+                console.error('Error during logout:', error);
+                // Still proceed with logout even if there's an error
                 localStorage.clear();
                 sessionStorage.clear();
-                
-                // Redirect to landing page
                 window.location.href = '../landing.html';
             }
         }

@@ -15,6 +15,7 @@
     <script src="../js/scanner-unified.js"></script>
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
+    <script src="../js/custom-modals.js"></script>
     <script src="../js/demo-products.js"></script>    <!-- Preload menu styles to prevent flicker -->
     <style>
         /* Comprehensive preload styles to prevent menu flicker */
@@ -2324,11 +2325,11 @@
             
             const checkoutBtn = document.getElementById('checkoutBtn');
             if (checkoutBtn) {
-                checkoutBtn.addEventListener('click', function() {
+                checkoutBtn.addEventListener('click', async function() {
                     // Always use posSystem.cart if available, else fallback to window.cart
                     let currentCart = (posSystem && Array.isArray(posSystem.cart)) ? posSystem.cart : (window.cart || []);
                     if (!currentCart || currentCart.length === 0) {
-                        alert('Cart is empty!');
+                        await customAlert('Cart Empty', 'Please add items to your cart before checking out.', 'warning');
                         return;
                     }
                     showBillModal(currentCart);
@@ -2448,9 +2449,9 @@
                                 overlay.remove();
                                 showScanningFeedback('Product');
                             })
-                            .catch(error => {
+                            .catch(async error => {
                                 console.error('Failed to connect:', error);
-                                alert('Failed to connect to mobile scanner. Please try again.');
+                                await customAlert('Connection Failed', 'Failed to connect to mobile scanner. Please try again.', 'danger');
                             });
                     }
                 } else {
@@ -2574,33 +2575,43 @@
             });
             
             // Add event listeners for the custom action buttons
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', async function(e) {
                 if (e.target.closest('[data-action="clearPos"]') || e.target.closest('[data-action="clearPos"] *')) {
                     // Clear POS functionality
-                    if (confirm('Are you sure you want to clear all items?')) {
+                    const confirmClear = await customConfirm(
+                        'Clear Cart',
+                        'Are you sure you want to clear all items from the cart?',
+                        'warning'
+                    );
+                    if (confirmClear) {
                         cart = [];
                         posSystem.updateCartDisplay();
                     }
                 } else if (e.target.closest('[data-action="newSale"]') || e.target.closest('[data-action="newSale"] *')) {
                     // New sale functionality
                     if (cart.length > 0) {
-                        if (confirm('Start a new sale? Current items will be cleared.')) {
+                        const confirmNewSale = await customConfirm(
+                            'Start New Sale',
+                            'Start a new sale? Current items will be cleared.',
+                            'primary'
+                        );
+                        if (confirmNewSale) {
                             cart = [];
                             posSystem.updateCartDisplay();
                         }
                     } else {
-                        alert('New sale started');
+                        await customAlert('New Sale', 'New sale started', 'success');
                     }
                 }
             });
         });
         const checkoutBtn = document.getElementById('checkoutBtn');
 if (checkoutBtn) {
-    checkoutBtn.addEventListener('click', function() {
+    checkoutBtn.addEventListener('click', async function() {
         // Always use posSystem.cart if available, else fallback to window.cart
         let currentCart = (posSystem && Array.isArray(posSystem.cart)) ? posSystem.cart : (window.cart || []);
         if (!currentCart || currentCart.length === 0) {
-            alert('Cart is empty!');
+            await customAlert('Cart Empty', 'Please add items to your cart before checking out.', 'warning');
             return;
         }
         showBillModal(currentCart);
@@ -2627,9 +2638,9 @@ function showBillModal(cartArr) {
     billModal.style.display = 'flex';
 
     // Confirm and Cancel handlers
-    document.getElementById('confirmPaymentBtn').onclick = function() {
+    document.getElementById('confirmPaymentBtn').onclick = async function() {
         billModal.style.display = 'none';
-        alert('Payment processed successfully!');
+        await customAlert('Payment Successful', 'Payment processed successfully!', 'success');
         if (posSystem && Array.isArray(posSystem.cart)) posSystem.cart = [];
         if (window.cart) window.cart = [];
         posSystem.updateCartDisplay();

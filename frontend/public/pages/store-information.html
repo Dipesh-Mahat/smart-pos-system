@@ -706,8 +706,16 @@
             showToast('Store information updated successfully!', 'success');
         }
 
-        function resetStoreForm() {
-            if (confirm('Are you sure you want to reset all changes?')) {
+        async function resetStoreForm() {
+            const confirmReset = await customConfirm({
+                title: 'Reset Form',
+                message: 'Are you sure you want to reset all changes? This will restore all fields to their saved values.',
+                confirmText: 'Reset',
+                cancelText: 'Cancel',
+                type: 'warning'
+            });
+
+            if (confirmReset) {
                 loadStoreInformation();
                 showToast('Form reset to saved values', 'info');
             }
@@ -848,6 +856,7 @@
     <script src="../js/menu.js"></script>
     <!-- Professional Reusable Navbar Component -->
     <script src="../js/navbar.js"></script>
+    <script src="../js/custom-modals.js"></script>
     <script>
         // Initialize navbar with store information-specific options
         window.navbarManualInit = true; // Prevent auto-initialization

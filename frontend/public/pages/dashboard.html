@@ -1014,6 +1014,7 @@
     <!-- Navbar and Menu Scripts -->
     <script src="../js/navbar.js"></script>
     <script src="../js/menu.js"></script>
+    <script src="../js/custom-modals.js"></script>
     <script>
         // Initialize navbar with dashboard-specific options
         document.addEventListener('DOMContentLoaded', function() {
@@ -1032,12 +1033,16 @@
             window.smartPOSNavbar = navbar;
 
             // Handle custom navbar actions
-            window.addEventListener('navbarAction', (event) => {
+            window.addEventListener('navbarAction', async (event) => {
                 const { actionId } = event.detail;
                 switch(actionId) {
                     // Removed refresh case
                     case 'export-report':
-                        alert('Export report functionality will be implemented');
+                        await customAlert({
+                            title: 'Feature Coming Soon',
+                            message: 'Export report functionality will be implemented in the next update.',
+                            type: 'info'
+                        });
                         break;
                     case 'quick-sale':
                         window.location.href = 'pos.html';

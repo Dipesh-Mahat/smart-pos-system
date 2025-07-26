@@ -939,6 +939,39 @@ class SmartPOSNavbar {
         }
     }
 
+    // Logout function with custom confirmation
+    async logout() {
+        const confirmLogout = await customConfirm({
+            title: 'Logout Confirmation',
+            message: 'Are you sure you want to logout? You will need to sign in again to access your account.',
+            confirmText: 'Logout',
+            cancelText: 'Cancel',
+            type: 'warning'
+        });
+
+        if (confirmLogout) {
+            try {
+                // Use auth service for logout if available
+                if (window.authService && typeof window.authService.logout === 'function') {
+                    window.authService.logout();
+                } else {
+                    // Fallback to basic logout
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    
+                    // Redirect to landing page
+                    window.location.href = '../landing.html';
+                }
+            } catch (error) {
+                console.error('Error during logout:', error);
+                // Still proceed with logout even if there's an error
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '../landing.html';
+            }
+        }
+    }
+
     // Helper function to show/hide notification dot
     showNotificationDot(show = true) {
         const dot = document.getElementById('navbarNotificationDot');

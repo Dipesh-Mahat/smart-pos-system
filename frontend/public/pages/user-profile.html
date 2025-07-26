@@ -11,6 +11,7 @@
     <!-- Include Auth Service for token management -->
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
+    <script src="../js/custom-modals.js"></script>
     
     <!-- Check authentication on page load -->
     <script>
@@ -666,8 +667,16 @@
             }
         }
 
-        function saveProfile(event) {
+        async function saveProfile(event) {
             event.preventDefault();
+
+            const confirmSave = await customConfirm(
+                'Save Profile Changes',
+                'Are you sure you want to save these profile changes?',
+                'primary'
+            );
+
+            if (!confirmSave) return;
             
             const formData = {
                 name: document.getElementById('fullName').value,
@@ -678,17 +687,41 @@
                 role: document.getElementById('role').value
             };
 
-            // Save to localStorage
-            localStorage.setItem('userData', JSON.stringify(formData));
-            
-            // Update header display
-            updateHeaderDisplay(formData);
-            
-            showToast('Profile updated successfully!', 'success');
+            // Validate required fields
+            if (!formData.name.trim() || !formData.email.trim()) {
+                await customAlert('Validation Error', 'Name and email are required fields.', 'danger');
+                return;
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                await customAlert('Validation Error', 'Please enter a valid email address.', 'danger');
+                return;
+            }
+
+            try {
+                // Save to localStorage
+                localStorage.setItem('userData', JSON.stringify(formData));
+                
+                // Update header display
+                updateHeaderDisplay(formData);
+                
+                showToast('Profile updated successfully!', 'success');
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                await customAlert('Error', 'Failed to save profile. Please try again.', 'danger');
+            }
         }
 
-        function resetForm() {
-            if (confirm('Are you sure you want to reset all changes?')) {
+        async function resetForm() {
+            const confirmReset = await customConfirm(
+                'Reset Form',
+                'Are you sure you want to reset all changes? This will restore all fields to their saved values.',
+                'warning'
+            );
+
+            if (confirmReset) {
                 loadUserProfile();
                 showToast('Form reset to saved values', 'info');
             }

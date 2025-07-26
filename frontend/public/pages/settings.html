@@ -11,6 +11,7 @@
     <!-- Include Auth Service for token management -->
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
+    <script src="../js/custom-modals.js"></script>
     
     <!-- Check authentication on page load -->
     <script>
@@ -1136,8 +1137,16 @@
             showToast(message);
         }
 
-        function clearCache() {
-            if (confirm('Are you sure you want to clear the cache? This may improve performance but will require reloading some data.')) {
+        async function clearCache() {
+            const confirmed = await customConfirm({
+                title: 'Clear Cache',
+                message: 'Are you sure you want to clear the cache? This may improve performance but will require reloading some data.',
+                confirmText: 'Clear Cache',
+                cancelText: 'Cancel',
+                type: 'info'
+            });
+
+            if (confirmed) {
                 // Clear localStorage except for important settings
                 const importantKeys = ['notifications'];
                 const storage = {};
@@ -1162,8 +1171,16 @@
             }
         }
 
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
+        async function logout() {
+            const confirmed = await customConfirm({
+                title: 'Logout Confirmation',
+                message: 'Are you sure you want to logout? You will need to sign in again to access your account.',
+                confirmText: 'Logout',
+                cancelText: 'Cancel',
+                type: 'warning'
+            });
+
+            if (confirmed) {
                 localStorage.removeItem('userToken');
                 localStorage.removeItem('userData');
                 window.location.href = '../landing.html';
@@ -1773,10 +1790,18 @@
             navbar.addAction('reset-settings', 'Reset', 'fas fa-undo', 'btn-secondary');
             
             // Handle navbar action clicks
-            document.addEventListener('navbarAction', function(e) {
+            document.addEventListener('navbarAction', async function(e) {
                 switch(e.detail.actionId) {
                     case 'reset-settings':
-                        if (confirm('Reset all settings to default? This action cannot be undone.')) {
+                        const confirmed = await customConfirm({
+                            title: 'Reset Settings',
+                            message: 'Reset all settings to default? This action cannot be undone.',
+                            confirmText: 'Reset Settings',
+                            cancelText: 'Cancel',
+                            type: 'danger'
+                        });
+
+                        if (confirmed) {
                             console.log('Resetting settings...');
                             // Clear localStorage except for important settings
                             const importantKeys = ['userToken', 'userData'];

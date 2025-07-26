@@ -710,8 +710,16 @@ function getNotificationColor(type) {
 }
 
 // Logout functionality
-document.getElementById('logoutBtn')?.addEventListener('click', () => {
-    if (confirm('Are you sure you want to logout?')) {
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    const confirmLogout = await customConfirm({
+        title: 'Logout Confirmation',
+        message: 'Are you sure you want to logout? You will need to sign in again to access your account.',
+        confirmText: 'Logout',
+        cancelText: 'Cancel',
+        type: 'warning'
+    });
+
+    if (confirmLogout) {
         showNotification('Logging out...', 'info');
         setTimeout(() => {
             window.location.href = '../supplier-landing.html';

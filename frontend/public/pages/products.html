@@ -22,6 +22,7 @@
         }
     </script>
     <script src="../js/api-service.js"></script>
+    <script src="../js/custom-modals.js"></script>
     
     <!-- Check authentication on page load -->
     <script>
@@ -1023,10 +1024,16 @@
                 }
             }
 
-            deleteProduct(productId) {
+            async deleteProduct(productId) {
                 const product = this.products.find(p => p.id === productId);
                 if (product) {
-                    if (confirm(`Are you sure you want to delete "${product.name}"?`)) {
+                    const confirmDelete = await customConfirm(
+                        'Delete Product',
+                        `Are you sure you want to delete "${product.name}"? This action cannot be undone.`,
+                        'danger'
+                    );
+
+                    if (confirmDelete) {
                         this.products = this.products.filter(p => p.id !== productId);
                         this.applyFilters();
                         this.updateStats();

@@ -418,7 +418,7 @@
                 <button class="btn btn-secondary" onclick="exportSuppliers()">
                     <i class="fas fa-download"></i> Export
                 </button>
-                <button class="btn btn-secondary" onclick="alert('Import suppliers functionality will be implemented')">
+                <button class="btn btn-secondary" onclick="handleImportSuppliers()">
                     <i class="fas fa-upload"></i> Import
                 </button>
             </div>
@@ -734,8 +734,20 @@
             window.location.href = `supplier-products-shopowner.html?supplierId=${supplierId}`;
         }
 
-        function addSupplier() {
-            alert('Adding new suppliers is handled through the registration system. New suppliers can register on the platform and await admin approval.');
+        async function addSupplier() {
+            await customAlert({
+                title: 'Supplier Registration Info',
+                message: 'Adding new suppliers is handled through the registration system. New suppliers can register on the platform and await admin approval.',
+                type: 'info'
+            });
+        }
+
+        async function handleImportSuppliers() {
+            await customAlert({
+                title: 'Feature Coming Soon',
+                message: 'Import suppliers functionality will be implemented in the next update.',
+                type: 'info'
+            });
         }
 
         function createOrder(supplierId) {
@@ -801,6 +813,7 @@
     <!-- Navbar and Menu Scripts -->
     <script src="../js/navbar.js"></script>
     <script src="../js/menu.js"></script>
+    <script src="../js/custom-modals.js"></script>
     <script>
         // Initialize navbar with custom actions
         document.addEventListener('DOMContentLoaded', function() {
@@ -823,7 +836,11 @@
                         break;
                     case 'import-suppliers':
                         console.log('Importing suppliers...');
-                        alert('Import suppliers functionality will be implemented');
+                        customAlert({
+                            title: 'Feature Coming Soon',
+                            message: 'Import suppliers functionality will be implemented in the next update.',
+                            type: 'info'
+                        });
                         break;
                 }
             });
