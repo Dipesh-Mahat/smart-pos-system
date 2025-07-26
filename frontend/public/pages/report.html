@@ -282,6 +282,31 @@
             font-size: 12px;
             color: #6c757d;
         }
+
+        /* Skeleton Loading Animation */
+        .skeleton-text {
+            height: 16px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .skeleton-number {
+            height: 24px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+            width: 80px;
+        }
+        
+        @keyframes pulse {
+            0% { background-position: 0% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>
@@ -489,7 +514,7 @@
             loadingElements.forEach(elementId => {
                 const element = document.getElementById(elementId);
                 if (element) {
-                    element.textContent = 'Loading...';
+                    element.innerHTML = '<div class="skeleton-number"></div>';
                 }
             });
         }
@@ -502,10 +527,10 @@
             const productsSold = data ? (data.totalItemsSold || 0) : 0;
 
             // Always update the display with actual values or zeros
-            document.getElementById('totalRevenue').textContent = `NPR ${totalRevenue.toLocaleString()}`;
-            document.getElementById('totalSales').textContent = totalSales.toLocaleString();
-            document.getElementById('newCustomers').textContent = '0';
-            document.getElementById('productsSold').textContent = productsSold.toLocaleString();
+            document.getElementById('totalRevenue').innerHTML = `NPR ${totalRevenue.toLocaleString()}`;
+            document.getElementById('totalSales').innerHTML = totalSales.toLocaleString();
+            document.getElementById('newCustomers').innerHTML = '0';
+            document.getElementById('productsSold').innerHTML = productsSold.toLocaleString();
 
             // Update percentage changes if data is available
             updateChangeIndicators(data);
