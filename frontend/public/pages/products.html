@@ -489,6 +489,73 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Skeleton Loading Animation */
+        .skeleton-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .skeleton-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .skeleton-image {
+            height: 150px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .skeleton-title {
+            height: 20px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            width: 80%;
+        }
+
+        .skeleton-text {
+            height: 14px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-text.short {
+            width: 60%;
+        }
+
+        .skeleton-text.medium {
+            width: 75%;
+        }
+
+        .skeleton-price {
+            height: 18px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            width: 40%;
+            margin-top: 10px;
+        }
+        
+        @keyframes pulse {
+            0% { background-position: 0% 0; }
+            100% { background-position: -200% 0; }
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -735,9 +802,28 @@
             }
 
             showLoading() {
-                document.getElementById('loadingState').style.display = 'block';
-                document.getElementById('productsGrid').style.display = 'none';
+                // Hide other states
+                document.getElementById('loadingState').style.display = 'none';
                 document.getElementById('emptyState').style.display = 'none';
+                
+                // Show skeleton grid
+                const productsGrid = document.getElementById('productsGrid');
+                productsGrid.style.display = 'grid';
+                productsGrid.innerHTML = '';
+                
+                // Create skeleton cards
+                for (let i = 0; i < 8; i++) {
+                    const skeletonCard = document.createElement('div');
+                    skeletonCard.className = 'skeleton-card';
+                    skeletonCard.innerHTML = `
+                        <div class="skeleton-image"></div>
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-text short"></div>
+                        <div class="skeleton-text medium"></div>
+                        <div class="skeleton-price"></div>
+                    `;
+                    productsGrid.appendChild(skeletonCard);
+                }
             }
 
             hideLoading() {
