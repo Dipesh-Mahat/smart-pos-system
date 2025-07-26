@@ -851,6 +851,39 @@
                 margin: 10px auto;
             }
         }
+
+        /* Skeleton Loading Animation */
+        .skeleton-text {
+            height: 16px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .skeleton-title {
+            height: 20px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .skeleton-small {
+            height: 14px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        @keyframes pulse {
+            0% { background-position: 0% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>
@@ -927,39 +960,39 @@
                 </div>                <div class="profile-content">
                     <div class="profile-header-info">
                         <img src="../images/avatars/user-avatar.png" alt="Profile" class="profile-avatar" id="profileAvatar" onerror="this.src='../images/avatars/user-avatar.png'">
-                        <div class="profile-name" id="profileName">Loading...</div>
-                        <div class="profile-role" id="profileRole">Loading...</div>
+                        <div class="profile-name" id="profileName"><div class="skeleton-title" style="width: 150px;"></div></div>
+                        <div class="profile-role" id="profileRole"><div class="skeleton-text" style="width: 100px;"></div></div>
                     </div>
                     
                     <div class="profile-details">
                         <div class="profile-detail-item">
                             <i class="fas fa-envelope profile-detail-icon"></i>
                             <span class="profile-detail-label">Email:</span>
-                            <span class="profile-detail-value" id="profileEmail">Loading...</span>
+                            <span class="profile-detail-value" id="profileEmail"><div class="skeleton-text" style="width: 180px;"></div></span>
                         </div>
                         
                         <div class="profile-detail-item">
                             <i class="fas fa-phone profile-detail-icon"></i>
                             <span class="profile-detail-label">Phone:</span>
-                            <span class="profile-detail-value" id="profilePhone">Loading...</span>
+                            <span class="profile-detail-value" id="profilePhone"><div class="skeleton-text" style="width: 120px;"></div></span>
                         </div>
                         
                         <div class="profile-detail-item">
                             <i class="fas fa-store profile-detail-icon"></i>
                             <span class="profile-detail-label">Store:</span>
-                            <span class="profile-detail-value" id="profileStore">Loading...</span>
+                            <span class="profile-detail-value" id="profileStore"><div class="skeleton-text" style="width: 140px;"></div></span>
                         </div>
                         
                         <div class="profile-detail-item">
                             <i class="fas fa-calendar-alt profile-detail-icon"></i>
                             <span class="profile-detail-label">Joined:</span>
-                            <span class="profile-detail-value" id="profileJoined">Loading...</span>
+                            <span class="profile-detail-value" id="profileJoined"><div class="skeleton-text" style="width: 90px;"></div></span>
                         </div>
                         
                         <div class="profile-detail-item">
                             <i class="fas fa-clock profile-detail-icon"></i>
                             <span class="profile-detail-label">Last Login:</span>
-                            <span class="profile-detail-value" id="profileLastLogin">Loading...</span>
+                            <span class="profile-detail-value" id="profileLastLogin"><div class="skeleton-text" style="width: 80px;"></div></span>
                         </div>
                     </div>
                     
@@ -1176,9 +1209,7 @@
             };
 
             // Set loading state
-            Object.values(elements).forEach(el => {
-                if (el) el.textContent = 'Loading...';
-            });
+            // Skip setting loading state as skeleton is already in HTML
 
             // Create a promise that will resolve with the user data or reject after 5 seconds
             const getUserData = new Promise((resolve, reject) => {
@@ -1213,11 +1244,11 @@
                                         userRole === 'admin' ? 'Administrator' : 
                                         userRole === 'supplier' ? 'Supplier' : 
                                         userRole.charAt(0).toUpperCase() + userRole.slice(1);
-                    if (elements.role) elements.role.textContent = formattedRole;
+                    if (elements.role) elements.role.innerHTML = formattedRole;
 
                     // Update other fields
-                    if (elements.phone) elements.phone.textContent = user.phone || 'No Phone Number';
-                    if (elements.store) elements.store.textContent = user.shopName || 'No Store Name';
+                    if (elements.phone) elements.phone.innerHTML = user.phone || 'No Phone Number';
+                    if (elements.store) elements.store.innerHTML = user.shopName || 'No Store Name';
 
                     // Set join date
                     const joinDate = user.createdAt ? new Date(user.createdAt) : new Date();
@@ -1226,7 +1257,7 @@
                         month: 'short',
                         day: 'numeric'
                     });
-                    if (elements.joined) elements.joined.textContent = formattedJoinDate;
+                    if (elements.joined) elements.joined.innerHTML = formattedJoinDate;
 
                     // Set last login
                     const now = new Date();
@@ -1239,20 +1270,20 @@
                         minute: '2-digit',
                         hour12: true
                     });
-                    if (elements.lastLogin) elements.lastLogin.textContent = lastLoginFormatted;
+                    if (elements.lastLogin) elements.lastLogin.innerHTML = lastLoginFormatted;
 
                     console.log('Profile data loaded successfully');
                 })
                 .catch(error => {
                     console.warn('Failed to load profile data:', error);
                     // Set default values if data loading fails
-                    if (elements.name) elements.name.textContent = 'No Username';
-                    if (elements.email) elements.email.textContent = 'No Email';
-                    if (elements.role) elements.role.textContent = 'Shop Owner';
-                    if (elements.phone) elements.phone.textContent = 'No Phone Number';
-                    if (elements.store) elements.store.textContent = 'No Store Name';
-                    if (elements.joined) elements.joined.textContent = 'Not Available';
-                    if (elements.lastLogin) elements.lastLogin.textContent = 'Not Available';
+                    if (elements.name) elements.name.innerHTML = 'No Username';
+                    if (elements.email) elements.email.innerHTML = 'No Email';
+                    if (elements.role) elements.role.innerHTML = 'Shop Owner';
+                    if (elements.phone) elements.phone.innerHTML = 'No Phone Number';
+                    if (elements.store) elements.store.innerHTML = 'No Store Name';
+                    if (elements.joined) elements.joined.innerHTML = 'Not Available';
+                    if (elements.lastLogin) elements.lastLogin.innerHTML = 'Not Available';
                 });
         }
 
