@@ -224,38 +224,6 @@
             font-size: 12px;
         }
 
-        .profile-stats {
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 12px 16px;
-            background: rgba(102, 126, 234, 0.05);
-            border-radius: 10px;
-            border: 1px solid rgba(102, 126, 234, 0.1);
-            min-width: 90px;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 2px;
-            display: block;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            color: #6c757d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-        }
-
         .profile-sections {
             display: block;
             margin: 0 auto;
@@ -290,20 +258,6 @@
             .profile-meta {
                 justify-content: center;
                 gap: 15px;
-            }
-
-            .profile-stats {
-                justify-content: center;
-                gap: 15px;
-            }
-
-            .stat-item {
-                min-width: 80px;
-                padding: 10px 12px;
-            }
-
-            .stat-value {
-                font-size: 20px;
             }
         }
 
@@ -583,25 +537,6 @@
                             <span>Last active <span id="profileLastLogin">Loading...</span></span>
                         </div>
                     </div>
-                    
-                    <div class="profile-stats">
-                        <div class="stat-item">
-                            <span class="stat-value" id="salesMade">0</span>
-                            <span class="stat-label">Sales Made</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="daysActive">0</span>
-                            <span class="stat-label">Days Active</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="userRating">4.8</span>
-                            <span class="stat-label">Rating</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="totalRevenue">NPR 0</span>
-                            <span class="stat-label">Total Revenue</span>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -839,16 +774,6 @@
                 });
             }
             document.getElementById('profileLastLogin').textContent = lastLoginText;
-
-            // Load and display stats
-            const transactionCount = localStorage.getItem('userTransactionCount') || '247';
-            const daysActive = localStorage.getItem('userDaysActive') || '156';
-            const totalRevenue = localStorage.getItem('userTotalRevenue') || '125450';
-
-            document.getElementById('salesMade').textContent = parseInt(transactionCount).toLocaleString();
-            document.getElementById('daysActive').textContent = daysActive;
-            document.getElementById('userRating').textContent = '4.8';
-            document.getElementById('totalRevenue').textContent = `NPR ${parseInt(totalRevenue).toLocaleString()}`;
 
             // Update profile avatar if available
             if (profileData.avatar) {
