@@ -479,6 +479,39 @@
             background: #d1ecf1;
             color: #0c5460;
         }
+
+        /* Skeleton Loading Animation */
+        .skeleton-text {
+            height: 16px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .skeleton-title {
+            height: 24px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .skeleton-small {
+            height: 14px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        @keyframes pulse {
+            0% { background-position: 0% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>
@@ -510,25 +543,25 @@
                 </div>
                 
                 <div class="profile-info">
-                    <h1 id="storeName">Loading...</h1>
-                    <div class="profile-role" id="storeType">Loading...</div>
+                    <h1 id="storeName"><div class="skeleton-title" style="width: 200px;"></div></h1>
+                    <div class="profile-role" id="storeType"><div class="skeleton-text" style="width: 120px;"></div></div>
                     
                     <div class="profile-meta">
                         <div class="meta-item">
                             <i class="fas fa-map-marker-alt"></i>
-                            <span id="storeAddress">Loading...</span>
+                            <span id="storeAddress"><div class="skeleton-small" style="width: 180px;"></div></span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-phone"></i>
-                            <span id="storePhone">Not provided</span>
+                            <span id="storePhone"><div class="skeleton-small" style="width: 120px;"></div></span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-envelope"></i>
-                            <span id="storeEmail">Loading...</span>
+                            <span id="storeEmail"><div class="skeleton-small" style="width: 160px;"></div></span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-calendar-alt"></i>
-                            <span>Opened <span id="storeOpened">Loading...</span></span>
+                            <span>Opened <span id="storeOpened"><div class="skeleton-small" style="width: 80px;"></div></span></span>
                         </div>
                     </div>
                     
@@ -681,11 +714,11 @@
         }
 
         function updateStoreHeaderDisplay(data) {
-            document.getElementById('storeName').textContent = data.name;
-            document.getElementById('storeType').textContent = data.type;
-            document.getElementById('storeEmail').textContent = data.email;
-            document.getElementById('storePhone').textContent = data.phone || 'Not provided';
-            document.getElementById('storeAddress').textContent = `${data.address}, ${data.city}`;
+            document.getElementById('storeName').innerHTML = data.name;
+            document.getElementById('storeType').innerHTML = data.type;
+            document.getElementById('storeEmail').innerHTML = data.email;
+            document.getElementById('storePhone').innerHTML = data.phone || 'Not provided';
+            document.getElementById('storeAddress').innerHTML = `${data.address}, ${data.city}`;
         }
 
         function showToast(message, type = 'info') {
@@ -767,7 +800,7 @@
                 month: 'short',
                 day: 'numeric'
             });
-            document.getElementById('storeOpened').textContent = formattedOpenDate;
+            document.getElementById('storeOpened').innerHTML = formattedOpenDate;
 
             // Statistics removed as requested by user
             // Users can add their own store statistics when needed
