@@ -485,6 +485,55 @@
             background: #d1ecf1;
             color: #0c5460;
         }
+
+        /* Loading State - Skeleton Animation */
+        .loading-state {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .loading-pulse {
+            height: 12px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            display: inline-block;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .skeleton-title {
+            height: 24px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .skeleton-small {
+            height: 14px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        @keyframes pulse {
+            0% { background-position: 0% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>
@@ -516,25 +565,25 @@
                 </div>
                 
                 <div class="profile-info">
-                    <h1 id="profileName">Loading...</h1>
-                    <div class="profile-role" id="profileRole">Loading...</div>
+                    <h1 id="profileName"><div class="skeleton-title" style="width: 200px;"></div></h1>
+                    <div class="profile-role" id="profileRole"><div class="skeleton-text" style="width: 120px;"></div></div>
                     
                     <div class="profile-meta">
                         <div class="meta-item">
                             <i class="fas fa-envelope"></i>
-                            <span id="profileEmail">Loading...</span>
+                            <span id="profileEmail"><div class="skeleton-small" style="width: 180px;"></div></span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-phone"></i>
-                            <span id="profilePhone">Not provided</span>
+                            <span id="profilePhone"><div class="skeleton-small" style="width: 120px;"></div></span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-calendar-alt"></i>
-                            <span>Joined <span id="profileJoined">Loading...</span></span>
+                            <span>Joined <span id="profileJoined"><div class="skeleton-small" style="width: 80px;"></div></span></span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-clock"></i>
-                            <span>Last active <span id="profileLastLogin">Loading...</span></span>
+                            <span>Last active <span id="profileLastLogin"><div class="skeleton-small" style="width: 60px;"></div></span></span>
                         </div>
                     </div>
                 </div>
@@ -646,10 +695,10 @@
         }
 
         function updateHeaderDisplay(data) {
-            document.getElementById('profileName').textContent = data.name;
-            document.getElementById('profileRole').textContent = data.role;
-            document.getElementById('profileEmail').textContent = data.email;
-            document.getElementById('profilePhone').textContent = data.phone || 'Not provided';
+            document.getElementById('profileName').innerHTML = data.name;
+            document.getElementById('profileRole').innerHTML = data.role;
+            document.getElementById('profileEmail').innerHTML = data.email;
+            document.getElementById('profilePhone').innerHTML = data.phone || 'Not provided';
         }
 
         function showToast(message, type = 'info') {
@@ -687,6 +736,35 @@
                     toast.remove();
                 }, 300);
             }, 3000);
+        }
+
+        function showFormSkeletons() {
+            // Show skeleton in form fields
+            const formFields = ['fullName', 'email', 'phone', 'storeName', 'location', 'role'];
+            formFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.style.background = 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)';
+                    field.style.backgroundSize = '200% 100%';
+                    field.style.animation = 'pulse 1.5s infinite';
+                    field.disabled = true;
+                    field.placeholder = '';
+                }
+            });
+        }
+
+        function hideFormSkeletons() {
+            // Remove skeleton from form fields
+            const formFields = ['fullName', 'email', 'phone', 'storeName', 'location', 'role'];
+            formFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.style.background = '';
+                    field.style.backgroundSize = '';
+                    field.style.animation = '';
+                    field.disabled = false;
+                }
+            });
         }
 
         function loadUserProfile() {
@@ -736,7 +814,8 @@
             // Update header display
             updateHeaderDisplay(profileData);
 
-            // Populate form fields
+            // Hide form skeletons and populate form fields
+            hideFormSkeletons();
             document.getElementById('fullName').value = profileData.name;
             document.getElementById('email').value = profileData.email;
             document.getElementById('phone').value = profileData.phone;
@@ -751,7 +830,7 @@
                 month: 'short',
                 day: 'numeric'
             });
-            document.getElementById('profileJoined').textContent = formattedJoinDate;
+            document.getElementById('profileJoined').innerHTML = formattedJoinDate;
 
             // Set last login time
             const lastLogin = localStorage.getItem('lastLogin') || new Date().toISOString();
@@ -773,7 +852,7 @@
                     hour12: true
                 });
             }
-            document.getElementById('profileLastLogin').textContent = lastLoginText;
+            document.getElementById('profileLastLogin').innerHTML = lastLoginText;
 
             // Update profile avatar if available
             if (profileData.avatar) {
@@ -813,7 +892,11 @@
 
         // Load profile data when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(loadUserProfile, 100); // Small delay to ensure DOM is ready
+            // Show skeleton animations immediately
+            showFormSkeletons();
+            
+            // Simulate loading time to show skeleton animations
+            setTimeout(loadUserProfile, 800); // Increased delay to show skeleton properly
         });
     </script>
 
