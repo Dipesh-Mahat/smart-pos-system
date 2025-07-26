@@ -347,6 +347,61 @@
             max-width: 400px;
             margin: 0 auto 20px;
         }
+
+        /* Skeleton Loading Animation */
+        .skeleton-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .skeleton-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            margin-bottom: 15px;
+        }
+
+        .skeleton-title {
+            height: 20px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            width: 80%;
+        }
+
+        .skeleton-text {
+            height: 14px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-text.short {
+            width: 60%;
+        }
+
+        .skeleton-text.medium {
+            width: 75%;
+        }
+
+        .skeleton-text.long {
+            width: 90%;
+        }
+
+        @keyframes pulse {
+            0% { background-position: 0% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>    <div class="main-content">
@@ -597,13 +652,20 @@
         function showLoading(show) {
             const grid = document.getElementById('suppliersGrid');
             if (show) {
-                grid.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <h3>Loading Suppliers...</h3>
-                        <p>Please wait while we fetch the supplier data.</p>
-                    </div>
-                `;
+                // Create skeleton cards
+                let skeletonHTML = '';
+                for (let i = 0; i < 6; i++) {
+                    skeletonHTML += `
+                        <div class="skeleton-card">
+                            <div class="skeleton-avatar"></div>
+                            <div class="skeleton-title"></div>
+                            <div class="skeleton-text short"></div>
+                            <div class="skeleton-text medium"></div>
+                            <div class="skeleton-text long"></div>
+                        </div>
+                    `;
+                }
+                grid.innerHTML = skeletonHTML;
             }
         }
 
