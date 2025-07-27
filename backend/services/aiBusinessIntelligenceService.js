@@ -10,6 +10,7 @@ const Order = require('../models/Order');
 const Transaction = require('../models/Transaction');
 const AutoOrder = require('../models/AutoOrder');
 const nepaliCalendarService = require('./nepaliCalendarService');
+const aiDataCollectionService = require('./aiDataCollectionService');
 
 class AIBusinessIntelligenceService {
   constructor() {
@@ -78,19 +79,17 @@ class AIBusinessIntelligenceService {
         };
       }
       
-      // Collect comprehensive business data
-      const businessData = await this.collectBusinessData(shopId);
-      
-      // Assess data quality
-      const dataQuality = this.assessDataQuality(businessData);
+      // Collect comprehensive business data using the new service
+      console.log('Collecting comprehensive business data...');
+      const comprehensiveData = await aiDataCollectionService.collectComprehensiveData(shopId, options.userId);
       
       // Check if we have sufficient data
-      if (dataQuality.level === 'insufficient') {
+      if (comprehensiveData.dataQuality.level === 'poor') {
         return {
           success: false,
           error: 'Insufficient data for AI analysis',
-          dataQuality,
-          fallbackRecommendations: this.generateFallbackRecommendations(businessData)
+          dataQuality: comprehensiveData.dataQuality,
+          fallbackRecommendations: this.generatePersonalizedFallbackRecommendations(comprehensiveData)
         };
       }
       
@@ -99,21 +98,23 @@ class AIBusinessIntelligenceService {
       
       // Generate AI insights if Gemini is available
       if (this.isGeminiAvailable()) {
-        const insights = await this.generateAIInsights(businessData, festivalContext, options);
+        const insights = await this.generatePersonalizedAIInsights(comprehensiveData, festivalContext, options);
         return {
           success: true,
           aiProvider: 'Gemini',
           insights,
-          dataQuality,
+          dataQuality: comprehensiveData.dataQuality,
+          businessProfile: comprehensiveData.businessProfile,
           timestamp: new Date()
         };
       } else {
-        // Use fallback recommendations
+        // Use enhanced fallback recommendations with real data
         return {
           success: true,
-          aiProvider: 'Fallback',
-          fallbackRecommendations: this.generateFallbackRecommendations(businessData),
-          dataQuality,
+          aiProvider: 'Enhanced Fallback',
+          insights: this.generatePersonalizedFallbackRecommendations(comprehensiveData),
+          dataQuality: comprehensiveData.dataQuality,
+          businessProfile: comprehensiveData.businessProfile,
           timestamp: new Date()
         };
       }
@@ -125,49 +126,246 @@ class AIBusinessIntelligenceService {
   }
 
   /**
-   * Generate AI insights using Gemini
-   * @param {Object} businessData - Business data
+   * Generate personalized AI insights using comprehensive business data
+   * @param {Object} comprehensiveData - Complete business data
    * @param {Object} festivalContext - Festival context
    * @param {Object} options - Analysis options
-   * @returns {Object} AI insights
+   * @returns {Object} Personalized AI insights
    */
-  async generateAIInsights(businessData, festivalContext, options = {}) {
+  async generatePersonalizedAIInsights(comprehensiveData, festivalContext, options = {}) {
     const insights = {};
     
-    // Sales prediction analysis
+    // Sales prediction analysis with real data
     if (!options.excludeCategories?.includes(this.analysisCategories.SALES_PREDICTION)) {
-      insights.salesPrediction = await this.generateSalesPrediction(businessData, festivalContext);
+      insights.salesPrediction = await this.generatePersonalizedSalesPrediction(comprehensiveData, festivalContext);
     }
     
-    // Inventory optimization
+    // Inventory optimization with real data
     if (!options.excludeCategories?.includes(this.analysisCategories.INVENTORY_OPTIMIZATION)) {
-      insights.inventoryOptimization = await this.generateInventoryOptimization(businessData, festivalContext);
+      insights.inventoryOptimization = await this.generatePersonalizedInventoryOptimization(comprehensiveData, festivalContext);
     }
     
-    // Product performance analysis
+    // Product performance analysis with real data
     if (!options.excludeCategories?.includes(this.analysisCategories.PRODUCT_PERFORMANCE)) {
-      insights.productPerformance = await this.analyzeProductPerformance(businessData);
+      insights.productPerformance = await this.analyzePersonalizedProductPerformance(comprehensiveData);
     }
     
-    // Festival preparation insights
-    if (!options.excludeCategories?.includes(this.analysisCategories.FESTIVAL_PREPARATION)) {
-      insights.festivalPreparation = await this.generateFestivalInsights(businessData, festivalContext);
-    }
-    
-    // Customer behavior analysis
+    // Customer behavior analysis with real data
     if (!options.excludeCategories?.includes(this.analysisCategories.CUSTOMER_BEHAVIOR)) {
-      insights.customerBehavior = await this.analyzeCustomerBehavior(businessData);
+      insights.customerBehavior = await this.analyzePersonalizedCustomerBehavior(comprehensiveData);
     }
     
-    // Pricing strategy recommendations
+    // Pricing strategy with real data
     if (!options.excludeCategories?.includes(this.analysisCategories.PRICING_STRATEGY)) {
-      insights.pricingStrategy = await this.generatePricingStrategy(businessData, festivalContext);
+      insights.pricingStrategy = await this.generatePersonalizedPricingStrategy(comprehensiveData);
     }
     
-    // Overall business recommendations
-    insights.businessRecommendations = await this.generateBusinessRecommendations(businessData, festivalContext, insights);
+    // Business insights with real data
+    if (!options.excludeCategories?.includes(this.analysisCategories.BUSINESS_INSIGHTS)) {
+      insights.businessInsights = await this.generatePersonalizedBusinessInsights(comprehensiveData, festivalContext);
+    }
     
     return insights;
+  }
+
+  /**
+   * Generate personalized sales prediction using real business data
+   */
+  async generatePersonalizedSalesPrediction(comprehensiveData, festivalContext) {
+    try {
+      const { businessProfile, salesData, seasonalData } = comprehensiveData;
+      
+      // Build personalized prompt with real data
+      const prompt = this.buildPersonalizedSalesPredictionPrompt(
+        businessProfile, 
+        salesData, 
+        seasonalData, 
+        festivalContext
+      );
+      
+      if (this.isGeminiAvailable()) {
+        const aiResponse = await this.callGeminiAPI(prompt, 'personalized_sales_prediction');
+        return {
+          ...aiResponse,
+          confidence: this.calculateConfidenceLevel(salesData),
+          dataPoints: salesData.recentSales.transactionCount,
+          personalizedFactors: {
+            businessType: businessProfile.business.type,
+            recentTrend: salesData.trends.trend,
+            seasonalFactor: seasonalData.seasonalTrends.seasonalityIndex || 1.0,
+            upcomingFestivals: festivalContext.upcomingFestivals?.length || 0
+          },
+          analysisDate: new Date()
+        };
+      } else {
+        return this.generatePersonalizedSalesFallback(comprehensiveData, festivalContext);
+      }
+    } catch (error) {
+      console.error('Error generating personalized sales prediction:', error);
+      return this.generatePersonalizedSalesFallback(comprehensiveData, festivalContext);
+    }
+  }
+
+  /**
+   * Generate personalized inventory optimization recommendations
+   */
+  async generatePersonalizedInventoryOptimization(comprehensiveData, festivalContext) {
+    try {
+      const { productData, inventoryData, salesData } = comprehensiveData;
+      
+      const prompt = this.buildPersonalizedInventoryPrompt(
+        productData, 
+        inventoryData, 
+        salesData, 
+        festivalContext
+      );
+      
+      if (this.isGeminiAvailable()) {
+        const aiResponse = await this.callGeminiAPI(prompt, 'personalized_inventory_optimization');
+        return {
+          ...aiResponse,
+          confidence: 'high',
+          urgentActions: this.identifyUrgentInventoryActions(inventoryData, productData),
+          personalizedRecommendations: this.generateInventoryRecommendations(productData, salesData),
+          costImpact: this.calculateInventoryCostImpact(inventoryData, productData)
+        };
+      } else {
+        return this.generatePersonalizedInventoryFallback(comprehensiveData);
+      }
+    } catch (error) {
+      console.error('Error generating personalized inventory optimization:', error);
+      return this.generatePersonalizedInventoryFallback(comprehensiveData);
+    }
+  }
+
+  /**
+   * Analyze personalized product performance
+   */
+  async analyzePersonalizedProductPerformance(comprehensiveData) {
+    try {
+      const { productData, salesData } = comprehensiveData;
+      
+      const prompt = this.buildPersonalizedProductPerformancePrompt(productData, salesData);
+      
+      if (this.isGeminiAvailable()) {
+        const aiResponse = await this.callGeminiAPI(prompt, 'personalized_product_performance');
+        return {
+          ...aiResponse,
+          topPerformers: productData.performance.topSelling.slice(0, 5),
+          underperformers: productData.performance.lowPerforming,
+          profitOpportunities: this.identifyProfitOpportunities(productData),
+          actionableInsights: this.generateProductActionItems(productData, salesData)
+        };
+      } else {
+        return this.generatePersonalizedProductFallback(comprehensiveData);
+      }
+    } catch (error) {
+      console.error('Error analyzing personalized product performance:', error);
+      return this.generatePersonalizedProductFallback(comprehensiveData);
+    }
+  }
+
+  /**
+   * Analyze personalized customer behavior
+   */
+  async analyzePersonalizedCustomerBehavior(comprehensiveData) {
+    try {
+      const { customerData, salesData } = comprehensiveData;
+      
+      const prompt = this.buildPersonalizedCustomerBehaviorPrompt(customerData, salesData);
+      
+      if (this.isGeminiAvailable()) {
+        const aiResponse = await this.callGeminiAPI(prompt, 'personalized_customer_behavior');
+        return {
+          ...aiResponse,
+          customerSegments: customerData.customerSegments,
+          retentionOpportunities: this.identifyRetentionOpportunities(customerData),
+          loyaltyRecommendations: this.generateLoyaltyRecommendations(customerData),
+          acquisitionStrategies: this.generateAcquisitionStrategies(customerData, salesData)
+        };
+      } else {
+        return this.generatePersonalizedCustomerFallback(comprehensiveData);
+      }
+    } catch (error) {
+      console.error('Error analyzing personalized customer behavior:', error);
+      return this.generatePersonalizedCustomerFallback(comprehensiveData);
+    }
+  }
+
+  /**
+   * Generate personalized pricing strategy
+   */
+  async generatePersonalizedPricingStrategy(comprehensiveData) {
+    try {
+      const { productData, financialData, salesData } = comprehensiveData;
+      
+      const prompt = this.buildPersonalizedPricingPrompt(productData, financialData, salesData);
+      
+      if (this.isGeminiAvailable()) {
+        const aiResponse = await this.callGeminiAPI(prompt, 'personalized_pricing_strategy');
+        return {
+          ...aiResponse,
+          priceOptimizationOpportunities: this.identifyPriceOptimizationOpportunities(productData),
+          marginImprovements: this.calculateMarginImprovements(productData, financialData),
+          competitivePricing: this.generateCompetitivePricingInsights(productData),
+          revenueImpact: this.calculatePricingRevenueImpact(productData, salesData)
+        };
+      } else {
+        return this.generatePersonalizedPricingFallback(comprehensiveData);
+      }
+    } catch (error) {
+      console.error('Error generating personalized pricing strategy:', error);
+      return this.generatePersonalizedPricingFallback(comprehensiveData);
+    }
+  }
+
+  /**
+   * Generate personalized business insights
+   */
+  async generatePersonalizedBusinessInsights(comprehensiveData, festivalContext) {
+    try {
+      const { businessProfile, businessMetrics, financialData } = comprehensiveData;
+      
+      const prompt = this.buildPersonalizedBusinessInsightsPrompt(
+        businessProfile, 
+        businessMetrics, 
+        financialData, 
+        festivalContext
+      );
+      
+      if (this.isGeminiAvailable()) {
+        const aiResponse = await this.callGeminiAPI(prompt, 'personalized_business_insights');
+        return {
+          ...aiResponse,
+          businessHealthScore: businessMetrics.businessHealth,
+          growthOpportunities: this.identifyGrowthOpportunities(comprehensiveData),
+          riskFactors: this.identifyRiskFactors(comprehensiveData),
+          strategicRecommendations: this.generateStrategicRecommendations(comprehensiveData),
+          nextSteps: this.generateNextSteps(comprehensiveData)
+        };
+      } else {
+        return this.generatePersonalizedBusinessFallback(comprehensiveData, festivalContext);
+      }
+    } catch (error) {
+      console.error('Error generating personalized business insights:', error);
+      return this.generatePersonalizedBusinessFallback(comprehensiveData, festivalContext);
+    }
+  }
+
+  /**
+   * Generate personalized fallback recommendations using real data
+   */
+  generatePersonalizedFallbackRecommendations(comprehensiveData) {
+    const { businessProfile, productData, salesData, inventoryData, customerData, financialData } = comprehensiveData;
+    
+    return {
+      salesPrediction: this.generatePersonalizedSalesFallback(comprehensiveData),
+      inventoryOptimization: this.generatePersonalizedInventoryFallback(comprehensiveData),
+      productPerformance: this.generatePersonalizedProductFallback(comprehensiveData),
+      customerBehavior: this.generatePersonalizedCustomerFallback(comprehensiveData),
+      pricingStrategy: this.generatePersonalizedPricingFallback(comprehensiveData),
+      businessInsights: this.generatePersonalizedBusinessFallback(comprehensiveData)
+    };
   }
 
   /**
@@ -489,44 +687,172 @@ class AIBusinessIntelligenceService {
    */
   parseAIResponse(aiText, category) {
     try {
+      // Clean the response text
+      let cleanText = aiText.trim();
+      
+      // Remove markdown code blocks if present
+      cleanText = cleanText.replace(/```json\s*|\s*```/g, '');
+      cleanText = cleanText.replace(/```\s*|\s*```/g, '');
+      
       // Try to parse as JSON first
-      if (aiText.trim().startsWith('{')) {
-        return JSON.parse(aiText);
+      if (cleanText.startsWith('{') && cleanText.endsWith('}')) {
+        const parsed = JSON.parse(cleanText);
+        // Ensure we have the required insights array
+        if (!parsed.insights && parsed.recommendations) {
+          parsed.insights = parsed.recommendations;
+        }
+        if (!parsed.insights && parsed.predictions) {
+          parsed.insights = parsed.predictions;
+        }
+        if (!parsed.insights && parsed.strategies) {
+          parsed.insights = parsed.strategies;
+        }
+        return parsed;
       }
       
-      // Otherwise, structure the text response
+      // Otherwise, structure the text response intelligently
       const lines = aiText.split('\n').filter(line => line.trim());
+      const insights = [];
       
+      // Extract meaningful insights from text
+      for (const line of lines) {
+        const cleanLine = line.trim().replace(/^[•\-\*\d\.]+\s*/, '');
+        if (cleanLine.length > 20 && !cleanLine.match(/^(please|provide|focus|analyze)/i)) {
+          insights.push(cleanLine);
+        }
+      }
+      
+      // Category-specific parsing for personalized responses
       switch (category) {
+        case 'personalized_sales_prediction':
         case 'sales_prediction':
           return {
-            predictions: lines.filter(line => line.includes('predict') || line.includes('expect')),
-            insights: lines.filter(line => line.includes('insight') || line.includes('trend')),
-            actions: lines.filter(line => line.includes('recommend') || line.includes('should'))
+            insights: insights.slice(0, 4),
+            nextMonthRevenue: this.extractNumber(aiText, 'revenue'),
+            confidenceLevel: this.extractConfidence(aiText),
+            keyDrivers: this.extractKeyDrivers(aiText),
+            personalizedActions: insights.filter(line => line.includes('recommend') || line.includes('should')).slice(0, 3)
           };
         
+        case 'personalized_inventory_optimization':
         case 'inventory_optimization':
           return {
-            optimizations: lines.filter(line => line.includes('optim') || line.includes('stock')),
-            savings: lines.find(line => line.includes('save') || line.includes('cost')),
-            risks: lines.filter(line => line.includes('risk') || line.includes('warning')),
-            priorities: lines.filter(line => line.includes('priority') || line.includes('urgent'))
+            insights: insights.slice(0, 4),
+            urgentActions: insights.filter(line => line.includes('urgent') || line.includes('immediate')).slice(0, 2),
+            costSavings: this.extractNumber(aiText, 'saving'),
+            reorderRecommendations: insights.filter(line => line.includes('reorder') || line.includes('stock')).slice(0, 3),
+            confidence: 'medium'
+          };
+          
+        case 'personalized_customer_behavior':
+        case 'customer_behavior':
+          return {
+            insights: insights.slice(0, 4),
+            retentionOpportunities: insights.filter(line => line.includes('retention') || line.includes('loyal')).slice(0, 2),
+            loyaltyRecommendations: insights.filter(line => line.includes('loyalty') || line.includes('reward')).slice(0, 2),
+            acquisitionStrategies: insights.filter(line => line.includes('new customer') || line.includes('acquisition')).slice(0, 2),
+            confidence: 'medium'
+          };
+          
+        case 'personalized_pricing_strategy':
+        case 'pricing_strategy':
+          return {
+            insights: insights.slice(0, 4),
+            priceOptimizationOpportunities: insights.filter(line => line.includes('price') || line.includes('margin')).slice(0, 2),
+            revenueImpact: {
+              projectedIncrease: this.extractNumber(aiText, 'increase'),
+              timeframe: '3 months'
+            },
+            confidence: 'medium'
+          };
+          
+        case 'personalized_product_performance':
+        case 'product_performance':
+          return {
+            insights: insights.slice(0, 4),
+            topPerformers: this.extractProducts(aiText, 'top'),
+            underperformers: this.extractProducts(aiText, 'low'),
+            actionableInsights: insights.filter(line => line.includes('recommend') || line.includes('action')).slice(0, 3),
+            confidence: 'medium'
+          };
+          
+        case 'personalized_business_insights':
+        case 'business_insights':
+          return {
+            insights: insights.slice(0, 4),
+            businessHealthScore: this.extractNumber(aiText, 'health') || this.extractNumber(aiText, 'score') || 75,
+            growthOpportunities: insights.filter(line => line.includes('growth') || line.includes('opportunity')).slice(0, 3),
+            riskFactors: insights.filter(line => line.includes('risk') || line.includes('challenge')).slice(0, 2),
+            nextSteps: insights.filter(line => line.includes('next') || line.includes('step') || line.includes('action')).slice(0, 3),
+            confidence: 'medium'
           };
         
         default:
           return {
-            insights: lines.slice(0, 3),
-            recommendations: lines.slice(3, 6),
-            summary: lines[0] || 'AI analysis completed'
+            insights: insights.slice(0, 4),
+            summary: insights[0] || 'AI analysis completed',
+            confidence: 'medium'
           };
       }
     } catch (error) {
       console.error('Error parsing AI response:', error);
+      
+      // Fallback parsing - extract any meaningful sentences
+      const sentences = aiText.split(/[.!?]+/).filter(s => s.trim().length > 20);
+      
       return {
-        insights: [aiText.substring(0, 200) + '...'],
-        summary: 'AI analysis completed with partial results'
+        insights: sentences.slice(0, 4).map(s => s.trim()),
+        summary: sentences[0]?.trim() || 'AI analysis completed',
+        confidence: 'low',
+        note: 'Parsed from text format'
       };
     }
+  }
+
+  // Helper methods for parsing AI responses
+  extractNumber(text, context) {
+    const patterns = {
+      revenue: /revenue[:\s]*(?:NPR\s*)?(\d+(?:,\d+)*(?:\.\d+)?)/i,
+      saving: /saving[s]?[:\s]*(?:NPR\s*)?(\d+(?:,\d+)*(?:\.\d+)?)/i,
+      increase: /increase[:\s]*(?:NPR\s*)?(\d+(?:,\d+)*(?:\.\d+)?)/i,
+      health: /health[:\s]*(\d+(?:\.\d+)?)/i,
+      score: /score[:\s]*(\d+(?:\.\d+)?)/i
+    };
+    
+    const pattern = patterns[context];
+    if (pattern) {
+      const match = text.match(pattern);
+      if (match) {
+        return parseFloat(match[1].replace(/,/g, ''));
+      }
+    }
+    return null;
+  }
+
+  extractConfidence(text) {
+    if (text.includes('high confidence') || text.includes('very confident')) return 'high';
+    if (text.includes('low confidence') || text.includes('uncertain')) return 'low';
+    return 'medium';
+  }
+
+  extractKeyDrivers(text) {
+    const drivers = [];
+    if (text.includes('seasonal')) drivers.push('seasonal trends');
+    if (text.includes('festival')) drivers.push('festival demand');
+    if (text.includes('customer')) drivers.push('customer behavior');
+    if (text.includes('inventory') || text.includes('stock')) drivers.push('inventory levels');
+    return drivers.length > 0 ? drivers : ['market trends', 'customer demand'];
+  }
+
+  extractProducts(text, type) {
+    // Simple product extraction - in a real implementation, this would be more sophisticated
+    const products = [];
+    if (type === 'top') {
+      if (text.includes('electronics')) products.push('Electronics');
+      if (text.includes('cosmetics')) products.push('Cosmetics');
+      if (text.includes('food')) products.push('Food Items');
+    }
+    return products.length > 0 ? products.slice(0, 3) : ['Product 1', 'Product 2'];
   }
 
   /**
@@ -976,6 +1302,383 @@ Focus on practical, actionable advice for Nepal's small business environment.
     const totalSalesValue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
     
     return totalInventoryValue > 0 ? (totalSalesValue / totalInventoryValue) : 0;
+  }
+
+  // ============ PERSONALIZED AI METHODS ============
+
+  /**
+   * Build personalized sales prediction prompt
+   */
+  buildPersonalizedSalesPredictionPrompt(businessProfile, salesData, seasonalData, festivalContext) {
+    return `
+You are an AI business consultant analyzing sales data for ${businessProfile.business.name}, a ${businessProfile.business.type.toLowerCase()} business.
+
+BUSINESS CONTEXT:
+- Business Type: ${businessProfile.business.type}
+- Owner: ${businessProfile.owner.name}
+- Currency: ${businessProfile.business.currency}
+
+CURRENT SALES PERFORMANCE:
+- Recent Revenue: ${businessProfile.business.currency} ${salesData.recentSales.totalRevenue}
+- Transaction Count: ${salesData.recentSales.transactionCount}
+- Average Transaction: ${businessProfile.business.currency} ${salesData.recentSales.averageTransaction.toFixed(2)}
+- Growth Trend: ${salesData.trends.trend}
+
+SEASONAL FACTORS:
+- Seasonal Index: ${seasonalData.seasonalTrends.seasonalityIndex || 1.0}
+- Best Season: ${seasonalData.seasonalTrends.bestSeason || 'N/A'}
+- Upcoming Festivals: ${festivalContext.upcomingFestivals?.length || 0}
+
+Provide specific, actionable sales predictions for the next 30 days with personalized recommendations for ${businessProfile.owner.name}.
+
+Respond in JSON format with:
+{
+  "insights": [
+    "specific prediction 1",
+    "specific prediction 2", 
+    "specific prediction 3"
+  ],
+  "nextMonthRevenue": estimated_amount,
+  "confidenceLevel": "high/medium/low",
+  "keyDrivers": ["driver1", "driver2"],
+  "personalizedActions": ["action1", "action2"]
+}`;
+  }
+
+  /**
+   * Build personalized inventory optimization prompt
+   */
+  buildPersonalizedInventoryPrompt(productData, inventoryData, salesData, festivalContext) {
+    return `
+You are an inventory optimization expert for a ${productData.totalProducts} product business.
+
+INVENTORY STATUS:
+- Total Products: ${productData.totalProducts}
+- Low Stock Items: ${inventoryData.lowStockItems}
+- Out of Stock: ${inventoryData.outOfStockItems}
+- Total Inventory Value: ${inventoryData.totalInventoryValue}
+
+TOP SELLING PRODUCTS:
+${productData.performance.topSelling.slice(0, 5).map(([id, perf]) => 
+  `- Product ${id}: ${perf.sold} units sold, revenue ${perf.revenue}`
+).join('\n')}
+
+SALES PATTERNS:
+- Daily Revenue: ${salesData.recentSales.totalRevenue / 7}
+- Transaction Volume: ${salesData.recentSales.transactionCount}
+
+Provide specific inventory optimization recommendations.
+
+Respond in JSON format with:
+{
+  "insights": [
+    "specific recommendation 1",
+    "specific recommendation 2",
+    "specific recommendation 3"
+  ],
+  "urgentActions": ["urgent1", "urgent2"],
+  "costSavings": estimated_amount,
+  "reorderRecommendations": ["product1", "product2"]
+}`;
+  }
+
+  /**
+   * Generate personalized fallback recommendations
+   */
+  generatePersonalizedSalesFallback(comprehensiveData, festivalContext) {
+    const { businessProfile, salesData } = comprehensiveData;
+    const businessName = businessProfile.business.name;
+    const ownerName = businessProfile.owner.name;
+    const currentRevenue = salesData.recentSales.totalRevenue;
+    
+    return {
+      insights: [
+        `${ownerName}, your ${businessName} has generated ${businessProfile.business.currency} ${currentRevenue} recently`,
+        `With ${salesData.recentSales.transactionCount} transactions, your average sale is ${businessProfile.business.currency} ${salesData.recentSales.averageTransaction.toFixed(2)}`,
+        `Your business trend is ${salesData.trends.trend} - focus on maintaining this momentum`,
+        `Based on your transaction patterns, consider promoting during peak hours`
+      ],
+      nextMonthRevenue: currentRevenue * 1.15,
+      confidenceLevel: 'medium',
+      keyDrivers: ['transaction frequency', 'average order value', 'customer retention'],
+      personalizedActions: [
+        `Implement customer loyalty program for ${businessName}`,
+        'Focus on upselling during peak transaction times',
+        'Analyze your best-performing products for expansion'
+      ]
+    };
+  }
+
+  generatePersonalizedInventoryFallback(comprehensiveData) {
+    const { productData, inventoryData, businessProfile } = comprehensiveData;
+    
+    return {
+      insights: [
+        `You have ${inventoryData.lowStockItems} items running low - prioritize restocking`,
+        `${inventoryData.outOfStockItems} items are completely out of stock and losing potential sales`,
+        `Your inventory is worth ${businessProfile.business.currency} ${inventoryData.totalInventoryValue} - optimize for better cash flow`,
+        `Focus on your top ${productData.performance.topSelling.length} selling products for maximum ROI`
+      ],
+      urgentActions: [
+        'Restock out-of-stock items immediately',
+        'Set up automatic reorder alerts for low stock items'
+      ],
+      costSavings: inventoryData.totalInventoryValue * 0.15,
+      reorderRecommendations: productData.performance.topSelling.slice(0, 3).map(([id]) => `Product ${id}`)
+    };
+  }
+
+  generatePersonalizedProductFallback(comprehensiveData) {
+    const { productData, businessProfile } = comprehensiveData;
+    
+    return {
+      insights: [
+        `Your catalog has ${productData.totalProducts} products across ${productData.totalCategories} categories`,
+        `Top performing products are driving most of your revenue - consider expanding these lines`,
+        `Low performing products may need price adjustments or promotional support`,
+        `Your high-margin products offer the best profit opportunities`
+      ],
+      topPerformers: productData.performance.topSelling.slice(0, 5),
+      underperformers: productData.performance.lowPerforming,
+      profitOpportunities: productData.performance.highMargin.map(p => p.name),
+      actionableInsights: [
+        'Promote your best-selling products more prominently',
+        'Consider bundling slow-moving items with popular ones',
+        'Review pricing strategy for underperforming products'
+      ]
+    };
+  }
+
+  generatePersonalizedCustomerFallback(comprehensiveData) {
+    const { customerData, businessProfile } = comprehensiveData;
+    
+    return {
+      insights: [
+        `You have ${customerData.totalCustomers} customers with ${customerData.activeCustomers} currently active`,
+        `${customerData.customerSegments.loyal} loyal customers are your most valuable asset`,
+        `Customer retention rate of ${customerData.retentionRate}% shows good relationship management`,
+        `${customerData.customerSegments.new} new customers acquired recently show growth potential`
+      ],
+      retentionOpportunities: [
+        'Create personalized offers for loyal customers',
+        'Implement win-back campaigns for inactive customers'
+      ],
+      loyaltyRecommendations: [
+        'Launch a points-based loyalty program',
+        'Offer exclusive discounts to repeat customers'
+      ],
+      acquisitionStrategies: [
+        'Referral program for existing customers',
+        'Social media engagement campaigns'
+      ]
+    };
+  }
+
+  generatePersonalizedPricingFallback(comprehensiveData) {
+    const { productData, financialData } = comprehensiveData;
+    
+    return {
+      insights: [
+        `Your current profit margin is ${financialData.profitability.profitMargin.toFixed(1)}%`,
+        `High-margin products offer the best pricing optimization opportunities`,
+        `Consider dynamic pricing for seasonal products`,
+        `Review competitor pricing for better market positioning`
+      ],
+      priceOptimizationOpportunities: productData.performance.highMargin.slice(0, 3).map(p => p.name),
+      marginImprovements: `Potential ${(financialData.profitability.profitMargin * 0.1).toFixed(1)}% margin increase`,
+      competitivePricing: ['Research local competitor prices', 'Consider value-based pricing'],
+      revenueImpact: financialData.revenue.total * 0.08
+    };
+  }
+
+  generatePersonalizedBusinessFallback(comprehensiveData, festivalContext) {
+    const { businessProfile, businessMetrics, financialData } = comprehensiveData;
+    
+    return {
+      insights: [
+        `${businessProfile.business.name} has a business health score of ${businessMetrics.businessHealth}/100`,
+        `Your ${businessProfile.business.type} business shows strong fundamentals`,
+        `Net profit of ${businessProfile.business.currency} ${financialData.profitability.netProfit} indicates healthy operations`,
+        `Growth opportunities exist in customer retention and inventory optimization`
+      ],
+      businessHealthScore: businessMetrics.businessHealth,
+      growthOpportunities: [
+        'Expand successful product categories',
+        'Implement customer loyalty programs',
+        'Optimize inventory turnover'
+      ],
+      riskFactors: [
+        'Monitor cash flow during slow periods',
+        'Diversify product portfolio',
+        'Maintain adequate stock levels'
+      ],
+      strategicRecommendations: [
+        `Focus on your core ${businessProfile.business.type} strengths`,
+        'Invest in customer relationship management',
+        'Leverage seasonal trends for growth'
+      ],
+      nextSteps: [
+        'Review and optimize top-performing products',
+        'Implement data-driven inventory management',
+        'Develop customer retention strategies'
+      ]
+    };
+  }
+
+  // Helper methods for confidence and analysis
+  calculateConfidenceLevel(salesData) {
+    const transactionCount = salesData.recentSales.transactionCount;
+    if (transactionCount > 100) return 'high';
+    if (transactionCount > 30) return 'medium';
+    return 'low';
+  }
+
+  identifyUrgentInventoryActions(inventoryData, productData) {
+    const actions = [];
+    if (inventoryData.outOfStockItems > 0) {
+      actions.push(`Restock ${inventoryData.outOfStockItems} out-of-stock items immediately`);
+    }
+    if (inventoryData.lowStockItems > 5) {
+      actions.push(`Review reorder levels for ${inventoryData.lowStockItems} low-stock items`);
+    }
+    return actions;
+  }
+
+  generateInventoryRecommendations(productData, salesData) {
+    return [
+      'Focus on restocking top-selling products first',
+      'Consider seasonal demand patterns for reordering',
+      'Implement automatic reorder points for fast-moving items'
+    ];
+  }
+
+  calculateInventoryCostImpact(inventoryData, productData) {
+    return {
+      currentValue: inventoryData.totalInventoryValue,
+      optimizedValue: inventoryData.totalInventoryValue * 0.85,
+      potentialSavings: inventoryData.totalInventoryValue * 0.15
+    };
+  }
+
+  identifyProfitOpportunities(productData) {
+    return productData.performance.highMargin.slice(0, 3).map(product => ({
+      name: product.name,
+      currentMargin: product.profitMargin,
+      opportunity: 'Price optimization'
+    }));
+  }
+
+  generateProductActionItems(productData, salesData) {
+    return [
+      'Promote top-selling products more aggressively',
+      'Bundle slow-moving items with popular products',
+      'Review pricing for underperforming products',
+      'Consider discontinuing products with very low sales'
+    ];
+  }
+
+  identifyRetentionOpportunities(customerData) {
+    return [
+      `Target ${customerData.customerSegments.returning} returning customers with loyalty offers`,
+      'Re-engage inactive customers with personalized campaigns',
+      'Reward your most loyal customers with exclusive benefits'
+    ];
+  }
+
+  generateLoyaltyRecommendations(customerData) {
+    return [
+      'Implement a points-based loyalty program',
+      'Offer birthday discounts and special occasion rewards',
+      'Create VIP tiers for high-value customers'
+    ];
+  }
+
+  generateAcquisitionStrategies(customerData, salesData) {
+    return [
+      'Referral incentives for existing customers',
+      'Social media marketing campaigns',
+      'Local community engagement initiatives'
+    ];
+  }
+
+  identifyPriceOptimizationOpportunities(productData) {
+    return productData.performance.highMargin.slice(0, 5).map(product => ({
+      name: product.name,
+      currentPrice: product.price,
+      suggestedAction: 'Consider small price increase'
+    }));
+  }
+
+  calculateMarginImprovements(productData, financialData) {
+    return {
+      currentMargin: financialData.profitability.profitMargin,
+      potentialMargin: financialData.profitability.profitMargin + 2.5,
+      improvement: 2.5
+    };
+  }
+
+  generateCompetitivePricingInsights(productData) {
+    return [
+      'Research competitor pricing for your top products',
+      'Consider value-based pricing for unique items',
+      'Monitor market trends for pricing opportunities'
+    ];
+  }
+
+  calculatePricingRevenueImpact(productData, salesData) {
+    return {
+      currentRevenue: salesData.recentSales.totalRevenue,
+      projectedIncrease: salesData.recentSales.totalRevenue * 0.08,
+      timeframe: '3 months'
+    };
+  }
+
+  identifyGrowthOpportunities(comprehensiveData) {
+    const { productData, customerData, salesData } = comprehensiveData;
+    return [
+      `Expand successful categories (currently ${productData.totalCategories} categories)`,
+      `Increase customer retention (current rate: ${customerData.retentionRate}%)`,
+      `Optimize high-performing products for greater sales`,
+      'Implement cross-selling strategies'
+    ];
+  }
+
+  identifyRiskFactors(comprehensiveData) {
+    const { inventoryData, financialData } = comprehensiveData;
+    return [
+      inventoryData.outOfStockItems > 0 ? 'Stock-outs causing lost sales' : null,
+      financialData.profitability.profitMargin < 20 ? 'Low profit margins' : null,
+      'Seasonal demand fluctuations',
+      'Customer concentration risk'
+    ].filter(Boolean);
+  }
+
+  generateStrategicRecommendations(comprehensiveData) {
+    const { businessProfile, businessMetrics } = comprehensiveData;
+    return [
+      `Leverage your ${businessProfile.business.type} market position`,
+      'Invest in customer relationship management',
+      'Optimize inventory management processes',
+      'Focus on high-margin product categories'
+    ];
+  }
+
+  generateNextSteps(comprehensiveData) {
+    const { inventoryData, customerData, productData } = comprehensiveData;
+    const steps = [];
+    
+    if (inventoryData.outOfStockItems > 0) {
+      steps.push('Address out-of-stock items immediately');
+    }
+    if (customerData.retentionRate < 80) {
+      steps.push('Implement customer retention strategies');
+    }
+    if (productData.performance.lowPerforming.length > 0) {
+      steps.push('Review underperforming product strategies');
+    }
+    
+    steps.push('Set up regular business performance reviews');
+    return steps;
   }
 }
 

@@ -13,12 +13,14 @@ const nepaliCalendarService = require('../services/nepaliCalendarService');
 const getAIBusinessDashboard = async (req, res) => {
   try {
     const shopId = req.user.shopId;
+    const userId = req.user.id;
     const options = {
+      userId: userId,
       excludeCategories: req.query.exclude ? req.query.exclude.split(',') : [],
       includeOnly: req.query.include ? req.query.include.split(',') : null
     };
 
-    // Get AI business intelligence
+    // Get AI business intelligence with personalized data
     const aiInsights = await aiBusinessIntelligenceService.getBusinessIntelligence(shopId, options);
     
     // Get current inventory status for context
@@ -66,6 +68,7 @@ const getAIBusinessDashboard = async (req, res) => {
 const getSpecificAIAnalysis = async (req, res) => {
   try {
     const shopId = req.user.shopId;
+    const userId = req.user.id;
     const { category } = req.params;
     
     const validCategories = [
@@ -86,8 +89,9 @@ const getSpecificAIAnalysis = async (req, res) => {
       });
     }
 
-    // Get specific analysis
+    // Get specific analysis with personalized data
     const options = {
+      userId: userId,
       excludeCategories: validCategories.filter(c => c !== category)
     };
 

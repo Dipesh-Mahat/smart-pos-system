@@ -64,6 +64,42 @@
             margin-bottom: 20px;
         }
 
+        .business-context {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .business-info .business-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+
+        .business-info .business-type {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .data-quality {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .data-quality.excellent { color: #4CAF50; }
+        .data-quality.good { color: #FFC107; }
+        .data-quality.fair { color: #FF9800; }
+        .data-quality.poor { color: #F44336; }
+
         .insights-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -107,11 +143,107 @@
         .card-icon.inventory { background: linear-gradient(135deg, #007bff, #6610f2); }
         .card-icon.customers { background: linear-gradient(135deg, #ffc107, #fd7e14); }
         .card-icon.finance { background: linear-gradient(135deg, #17a2b8, #6f42c1); }
+        .card-icon.products { background: linear-gradient(135deg, #e83e8c, #fd7e14); }
+        .card-icon.business { background: linear-gradient(135deg, #6f42c1, #e83e8c); }
 
         .card-title {
             font-size: 1.3rem;
             font-weight: 600;
             color: #2c3e50;
+        }
+
+        .extra-info {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .extra-info i {
+            font-size: 0.8rem;
+        }
+
+        /* Skeleton Animation Styles */
+        .skeleton-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skeleton-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: skeleton-loading 1.5s infinite;
+        }
+
+        .skeleton-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .skeleton-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #e9ecef, #f8f9fa);
+            animation: skeleton-pulse 1.5s ease-in-out infinite alternate;
+        }
+
+        .skeleton-title {
+            width: 120px;
+            height: 20px;
+            background: linear-gradient(135deg, #e9ecef, #f8f9fa);
+            border-radius: 4px;
+            animation: skeleton-pulse 1.5s ease-in-out infinite alternate;
+        }
+
+        .skeleton-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 60px;
+            height: 20px;
+            background: linear-gradient(135deg, #e9ecef, #f8f9fa);
+            border-radius: 12px;
+            animation: skeleton-pulse 1.5s ease-in-out infinite alternate;
+        }
+
+        .skeleton-line {
+            height: 14px;
+            background: linear-gradient(135deg, #e9ecef, #f8f9fa);
+            border-radius: 4px;
+            margin-bottom: 12px;
+            animation: skeleton-pulse 1.5s ease-in-out infinite alternate;
+        }
+
+        .skeleton-line.short { width: 70%; }
+        .skeleton-line.medium { width: 85%; }
+        .skeleton-line.long { width: 95%; }
+
+        @keyframes skeleton-loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes skeleton-pulse {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
         }
 
         .confidence-badge {
@@ -257,11 +389,20 @@
 <body>
     <div class="main-content">
         <div class="ai-container">
-            <h1 class="header-title">
-                <i class="fas fa-brain"></i>
-                AI Business Insights
-            </h1>
-            <p class="header-subtitle">Smart recommendations powered by AI to help grow your business and increase profits</p>
+            <div class="header-section">
+                <h1 class="header-title">
+                    <i class="fas fa-brain"></i>
+                    <span id="personalizedTitle">AI Business Insights</span>
+                </h1>
+                <p class="header-subtitle">Smart recommendations powered by AI to help grow your business and increase profits</p>
+                <div class="business-context" id="businessContext" style="display: none;">
+                    <div class="business-info">
+                        <span class="business-name" id="businessName"></span>
+                        <span class="business-type" id="businessType"></span>
+                    </div>
+                    <div class="data-quality" id="dataQuality"></div>
+                </div>
+            </div>
 
             <div id="insightsSection" class="insights-grid">
                 <!-- AI Insights will be loaded here -->
@@ -339,10 +480,15 @@
             }
         }
 
-        // Attempt to load AI insights from backend
+        // Attempt to load AI insights from backend with personalized data
         async function loadAIInsights() {
+            console.log('Loading AI insights with skeleton animation...');
+            
+            // Show skeleton loading first
+            showSkeletonLoading();
+            
             try {
-                const response = await fetch('/api/ai-intelligence/dashboard', {
+                const response = await fetch('/api/ai-business-intelligence/dashboard', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${getAuthToken()}`,
@@ -352,18 +498,241 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.success && data.data && data.data.aiInsights) {
-                        aiData = data.data;
-                        displayAIInsights();
-                        showToast('AI insights loaded successfully!', 'success');
-                        return;
+                    console.log('Personalized AI data received:', data);
+                    
+                    if (data.success && data.data) {
+                        // Display personalized business context
+                        displayBusinessContext(data.data);
+                        
+                        // Display AI insights
+                        if (data.data.aiInsights && data.data.aiInsights.insights) {
+                            aiData = data.data;
+                            displayPersonalizedAIInsights();
+                            showToast('Personalized AI insights loaded!', 'success');
+                            return;
+                        } else if (data.data.aiInsights) {
+                            // Handle fallback recommendations
+                            displayPersonalizedFallbackInsights(data.data.aiInsights);
+                            showToast('Business insights loaded!', 'info');
+                            return;
+                        }
                     }
                 }
                 
                 throw new Error('AI service not available');
                 
             } catch (error) {
-                console.log('Falling back to static insights');
+                console.log('Falling back to static insights:', error);
+                // Small delay to show skeleton before loading fallback
+                setTimeout(() => {
+                    loadFallbackInsights();
+                }, 800);
+            }
+        }
+
+        // Display personalized business context
+        function displayBusinessContext(data) {
+            const businessContext = document.getElementById('businessContext');
+            const businessName = document.getElementById('businessName');
+            const businessType = document.getElementById('businessType');
+            const dataQuality = document.getElementById('dataQuality');
+            const personalizedTitle = document.getElementById('personalizedTitle');
+
+            if (data.businessProfile) {
+                const profile = data.businessProfile;
+                
+                // Update title with business name
+                if (personalizedTitle && profile.business.name) {
+                    personalizedTitle.textContent = `AI Insights for ${profile.business.name}`;
+                }
+
+                // Display business info
+                if (businessName) {
+                    businessName.textContent = profile.business.name || 'Your Business';
+                }
+                
+                if (businessType) {
+                    businessType.textContent = profile.business.type || 'Retail';
+                }
+
+                // Display data quality
+                if (dataQuality && data.dataQuality) {
+                    const quality = data.dataQuality;
+                    dataQuality.innerHTML = `
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Data Quality: ${quality.level.charAt(0).toUpperCase() + quality.level.slice(1)} (${Math.round(quality.score * 100)}%)</span>
+                    `;
+                    dataQuality.className = `data-quality ${quality.level}`;
+                }
+
+                // Show business context
+                if (businessContext) {
+                    businessContext.style.display = 'flex';
+                }
+            }
+        }
+
+        // Display personalized AI insights
+        function displayPersonalizedAIInsights() {
+            if (!aiData || !aiData.aiInsights || !aiData.aiInsights.insights) {
+                loadFallbackInsights();
+                return;
+            }
+
+            const insights = aiData.aiInsights.insights;
+            const insightCards = [];
+
+            // Convert personalized AI data to display format
+            if (insights.salesPrediction) {
+                insightCards.push({
+                    title: 'Sales Intelligence',
+                    icon: 'sales',
+                    iconClass: 'fas fa-chart-line',
+                    confidence: insights.salesPrediction.confidenceLevel || 'medium',
+                    insights: insights.salesPrediction.insights || [],
+                    extraInfo: insights.salesPrediction.nextMonthRevenue 
+                        ? `Projected Revenue: ${aiData.businessProfile?.business?.currency || 'NPR'} ${insights.salesPrediction.nextMonthRevenue.toFixed(0)}`
+                        : null
+                });
+            }
+
+            if (insights.inventoryOptimization) {
+                insightCards.push({
+                    title: 'Inventory Optimization',
+                    icon: 'inventory',
+                    iconClass: 'fas fa-boxes',
+                    confidence: insights.inventoryOptimization.confidence || 'medium',
+                    insights: insights.inventoryOptimization.insights || [],
+                    extraInfo: insights.inventoryOptimization.costSavings
+                        ? `Potential Savings: ${aiData.businessProfile?.business?.currency || 'NPR'} ${insights.inventoryOptimization.costSavings.toFixed(0)}`
+                        : null
+                });
+            }
+
+            if (insights.customerBehavior) {
+                insightCards.push({
+                    title: 'Customer Analytics',
+                    icon: 'customers',
+                    iconClass: 'fas fa-users',
+                    confidence: insights.customerBehavior.confidence || 'medium',
+                    insights: insights.customerBehavior.insights || []
+                });
+            }
+
+            if (insights.pricingStrategy) {
+                insightCards.push({
+                    title: 'Pricing Strategy',
+                    icon: 'finance',
+                    iconClass: 'fas fa-tag',
+                    confidence: insights.pricingStrategy.confidence || 'medium',
+                    insights: insights.pricingStrategy.insights || [],
+                    extraInfo: insights.pricingStrategy.revenueImpact?.projectedIncrease
+                        ? `Revenue Impact: +${aiData.businessProfile?.business?.currency || 'NPR'} ${insights.pricingStrategy.revenueImpact.projectedIncrease.toFixed(0)}`
+                        : null
+                });
+            }
+
+            if (insights.productPerformance) {
+                insightCards.push({
+                    title: 'Product Performance',
+                    icon: 'products',
+                    iconClass: 'fas fa-shopping-bag',
+                    confidence: insights.productPerformance.confidence || 'medium',
+                    insights: insights.productPerformance.insights || []
+                });
+            }
+
+            if (insights.businessInsights) {
+                insightCards.push({
+                    title: 'Business Intelligence',
+                    icon: 'business',
+                    iconClass: 'fas fa-lightbulb',
+                    confidence: insights.businessInsights.confidence || 'medium',
+                    insights: insights.businessInsights.insights || [],
+                    extraInfo: insights.businessInsights.businessHealthScore
+                        ? `Business Health: ${insights.businessInsights.businessHealthScore}/100`
+                        : null
+                });
+            }
+
+            if (insightCards.length === 0) {
+                loadFallbackInsights();
+                return;
+            }
+
+            displayInsights(insightCards);
+        }
+
+        // Display personalized fallback insights
+        function displayPersonalizedFallbackInsights(fallbackData) {
+            const insightCards = [];
+
+            if (fallbackData.salesPrediction) {
+                insightCards.push({
+                    title: 'Sales Intelligence',
+                    icon: 'sales',
+                    iconClass: 'fas fa-chart-line',
+                    confidence: fallbackData.salesPrediction.confidenceLevel || 'medium',
+                    insights: fallbackData.salesPrediction.insights || [],
+                    extraInfo: fallbackData.salesPrediction.nextMonthRevenue 
+                        ? `Projected Revenue: ${aiData?.businessProfile?.business?.currency || 'NPR'} ${fallbackData.salesPrediction.nextMonthRevenue.toFixed(0)}`
+                        : null
+                });
+            }
+
+            if (fallbackData.inventoryOptimization) {
+                insightCards.push({
+                    title: 'Inventory Optimization',
+                    icon: 'inventory',
+                    iconClass: 'fas fa-boxes',
+                    confidence: fallbackData.inventoryOptimization.confidence || 'medium',
+                    insights: fallbackData.inventoryOptimization.insights || []
+                });
+            }
+
+            if (fallbackData.customerBehavior) {
+                insightCards.push({
+                    title: 'Customer Analytics',
+                    icon: 'customers',
+                    iconClass: 'fas fa-users',
+                    confidence: fallbackData.customerBehavior.confidence || 'medium',
+                    insights: fallbackData.customerBehavior.insights || []
+                });
+            }
+
+            if (fallbackData.pricingStrategy) {
+                insightCards.push({
+                    title: 'Pricing Strategy',
+                    icon: 'finance',
+                    iconClass: 'fas fa-tag',
+                    confidence: fallbackData.pricingStrategy.confidence || 'medium',
+                    insights: fallbackData.pricingStrategy.insights || []
+                });
+            }
+
+            if (fallbackData.productPerformance) {
+                insightCards.push({
+                    title: 'Product Performance',
+                    icon: 'products',
+                    iconClass: 'fas fa-shopping-bag',
+                    confidence: fallbackData.productPerformance.confidence || 'medium',
+                    insights: fallbackData.productPerformance.insights || []
+                });
+            }
+
+            if (fallbackData.businessInsights) {
+                insightCards.push({
+                    title: 'Business Intelligence',
+                    icon: 'business',
+                    iconClass: 'fas fa-lightbulb',
+                    confidence: fallbackData.businessInsights.confidence || 'medium',
+                    insights: fallbackData.businessInsights.insights || []
+                });
+            }
+
+            if (insightCards.length > 0) {
+                displayInsights(insightCards);
+            } else {
                 loadFallbackInsights();
             }
         }
@@ -387,6 +756,46 @@
                 console.error('Error in loadFallbackInsights:', error);
                 forceLoadBasicContent();
             }
+        }
+
+        // Force load basic content when everything else fails
+        function forceLoadBasicContent() {
+            const insightsSection = document.getElementById('insightsSection');
+            if (insightsSection) {
+                insightsSection.innerHTML = `
+                    <div class="insight-card">
+                        <div class="card-header">
+                            <div class="card-icon sales">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3 class="card-title">AI Insights Loading...</h3>
+                        </div>
+                        <p>Your personalized business insights will appear here once the system is fully loaded.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Show skeleton loading animation
+        function showSkeletonLoading() {
+            const insightsSection = document.getElementById('insightsSection');
+            if (!insightsSection) return;
+
+            const skeletonHTML = Array.from({length: 4}, (_, index) => `
+                <div class="skeleton-card">
+                    <div class="skeleton-badge"></div>
+                    <div class="skeleton-header">
+                        <div class="skeleton-icon"></div>
+                        <div class="skeleton-title"></div>
+                    </div>
+                    <div class="skeleton-line long"></div>
+                    <div class="skeleton-line medium"></div>
+                    <div class="skeleton-line short"></div>
+                    <div class="skeleton-line long"></div>
+                </div>
+            `).join('');
+
+            insightsSection.innerHTML = skeletonHTML;
         }
 
         // Display AI insights from backend
@@ -449,7 +858,7 @@
             displayInsights(insightCards);
         }
 
-        // Display insights in cards
+        // Display insights in cards with personalized enhancements
         function displayInsights(insightCards) {
             console.log('displayInsights called with:', insightCards);
             const insightsSection = document.getElementById('insightsSection');
@@ -468,6 +877,7 @@
                         </div>
                         <h3 class="card-title">${card.title}</h3>
                     </div>
+                    ${card.extraInfo ? `<div class="extra-info"><i class="fas fa-info-circle"></i> ${card.extraInfo}</div>` : ''}
                     <ul class="insights-list">
                         ${(card.insights || []).slice(0, 4).map(insight => `
                             <li>
@@ -643,15 +1053,15 @@
                     forceLoadBasicContent();
                 }
                 
-                // Then try to load AI insights in background
+                // Then try to load personalized AI insights in background
                 setTimeout(() => {
-                    console.log('Attempting to load AI insights...');
+                    console.log('Attempting to load personalized AI insights...');
                     try {
-                        initializeAIDashboard();
+                        loadAIInsights();
                     } catch (error) {
                         console.log('AI insights loading error:', error);
                     }
-                }, 500);
+                }, 1500); // Increased delay to show fallback first
             });
         } else {
             // DOM is already ready, initialize immediately
