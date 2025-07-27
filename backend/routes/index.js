@@ -9,6 +9,7 @@ const supplierRoutes = require('./supplierRoutes');
 const smartInventoryRoutes = require('./smartInventoryRoutes');
 const festivalIntelligenceRoutes = require('./festivalIntelligenceRoutes');
 const aiBusinessIntelligenceRoutes = require('./aiBusinessIntelligenceRoutes');
+const mobileScannerRoutes = require('./mobileScannerRoutes');
 const adminController = require('../controllers/adminController');
 const dashboardController = require('../controllers/dashboardController');
 const productController = require('../controllers/productController');
@@ -48,6 +49,9 @@ router.use('/festival-intelligence', festivalIntelligenceRoutes);
 
 // Add AI business intelligence routes for advanced analytics
 router.use('/ai-intelligence', aiBusinessIntelligenceRoutes);
+
+// Add mobile scanner routes for QR code generation and OCR processing
+router.use('/scanner', mobileScannerRoutes);
 
 // Dashboard routes (for shopowners and admins)
 // Temporarily disable authentication for development testing

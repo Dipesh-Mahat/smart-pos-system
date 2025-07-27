@@ -1,15 +1,33 @@
 const rateLimit = require('express-rate-limit');
 const { v4: uuidv4 } = require('uuid');
-const RedisStore = require('rate-limit-redis');
-const Redis = require('ioredis');
-const { logSecurityEvent } = require('../utils/securityLogger');
+const { logSecurityEvent } = require('./securityLogger');
 
-// Initialize Redis client
-const redisClient = new Redis(process.env.REDIS_URL || {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379,
-    password: process.env.REDIS_PASSWORD
-});
+let useRedis = false;
+let redisStore = null;
+
+// Try to use Redis if available, fallback to memory store
+try {
+    if (process.env.NODE_ENV === 'production' || process.env.USE_REDIS === 'true') {
+        const RedisStore = require('rate-limit-redis');
+        const Redis = require('ioredis');
+        
+        const redisClient = new Redis(process.env.REDIS_URL || {
+            host: process.env.REDIS_HOST || 'localhost',
+            port: process.env.REDIS_PORT || 6379,
+            password: process.env.REDIS_PASSWORD
+        });
+        
+        redisStore = () => new RedisStore({
+            sendCommand: (...args) => redisClient.call(...args)
+        });
+        useRedis = true;
+        console.log('Using Redis for rate limiting');
+    } else {
+        console.log('Using memory store for rate limiting (development mode)');
+    }
+} catch (error) {
+    console.warn('Redis rate limiter setup failed, using memory store:', error.message);
+}
 
 /**
  * Dynamic rate limiting based on user role and endpoint
@@ -18,9 +36,7 @@ const redisClient = new Redis(process.env.REDIS_URL || {
  */
 const createDynamicRateLimiter = (options = {}) => {
     return rateLimit({
-        store: new RedisStore({
-            sendCommand: (...args) => redisClient.call(...args)
-        }),
+        store: useRedis ? redisStore() : new rateLimit.MemoryStore(),
         windowMs: options.windowMs || 15 * 60 * 1000, // 15 minutes default
         max: (req) => {
             // Define limits based on user role and endpoint

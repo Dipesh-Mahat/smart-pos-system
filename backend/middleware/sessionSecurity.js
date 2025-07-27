@@ -1,19 +1,39 @@
 const session = require('express-session');
-const RedisStore = require('connect-redis').default;
-const Redis = require('ioredis');
 const { v4: uuidv4 } = require('uuid');
 const { logSecurityEvent } = require('./securityLogger');
 
-// Initialize Redis client for session storage
-const redisClient = new Redis(process.env.REDIS_URL || {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379,
-    password: process.env.REDIS_PASSWORD
-});
+let sessionStore;
+
+// Try to use Redis if available, fallback to memory store
+try {
+    if (process.env.NODE_ENV === 'production' || process.env.USE_REDIS === 'true') {
+        const RedisStore = require('connect-redis').default;
+        const { createClient } = require('redis');
+        
+        const redisClient = createClient({
+            url: process.env.REDIS_URL || `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || 6379}`,
+            password: process.env.REDIS_PASSWORD
+        });
+        
+        redisClient.connect().catch(() => {
+            console.warn('Redis connection failed, using memory store');
+            sessionStore = new session.MemoryStore();
+        });
+        
+        sessionStore = new RedisStore({ client: redisClient });
+        console.log('Using Redis for session storage');
+    } else {
+        sessionStore = new session.MemoryStore();
+        console.log('Using memory store for session storage (development mode)');
+    }
+} catch (error) {
+    console.warn('Redis setup failed, using memory store:', error.message);
+    sessionStore = new session.MemoryStore();
+}
 
 // Session configuration with security best practices
 const sessionConfig = {
-    store: new RedisStore({ client: redisClient }),
+    store: sessionStore,
     secret: process.env.SESSION_SECRET || uuidv4(),
     name: 'sessionId', // Change from default 'connect.sid'
     resave: false,
