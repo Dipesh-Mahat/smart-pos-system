@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart POS Mobile Scanner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: #a5b4fc;
+            --text-color: #334155;
+            --light-bg: #f8fafc;
+            --dark-bg: #1e293b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --border-color: #e2e8f0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            touch-action: manipulation;
+        }
+        
+        .scanner-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .scanner-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .scanner-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #dc3545;
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.connected {
+            background: #4ade80;
+        }
+
+        .status-dot.connecting {
+            background: #ffc107;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .camera-section {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+        }
+        
+        #mobileVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .scan-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            border: 3px solid rgba(79, 70, 229, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 0 0 3000px rgba(0, 0, 0, 0.6);
+            z-index: 10;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(79, 70, 229, 0.2), rgba(79, 70, 229, 0.9), rgba(79, 70, 229, 0.2));
+            animation: scanning 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.8);
+        }
+        
+        @keyframes scanning {
+            0% { top: 0; }
+            50% { top: calc(100% - 4px); }
+            100% { top: 0; }
+        }
+        
+        .floating-controls {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            z-index: 100;
+            padding: 0 20px;
+        }
+        
+        .control-btn {
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .scan-btn {
+            background: rgba(79, 70, 229, 0.8);
+            border-color: rgba(79, 70, 229, 0.5);
+        }
+        
+        .ocr-btn {
+            background: rgba(16, 185, 129, 0.8);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+        
+        .flash-btn.active {
+            background: rgba(250, 204, 21, 0.8);
+            border-color: rgba(250, 204, 21, 0.5);
+            color: #000;
+        }
+
+        .qr-section {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 50;
+            display: none;
+        }
+
+        .qr-section.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .qr-code-container {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .qr-code-container img {
+            max-width: 200px;
+            height: auto;
+            border: 3px solid #fff;
+            border-radius: 10px;
+        }
+
+        .scan-type-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .scan-type-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(79, 70, 229, 0.2);
+            border: 1px solid rgba(79, 70, 229, 0.5);
+            border-radius: 8px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scan-type-btn.active {
+            background: rgba(79, 70, 229, 0.8);
+            border-color: rgba(79, 70, 229, 1);
+        }
+
+        .ocr-upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ocr-upload-area:hover {
+            border-color: rgba(79, 70, 229, 0.5);
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .ocr-upload-area.dragover {
+            border-color: rgba(79, 70, 229, 1);
+            background: rgba(79, 70, 229, 0.2);
+        }
+
+        .notification {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .notification.success {
+            background: rgba(16, 185, 129, 0.9);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+
+        .notification.error {
+            background: rgba(239, 68, 68, 0.9);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        .notification.warning {
+            background: rgba(245, 158, 11, 0.9);
+            border-color: rgba(245, 158, 11, 0.5);
+        }
+
+        .processing-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .processing-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .processing-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(79, 70, 229, 0.3);
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .ocr-results {
+            position: absolute;
+            bottom: 120px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 50;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .ocr-results.show {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ocr-result-item {
+            background: rgba(79, 70, 229, 0.1);
+            border: 1px solid rgba(79, 70, 229, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .ocr-result-item.product {
+            border-color: rgba(16, 185, 129, 0.5);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .ocr-result-item.bill {
+            border-color: rgba(245, 158, 11, 0.5);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.add {
+            background: var(--success);
+        }
+
+        .action-btn.ignore {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .no-camera {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #fff;
+            background-color: #1a1a1a;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="scanner-container">
+        <!-- Header -->
+        <div class="scanner-header">
+            <h1>
+                <i class="fas fa-qrcode"></i>
+                Smart Scanner
+            </h1>
+            <div class="connection-status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="connectionStatus">Connecting...</span>
+            </div>
+        </div>
+
+        <!-- Camera Section -->
+        <div class="camera-section">
+            <video id="mobileVideo" autoplay playsinline></video>
+            <div class="scan-overlay">
+                <div class="scan-line"></div>
+            </div>
+        </div>
+
+        <!-- No Camera Fallback -->
+        <div class="no-camera" id="noCamera">
+            <i class="fas fa-camera-slash"></i>
+            <h3>Camera Access Required</h3>
+            <p>Please allow camera access to scan barcodes and images</p>
+            <button id="enableCameraBtn">
+                <i class="fas fa-camera"></i> Enable Camera
+            </button>
+        </div>
+
+        <!-- QR Code Section -->
+        <div class="qr-section" id="qrSection">
+            <h3 style="margin-bottom: 15px; text-align: center;">
+                <i class="fas fa-qrcode"></i> Generate QR Code
+            </h3>
+            <div class="scan-type-buttons">
+                <button class="scan-type-btn active" data-type="product">
+                    <i class="fas fa-box"></i><br>Product
+                </button>
+                <button class="scan-type-btn" data-type="bill">
+                    <i class="fas fa-receipt"></i><br>Bill
+                </button>
+                <button class="scan-type-btn" data-type="inventory">
+                    <i class="fas fa-warehouse"></i><br>Inventory
+                </button>
+            </div>
+            <div class="qr-code-container" id="qrCodeContainer">
+                <!-- QR code will be inserted here -->
+            </div>
+            <p style="font-size: 12px; text-align: center; color: rgba(255,255,255,0.7);">
+                Scan this QR code with another device to open the scanner
+            </p>
+        </div>
+
+        <!-- OCR Upload Area -->
+        <div class="ocr-upload-area" id="ocrUploadArea" style="display: none;">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
+            <p>Tap to select image or drag & drop</p>
+            <p style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 5px;">
+                JPG, PNG, HEIC supported
+            </p>
+            <input type="file" id="ocrFileInput" accept="image/*" style="display: none;">
+        </div>
+
+        <!-- OCR Results -->
+        <div class="ocr-results" id="ocrResults">
+            <h4 style="margin-bottom: 15px;">
+                <i class="fas fa-brain"></i> AI Analysis Results
+            </h4>
+            <div id="ocrResultsList">
+                <!-- Results will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Floating Controls -->
+        <div class="floating-controls">
+            <button class="control-btn" id="backButton">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            
+            <button class="control-btn scan-btn" id="scanButton">
+                <i class="fas fa-search"></i>
+            </button>
+            
+            <button class="control-btn ocr-btn" id="ocrButton">
+                <i class="fas fa-camera"></i>
+            </button>
+            
+            <button class="control-btn" id="qrButton">
+                <i class="fas fa-qrcode"></i>
+            </button>
+            
+            <button class="control-btn" id="flashButton">
+                <i class="fas fa-flashlight"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Processing Overlay -->
+    <div class="processing-overlay" id="processingOverlay">
+        <div class="processing-spinner"></div>
+        <p id="processingText">Processing...</p>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // API Configuration
+        const API_BASE = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3001' 
+            : window.location.protocol + '//' + window.location.hostname;
+
+        class EnhancedMobileScanner {
+            constructor() {
+                this.stream = null;
+                this.isFlashOn = false;
+                this.currentScanType = 'product';
+                this.isProcessing = false;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.updateConnectionStatus();
+                this.requestCamera();
+            }
+
+            setupEventListeners() {
+                // Control buttons
+                document.getElementById('scanButton').addEventListener('click', () => this.startBarcodeScan());
+                document.getElementById('ocrButton').addEventListener('click', () => this.toggleOCRMode());
+                document.getElementById('qrButton').addEventListener('click', () => this.toggleQRCode());
+                document.getElementById('flashButton').addEventListener('click', () => this.toggleFlash());
+                document.getElementById('backButton').addEventListener('click', () => this.goBack());
+                document.getElementById('enableCameraBtn').addEventListener('click', () => this.requestCamera());
+
+                // Scan type buttons
+                document.querySelectorAll('.scan-type-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.scan-type-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentScanType = e.target.dataset.type;
+                        this.generateQRCode();
+                    });
+                });
+
+                // OCR upload area
+                const uploadArea = document.getElementById('ocrUploadArea');
+                const fileInput = document.getElementById('ocrFileInput');
+
+                uploadArea.addEventListener('click', () => fileInput.click());
+                fileInput.addEventListener('change', (e) => this.handleFileUpload(e.target.files[0]));
+
+                // Drag and drop
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragover');
+                });
+
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragover');
+                });
+
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                    const file = e.dataTransfer.files[0];
+                    if (file) this.handleFileUpload(file);
+                });
+            }
+
+            async updateConnectionStatus() {
+                const statusDot = document.getElementById('statusDot');
+                const connectionStatus = document.getElementById('connectionStatus');
+                
+                try {
+                    statusDot.classList.add('connecting');
+                    connectionStatus.textContent = 'Connecting...';
+
+                    // Test connection to backend
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/status`);
+                    
+                    if (response.ok) {
+                        statusDot.classList.remove('connecting');
+                        statusDot.classList.add('connected');
+                        connectionStatus.textContent = 'Connected';
+                        this.showNotification('Connected to Smart POS', 'success');
+                    } else {
+                        throw new Error('Connection failed');
+                    }
+                } catch (error) {
+                    statusDot.classList.remove('connecting');
+                    connectionStatus.textContent = 'Offline';
+                    this.showNotification('Connection failed - working offline', 'warning');
+                }
+            }
+
+            async requestCamera() {
+                try {
+                    this.stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: 'environment',
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }
+                    });
+
+                    const video = document.getElementById('mobileVideo');
+                    video.srcObject = this.stream;
+                    video.play();
+
+                    document.getElementById('noCamera').style.display = 'none';
+                    this.showNotification('Camera ready', 'success');
+                } catch (error) {
+                    console.error('Camera error:', error);
+                    document.getElementById('noCamera').style.display = 'flex';
+                    this.showNotification('Camera access denied', 'error');
+                }
+            }
+
+            startBarcodeScan() {
+                if (this.isProcessing) return;
+                
+                this.showNotification('Scanning for barcode...', 'info');
+                
+                // Initialize QuaggaJS for barcode scanning
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: document.querySelector('#mobileVideo')
+                    },
+                    decoder: {
+                        readers: [
+                            "code_128_reader",
+                            "ean_reader",
+                            "ean_8_reader",
+                            "code_39_reader",
+                            "code_39_vin_reader",
+                            "codabar_reader",
+                            "upc_reader",
+                            "upc_e_reader"
+                        ]
+                    }
+                }, (err) => {
+                    if (err) {
+                        console.error('Quagga error:', err);
+                        this.showNotification('Barcode scanner error', 'error');
+                        return;
+                    }
+                    Quagga.start();
+                });
+
+                Quagga.onDetected((data) => {
+                    const barcode = data.codeResult.code;
+                    Quagga.stop();
+                    this.processBarcode(barcode);
+                });
+
+                // Stop scanning after 10 seconds if no barcode found
+                setTimeout(() => {
+                    if (Quagga.CameraAccess.isActive()) {
+                        Quagga.stop();
+                        this.showNotification('No barcode detected', 'warning');
+                    }
+                }, 10000);
+            }
+
+            async processBarcode(barcode) {
+                this.showProcessing('Processing barcode...');
+                
+                try {
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/process-barcode`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            barcode: barcode,
+                            scanType: this.currentScanType
+                        })
+                    });
+
+                    const result = await response.json();
+                    this.hideProcessing();
+
+                    if (result.success) {
+                        this.showNotification(`Found: ${result.product.name}`, 'success');
+                        // Vibrate if supported
+                        if ('vibrate' in navigator) {
+                            navigator.vibrate(200);
+                        }
+                    } else {
+                        this.showNotification(result.message || 'Product not found', 'warning');
+                    }
+                } catch (error) {
+                    this.hideProcessing();
+                    this.showNotification('Error processing barcode', 'error');
+                }
+            }
+
+            toggleOCRMode() {
+                const uploadArea = document.getElementById('ocrUploadArea');
+                const isVisible = uploadArea.style.display !== 'none';
+                
+                if (isVisible) {
+                    uploadArea.style.display = 'none';
+                    document.getElementById('ocrResults').classList.remove('show');
+                } else {
+                    uploadArea.style.display = 'block';
+                    this.hideOtherSections();
+                }
+            }
+
+            async toggleQRCode() {
+                const qrSection = document.getElementById('qrSection');
+                const isVisible = qrSection.classList.contains('show');
+                
+                if (isVisible) {
+                    qrSection.classList.remove('show');
+                } else {
+                    this.hideOtherSections();
+                    qrSection.classList.add('show');
+                    await this.generateQRCode();
+                }
+            }
+
+            async generateQRCode() {
+                try {
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/generate-qr`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            scanType: this.currentScanType
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const qrContainer = document.getElementById('qrCodeContainer');
+                        qrContainer.innerHTML = `<img src="${result.qrCode}" alt="QR Code" />`;
+                    } else {
+                        this.showNotification('Failed to generate QR code', 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('Error generating QR code', 'error');
+                }
+            }
+
+            async handleFileUpload(file) {
+                if (!file || this.isProcessing) return;
+
+                this.showProcessing('Analyzing image with AI...');
+
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('scanType', this.currentScanType);
+
+                try {
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/process-ocr`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    this.hideProcessing();
+
+                    if (result.success) {
+                        this.displayOCRResults(result.analysis);
+                        this.showNotification('Image analyzed successfully', 'success');
+                    } else {
+                        this.showNotification(result.message || 'Failed to analyze image', 'error');
+                    }
+                } catch (error) {
+                    this.hideProcessing();
+                    this.showNotification('Error processing image', 'error');
+                }
+            }
+
+            displayOCRResults(analysis) {
+                const resultsContainer = document.getElementById('ocrResultsList');
+                resultsContainer.innerHTML = '';
+
+                if (analysis.products && analysis.products.length > 0) {
+                    analysis.products.forEach(product => {
+                        const item = this.createResultItem('product', product);
+                        resultsContainer.appendChild(item);
+                    });
+                }
+
+                if (analysis.bills && analysis.bills.length > 0) {
+                    analysis.bills.forEach(bill => {
+                        const item = this.createResultItem('bill', bill);
+                        resultsContainer.appendChild(item);
+                    });
+                }
+
+                if (analysis.text) {
+                    const item = this.createResultItem('text', { text: analysis.text });
+                    resultsContainer.appendChild(item);
+                }
+
+                document.getElementById('ocrResults').classList.add('show');
+            }
+
+            createResultItem(type, data) {
+                const item = document.createElement('div');
+                item.className = `ocr-result-item ${type}`;
+
+                let content = '';
+                if (type === 'product') {
+                    content = `
+                        <div><strong>Product:</strong> ${data.name || data.text}</div>
+                        ${data.price ? `<div><strong>Price:</strong> $${data.price}</div>` : ''}
+                        ${data.category ? `<div><strong>Category:</strong> ${data.category}</div>` : ''}
+                    `;
+                } else if (type === 'bill') {
+                    content = `
+                        <div><strong>Bill Information</strong></div>
+                        <div>${data.text}</div>
+                        ${data.total ? `<div><strong>Total:</strong> $${data.total}</div>` : ''}
+                    `;
+                } else {
+                    content = `<div>${data.text}</div>`;
+                }
+
+                item.innerHTML = `
+                    ${content}
+                    <div class="action-buttons">
+                        <button class="action-btn add" onclick="scanner.addItem('${type}', ${JSON.stringify(data).replace(/"/g, '&quot;')})">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                        <button class="action-btn ignore">
+                            <i class="fas fa-times"></i> Ignore
+                        </button>
+                    </div>
+                `;
+
+                return item;
+            }
+
+            async addItem(type, data) {
+                this.showProcessing('Adding item...');
+
+                try {
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/add-item`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            type: type,
+                            data: data
+                        })
+                    });
+
+                    const result = await response.json();
+                    this.hideProcessing();
+
+                    if (result.success) {
+                        this.showNotification('Item added successfully', 'success');
+                    } else {
+                        this.showNotification(result.message || 'Failed to add item', 'error');
+                    }
+                } catch (error) {
+                    this.hideProcessing();
+                    this.showNotification('Error adding item', 'error');
+                }
+            }
+
+            toggleFlash() {
+                if (!this.stream) return;
+
+                const track = this.stream.getVideoTracks()[0];
+                const capabilities = track.getCapabilities();
+
+                if (capabilities.torch) {
+                    this.isFlashOn = !this.isFlashOn;
+                    track.applyConstraints({
+                        advanced: [{ torch: this.isFlashOn }]
+                    });
+
+                    const flashButton = document.getElementById('flashButton');
+                    flashButton.classList.toggle('active', this.isFlashOn);
+                }
+            }
+
+            hideOtherSections() {
+                document.getElementById('qrSection').classList.remove('show');
+                document.getElementById('ocrUploadArea').style.display = 'none';
+                document.getElementById('ocrResults').classList.remove('show');
+            }
+
+            showProcessing(text) {
+                this.isProcessing = true;
+                document.getElementById('processingText').textContent = text;
+                document.getElementById('processingOverlay').classList.add('show');
+            }
+
+            hideProcessing() {
+                this.isProcessing = false;
+                document.getElementById('processingOverlay').classList.remove('show');
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type} show`;
+
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            goBack() {
+                if (document.referrer) {
+                    window.location.href = document.referrer;
+                } else {
+                    window.history.back();
+                }
+            }
+        }
+
+        // Initialize scanner when page loads
+        let scanner;
+        document.addEventListener('DOMContentLoaded', () => {
+            scanner = new EnhancedMobileScanner();
+        });
+
+        // Handle page unload
+        window.addEventListener('beforeunload', () => {
+            if (scanner && scanner.stream) {
+                scanner.stream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
+</html>
