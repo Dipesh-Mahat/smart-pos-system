@@ -414,9 +414,6 @@
                 Suppliers
             </div>
             <div class="header-actions">
-                <button class="btn btn-primary" onclick="addSupplier()">
-                    <i class="fas fa-plus"></i> Add Supplier
-                </button>
                 <button class="btn btn-secondary" onclick="exportSuppliers()">
                     <i class="fas fa-download"></i> Export
                 </button>
@@ -591,10 +588,6 @@
                         </div>
                     </div>
                     <div class="supplier-actions">
-                        <button class="btn btn-success" onclick="event.stopPropagation(); createOrder('${supplier._id}')">
-                            <i class="fas fa-plus"></i>
-                            New Order
-                        </button>
                         <button class="btn btn-secondary" onclick="event.stopPropagation(); viewSupplierProducts('${supplier._id}')">
                             <i class="fas fa-boxes"></i>
                             View Products
