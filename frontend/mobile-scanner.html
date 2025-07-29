@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Smart POS Mobile Scanner</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Add QuaggaJS for barcode scanning -->
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
     <style>
         :root {
@@ -46,69 +45,11 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            flex-direction: column;
             height: 100vh;
             overflow: hidden;
         }
         
-        .room-info {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 15px;
-            text-align: center;
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .room-info h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .room-code {
-            display: inline-block;
-            background: rgba(255,255,255,0.2);
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            margin: 8px 0;
-            font-size: 1.1rem;
-        }
-        
-        .camera-section {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            overflow: hidden;
-            z-index: 1;
-        }
-        
-        .camera-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            overflow: hidden;
-        }
-        
-        #mobileVideo {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        
-        .mobile-scanner-header {
+        .scanner-header {
             position: absolute;
             top: 0;
             left: 0;
@@ -117,18 +58,24 @@
             justify-content: space-between;
             align-items: center;
             padding: 15px 20px;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             z-index: 100;
         }
 
-        .connection-info {
+        .scanner-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .connection-status {
             display: flex;
             align-items: center;
             gap: 8px;
             font-size: 14px;
-            color: #fff;
         }
 
         .status-dot {
@@ -139,29 +86,62 @@
             transition: all 0.3s ease;
         }
 
-        .status-dot.connecting {
-            background: #ffc107;
-            animation: blink 1s infinite;
-        }
-
         .status-dot.connected {
             background: #4ade80;
         }
 
-        @keyframes blink {
+        .status-dot.connecting {
+            background: #ffc107;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
         
-        .room-code {
-            padding: 5px 10px;
-            background: rgba(79, 70, 229, 0.2);
-            border: 1px solid rgba(79, 70, 229, 0.5);
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #fff;
-            display: inline-block;
+        .camera-section {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+        }
+        
+        #mobileVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .scan-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            border: 3px solid rgba(79, 70, 229, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 0 0 3000px rgba(0, 0, 0, 0.6);
+            z-index: 10;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(79, 70, 229, 0.2), rgba(79, 70, 229, 0.9), rgba(79, 70, 229, 0.2));
+            animation: scanning 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.8);
+        }
+        
+        @keyframes scanning {
+            0% { top: 0; }
+            50% { top: calc(100% - 4px); }
+            100% { top: 0; }
         }
         
         .floating-controls {
@@ -185,48 +165,271 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
+            font-size: 20px;
             color: #fff;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             cursor: pointer;
             transition: all 0.2s ease;
+            border: 2px solid rgba(255, 255, 255, 0.1);
         }
         
         .control-btn:active {
             transform: scale(0.95);
         }
         
-        .back-btn {
-            width: 50px;
-            height: 50px;
-            font-size: 18px;
-        }
-        
         .scan-btn {
             background: rgba(79, 70, 229, 0.8);
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+            border-color: rgba(79, 70, 229, 0.5);
+        }
+        
+        .ocr-btn {
+            background: rgba(16, 185, 129, 0.8);
+            border-color: rgba(16, 185, 129, 0.5);
         }
         
         .flash-btn.active {
             background: rgba(250, 204, 21, 0.8);
-            box-shadow: 0 4px 15px rgba(250, 204, 21, 0.4);
+            border-color: rgba(250, 204, 21, 0.5);
             color: #000;
         }
-        
-        video {
+
+        .qr-section {
             position: absolute;
+            top: 100px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 50;
+            display: none;
+        }
+
+        .qr-section.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .qr-code-container {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .qr-code-container img {
+            max-width: 200px;
+            height: auto;
+            border: 3px solid #fff;
+            border-radius: 10px;
+        }
+
+        .scan-type-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .scan-type-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(79, 70, 229, 0.2);
+            border: 1px solid rgba(79, 70, 229, 0.5);
+            border-radius: 8px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scan-type-btn.active {
+            background: rgba(79, 70, 229, 0.8);
+            border-color: rgba(79, 70, 229, 1);
+        }
+
+        .ocr-upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ocr-upload-area:hover {
+            border-color: rgba(79, 70, 229, 0.5);
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .ocr-upload-area.dragover {
+            border-color: rgba(79, 70, 229, 1);
+            background: rgba(79, 70, 229, 0.2);
+        }
+
+        .notification {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .notification.success {
+            background: rgba(16, 185, 129, 0.9);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+
+        .notification.error {
+            background: rgba(239, 68, 68, 0.9);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        .notification.warning {
+            background: rgba(245, 158, 11, 0.9);
+            border-color: rgba(245, 158, 11, 0.5);
+        }
+
+        .processing-overlay {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-        }
-        
-        .no-camera {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
             display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .processing-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .processing-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(79, 70, 229, 0.3);
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .ocr-results {
+            position: absolute;
+            bottom: 120px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 50;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .ocr-results.show {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ocr-result-item {
+            background: rgba(79, 70, 229, 0.1);
+            border: 1px solid rgba(79, 70, 229, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .ocr-result-item.product {
+            border-color: rgba(16, 185, 129, 0.5);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .ocr-result-item.bill {
+            border-color: rgba(245, 158, 11, 0.5);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.add {
+            background: var(--success);
+        }
+
+        .action-btn.ignore {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .no-camera {
+            display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -236,1380 +439,547 @@
             padding: 20px;
             text-align: center;
         }
-        
-        .no-camera i {
-            font-size: 48px;
-            margin-bottom: 20px;
-            color: var(--warning);
-        }
-        
-        .no-camera button {
-            margin-top: 20px;
-            background-color: var(--primary-color);
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .scan-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 280px;
-            height: 280px;
-            border: 3px solid rgba(79, 70, 229, 0.8);
-            border-radius: 20px;
-            box-shadow: 0 0 0 3000px rgba(0, 0, 0, 0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-        }
-
-        .scan-line {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, rgba(79, 70, 229, 0.2), rgba(79, 70, 229, 0.9), rgba(79, 70, 229, 0.2));
-            animation: scanning 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 10px rgba(79, 70, 229, 0.8);
-        }
-        
-        @keyframes scanning {
-            0% { top: 0; }
-            50% { top: calc(100% - 4px); }
-            100% { top: 0; }
-        }
-        
-        .scan-overlay.scanning .scan-line {
-            animation: scanning 1.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        /* Add scanner corner accents */
-        .scan-overlay::before,
-        .scan-overlay::after,
-        .scan-overlay > span::before,
-        .scan-overlay > span::after {
-            content: '';
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            border-color: rgba(79, 70, 229, 1);
-            border-style: solid;
-        }
-        
-        .scan-overlay::before {
-            top: -3px;
-            left: -3px;
-            border-width: 3px 0 0 3px;
-            border-radius: 10px 0 0 0;
-        }
-        
-        .scan-overlay::after {
-            top: -3px;
-            right: -3px;
-            border-width: 3px 3px 0 0;
-            border-radius: 0 10px 0 0;
-        }
-        
-        .scan-overlay > span::before {
-            bottom: -3px;
-            left: -3px;
-            border-width: 0 0 3px 3px;
-            border-radius: 0 0 0 10px;
-        }
-        
-        .scan-overlay > span::after {
-            bottom: -3px;
-            right: -3px;
-            border-width: 0 3px 3px 0;
-            border-radius: 0 0 10px 0;
-        }
-        
-        .scan-result {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            opacity: 0;
-            transition: all 0.3s ease;
-            min-width: 250px;
-            pointer-events: none;
-        }
-        
-        .scan-result.show {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-        }
-        
-        .scan-result i {
-            font-size: 36px;
-            margin-bottom: 10px;
-        }
-        
-        .scan-result.success i {
-            color: var(--success);
-        }
-        
-        .scan-result.error i {
-            color: var(--danger);
-        }
-        
-        .camera-controls {
-            display: flex;
-            justify-content: space-evenly;
-            padding: 15px;
-            background-color: #1a1a1a;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .camera-btn {
-            background: linear-gradient(135deg, #4f46e5, #4338ca);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-weight: bold;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .camera-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        
-        .camera-btn:active {
-            transform: translateY(0);
-        }
-        
-        .camera-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .manual-input {
-            padding: 15px;
-            background-color: var(--light-bg);
-            border-top: 1px solid var(--border-color);
-        }
-        
-        .manual-input h3 {
-            margin: 0 0 10px;
-            font-size: 16px;
-            color: var(--text-color);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .barcode-input {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .barcode-input input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        
-        .add-btn {
-            background: linear-gradient(135deg, #4f46e5, #4338ca);
-            color: white;
-            border: none;
-            width: 44px;
-            height: 44px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-        
-        .add-btn:active {
-            transform: scale(0.95);
-        }
-        
-        .scanned-items {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            background-color: var(--light-bg);
-            border-top: 1px solid var(--border-color);
-            max-height: 200px;
-        }
-        
-        .scanned-items h3 {
-            margin: 0 0 10px;
-            font-size: 16px;
-            color: var(--text-color);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .scanned-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 15px;
-            background-color: white;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
-        .item-info h4 {
-            margin: 0 0 5px;
-            color: var(--primary-dark);
-        }
-        
-        .item-info p {
-            margin: 0;
-            font-size: 12px;
-            color: #6c757d;
-        }
-
-        .item-price {
-            font-size: 18px;
-            font-weight: 700;
-            color: #28a745;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: transform 0.3s ease;
-            z-index: 1000;
-        }
-        
-        .notification.show {
-            transform: translateX(-50%) translateY(0);
-        }
-        
-        .notification.success {
-            background-color: rgba(16, 185, 129, 0.9);
-        }
-        
-        .notification.error {
-            background-color: rgba(239, 68, 68, 0.9);
-        }
-        
-        .notification.info {
-            background-color: rgba(59, 130, 246, 0.9);
-        }
-        
-        .notification.warning {
-            background-color: rgba(245, 158, 11, 0.9);
-        }
-        
-        .desktop-scanner-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .desktop-scanner-overlay.show {
-            opacity: 1;
-        }
-        
-        .desktop-scanner-dialog {
-            background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            transform: scale(0.95);
-            transition: transform 0.3s ease;
-        }
-        
-        .desktop-scanner-overlay.show .desktop-scanner-dialog {
-            transform: scale(1);
-        }
-        
-        .desktop-scanner-dialog h3 {
-            margin: 0 0 15px;
-            color: var(--primary-dark);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .connection-methods {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .connection-method {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-        }
-        
-        .connection-method h4 {
-            margin: 0 0 10px;
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .qr-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 200px;
-            background-color: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-        
-        .qr-placeholder i {
-            font-size: 24px;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-        
-        .mobile-url {
-            display: flex;
-            margin-top: 10px;
-        }
-        
-        .mobile-url input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px 0 0 4px;
-            font-size: 14px;
-        }
-        
-        .mobile-url button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0 15px;
-            border-radius: 0 4px 4px 0;
-            cursor: pointer;
-        }
-        
-        .room-code-display {
-            margin-top: 10px;
-            background-color: white;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 10px;
-            text-align: center;
-            font-size: 28px;
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
-        
-        .connection-status-info {
-            margin-top: 20px;
-            padding: 10px 15px;
-            background-color: #e9ecef;
-            border-radius: 4px;
-        }
-        
-        .dialog-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-        
-        .primary-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-        
-        .close-dialog-btn {
-            background-color: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .alert-success {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--success);
-        }
-
-        .alert-success i {
-            color: #28a745;
-            font-size: 18px;
-        }
     </style>
-    <script src="js/scanner-mobile.js"></script>
-    <script src="js/scanner-barcode.js"></script>
-    <script src="js/mobile-scanner.js"></script>
 </head>
 <body>
     <div class="scanner-container">
-        <div class="mobile-scanner-header" id="mobileHeader">
-            <div class="connection-info">
+        <!-- Header -->
+        <div class="scanner-header">
+            <h1>
+                <i class="fas fa-qrcode"></i>
+                Smart Scanner
+            </h1>
+            <div class="connection-status">
                 <div class="status-dot" id="statusDot"></div>
                 <span id="connectionStatus">Connecting...</span>
             </div>
-            <div class="room-code" id="roomCode">Room: ----</div>
         </div>
-        
+
+        <!-- Camera Section -->
         <div class="camera-section">
-            <div class="camera-container">
-                <video id="mobileVideo" autoplay playsinline style="display: none;"></video>
-                <div class="no-camera" id="noCamera">
-                    <i class="fas fa-camera-slash"></i>
-                    <h3>Camera Access Required</h3>
-                    <p>Please allow camera access to scan barcodes</p>
-                    <button class="camera-btn scan-btn" id="enableCameraBtn">
-                        <i class="fas fa-camera"></i> Enable Camera
-                    </button>
-                </div>
-                <div class="scan-overlay" style="display: none;">
-                    <span></span>
-                    <div class="scan-line"></div>
-                </div>
+            <video id="mobileVideo" autoplay playsinline></video>
+            <div class="scan-overlay">
+                <div class="scan-line"></div>
             </div>
         </div>
-        
-        <div class="floating-controls">
-            <button class="control-btn back-btn" id="backButton">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-            <button class="control-btn scan-btn" id="scanButton" disabled>
-                <i class="fas fa-qrcode"></i>
-            </button>
-            <button class="control-btn flash-btn" id="flashButton" disabled>
-                <i class="fas fa-lightbulb"></i>
+
+        <!-- No Camera Fallback -->
+        <div class="no-camera" id="noCamera">
+            <i class="fas fa-camera-slash"></i>
+            <h3>Camera Access Required</h3>
+            <p>Please allow camera access to scan barcodes and images</p>
+            <button id="enableCameraBtn">
+                <i class="fas fa-camera"></i> Enable Camera
             </button>
         </div>
 
-        <div class="manual-input">
-            <h3><i class="fas fa-keyboard"></i> Manual Entry</h3>            <div class="barcode-input">
-                <input type="text" id="manualBarcode" placeholder="Enter barcode number" maxlength="20">
-                <button class="add-btn" id="addBarcodeBtn">
+        <!-- QR Code Section -->
+        <div class="qr-section" id="qrSection">
+            <h3 style="margin-bottom: 15px; text-align: center;">
+                <i class="fas fa-qrcode"></i> Generate QR Code
+            </h3>
+            <div class="scan-type-buttons">
+                <button class="scan-type-btn active" data-type="product">
+                    <i class="fas fa-box"></i><br>Product
+                </button>
+                <button class="scan-type-btn" data-type="bill">
+                    <i class="fas fa-receipt"></i><br>Bill
+                </button>
+                <button class="scan-type-btn" data-type="inventory">
+                    <i class="fas fa-warehouse"></i><br>Inventory
                 </button>
             </div>
+            <div class="qr-code-container" id="qrCodeContainer">
+                <!-- QR code will be inserted here -->
+            </div>
+            <p style="font-size: 12px; text-align: center; color: rgba(255,255,255,0.7);">
+                Scan this QR code with another device to open the scanner
+            </p>
         </div>
 
-        <div class="scanned-items">
-            <h3><i class="fas fa-list"></i> Scanned Items</h3>
-            <div id="scannedItemsList">
-                <div style="text-align: center; color: #6c757d; padding: 20px;">
-                </div>
+        <!-- OCR Upload Area -->
+        <div class="ocr-upload-area" id="ocrUploadArea" style="display: none;">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
+            <p>Tap to select image or drag & drop</p>
+            <p style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 5px;">
+                JPG, PNG, HEIC supported
+            </p>
+            <input type="file" id="ocrFileInput" accept="image/*" style="display: none;">
+        </div>
+
+        <!-- OCR Results -->
+        <div class="ocr-results" id="ocrResults">
+            <h4 style="margin-bottom: 15px;">
+                <i class="fas fa-brain"></i> AI Analysis Results
+            </h4>
+            <div id="ocrResultsList">
+                <!-- Results will be inserted here -->
             </div>
+        </div>
+
+        <!-- Floating Controls -->
+        <div class="floating-controls">
+            <button class="control-btn" id="backButton">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            
+            <button class="control-btn scan-btn" id="scanButton">
+                <i class="fas fa-search"></i>
+            </button>
+            
+            <button class="control-btn ocr-btn" id="ocrButton">
+                <i class="fas fa-camera"></i>
+            </button>
+            
+            <button class="control-btn" id="qrButton">
+                <i class="fas fa-qrcode"></i>
+            </button>
+            
+            <button class="control-btn" id="flashButton">
+                <i class="fas fa-flashlight"></i>
+            </button>
         </div>
     </div>
 
-    <script>
-        // Detect if the device is mobile or desktop
-        function isMobileDevice() {
-            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                   ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0);
-        }
+    <!-- Processing Overlay -->
+    <div class="processing-overlay" id="processingOverlay">
+        <div class="processing-spinner"></div>
+        <p id="processingText">Processing...</p>
+    </div>
 
-        class MobileScanner {
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // API Configuration
+        const API_BASE = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3001' 
+            : window.location.protocol + '//' + window.location.hostname;
+
+        class EnhancedMobileScanner {
             constructor() {
                 this.stream = null;
                 this.isFlashOn = false;
-                this.roomCode = null;
-                this.scannedItems = [];
-                this.barcodeScanner = null;
-                this.isMobile = isMobileDevice();
+                this.currentScanType = 'product';
+                this.isProcessing = false;
                 this.init();
             }
 
             init() {
-                this.extractRoomCode();
+                this.setupEventListeners();
                 this.updateConnectionStatus();
                 this.requestCamera();
-                this.setupEventListeners();
-            }
-            
-            setupEventListeners() {
-                // Additional event listeners for new UI elements
-                const backButton = document.getElementById('backButton');
-                if (backButton) {
-                    backButton.addEventListener('click', () => {
-                        // First try to use the referrer if it exists
-                        if (document.referrer && !document.referrer.includes('mobile-scanner.html')) {
-                            window.location.href = document.referrer;
-                        } else {
-                            // If no referrer, check if we have a returnUrl param
-                            const urlParams = new URLSearchParams(window.location.search);
-                            const returnUrl = urlParams.get('returnUrl');
-                            
-                            if (returnUrl) {
-                                window.location.href = decodeURIComponent(returnUrl);
-                            } else {
-                                // Default to going back in history
-                                window.history.back();
-                            }
-                        }
-                    });
-                }
             }
 
-            extractRoomCode() {
-                const urlParams = new URLSearchParams(window.location.search);
-                this.roomCode = urlParams.get('room') || 'MOBILE';
-                this.sessionId = urlParams.get('sessionId');
-                document.getElementById('roomCode').textContent = `Room: ${this.roomCode}`;
+            setupEventListeners() {
+                // Control buttons
+                document.getElementById('scanButton').addEventListener('click', () => this.startBarcodeScan());
+                document.getElementById('ocrButton').addEventListener('click', () => this.toggleOCRMode());
+                document.getElementById('qrButton').addEventListener('click', () => this.toggleQRCode());
+                document.getElementById('flashButton').addEventListener('click', () => this.toggleFlash());
+                document.getElementById('backButton').addEventListener('click', () => this.goBack());
+                document.getElementById('enableCameraBtn').addEventListener('click', () => this.requestCamera());
+
+                // Scan type buttons
+                document.querySelectorAll('.scan-type-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.scan-type-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentScanType = e.target.dataset.type;
+                        this.generateQRCode();
+                    });
+                });
+
+                // OCR upload area
+                const uploadArea = document.getElementById('ocrUploadArea');
+                const fileInput = document.getElementById('ocrFileInput');
+
+                uploadArea.addEventListener('click', () => fileInput.click());
+                fileInput.addEventListener('change', (e) => this.handleFileUpload(e.target.files[0]));
+
+                // Drag and drop
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragover');
+                });
+
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragover');
+                });
+
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                    const file = e.dataTransfer.files[0];
+                    if (file) this.handleFileUpload(file);
+                });
             }
-            
-            updateConnectionStatus() {
+
+            async updateConnectionStatus() {
                 const statusDot = document.getElementById('statusDot');
                 const connectionStatus = document.getElementById('connectionStatus');
                 
-                // First attempt to connect
-                statusDot.classList.add('connecting');
-                connectionStatus.textContent = 'Connecting to POS Terminal...';
-                
-                // Simulate connection process with 3 stages
-                setTimeout(() => {
-                    // Stage 1: Finding POS terminal
-                    this.showNotification('Finding POS terminal...', 'info');
-                }, 500);
-                
-                setTimeout(() => {
-                    // Stage 2: Authenticating
-                    this.showNotification('Authenticating with room code: ' + this.roomCode, 'info');
-                }, 1200);
-                
-                setTimeout(() => {
-                    // Extract token and session ID if available
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const token = urlParams.get('token');
+                try {
+                    statusDot.classList.add('connecting');
+                    connectionStatus.textContent = 'Connecting...';
+
+                    // Test connection to backend
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/status`);
                     
-                    // Set the connection flag in localStorage for the desktop to detect
-                    if (this.sessionId && this.roomCode) {
-                        localStorage.setItem('mobileConnected_' + this.roomCode, this.sessionId);
-                        this.showNotification('Connection established with desktop', 'success');
-                    }
-                    
-                    // Connect to room using the connection module if available
-                    if (typeof mobileScannerConnection !== 'undefined') {
-                        this.deviceId = mobileScannerConnection.connectDevice(
-                            this.roomCode, 
-                            {
-                                type: 'mobile',
-                                browser: navigator.userAgent,
-                                os: navigator.platform,
-                                capabilities: {
-                                    camera: !!navigator.mediaDevices,
-                                    vibration: 'vibrate' in navigator
-                                }
-                            },
-                            token
-                        );
-                        
-                        // Setup reconnection handlers
-                        this.setupReconnectionHandling();
-                    }
-                    
-                    // Stage 3: Connection established
-                    if (this.deviceId) {
+                    if (response.ok) {
                         statusDot.classList.remove('connecting');
                         statusDot.classList.add('connected');
-                        connectionStatus.textContent = 'Connected to POS Terminal';
-                        this.showNotification('Connected to POS Terminal', 'success');
-                        
-                        // Vibrate device if supported
-                        if ('vibrate' in navigator) {
-                            navigator.vibrate([200, 100, 200]);
-                        }
+                        connectionStatus.textContent = 'Connected';
+                        this.showNotification('Connected to Smart POS', 'success');
                     } else {
-                        statusDot.classList.remove('connecting');
-                        statusDot.className = 'status-dot';
-                        connectionStatus.textContent = 'Connection failed';
-                        this.showNotification('Failed to connect. Invalid room code or authentication token.', 'error');
+                        throw new Error('Connection failed');
                     }
-                }, 2000);
-            }
-            
-            setupReconnectionHandling() {
-                // Handle reconnection if connection is lost
-                if (typeof mobileScannerConnection !== 'undefined') {
-                    mobileScannerConnection.on('message_to_device', (data) => {
-                        if (data.deviceId === this.deviceId || data.deviceId === 'all') {
-                            if (data.messageType === 'barcode_processed') {
-                                // Show feedback for processed barcode
-                                const success = data.messageData.success;
-                                if (success) {
-                                    this.showNotification(`Product added: ${data.messageData.product.name}`, 'success');
-                                } else {
-                                    this.showNotification(`Error: ${data.messageData.error}`, 'error');
-                                }
-                            } else if (data.messageType === 'reconnect') {
-                                // Handle reconnection request
-                                this.showNotification('Reconnecting to POS Terminal...', 'info');
-                                const statusDot = document.getElementById('statusDot');
-                                const connectionStatus = document.getElementById('connectionStatus');
-                                
-                                statusDot.className = 'status-dot connecting';
-                                connectionStatus.textContent = 'Reconnecting...';
-                                
-                                // Attempt to reconnect
-                                if (typeof mobileScannerConnection !== 'undefined') {
-                                    mobileScannerConnection.handleDeviceReconnection(
-                                        this.roomCode,
-                                        this.deviceId,
-                                        {
-                                            browser: navigator.userAgent,
-                                            os: navigator.platform,
-                                            reconnectTime: Date.now()
-                                        }
-                                    );
-                                    
-                                    // Update status
-                                    statusDot.className = 'status-dot connected';
-                                    connectionStatus.textContent = 'Connected to POS Terminal';
-                                    this.showNotification('Reconnected to POS Terminal', 'success');
-                                }
-                            }
-                        }
-                    });
-                    
-                    // Handle connection loss
-                    window.addEventListener('offline', () => {
-                        const statusDot = document.getElementById('statusDot');
-                        const connectionStatus = document.getElementById('connectionStatus');
-                        
-                        statusDot.className = 'status-dot';
-                        connectionStatus.textContent = 'Offline - Waiting for connection';
-                        this.showNotification('Network connection lost', 'error');
-                    });
-                    
-                    // Handle connection restored
-                    window.addEventListener('online', () => {
-                        const statusDot = document.getElementById('statusDot');
-                        const connectionStatus = document.getElementById('connectionStatus');
-                        
-                        statusDot.className = 'status-dot connecting';
-                        connectionStatus.textContent = 'Reconnecting...';
-                        
-                        // Wait a bit for connection to stabilize
-                        setTimeout(() => {
-                            if (typeof mobileScannerConnection !== 'undefined' && this.deviceId) {
-                                mobileScannerConnection.handleDeviceReconnection(
-                                    this.roomCode,
-                                    this.deviceId,
-                                    {
-                                        browser: navigator.userAgent,
-                                        os: navigator.platform,
-                                        reconnectTime: Date.now()
-                                    }
-                                );
-                                
-                                statusDot.className = 'status-dot connected';
-                                connectionStatus.textContent = 'Connected to POS Terminal';
-                                this.showNotification('Reconnected to POS Terminal', 'success');
-                            }
-                        }, 1500);
-                    });
+                } catch (error) {
+                    statusDot.classList.remove('connecting');
+                    connectionStatus.textContent = 'Offline';
+                    this.showNotification('Connection failed - working offline', 'warning');
                 }
             }
 
             async requestCamera() {
                 try {
-                    // Initialize the barcode scanner
-                    this.barcodeScanner = new BarcodeScanner({
-                        videoConstraints: {
+                    this.stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
                             facingMode: 'environment',
                             width: { ideal: 1280 },
                             height: { ideal: 720 }
-                        },
-                        scanInterval: 150 // Scan every 150ms
+                        }
                     });
-                    
-                    // Initialize the scanner
-                    const initialized = await this.barcodeScanner.initialize();
-                    if (!initialized) {
-                        throw new Error('Failed to initialize barcode scanner');
-                    }
-                    
-                    // Get video element
+
                     const video = document.getElementById('mobileVideo');
-                    
-                    // Start the video stream
-                    this.stream = await this.barcodeScanner.startVideo(video);
-                    if (!this.stream) {
-                        throw new Error('Failed to start video stream');
-                    }
-                    
-                    // Show video and overlay
+                    video.srcObject = this.stream;
+                    video.play();
+
                     document.getElementById('noCamera').style.display = 'none';
-                    video.style.display = 'block';
-                    document.querySelector('.scan-overlay').style.display = 'block';
-                    
-                    // Enable buttons
-                    document.getElementById('scanButton').disabled = false;
-                    document.getElementById('flashButton').disabled = false;
-                    
-                    this.showNotification('Camera ready for scanning', 'success');
+                    this.showNotification('Camera ready', 'success');
                 } catch (error) {
-                    console.error('Camera access denied:', error);
-                    this.showNotification('Camera access denied: ' + error.message, 'error');
+                    console.error('Camera error:', error);
+                    document.getElementById('noCamera').style.display = 'flex';
+                    this.showNotification('Camera access denied', 'error');
                 }
-            }            captureBarcode() {
-                if (!this.barcodeScanner) {
-                    this.showNotification('Barcode scanner not initialized', 'error');
-                    return;
-                }
+            }
+
+            startBarcodeScan() {
+                if (this.isProcessing) return;
                 
-                // Check if this is a desktop device
-                if (!this.isMobile) {
-                    this.showDesktopScannerDialog();
-                    return;
-                }
+                this.showNotification('Scanning for barcode...', 'info');
                 
-                // Set scan mode for analytics
-                this.scanMode = 'camera';
-                
-                // Create scan animation
-                const scanOverlay = document.querySelector('.scan-overlay');
-                scanOverlay.classList.add('scanning');
-                
-                // Show scanning in progress notification
-                this.showNotification('Scanning...', 'info');
-                
-                // Ensure scan result UI is hidden
-                const existingResult = document.querySelector('.scan-result');
-                if (existingResult) {
-                    existingResult.remove();
-                }
-                
-                // Start scanning for barcodes
-                this.barcodeScanner.startScanning((barcode) => {
-                    // Handle successful barcode detection
-                    console.log('Barcode detected:', barcode);
-                    
-                    // Vibrate device if supported
-                    if ('vibrate' in navigator) {
-                        navigator.vibrate(100);
+                // Initialize QuaggaJS for barcode scanning
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: document.querySelector('#mobileVideo')
+                    },
+                    decoder: {
+                        readers: [
+                            "code_128_reader",
+                            "ean_reader",
+                            "ean_8_reader",
+                            "code_39_reader",
+                            "code_39_vin_reader",
+                            "codabar_reader",
+                            "upc_reader",
+                            "upc_e_reader"
+                        ]
                     }
-                    
-                    // Stop scanning after successful detection
-                    this.barcodeScanner.stopScanning();
-                    
-                    // Stop scan animation
-                    scanOverlay.classList.remove('scanning');
-                    
-                    // Show success animation
-                    this.showScanResult(true, barcode.rawValue);
-                    
-                    // Process the barcode
-                    this.processBarcode(barcode.rawValue);
+                }, (err) => {
+                    if (err) {
+                        console.error('Quagga error:', err);
+                        this.showNotification('Barcode scanner error', 'error');
+                        return;
+                    }
+                    Quagga.start();
                 });
-                
-                // If no barcode is detected within 10 seconds, stop scanning and show a message
+
+                Quagga.onDetected((data) => {
+                    const barcode = data.codeResult.code;
+                    Quagga.stop();
+                    this.processBarcode(barcode);
+                });
+
+                // Stop scanning after 10 seconds if no barcode found
                 setTimeout(() => {
-                    if (scanOverlay.classList.contains('scanning')) {
-                        // Stop scanning
-                        this.barcodeScanner.stopScanning();
-                        scanOverlay.classList.remove('scanning');
-                        
-                        // Show error animation
-                        this.showScanResult(false);
-                        
-                        this.showNotification('No barcode detected. Try again or use manual entry.', 'error');
+                    if (Quagga.CameraAccess.isActive()) {
+                        Quagga.stop();
+                        this.showNotification('No barcode detected', 'warning');
                     }
                 }, 10000);
             }
-            
-            /**
-             * Show scan result animation
-             * @param {boolean} success - Whether scan was successful
-             * @param {string} barcode - Detected barcode value
-             */
-            showScanResult(success, barcode = '') {
-                const scanOverlay = document.querySelector('.scan-overlay');
-                if (!scanOverlay) return;
-                
-                // Create result element
-                const resultEl = document.createElement('div');
-                resultEl.className = `scan-result ${success ? 'success' : 'error'}`;
-                
-                // Set content based on success/failure
-                if (success) {
-                    resultEl.innerHTML = `
-                        <i class="fas fa-check-circle"></i>
-                        <p>Barcode detected!</p>
-                        <p style="font-size: 12px;">${barcode}</p>
-                    `;
-                } else {
-                    resultEl.innerHTML = `
-                        <i class="fas fa-times-circle"></i>
-                        <p>No barcode found</p>
-                        <p style="font-size: 12px;">Try again or use manual entry</p>
-                    `;
-                }
-                
-                // Add to overlay
-                scanOverlay.appendChild(resultEl);
-                
-                // Show with animation
-                setTimeout(() => {
-                    resultEl.classList.add('show');
-                }, 100);
-                
-                // Remove after delay
-                setTimeout(() => {
-                    resultEl.classList.remove('show');
-                    setTimeout(() => resultEl.remove(), 300);
-                }, 2000);
-            }
 
-            addManualBarcode() {
-                const barcodeInput = document.getElementById('manualBarcode');
-                const barcode = barcodeInput.value.trim();
+            async processBarcode(barcode) {
+                this.showProcessing('Processing barcode...');
                 
-                if (barcode) {
-                    this.processBarcode(barcode);
-                    barcodeInput.value = '';
-                }
-            }
+                try {
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/process-barcode`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            barcode: barcode,
+                            scanType: this.currentScanType
+                        })
+                    });
 
-            processBarcode(barcode) {
-                // Mock product database (in real app, this would sync with main POS)
-                const products = {
-                    '9843201234567': { name: 'Coca Cola 500ml', price: 275, category: 'Beverages' },
-                    '9843201234568': { name: 'Dairy Milk Chocolate', price: 330, category: 'Chocolates' },
-                    '9843201234569': { name: 'KitKat Chocolate', price: 250, category: 'Chocolates' },
-                    '9843201234570': { name: 'Snickers Chocolate', price: 380, category: 'Chocolates' },
-                    '9843201234571': { name: 'Potato Chips', price: 219, category: 'Snacks' },
-                    '9843201234572': { name: 'Water Bottle 1L', price: 138, category: 'Beverages' }
-                };
+                    const result = await response.json();
+                    this.hideProcessing();
 
-                const product = products[barcode];
-                
-                if (product) {
-                    this.addScannedItem(barcode, product);
-                    this.sendToPOS(barcode, product);
-                    this.showNotification(`Added: ${product.name}`, 'success');
-                } else {
-                    this.showNotification(`Product not found: ${barcode}`, 'error');
-                }
-            }
-
-            addScannedItem(barcode, product) {
-                const item = {
-                    barcode,
-                    ...product,
-                    timestamp: new Date().toLocaleTimeString()
-                };
-                
-                this.scannedItems.unshift(item); // Add to beginning
-                this.updateScannedItemsDisplay();
-            }
-
-            updateScannedItemsDisplay() {
-                const container = document.getElementById('scannedItemsList');
-                
-                if (this.scannedItems.length === 0) {
-                    container.innerHTML = `
-                        <div style="text-align: center; color: #6c757d; padding: 20px;">
-                            No items scanned yet
-                        </div>
-                    `;
-                    return;
-                }
-
-                container.innerHTML = this.scannedItems.map(item => `
-                    <div class="scanned-item">
-                        <div class="item-info">
-                            <h4>${item.name}</h4>
-                            <p>${item.category} • ${item.timestamp}</p>
-                            <p>Barcode: ${item.barcode}</p>
-                        </div>
-                        <div class="item-price">NPR ${item.price}</div>
-                    </div>
-                `).join('');
-            }
-            
-            sendToPOS(barcode, product) {
-                // Enhanced implementation to simulate real connection
-                console.log('Sending to POS:', { barcode, product, roomCode: this.roomCode });
-                
-                // Show sending animation/indicator
-                const statusDot = document.getElementById('statusDot');
-                const connectionStatus = document.getElementById('connectionStatus');
-                
-                // Visual feedback during sending
-                if (statusDot && connectionStatus) {
-                    const originalClass = statusDot.className;
-                    const originalText = connectionStatus.textContent;
-                    
-                    statusDot.className = 'status-dot sending';
-                    connectionStatus.textContent = 'Sending data to POS...';
-                }
-                
-                // Prepare data packet
-                const barcodeData = {
-                    barcode: barcode,
-                    product: product,
-                    timestamp: Date.now(),
-                    scanMode: this.scanMode || 'manual',
-                    deviceInfo: {
-                        os: navigator.platform,
-                        browser: navigator.userAgent,
-                        orientation: window.orientation,
-                        connectionType: navigator.connection ? navigator.connection.type : 'unknown'
-                    }
-                };
-                
-                // Attempt to send 3 times if connection fails
-                let attempt = 0;
-                const maxAttempts = 3;
-                const attemptSend = () => {
-                    attempt++;
-                    
-                    let sendSuccess = false;
-                    // Use our connection module if available
-                    if (typeof mobileScannerConnection !== 'undefined' && this.deviceId) {
-                        sendSuccess = mobileScannerConnection.processBarcodeFromMobile(
-                            this.roomCode, 
-                            this.deviceId, 
-                            barcodeData
-                        );
-                    } else {
-                        // Simulate 90% success rate if module not available
-                        sendSuccess = Math.random() < 0.9;
-                    }
-                    
-                    if (sendSuccess) {
-                        // Reset UI after successful send
-                        if (statusDot && connectionStatus) {
-                            setTimeout(() => {
-                                statusDot.className = 'status-dot connected';
-                                connectionStatus.textContent = 'Connected to POS Terminal';
-                            }, 1000);
-                        }
-                        
-                        this.showNotification('Barcode sent to POS terminal', 'success');
-                        
-                        // Vibrate device if supported
+                    if (result.success) {
+                        this.showNotification(`Found: ${result.product.name}`, 'success');
+                        // Vibrate if supported
                         if ('vibrate' in navigator) {
                             navigator.vibrate(200);
                         }
-                    } else if (attempt < maxAttempts) {
-                        // Retry after delay
-                        this.showNotification(`Connection error - retrying (${attempt}/${maxAttempts})...`, 'error');
-                        setTimeout(attemptSend, 1000);
                     } else {
-                        // Final failure
-                        if (statusDot && connectionStatus) {
-                            statusDot.className = 'status-dot';
-                            connectionStatus.textContent = 'Connection error - reconnect required';
-                        }
-                        
-                        this.showNotification('Failed to send barcode after multiple attempts', 'error');
-                        
-                        // Attempt to reconnect
-                        setTimeout(() => {
-                            if (typeof mobileScannerConnection !== 'undefined' && this.deviceId) {
-                                this.updateConnectionStatus();
-                            }
-                        }, 3000);
+                        this.showNotification(result.message || 'Product not found', 'warning');
                     }
-                };
+                } catch (error) {
+                    this.hideProcessing();
+                    this.showNotification('Error processing barcode', 'error');
+                }
+            }
+
+            toggleOCRMode() {
+                const uploadArea = document.getElementById('ocrUploadArea');
+                const isVisible = uploadArea.style.display !== 'none';
                 
-                // Start sending attempts
-                attemptSend();
+                if (isVisible) {
+                    uploadArea.style.display = 'none';
+                    document.getElementById('ocrResults').classList.remove('show');
+                } else {
+                    uploadArea.style.display = 'block';
+                    this.hideOtherSections();
+                }
+            }
+
+            async toggleQRCode() {
+                const qrSection = document.getElementById('qrSection');
+                const isVisible = qrSection.classList.contains('show');
+                
+                if (isVisible) {
+                    qrSection.classList.remove('show');
+                } else {
+                    this.hideOtherSections();
+                    qrSection.classList.add('show');
+                    await this.generateQRCode();
+                }
+            }
+
+            async generateQRCode() {
+                try {
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/generate-qr`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            scanType: this.currentScanType
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const qrContainer = document.getElementById('qrCodeContainer');
+                        qrContainer.innerHTML = `<img src="${result.qrCode}" alt="QR Code" />`;
+                    } else {
+                        this.showNotification('Failed to generate QR code', 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('Error generating QR code', 'error');
+                }
+            }
+
+            async handleFileUpload(file) {
+                if (!file || this.isProcessing) return;
+
+                this.showProcessing('Analyzing image with AI...');
+
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('scanType', this.currentScanType);
+
+                try {
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/process-ocr`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    this.hideProcessing();
+
+                    if (result.success) {
+                        this.displayOCRResults(result.analysis);
+                        this.showNotification('Image analyzed successfully', 'success');
+                    } else {
+                        this.showNotification(result.message || 'Failed to analyze image', 'error');
+                    }
+                } catch (error) {
+                    this.hideProcessing();
+                    this.showNotification('Error processing image', 'error');
+                }
+            }
+
+            displayOCRResults(analysis) {
+                const resultsContainer = document.getElementById('ocrResultsList');
+                resultsContainer.innerHTML = '';
+
+                if (analysis.products && analysis.products.length > 0) {
+                    analysis.products.forEach(product => {
+                        const item = this.createResultItem('product', product);
+                        resultsContainer.appendChild(item);
+                    });
+                }
+
+                if (analysis.bills && analysis.bills.length > 0) {
+                    analysis.bills.forEach(bill => {
+                        const item = this.createResultItem('bill', bill);
+                        resultsContainer.appendChild(item);
+                    });
+                }
+
+                if (analysis.text) {
+                    const item = this.createResultItem('text', { text: analysis.text });
+                    resultsContainer.appendChild(item);
+                }
+
+                document.getElementById('ocrResults').classList.add('show');
+            }
+
+            createResultItem(type, data) {
+                const item = document.createElement('div');
+                item.className = `ocr-result-item ${type}`;
+
+                let content = '';
+                if (type === 'product') {
+                    content = `
+                        <div><strong>Product:</strong> ${data.name || data.text}</div>
+                        ${data.price ? `<div><strong>Price:</strong> $${data.price}</div>` : ''}
+                        ${data.category ? `<div><strong>Category:</strong> ${data.category}</div>` : ''}
+                    `;
+                } else if (type === 'bill') {
+                    content = `
+                        <div><strong>Bill Information</strong></div>
+                        <div>${data.text}</div>
+                        ${data.total ? `<div><strong>Total:</strong> $${data.total}</div>` : ''}
+                    `;
+                } else {
+                    content = `<div>${data.text}</div>`;
+                }
+
+                item.innerHTML = `
+                    ${content}
+                    <div class="action-buttons">
+                        <button class="action-btn add" onclick="scanner.addItem('${type}', ${JSON.stringify(data).replace(/"/g, '&quot;')})">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                        <button class="action-btn ignore">
+                            <i class="fas fa-times"></i> Ignore
+                        </button>
+                    </div>
+                `;
+
+                return item;
+            }
+
+            async addItem(type, data) {
+                this.showProcessing('Adding item...');
+
+                try {
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/add-item`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            type: type,
+                            data: data
+                        })
+                    });
+
+                    const result = await response.json();
+                    this.hideProcessing();
+
+                    if (result.success) {
+                        this.showNotification('Item added successfully', 'success');
+                    } else {
+                        this.showNotification(result.message || 'Failed to add item', 'error');
+                    }
+                } catch (error) {
+                    this.hideProcessing();
+                    this.showNotification('Error adding item', 'error');
+                }
             }
 
             toggleFlash() {
                 if (!this.stream) return;
-                
+
                 const track = this.stream.getVideoTracks()[0];
                 const capabilities = track.getCapabilities();
-                
+
                 if (capabilities.torch) {
                     this.isFlashOn = !this.isFlashOn;
                     track.applyConstraints({
                         advanced: [{ torch: this.isFlashOn }]
                     });
-                    
+
                     const flashButton = document.getElementById('flashButton');
-                    if (this.isFlashOn) {
-                        flashButton.style.background = 'linear-gradient(135deg, #28a745, #1e7e34)';
-                        flashButton.innerHTML = '<i class="fas fa-lightbulb"></i> Flash ON';
-                    } else {
-                        flashButton.style.background = 'linear-gradient(135deg, #ffc107, #e0a800)';
-                        flashButton.innerHTML = '<i class="fas fa-lightbulb"></i> Flash';
-                    }
-                } else {
-                    this.showNotification('Flash not supported on this device', 'error');
+                    flashButton.classList.toggle('active', this.isFlashOn);
                 }
             }
 
-            showNotification(message, type) {
-                const notification = document.createElement('div');
-                notification.className = `notification ${type}`;
-                notification.innerHTML = `
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-                    <span>${message}</span>
-                `;
-                
-                document.body.appendChild(notification);
-                
-                setTimeout(() => {
-                    notification.classList.add('show');
-                }, 100);
-                
+            hideOtherSections() {
+                document.getElementById('qrSection').classList.remove('show');
+                document.getElementById('ocrUploadArea').style.display = 'none';
+                document.getElementById('ocrResults').classList.remove('show');
+            }
+
+            showProcessing(text) {
+                this.isProcessing = true;
+                document.getElementById('processingText').textContent = text;
+                document.getElementById('processingOverlay').classList.add('show');
+            }
+
+            hideProcessing() {
+                this.isProcessing = false;
+                document.getElementById('processingOverlay').classList.remove('show');
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type} show`;
+
                 setTimeout(() => {
                     notification.classList.remove('show');
-                    setTimeout(() => notification.remove(), 300);
                 }, 3000);
-            }            showDesktopScannerDialog() {
-                // Create the modal overlay
-                const overlay = document.createElement('div');
-                overlay.className = 'desktop-scanner-overlay';
-                overlay.id = 'desktopScannerOverlay';
-                
-                // Create the dialog content
-                const dialog = document.createElement('div');
-                dialog.className = 'desktop-scanner-dialog';
-                
-                // Generate a room code if not already present
-                if (!this.roomCode || this.roomCode === 'MOBILE') {
-                    this.roomCode = 'SC' + Math.floor(100000 + Math.random() * 900000); // 6-digit code
-                    document.getElementById('roomCode').textContent = `Room: ${this.roomCode}`;
-                }
-                
-                // Get or generate token
-                const urlParams = new URLSearchParams(window.location.search);
-                const token = urlParams.get('token') || this.generateToken();
-                
-                // Get the mobile scanner URL with room code and token
-                let mobileUrl = '';
-                if (typeof mobileScannerConnection !== 'undefined' && 
-                    typeof mobileScannerConnection.getMobileScannerUrl === 'function') {
-                    mobileUrl = mobileScannerConnection.getMobileScannerUrl(this.roomCode, token);
+            }
+
+            goBack() {
+                if (document.referrer) {
+                    window.location.href = document.referrer;
                 } else {
-                    // Fallback to manual URL generation
-                    const baseUrl = `${window.location.protocol}//${window.location.host}`;
-                    mobileUrl = `${baseUrl}/mobile-scanner.html?room=${encodeURIComponent(this.roomCode)}&token=${encodeURIComponent(token)}`;
+                    window.history.back();
                 }
-                
-                // Create a new room in the connection manager if available
-                if (typeof mobileScannerConnection !== 'undefined') {
-                    const roomDetails = mobileScannerConnection.createRoom(this.roomCode);
-                    
-                    // Register for device connection events
-                    mobileScannerConnection.on('device_connected', (data) => {
-                        if (data.roomCode === this.roomCode) {
-                            // Update connection status when a device connects
-                            const statusInfo = document.getElementById('connectionStatusInfo');
-                            if (statusInfo) {
-                                statusInfo.innerHTML = `
-                                    <div class="alert-success">
-                                        <i class="fas fa-check-circle"></i>
-                                        <span>Mobile device connected! Barcodes will appear here.</span>
-                                    </div>
-                                `;
-                            }
-                            
-                            this.showNotification(`Mobile device connected to room ${this.roomCode}`, 'success');
-                        }
-                    });
-                    
-                    // Register for barcode events
-                    mobileScannerConnection.on('barcode_received', (data) => {
-                        if (data.roomCode === this.roomCode) {
-                            // Process the barcode
-                            this.processBarcode(data.barcodeData.barcode);
-                            
-                            // Show notification
-                            this.showNotification(`Barcode received from mobile device: ${data.barcodeData.barcode}`, 'success');
-                            
-                            // Close the dialog after successful scan if needed
-                            // We keep it open by default to allow multiple scans
-                        }
-                    });
-                }
-                
-                // Set dialog content
-                dialog.innerHTML = `
-                    <h3><i class="fas fa-mobile-alt"></i> Mobile Scanner Required</h3>
-                    <p>To scan barcodes, connect a mobile device using one of these methods:</p>
-                    <div class="connection-methods">
-                        <div class="connection-method">
-                            <h4><i class="fas fa-qrcode"></i> Scan QR Code</h4>
-                            <div id="qrCode" class="qr-placeholder">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                <p>Generating QR Code...</p>
-                            </div>
-                        </div>
-                        <div class="connection-method">
-                            <h4><i class="fas fa-link"></i> Open Link</h4>
-                            <p>Open this URL on your mobile device:</p>                            <div class="mobile-url">
-                                <input type="text" readonly value="${mobileUrl}" id="mobileUrlInput">
-                                <button id="copyUrlBtn"><i class="fas fa-copy"></i></button>
-                            </div>
-                        </div>
-                        <div class="connection-method">
-                            <h4><i class="fas fa-key"></i> Use Room Code</h4>
-                            <p>Open the POS Scanner app and enter:</p>
-                            <div class="room-code-display">
-                                <span>${this.roomCode}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="connection-status-info" id="connectionStatusInfo">
-                        <p><i class="fas fa-info-circle"></i> Waiting for mobile device connection...</p>
-                    </div>                    <div class="dialog-buttons">
-                        <button class="primary-btn" id="openScannerTabBtn">
-                            <i class="fas fa-external-link-alt"></i> Open Scanner in New Tab
-                        </button>
-                        <button class="close-dialog-btn" id="closeDialogBtn">Close</button>
-                    </div>
-                `;
-                
-                // Add the dialog to the overlay
-                overlay.appendChild(dialog);
-                
-                // Add the overlay to the document
-                document.body.appendChild(overlay);
-                
-                // Add fade-in class for animation
-                setTimeout(() => {
-                    overlay.classList.add('show');
-                }, 10);
-                
-                // Try to generate QR code if library is available
-                this.tryGenerateQRCode(mobileUrl);
-                
-                // Show notification
-                this.showNotification('Please use a mobile device for scanning', 'info');
-                
-                // Setup automatic room code refresh
-                this.setupRoomCodeRefresh();
-            }
-            
-            /**
-             * Setup room code refresh for desktop scanner dialog
-             */
-            setupRoomCodeRefresh() {
-                // Check if we already have a connection active
-                if (typeof mobileScannerConnection !== 'undefined') {
-                    // Get room info every 10 seconds to check for connected devices
-                    const checkInterval = setInterval(() => {
-                        const overlay = document.getElementById('desktopScannerOverlay');
-                        if (!overlay) {
-                            // Dialog closed, clear interval
-                            clearInterval(checkInterval);
-                            return;
-                        }
-                        
-                        const roomInfo = mobileScannerConnection.getRoomInfo(this.roomCode);
-                        if (roomInfo && roomInfo.deviceCount > 0) {
-                            // Update connection status
-                            const statusInfo = document.getElementById('connectionStatusInfo');
-                            if (statusInfo) {
-                                statusInfo.innerHTML = `
-                                    <div class="alert-success">
-                                        <i class="fas fa-check-circle"></i>
-                                        <span>${roomInfo.deviceCount} mobile device(s) connected and ready to scan</span>
-                                    </div>
-                                `;
-                            }
-                        }
-                    }, 10000);
-                }
-            }
-            
-            generateToken() {
-                // Generate a simple token for authentication
-                return Math.random().toString(36).substring(2, 15) + 
-                       Math.random().toString(36).substring(2, 15);
-            }
-            
-            tryGenerateQRCode(url) {
-                // Check if we can use QRCode library
-                if (typeof QRCode === 'undefined') {
-                    // If QRCode library is not available, load it dynamically
-                    const script = document.createElement('script');
-                    script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js';
-                    script.onload = () => {
-                        this.generateQRCode(url);
-                    };
-                    script.onerror = () => {
-                        document.getElementById('qrCode').innerHTML = '<p>QR Code generation failed</p>';
-                    };
-                    document.head.appendChild(script);
-                } else {
-                    // QRCode library is available
-                    this.generateQRCode(url);
-                }
-            }
-            
-            generateQRCode(url) {
-                const qrElement = document.getElementById('qrCode');
-                if (qrElement) {
-                    qrElement.innerHTML = '';
-                    QRCode.toCanvas(qrElement, url, {
-                        width: 200,
-                        margin: 1,
-                        color: {
-                            dark: '#007bff',
-                            light: '#ffffff'
-                        }
-                    }, function(error) {
-                        if (error) {
-                            qrElement.innerHTML = '<p>QR Code generation failed</p>';
-                            console.error(error);
-                        }
-                    });
-                }
-            }
-        }        // Initialize mobile scanner
-        let mobileScanner;
-        document.addEventListener('DOMContentLoaded', () => {
-            mobileScanner = new MobileScanner();
-            
-            // Add event listeners for all buttons
-            document.getElementById('enableCameraBtn').addEventListener('click', () => {
-                mobileScanner.requestCamera();
-            });
-            
-            document.getElementById('scanButton').addEventListener('click', () => {
-                mobileScanner.captureBarcode();
-            });
-            
-            document.getElementById('flashButton').addEventListener('click', () => {
-                mobileScanner.toggleFlash();
-            });
-            
-            // Back button is handled in the MobileScanner.setupEventListeners() method
-            });
-            
-            document.getElementById('addBarcodeBtn').addEventListener('click', () => {
-                mobileScanner.addManualBarcode();
-            });
-            
-            // Add event listener for manual barcode input Enter key
-            document.getElementById('manualBarcode').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    mobileScanner.addManualBarcode();
-                }
-            });
-            
-            // Set up copy URL functionality
-            document.addEventListener('click', (e) => {
-                if (e.target.closest('#copyUrlBtn')) {
-                    copyMobileUrl();
-                }
-                
-                if (e.target.closest('#closeDialogBtn')) {
-                    closeDesktopDialog();
-                }
-                
-                if (e.target.closest('#openScannerTabBtn')) {
-                    const mobileUrlInput = document.getElementById('mobileUrlInput');
-                    if (mobileUrlInput) {
-                        window.open(mobileUrlInput.value, '_blank');
-                    }
-                }
-            });
-        
-        // Copy mobile URL to clipboard
-        function copyMobileUrl() {
-            const input = document.getElementById('mobileUrlInput');
-            if (input) {
-                input.select();
-                input.setSelectionRange(0, 99999);
-                document.execCommand('copy');
-                
-                // Show feedback
-                const button = document.querySelector('.mobile-url button');
-                const originalHTML = button.innerHTML;
-                button.innerHTML = '<i class="fas fa-check"></i>';
-                button.style.background = 'linear-gradient(135deg, #28a745, #1e7e34)';
-                
-                setTimeout(() => {
-                    button.innerHTML = originalHTML;
-                    button.style.background = '';
-                }, 2000);
-                
-                // Show notification
-                if (mobileScanner) {
-                    mobileScanner.showNotification('URL copied to clipboard', 'success');
-                }
-            }
-        }
-        
-        // Close desktop scanner dialog
-        function closeDesktopDialog() {
-            const overlay = document.querySelector('.desktop-scanner-overlay');
-            if (overlay) {
-                overlay.classList.remove('show');
-                setTimeout(() => {
-                    overlay.remove();
-                }, 300);
             }
         }
 
-        // Handle page unload to stop camera
+        // Initialize scanner when page loads
+        let scanner;
+        document.addEventListener('DOMContentLoaded', () => {
+            scanner = new EnhancedMobileScanner();
+        });
+
+        // Handle page unload
         window.addEventListener('beforeunload', () => {
-            if (mobileScanner && mobileScanner.stream) {
-                mobileScanner.stream.getTracks().forEach(track => track.stop());
-            }
-            
-            // Also clean up barcode scanner resources if available
-            if (mobileScanner && mobileScanner.barcodeScanner) {
-                mobileScanner.barcodeScanner.dispose();
+            if (scanner && scanner.stream) {
+                scanner.stream.getTracks().forEach(track => track.stop());
             }
         });
     </script>

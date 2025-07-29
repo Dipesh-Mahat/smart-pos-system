@@ -38,7 +38,7 @@ router.post('/generate-qr', async (req, res) => {
                 ? 'https://smart-pos-system-lime.vercel.app'
                 : `http://${req.hostname}`);
         
-        const scannerUrl = `${baseUrl}/../frontend/mobile-scanner-enhanced.html?type=${scanType}&timestamp=${Date.now()}`;
+        const scannerUrl = `${baseUrl}/../frontend/mobile-scanner.html?type=${scanType}&timestamp=${Date.now()}`;
         
         // Generate QR code
         const qrCodeData = await QRCode.toDataURL(scannerUrl, {
