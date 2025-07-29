@@ -112,6 +112,7 @@ router.get('/health', (req, res) => {
 router.post('/generate-qr', async (req, res) => {
     try {
         const QRCode = require('qrcode');
+        const os = require('os');
         const { scanType = 'product' } = req.body;
         
         // Create a session for this scanning request
@@ -124,19 +125,65 @@ router.post('/generate-qr', async (req, res) => {
             connected: false
         };
         
+        // Get WiFi network IP address
+        function getNetworkIP() {
+            const interfaces = os.networkInterfaces();
+            
+            // Look for WiFi interface first (case-insensitive)
+            for (const ifaceName in interfaces) {
+                const lowerName = ifaceName.toLowerCase();
+                if (lowerName.includes('wifi') || 
+                    lowerName.includes('wi-fi') ||
+                    lowerName.includes('wlan') ||
+                    lowerName.includes('wireless') ||
+                    lowerName.includes('wlp')) {
+                    const addresses = interfaces[ifaceName];
+                    for (const addr of addresses) {
+                        if (addr.family === 'IPv4' && !addr.internal && 
+                            !addr.address.startsWith('169.254') && // Skip link-local
+                            addr.address !== '127.0.0.1') { // Skip localhost
+                            console.log(`Found WiFi IP: ${addr.address} on interface: ${ifaceName}`);
+                            return addr.address;
+                        }
+                    }
+                }
+            }
+            
+            // Fall back to any IPv4 non-internal interface (excluding VirtualBox, VMware, Docker)
+            for (const ifaceName in interfaces) {
+                const lowerName = ifaceName.toLowerCase();
+                if (!lowerName.includes('vmware') && 
+                    !lowerName.includes('virtualbox') && 
+                    !lowerName.includes('docker') &&
+                    !lowerName.includes('loopback')) {
+                    const addresses = interfaces[ifaceName];
+                    for (const addr of addresses) {
+                        if (addr.family === 'IPv4' && !addr.internal && 
+                            !addr.address.startsWith('169.254') && // Skip link-local
+                            !addr.address.startsWith('192.168.56') && // Skip VirtualBox
+                            !addr.address.startsWith('192.168.18') && // Skip VMware
+                            !addr.address.startsWith('192.168.211') && // Skip VMware
+                            addr.address !== '127.0.0.1') { // Skip localhost
+                            console.log(`Found network IP: ${addr.address} on interface: ${ifaceName}`);
+                            return addr.address;
+                        }
+                    }
+                }
+            }
+            
+            return '192.168.0.100'; // Default fallback based on current WiFi
+        }
+        
         // Generate URL based on environment
-        const isLocal = req.hostname === 'localhost' || req.hostname === '127.0.0.1';
         let frontendUrl;
         
-        if (isLocal) {
-            // Local development - point to frontend server
-            frontendUrl = 'http://127.0.0.1:8080';
-        } else if (process.env.NODE_ENV === 'production') {
+        if (process.env.NODE_ENV === 'production') {
             // Production - point to deployed frontend
             frontendUrl = 'https://smart-pos-system-lime.vercel.app';
         } else {
-            // Development - use current host
-            frontendUrl = `http://${req.hostname}:8080`;
+            // Development - use network IP for WiFi connectivity
+            const networkIP = getNetworkIP();
+            frontendUrl = `http://${networkIP}:8080`;
         }
         
         const scannerUrl = `${frontendUrl}/mobile-scanner.html?sessionId=${sessionId}&type=${scanType}&mode=wifi`;
