@@ -493,13 +493,15 @@
                     ? 'http://localhost:5000/api' 
                     : 'https://smart-pos-system.onrender.com/api';
                 
-                const fetchResponse = await fetch(`${API_BASE_URL}/shop/orders/suppliers`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include'
-                });
+            const token = localStorage.getItem('token');
+            const fetchResponse = await fetch(`${API_BASE_URL}/shop/orders/suppliers`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                credentials: 'include'
+            });
                 
                 if (!fetchResponse.ok) {
                     throw new Error(`HTTP error! status: ${fetchResponse.status}`);
@@ -510,9 +512,7 @@
                 if (response.success) {
                     allSuppliers = response.suppliers || [];
                     displaySuppliers(allSuppliers);
-                    updateStatistics();
-                    displaySuppliers(allSuppliers);
-                    updateStatistics();
+                    updateStatistics(allSuppliers);
                 } else {
                     showError(`Failed to load suppliers: ${response.error || response.message || 'Unknown error'}`);
                 }
@@ -700,7 +700,6 @@
 
         function filterSuppliers(filter) {
             let filteredSuppliers = [...allSuppliers];
-            
             // Apply status filter
             if (filter !== 'all') {
                 filteredSuppliers = filteredSuppliers.filter(supplier => {
@@ -720,8 +719,8 @@
                     }
                 });
             }
-            
             displaySuppliers(filteredSuppliers);
+            updateStatistics(filteredSuppliers);
         }
 
         function viewSupplier(supplierId) {
