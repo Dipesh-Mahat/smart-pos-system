@@ -8,7 +8,7 @@ let redisStore = null;
 // Try to use Redis if available, fallback to memory store
 try {
     if (process.env.NODE_ENV === 'production' || process.env.USE_REDIS === 'true') {
-        const RedisStore = require('rate-limit-redis');
+        const { default: RedisStore } = require('rate-limit-redis');
         const Redis = require('ioredis');
         
         const redisClient = new Redis(process.env.REDIS_URL || {
@@ -17,7 +17,7 @@ try {
             password: process.env.REDIS_PASSWORD
         });
         
-        redisStore = () => require('rate-limit-redis')({
+        redisStore = () => RedisStore({
             sendCommand: (...args) => redisClient.call(...args)
         });
         useRedis = true;
