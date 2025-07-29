@@ -9,6 +9,8 @@ const compression = require('compression');
 const morgan = require('morgan');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
+const socketIo = require('socket.io');
 
 // Import middleware
 const helmetConfig = require('./middleware/helmetConfig');
@@ -23,7 +25,41 @@ const swagger = require('./config/swagger');
 
 // Create an Express app (This should come first)
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: [
+      'https://smart-pos-system-lime.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:5000',
+      'http://localhost:8080',
+      'http://127.0.0.1:8080',
+      'http://127.0.0.1:5000',
+      'http://127.0.0.1:3000',
+      'http://localhost:5500',
+      'http://127.0.0.1:5500'
+    ],
+    methods: ['GET', 'POST']
+  }
+});
 const port = process.env.PORT || 5000;
+
+// Make Socket.IO available to routes
+app.set('io', io);
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
+  
+  socket.on('join-scanner-session', (sessionId) => {
+    socket.join(`scanner-${sessionId}`);
+    console.log(`Client ${socket.id} joined scanner session: ${sessionId}`);
+  });
+  
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
 
 // Middleware (after app initialization)
 // Essential middleware
@@ -246,7 +282,8 @@ app.use((err, req, res, next) => {
 app.use(errorLogger);
 
 // Start the server
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server running on port ${port}`);
+  console.log(`Socket.IO server ready for enhanced scanner connections`);
 });
 

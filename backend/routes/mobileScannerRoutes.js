@@ -1,18 +1,102 @@
 /**
- * Mobile Scanner Routes
- * Handles QR code generation, OCR processing, and mobile scanning
+ * Enhanced Mobile Scanner Routes
+ * Handles QR code generation, OCR processing, USB/WiFi connectivity, and real-time scanning
  */
 
 const express = require('express');
 const router = express.Router();
+const { v4: uuidv4 } = require('uuid');
 
 // Simple status endpoint for testing
 router.get('/status', (req, res) => {
     res.json({ 
         success: true, 
-        message: 'Mobile scanner API is running',
-        timestamp: new Date().toISOString()
+        message: 'Enhanced Mobile scanner API is running',
+        timestamp: new Date().toISOString(),
+        features: ['qr-wifi-connection', 'usb-direct-access', 'real-time-scanning']
     });
+});
+
+// Check USB connection status
+router.get('/usb-status', (req, res) => {
+    // This endpoint will be used to check if mobile device is connected via USB
+    res.json({
+        success: true,
+        usbConnected: false, // Will be dynamically checked
+        message: 'USB status checked'
+    });
+});
+
+// Generate session for WiFi/QR scanning
+router.post('/create-session', async (req, res) => {
+    try {
+        const sessionId = uuidv4();
+        const { scanType = 'product' } = req.body;
+        
+        // Store session in memory (in production, use Redis)
+        global.scannerSessions = global.scannerSessions || {};
+        global.scannerSessions[sessionId] = {
+            id: sessionId,
+            scanType,
+            createdAt: new Date(),
+            connected: false,
+            deviceInfo: null
+        };
+        
+        res.json({
+            success: true,
+            sessionId,
+            scanType,
+            message: 'Scanner session created'
+        });
+    } catch (error) {
+        console.error('Session creation error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to create scanner session'
+        });
+    }
+});
+
+// Connect mobile device to session
+router.post('/connect-session/:sessionId', async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const { deviceInfo } = req.body;
+        
+        global.scannerSessions = global.scannerSessions || {};
+        
+        if (!global.scannerSessions[sessionId]) {
+            return res.status(404).json({
+                success: false,
+                message: 'Session not found'
+            });
+        }
+        
+        global.scannerSessions[sessionId].connected = true;
+        global.scannerSessions[sessionId].deviceInfo = deviceInfo;
+        global.scannerSessions[sessionId].connectedAt = new Date();
+        
+        // Emit connection event via Socket.IO if available
+        if (req.app.get('io')) {
+            req.app.get('io').emit('device-connected', {
+                sessionId,
+                deviceInfo
+            });
+        }
+        
+        res.json({
+            success: true,
+            message: 'Device connected successfully',
+            sessionId
+        });
+    } catch (error) {
+        console.error('Session connection error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to connect to session'
+        });
+    }
 });
 
 // Health check endpoint
@@ -24,21 +108,38 @@ router.get('/health', (req, res) => {
     });
 });
 
-// QR Code generation endpoint
+// Enhanced QR Code generation endpoint for WiFi connection
 router.post('/generate-qr', async (req, res) => {
     try {
         const QRCode = require('qrcode');
         const { scanType = 'product' } = req.body;
         
+        // Create a session for this scanning request
+        const sessionId = uuidv4();
+        global.scannerSessions = global.scannerSessions || {};
+        global.scannerSessions[sessionId] = {
+            id: sessionId,
+            scanType,
+            createdAt: new Date(),
+            connected: false
+        };
+        
         // Generate URL based on environment
         const isLocal = req.hostname === 'localhost' || req.hostname === '127.0.0.1';
-        const baseUrl = isLocal 
-            ? `http://localhost:${process.env.PORT || 5000}` 
-            : (process.env.NODE_ENV === 'production' 
-                ? 'https://smart-pos-system-lime.vercel.app'
-                : `http://${req.hostname}`);
+        let frontendUrl;
         
-        const scannerUrl = `${baseUrl}/../frontend/mobile-scanner.html?type=${scanType}&timestamp=${Date.now()}`;
+        if (isLocal) {
+            // Local development - point to frontend server
+            frontendUrl = 'http://127.0.0.1:8080';
+        } else if (process.env.NODE_ENV === 'production') {
+            // Production - point to deployed frontend
+            frontendUrl = 'https://smart-pos-system-lime.vercel.app';
+        } else {
+            // Development - use current host
+            frontendUrl = `http://${req.hostname}:8080`;
+        }
+        
+        const scannerUrl = `${frontendUrl}/mobile-scanner.html?sessionId=${sessionId}&type=${scanType}&mode=wifi`;
         
         // Generate QR code
         const qrCodeData = await QRCode.toDataURL(scannerUrl, {
@@ -54,7 +155,9 @@ router.post('/generate-qr', async (req, res) => {
             success: true,
             qrCode: qrCodeData,
             url: scannerUrl,
-            scanType: scanType
+            sessionId,
+            scanType: scanType,
+            connectionMode: 'wifi-qr'
         });
     } catch (error) {
         console.error('QR generation error:', error);
@@ -66,10 +169,10 @@ router.post('/generate-qr', async (req, res) => {
     }
 });
 
-// Barcode processing endpoint
+// Enhanced barcode processing endpoint with session support
 router.post('/process-barcode', async (req, res) => {
     try {
-        const { barcode, scanType } = req.body;
+        const { barcode, scanType, sessionId, connectionMode } = req.body;
         
         if (!barcode) {
             return res.status(400).json({
@@ -78,15 +181,41 @@ router.post('/process-barcode', async (req, res) => {
             });
         }
         
-        // For now, return a mock response
+        // Verify session if using WiFi mode
+        if (connectionMode === 'wifi' && sessionId) {
+            global.scannerSessions = global.scannerSessions || {};
+            if (!global.scannerSessions[sessionId]) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Invalid session'
+                });
+            }
+        }
+        
+        // TODO: Replace with actual product lookup from database
+        const mockProduct = {
+            name: `Product-${barcode}`,
+            barcode: barcode,
+            price: 9.99,
+            category: 'General',
+            stock: 50
+        };
+        
+        // Emit scan result via Socket.IO for real-time updates
+        if (req.app.get('io') && sessionId) {
+            req.app.get('io').emit('scan-result', {
+                sessionId,
+                barcode,
+                product: mockProduct,
+                timestamp: new Date()
+            });
+        }
+        
         res.json({
             success: true,
-            product: {
-                name: `Product-${barcode}`,
-                barcode: barcode,
-                price: 9.99
-            },
+            product: mockProduct,
             scanType: scanType,
+            connectionMode: connectionMode || 'direct',
             message: `Product found for barcode: ${barcode}`
         });
     } catch (error) {
@@ -95,6 +224,40 @@ router.post('/process-barcode', async (req, res) => {
             success: false,
             message: 'Failed to process barcode',
             error: error.message
+        });
+    }
+});
+
+// USB direct access endpoint
+router.post('/usb-scan', async (req, res) => {
+    try {
+        const { action, deviceInfo } = req.body;
+        
+        if (action === 'request-camera') {
+            // This will be handled by the frontend USB API
+            res.json({
+                success: true,
+                message: 'Camera access requested',
+                connectionMode: 'usb-direct',
+                instructions: 'Please allow camera access on your mobile device'
+            });
+        } else if (action === 'scan-ready') {
+            res.json({
+                success: true,
+                message: 'USB scanning ready',
+                connectionMode: 'usb-direct'
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                message: 'Invalid USB action'
+            });
+        }
+    } catch (error) {
+        console.error('USB scan error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to process USB scan request'
         });
     }
 });

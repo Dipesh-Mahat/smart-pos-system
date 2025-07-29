@@ -51,7 +51,7 @@ router.use('/festival-intelligence', festivalIntelligenceRoutes);
 router.use('/ai-intelligence', aiBusinessIntelligenceRoutes);
 
 // Add mobile scanner routes for QR code generation and OCR processing
-router.use('/scanner', mobileScannerRoutes);
+router.use('/mobile-scanner', mobileScannerRoutes);
 
 // Dashboard routes (for shopowners and admins)
 // Temporarily disable authentication for development testing

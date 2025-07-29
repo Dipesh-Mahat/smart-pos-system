@@ -550,10 +550,13 @@
     <!-- Notification -->
     <div class="notification" id="notification"></div>
 
+    <!-- Socket.IO for real-time communication -->
+    <script src="/socket.io/socket.io.js"></script>
+    
     <script>
         // API Configuration
-        const API_BASE = window.location.hostname === 'localhost' 
-            ? 'http://localhost:3001' 
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5000' 
             : window.location.protocol + '//' + window.location.hostname;
 
         class EnhancedMobileScanner {
@@ -562,13 +565,78 @@
                 this.isFlashOn = false;
                 this.currentScanType = 'product';
                 this.isProcessing = false;
+                this.sessionId = null;
+                this.connectionMode = 'wifi';
+                this.socket = null;
+                
+                // Get parameters from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                this.sessionId = urlParams.get('sessionId');
+                this.currentScanType = urlParams.get('type') || 'product';
+                this.connectionMode = urlParams.get('mode') || 'wifi';
+                
                 this.init();
             }
 
             init() {
                 this.setupEventListeners();
                 this.updateConnectionStatus();
+                this.initializeSocket();
                 this.requestCamera();
+                
+                // Connect to session if sessionId is provided
+                if (this.sessionId) {
+                    this.connectToSession();
+                }
+            }
+
+            initializeSocket() {
+                try {
+                    this.socket = io();
+                    
+                    this.socket.on('connect', () => {
+                        console.log('Socket.IO connected');
+                        if (this.sessionId) {
+                            this.socket.emit('join-scanner-session', this.sessionId);
+                        }
+                    });
+                    
+                    this.socket.on('scan-request', () => {
+                        this.showNotification('Desktop requested scan', 'info');
+                    });
+                    
+                } catch (error) {
+                    console.log('Socket.IO initialization failed:', error);
+                }
+            }
+
+            async connectToSession() {
+                try {
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/connect-session/${this.sessionId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            deviceInfo: {
+                                userAgent: navigator.userAgent,
+                                screenWidth: screen.width,
+                                screenHeight: screen.height,
+                                timestamp: new Date().toISOString()
+                            }
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showNotification('Connected to desktop successfully', 'success');
+                    } else {
+                        this.showNotification('Failed to connect to desktop', 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('Connection error: ' + error.message, 'error');
+                }
             }
 
             setupEventListeners() {
@@ -723,7 +791,9 @@
                         },
                         body: JSON.stringify({
                             barcode: barcode,
-                            scanType: this.currentScanType
+                            scanType: this.currentScanType,
+                            sessionId: this.sessionId,
+                            connectionMode: this.connectionMode
                         })
                     });
 
@@ -735,6 +805,16 @@
                         // Vibrate if supported
                         if ('vibrate' in navigator) {
                             navigator.vibrate(200);
+                        }
+                        
+                        // Send result to desktop via Socket.IO if connected
+                        if (this.socket && this.sessionId) {
+                            this.socket.emit('scan-result', {
+                                sessionId: this.sessionId,
+                                barcode: barcode,
+                                product: result.product,
+                                timestamp: new Date()
+                            });
                         }
                     } else {
                         this.showNotification(result.message || 'Product not found', 'warning');
