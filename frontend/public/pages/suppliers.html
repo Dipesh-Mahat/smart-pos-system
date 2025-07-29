@@ -188,19 +188,21 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }        .status-active {
+        }
+        .status-active {
             background: #d4edda;
             color: #28a745;
+            border: 1px solid #28a745;
         }
-
         .status-inactive {
             background: #f8d7da;
             color: #dc3545;
+            border: 1px solid #dc3545;
         }
-
         .status-pending {
             background: #fff3cd;
             color: #ffc107;
+            border: 1px solid #ffc107;
         }
 
         .supplier-details {
@@ -621,10 +623,13 @@
         }
 
         function getStatusClass(status) {
-            switch(status) {
+            if (!status) return 'status-inactive';
+            switch (status.toLowerCase()) {
                 case 'approved': return 'status-active';
+                case 'active': return 'status-active';
                 case 'pending': return 'status-pending';
                 case 'rejected': return 'status-inactive';
+                case 'inactive': return 'status-inactive';
                 default: return 'status-inactive';
             }
         }
