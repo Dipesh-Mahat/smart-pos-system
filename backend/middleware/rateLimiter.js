@@ -17,7 +17,7 @@ try {
             password: process.env.REDIS_PASSWORD
         });
         
-        redisStore = () => new RedisStore({
+        redisStore = () => require('rate-limit-redis')({
             sendCommand: (...args) => redisClient.call(...args)
         });
         useRedis = true;
