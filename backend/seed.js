@@ -1,6 +1,6 @@
 /**
- * Seed script for Smart POS System
- * This script populates the database with sample data for development
+ * Enhanced Seed script for Smart POS System - Production Ready Demo Data
+ * This script populates the database with realistic data for presentation
  */
 
 const mongoose = require('mongoose');
@@ -14,6 +14,8 @@ const Customer = require('./models/Customer');
 const Category = require('./models/Category');
 const Order = require('./models/Order');
 const Settings = require('./models/Settings');
+const AutoOrder = require('./models/AutoOrder');
+const SupplierInventory = require('./models/SupplierInventory');
 const bcrypt = require('bcryptjs');
 
 // Connect to MongoDB
@@ -39,10 +41,12 @@ const clearDB = async () => {
   await Category.deleteMany({});
   await Order.deleteMany({});
   await Settings.deleteMany({});
+  await AutoOrder.deleteMany({});
+  await SupplierInventory.deleteMany({});
   console.log('Database cleared');
 };
 
-// Seed Users
+// Seed Users - Production Ready Demo Data
 const seedUsers = async () => {
   console.log('Seeding users...');
   
@@ -56,24 +60,36 @@ const seedUsers = async () => {
     email: 'admin@smartpos.com',
     password: await bcrypt.hash('admin123', salt),
     role: 'admin',
+    profilePicture: '/images/avatars/admin-avatar.png',
+    contactDetails: {
+      title: 'System Administrator',
+      primaryPhone: '+977-9800000000',
+      secondaryEmail: 'support@smartpos.com'
+    },
     status: 'active',
     isVerified: true,
     createdAt: new Date('2024-01-01'),
     lastLogin: new Date()
   });
 
-  // Shop Owner - Production Ready
-  const shopOwner = new User({
-    username: 'shopowner1',
-    firstName: 'Rajesh',
+  // ==== 5 SHOP OWNERS FOR DEMO ====
+  
+  // Shop Owner 1 - Small Nepali Mart
+  const shopOwner1 = new User({
+    username: 'ram_kirana',
+    firstName: 'Ram',
     lastName: 'Shrestha',
-    email: 'rajesh.shrestha@smartpos.com',
-    password: await bcrypt.hash('shop123', salt),
+    email: 'ram@kirana.com',
+    password: await bcrypt.hash('ram123', salt),
     role: 'shopowner',
-    shopName: 'Shrestha Electronics & General Store',
-    contactNumber: '+977-9841234567',
-    address: {
-      street: 'New Road, Commercial Area',
+    shopName: 'Ram Kirana Pasal',
+    profilePicture: '/images/avatars/shopowner1.jpg',
+    contactDetails: {
+      title: 'Pasal Malik',
+      primaryPhone: '+977-9841234567'
+    },
+    billingAddress: {
+      street: 'Naya Sadak',
       city: 'Kathmandu',
       state: 'Bagmati',
       postalCode: '44600',
@@ -81,85 +97,311 @@ const seedUsers = async () => {
     },
     status: 'active',
     isVerified: true,
-    businessLicense: 'BL-2024-001',
-    panNumber: 'PAN123456789',
     createdAt: new Date('2024-01-05'),
     lastLogin: new Date()
   });
   
-  // Multiple Suppliers - Production Ready
+  // Shop Owner 2 - Grocery Store
+  const shopOwner2 = new User({
+    username: 'priya_grocery',
+    firstName: 'Priya',
+    lastName: 'Maharjan',
+    email: 'priya@freshmart.com',
+    password: await bcrypt.hash('priya123', salt),
+    role: 'shopowner',
+    shopName: 'Fresh Mart Grocery Store',
+    profilePicture: '/images/avatars/shopowner2.jpg',
+    contactDetails: {
+      title: 'Store Manager',
+      primaryPhone: '+977-9841987654',
+      secondaryPhone: '+977-9851987654'
+    },
+    billingAddress: {
+      street: 'Durbar Marg, Shopping Center',
+      city: 'Kathmandu',
+      state: 'Bagmati',
+      postalCode: '44600',
+      country: 'Nepal'
+    },
+    businessSettings: {
+      currency: 'NPR',
+      paymentTerms: 'cod',
+      businessHours: [
+        { day: 'monday', open: true, openTime: '07:00', closeTime: '21:00' },
+        { day: 'tuesday', open: true, openTime: '07:00', closeTime: '21:00' },
+        { day: 'wednesday', open: true, openTime: '07:00', closeTime: '21:00' },
+        { day: 'thursday', open: true, openTime: '07:00', closeTime: '21:00' },
+        { day: 'friday', open: true, openTime: '07:00', closeTime: '21:00' },
+        { day: 'saturday', open: true, openTime: '07:00', closeTime: '22:00' },
+        { day: 'sunday', open: true, openTime: '08:00', closeTime: '20:00' }
+      ]
+    },
+    status: 'active',
+    isVerified: true,
+    businessLicense: 'BL-2024-002',
+    panNumber: 'PAN987654321',
+    createdAt: new Date('2024-01-10'),
+    lastLogin: new Date()
+  });
+
+  // Shop Owner 3 - Fashion Store
+  const shopOwner3 = new User({
+    username: 'amit_fashion',
+    firstName: 'Amit',
+    lastName: 'Thapa',
+    email: 'amit@fashionhub.com',
+    password: await bcrypt.hash('amit123', salt),
+    role: 'shopowner',
+    shopName: 'Fashion Hub & Accessories',
+    profilePicture: '/images/avatars/shopowner3.jpg',
+    contactDetails: {
+      title: 'Fashion Store Owner',
+      primaryPhone: '+977-9841555666',
+      secondaryPhone: '+977-9851555666'
+    },
+    billingAddress: {
+      street: 'Thamel, Fashion District',
+      city: 'Kathmandu',
+      state: 'Bagmati',
+      postalCode: '44600',
+      country: 'Nepal'
+    },
+    businessSettings: {
+      currency: 'NPR',
+      paymentTerms: 'cod'
+    },
+    status: 'active',
+    isVerified: true,
+    businessLicense: 'BL-2024-003',
+    panNumber: 'PAN456789123',
+    createdAt: new Date('2024-01-15'),
+    lastLogin: new Date()
+  });
+
+  // Shop Owner 4 - Hardware Store
+  const shopOwner4 = new User({
+    username: 'kumar_hardware',
+    firstName: 'Kumar',
+    lastName: 'Gurung',
+    email: 'kumar@hardwarestore.com',
+    password: await bcrypt.hash('kumar123', salt),
+    role: 'shopowner',
+    shopName: 'Gurung Hardware & Tools',
+    profilePicture: '/images/avatars/shopowner4.jpg',
+    contactDetails: {
+      title: 'Hardware Store Owner',
+      primaryPhone: '+977-9841777888',
+      secondaryPhone: '+977-9851777888'
+    },
+    billingAddress: {
+      street: 'Balaju Industrial Area',
+      city: 'Kathmandu',
+      state: 'Bagmati',
+      postalCode: '44600',
+      country: 'Nepal'
+    },
+    businessSettings: {
+      currency: 'NPR',
+      paymentTerms: 'net15'
+    },
+    status: 'active',
+    isVerified: true,
+    businessLicense: 'BL-2024-004',
+    panNumber: 'PAN789123456',
+    createdAt: new Date('2024-01-20'),
+    lastLogin: new Date()
+  });
+
+  // Shop Owner 5 - Pharmacy
+  const shopOwner5 = new User({
+    username: 'sita_pharmacy',
+    firstName: 'Sita',
+    lastName: 'Poudel',
+    email: 'sita@medicarepharmacy.com',
+    password: await bcrypt.hash('sita123', salt),
+    role: 'shopowner',
+    shopName: 'Medicare Pharmacy & Health Care',
+    profilePicture: '/images/avatars/shopowner5.jpg',
+    contactDetails: {
+      title: 'Licensed Pharmacist',
+      primaryPhone: '+977-9841999000',
+      secondaryPhone: '+977-9851999000'
+    },
+    billingAddress: {
+      street: 'Maharajgunj Medical Area',
+      city: 'Kathmandu',
+      state: 'Bagmati',
+      postalCode: '44600',
+      country: 'Nepal'
+    },
+    businessSettings: {
+      currency: 'NPR',
+      paymentTerms: 'cod'
+    },
+    status: 'active',
+    isVerified: true,
+    businessLicense: 'BL-2024-005',
+    panNumber: 'PAN321654987',
+    createdAt: new Date('2024-01-25'),
+    lastLogin: new Date()
+  });
+
+  // ==== 3 SUPPLIERS FOR DEMO ====
+  
+  // Supplier 1 - Electronics Distributor
   const supplier1 = new User({
-    username: 'supplier1',
+    username: 'krishna_wholesale',
     firstName: 'Krishna',
     lastName: 'Adhikari',
-    email: 'krishna@wholesale.com.np',
-    password: await bcrypt.hash('supplier123', salt),
+    email: 'krishna@electronicsupply.com',
+    password: await bcrypt.hash('krishna123', salt),
     role: 'supplier',
-    companyName: 'Adhikari Wholesale Distribution',
-    businessName: 'Adhikari Wholesale Distribution',
-    businessType: 'wholesale',
-    contactNumber: '+977-9800000001',
-    address: {
-      street: 'Industrial District, Balaju',
+    companyName: 'Adhikari Electronics Distribution Pvt. Ltd.',
+    profilePicture: '/images/avatars/supplier1.jpg',
+    contactDetails: {
+      title: 'Chief Executive Officer',
+      primaryPhone: '+977-9841111222',
+      secondaryPhone: '+977-9851111222',
+      secondaryEmail: 'sales@electronicsupply.com'
+    },
+    businessDetails: {
+      businessType: 'distributor',
+      businessRegistration: 'CR-2023-ELEC-001',
+      taxId: 'TAX-ELEC-123456',
+      description: 'Leading distributor of smartphones, laptops, accessories and electronic gadgets across Nepal',
+      website: 'www.electronicsupply.com',
+      establishedYear: 2015
+    },
+    billingAddress: {
+      street: 'New Baneshwor, Electronic Market',
       city: 'Kathmandu',
       state: 'Bagmati',
       postalCode: '44600',
       country: 'Nepal'
     },
-    businessAddress: 'Industrial District, Balaju, Kathmandu',
-    contactPerson: 'Krishna Adhikari',
-    position: 'Managing Director',
-    phone: '+977-9800000001',
-    productCategories: ['groceries', 'beverages', 'household'],
-    yearsInBusiness: '10+',
-    deliveryAreas: 'Kathmandu Valley, Pokhara, Chitwan',
-    businessDescription: 'Leading wholesale distributor of FMCG products across Nepal',
-    status: 'approved',
+    businessSettings: {
+      paymentTerms: 'net30',
+      currency: 'NPR',
+      shippingMethod: 'express',
+      freeShippingThreshold: 50000,
+      leadTime: 2,
+      maxOrderQuantity: 5000
+    },
+    status: 'active',
     isVerified: true,
-    businessLicense: 'SUP-2024-001',
-    panNumber: 'SUP123456789',
-    createdAt: new Date('2024-01-03')
+    createdAt: new Date('2024-01-01'),
+    lastLogin: new Date()
   });
 
+  // Supplier 2 - FMCG Distributor
   const supplier2 = new User({
-    username: 'supplier2',
-    firstName: 'Sita',
-    lastName: 'Gurung',
-    email: 'sita@freshproduce.com.np',
-    password: await bcrypt.hash('supplier123', salt),
+    username: 'shiva_fmcg',
+    firstName: 'Shiva',
+    lastName: 'Karki',
+    email: 'shiva@fmcgsupply.com',
+    password: await bcrypt.hash('shiva123', salt),
     role: 'supplier',
-    companyName: 'Gurung Fresh Produce & Dairy',
-    businessName: 'Gurung Fresh Produce & Dairy',
-    businessType: 'wholesale',
-    contactNumber: '+977-9800000002',
-    address: {
-      street: 'Kalimati Vegetable Market',
+    companyName: 'Karki FMCG Distribution Network',
+    profilePicture: '/images/avatars/supplier2.jpg',
+    contactDetails: {
+      title: 'Managing Director',
+      primaryPhone: '+977-9841333444',
+      secondaryPhone: '+977-9851333444',
+      secondaryEmail: 'orders@fmcgsupply.com'
+    },
+    businessDetails: {
+      businessType: 'wholesaler',
+      businessRegistration: 'CR-2020-FMCG-002',
+      taxId: 'TAX-FMCG-789012',
+      description: 'Wholesale distributor of packaged foods, beverages, personal care and household products',
+      website: 'www.fmcgsupply.com',
+      establishedYear: 2018
+    },
+    billingAddress: {
+      street: 'Kalimati Commercial Area',
       city: 'Kathmandu',
       state: 'Bagmati',
       postalCode: '44600',
       country: 'Nepal'
     },
-    businessAddress: 'Kalimati Vegetable Market, Kathmandu',
-    contactPerson: 'Sita Gurung',
-    position: 'Owner',
-    phone: '+977-9800000002',
-    productCategories: ['dairy', 'vegetables', 'fruits'],
-    yearsInBusiness: '5-10',
-    deliveryAreas: 'Kathmandu Valley',
-    businessDescription: 'Fresh produce and dairy products supplier',
-    status: 'pending',
-    isVerified: false,
-    createdAt: new Date('2024-01-10')
+    businessSettings: {
+      paymentTerms: 'net15',
+      currency: 'NPR',
+      shippingMethod: 'standard',
+      freeShippingThreshold: 25000,
+      leadTime: 3,
+      maxOrderQuantity: 10000
+    },
+    status: 'active',
+    isVerified: true,
+    createdAt: new Date('2024-01-02'),
+    lastLogin: new Date()
   });
 
-  await admin.save();
-  await shopOwner.save();
-  await supplier1.save();
-  await supplier2.save();
+  // Supplier 3 - Pharmaceutical Distributor
+  const supplier3 = new User({
+    username: 'ram_pharma',
+    firstName: 'Ram',
+    lastName: 'Bahadur',
+    email: 'ram@pharmasupply.com',
+    password: await bcrypt.hash('ram123', salt),
+    role: 'supplier',
+    companyName: 'Bahadur Pharmaceutical Supply Chain',
+    profilePicture: '/images/avatars/supplier3.jpg',
+    contactDetails: {
+      title: 'Licensed Pharmaceutical Distributor',
+      primaryPhone: '+977-9841555777',
+      secondaryPhone: '+977-9851555777',
+      secondaryEmail: 'medical@pharmasupply.com'
+    },
+    businessDetails: {
+      businessType: 'distributor',
+      businessRegistration: 'CR-2019-PHARMA-003',
+      taxId: 'TAX-PHARMA-345678',
+      description: 'Authorized distributor of medicines, medical devices and healthcare products',
+      website: 'www.pharmasupply.com',
+      establishedYear: 2016
+    },
+    billingAddress: {
+      street: 'Teku Pharmaceutical Hub',
+      city: 'Kathmandu',
+      state: 'Bagmati',
+      postalCode: '44600',
+      country: 'Nepal'
+    },
+    businessSettings: {
+      paymentTerms: 'net30',
+      currency: 'NPR',
+      shippingMethod: 'express',
+      freeShippingThreshold: 75000,
+      leadTime: 1,
+      maxOrderQuantity: 2000
+    },
+    status: 'active',
+    isVerified: true,
+    createdAt: new Date('2024-01-03'),
+    lastLogin: new Date()
+  });
 
-  console.log('Users seeded - Admin, Shop Owner, and Suppliers created');
-  return { admin, shopOwner, supplier1, supplier2 };
-};
+  const users = [admin, shopOwner1, shopOwner2, shopOwner3, shopOwner4, shopOwner5, supplier1, supplier2, supplier3];
+  const savedUsers = await User.insertMany(users);
+  
+  console.log('✅ DEMO USERS CREATED:');
+  console.log('=== ADMIN ===');
+  console.log('Username: admin | Password: admin123');
+  console.log('=== SHOP OWNERS ===');
+  console.log('1. Username: rajesh_electronics | Password: rajesh123 | Shop: Shrestha Electronics & Mobile Center');
+  console.log('2. Username: priya_grocery | Password: priya123 | Shop: Fresh Mart Grocery Store');
+  console.log('3. Username: amit_fashion | Password: amit123 | Shop: Fashion Hub & Accessories');
+  console.log('4. Username: kumar_hardware | Password: kumar123 | Shop: Gurung Hardware & Tools');
+  console.log('5. Username: sita_pharmacy | Password: sita123 | Shop: Medicare Pharmacy & Health Care');
+  console.log('=== SUPPLIERS ===');
+  console.log('1. Username: krishna_wholesale | Password: krishna123 | Company: Adhikari Electronics Distribution');
+  console.log('2. Username: shiva_fmcg | Password: shiva123 | Company: Karki FMCG Distribution Network');
+  console.log('3. Username: ram_pharma | Password: ram123 | Company: Bahadur Pharmaceutical Supply Chain');
+  
+  return savedUsers;
+}
 
 // Seed Products - Comprehensive Product Catalog
 const seedProducts = async (shopOwner, supplier1) => {
