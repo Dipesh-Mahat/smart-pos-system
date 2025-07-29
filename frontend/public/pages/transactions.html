@@ -786,10 +786,6 @@
         <div class="action-buttons">
             <div></div>
             <div class="action-btns-right">
-                <a href="pos.html" class="btn btn-primary">
-                    <i class="fas fa-plus"></i>
-                    New Transaction
-                </a>
                 <button class="btn btn-secondary" onclick="exportTransactions()">
                     <i class="fas fa-download"></i>
                     Export
@@ -1442,6 +1438,8 @@
     <!-- Navbar and Menu Scripts -->
     <script src="../js/navbar.js"></script>
     <script src="../js/menu.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         // Initialize navbar with transactions-specific options
         document.addEventListener('DOMContentLoaded', function() {
@@ -1451,6 +1449,92 @@
             
             console.log('Transactions page initialized');
         });
+
+        // Export functionality
+        function exportTransactions() {
+            if (!window.transactionManager || !window.transactionManager.transactions || window.transactionManager.transactions.length === 0) {
+                alert('No transactions to export.');
+                return;
+            }
+            // Show export option prompt
+            const choice = prompt('Export as PDF or CSV? Type "pdf" or "csv".');
+            if (!choice) return;
+            if (choice.toLowerCase() === 'csv') {
+                exportTransactionsCSV();
+            } else if (choice.toLowerCase() === 'pdf') {
+                exportTransactionsPDF();
+            } else {
+                alert('Invalid option. Please type "pdf" or "csv".');
+            }
+        }
+
+        function exportTransactionsCSV() {
+            const transactions = window.transactionManager.transactions;
+            if (!transactions || transactions.length === 0) {
+                alert('No transactions to export.');
+                return;
+            }
+            const headers = ['Transaction ID', 'Date', 'Time', 'Customer', 'Payment', 'Status', 'Total Amount'];
+            const rows = transactions.map(t => [
+                t.id,
+                new Date(t.date).toLocaleDateString('en-US'),
+                new Date(t.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+                t.customerName || '',
+                t.paymentMethod || '',
+                t.status,
+                t.total
+            ]);
+            let csvContent = '';
+            csvContent += headers.join(',') + '\n';
+            rows.forEach(row => {
+                csvContent += row.map(val => '"' + String(val).replace(/"/g, '""') + '"').join(',') + '\n';
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'transactions.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportTransactionsPDF() {
+            const transactions = window.transactionManager.transactions;
+            if (!transactions || transactions.length === 0) {
+                alert('No transactions to export.');
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(16);
+            doc.text('Transaction History', 14, 16);
+            doc.setFontSize(10);
+            const headers = ['ID', 'Date', 'Time', 'Customer', 'Payment', 'Status', 'Total'];
+            let startY = 24;
+            // Table header
+            headers.forEach((h, i) => {
+                doc.text(h, 14 + i * 28, startY);
+            });
+            startY += 6;
+            // Table rows
+            transactions.forEach((t, idx) => {
+                const row = [
+                    t.id,
+                    new Date(t.date).toLocaleDateString('en-US'),
+                    new Date(t.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+                    t.customerName || '',
+                    t.paymentMethod || '',
+                    t.status,
+                    t.total
+                ];
+                row.forEach((val, i) => {
+                    doc.text(String(val), 14 + i * 28, startY + idx * 6);
+                });
+            });
+            doc.save('transactions.pdf');
+        }
     </script>
 </body>
 </html>
