@@ -607,9 +607,9 @@
         // Update statistics based on suppliers data
         function updateStatistics(suppliers) {
             const totalCount = suppliers.length;
-            const activeCount = suppliers.filter(s => s.status === 'approved').length;
-            const pendingCount = suppliers.filter(s => s.status === 'pending').length;
-            const inactiveCount = suppliers.filter(s => s.status === 'rejected').length;
+            const activeCount = suppliers.filter(s => s.status && (s.status.toLowerCase() === 'approved' || s.status.toLowerCase() === 'active')).length;
+            const pendingCount = suppliers.filter(s => s.status && s.status.toLowerCase() === 'pending').length;
+            const inactiveCount = suppliers.filter(s => s.status && (s.status.toLowerCase() === 'rejected' || s.status.toLowerCase() === 'inactive')).length;
 
             document.querySelector('.stat-card:nth-child(1) .stat-value').textContent = totalCount;
             document.querySelector('.stat-card:nth-child(2) .stat-value').textContent = activeCount;
@@ -706,13 +706,15 @@
             // Apply status filter
             if (filter !== 'all') {
                 filteredSuppliers = filteredSuppliers.filter(supplier => {
+                    if (!supplier.status) return false;
+                    const status = supplier.status.toLowerCase();
                     switch(filter) {
                         case 'active':
-                            return supplier.status === 'approved';
+                            return status === 'approved' || status === 'active';
                         case 'pending':
-                            return supplier.status === 'pending';
+                            return status === 'pending';
                         case 'inactive':
-                            return supplier.status === 'rejected';
+                            return status === 'rejected' || status === 'inactive';
                         default:
                             return true;
                     }
