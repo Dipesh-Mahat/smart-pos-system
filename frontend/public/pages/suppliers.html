@@ -462,8 +462,6 @@
             <button class="filter-btn" data-filter="active">Active</button>
             <button class="filter-btn" data-filter="pending">Pending</button>
             <button class="filter-btn" data-filter="inactive">Inactive</button>
-            <button class="filter-btn" data-filter="local">Local</button>
-            <button class="filter-btn" data-filter="international">International</button>
         </div>
 
         <!-- Suppliers Grid -->
@@ -710,10 +708,6 @@
                             return supplier.status === 'pending';
                         case 'inactive':
                             return supplier.status === 'rejected';
-                        case 'local':
-                            return supplier.address && supplier.address.country === 'Nepal';
-                        case 'international':
-                            return supplier.address && supplier.address.country !== 'Nepal';
                         default:
                             return true;
                     }
