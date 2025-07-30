@@ -39,6 +39,31 @@ router.get('/shop/suppliers/:supplierId/products', (req, res, next) => {
   next();
 }, supplierProductsController.getSupplierProducts);
 
+// Add mock authentication for shop products route (development testing)
+router.get('/shop/products', (req, res, next) => {
+  // Mock authentication for testing - using actual shop owner ID
+  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  next();
+}, productController.getProducts);
+
+router.post('/shop/products', (req, res, next) => {
+  // Mock authentication for testing - using actual shop owner ID
+  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  next();
+}, productController.createProduct);
+
+router.put('/shop/products/:id', (req, res, next) => {
+  // Mock authentication for testing - using actual shop owner ID
+  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  next();
+}, productController.updateProduct);
+
+router.delete('/shop/products/:id', (req, res, next) => {
+  // Mock authentication for testing - using actual shop owner ID
+  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  next();
+}, productController.deleteProduct);
+
 // Protected routes (authentication required)
 // Apply JWT authentication middleware to all routes below
 router.use('/users', authenticateJWT, userRoutes);

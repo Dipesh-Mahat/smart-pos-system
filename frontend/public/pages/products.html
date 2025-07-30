@@ -751,20 +751,28 @@
                 window.apiService.get('/shop/products')
                     .then(response => {
                         console.log('Products API response:', response);
-                        if (response.success) {
+                        if (response.success !== false && (response.products || response.data)) {
+                            // Handle both response formats
+                            const products = response.products || response.data || response;
+                            
                             // Process the products data
-                            const productsWithStatus = response.products.map(product => ({
+                            const productsWithStatus = Array.isArray(products) ? products.map(product => ({
                                 ...product,
                                 id: product._id, // Use MongoDB _id as id
-                                listed: product.isActive !== false, // Convert isActive to listed
+                                listed: product.status === 'active', // Convert status to listed
                                 icon: this.getProductIcon(product.category),
-                                minStock: product.minStockLevel || 5 // Use minStockLevel or default
-                            }));
+                                minStock: product.minStockLevel || 5, // Use minStockLevel or default
+                                price: parseFloat(product.price || 0),
+                                cost: parseFloat(product.cost || 0),
+                                stock: parseInt(product.stock || 0)
+                            })) : [];
 
                             this.products = productsWithStatus;
                             this.filteredProducts = [...this.products];
                             this.renderProducts();
                             this.updateStats();
+                            
+                            console.log(`Loaded ${this.products.length} products successfully`);
                         } else {
                             console.error('Failed to load products:', response);
                             this.showEmptyWithError(`Failed to load products: ${response.error || response.message || 'Unknown error'}`);
@@ -864,7 +872,7 @@
                     <i class="fas fa-exclamation-triangle" style="color: #ef476f; font-size: 64px; margin-bottom: 20px;"></i>
                     <h3 style="color: #495057; font-size: 24px; margin-bottom: 10px;">Error Loading Products</h3>
                     <p style="color: #6c757d; font-size: 16px; margin-bottom: 30px;">${message}</p>
-                    <button class="retry-btn" onclick="productManager.loadProducts()" style="
+                    <button class="retry-btn" onclick="window.productsManager.loadProducts()" style="
                         background: linear-gradient(135deg, #007bff, #0056b3);
                         color: white;
                         padding: 12px 24px;
@@ -1006,27 +1014,57 @@
                 this.applyFilters();
             }
 
-            toggleListing(productId) {
+            async toggleListing(productId) {
                 const product = this.products.find(p => p.id === productId);
                 if (product) {
-                    product.listed = !product.listed;
-                    this.renderProducts();
-                    this.updateStats();
-                    
-                    const action = product.listed ? 'listed' : 'unlisted';
-                    this.showNotification(`Product ${action} successfully!`, 'success');
+                    try {
+                        const newStatus = product.listed ? 'inactive' : 'active';
+                        
+                        // Update in backend
+                        const response = await window.apiService.put(`/shop/products/${productId}`, {
+                            status: newStatus
+                        });
+                        
+                        if (response.success !== false) {
+                            product.listed = !product.listed;
+                            product.status = newStatus;
+                            this.renderProducts();
+                            this.updateStats();
+                            
+                            const action = product.listed ? 'listed' : 'unlisted';
+                            this.showNotification(`Product ${action} successfully!`, 'success');
+                        } else {
+                            throw new Error(response.message || 'Failed to update product');
+                        }
+                    } catch (error) {
+                        console.error('Error toggling product listing:', error);
+                        this.showNotification(`Error updating product: ${error.message}`, 'error');
+                    }
                 }
             }
 
-            editProduct(productId) {
+            async editProduct(productId) {
                 const product = this.products.find(p => p.id === productId);
                 if (product) {
-                    // For demo purposes, show a simple prompt
+                    // Create edit modal (simplified version for now)
                     const newPrice = prompt(`Edit price for ${product.name}:`, product.price);
-                    if (newPrice && !isNaN(newPrice)) {
-                        product.price = parseFloat(newPrice);
-                        this.renderProducts();
-                        this.showNotification('Product updated successfully!', 'success');
+                    if (newPrice && !isNaN(newPrice) && parseFloat(newPrice) > 0) {
+                        try {
+                            const response = await window.apiService.put(`/shop/products/${productId}`, {
+                                price: parseFloat(newPrice)
+                            });
+                            
+                            if (response.success !== false) {
+                                product.price = parseFloat(newPrice);
+                                this.renderProducts();
+                                this.showNotification('Product updated successfully!', 'success');
+                            } else {
+                                throw new Error(response.message || 'Failed to update product');
+                            }
+                        } catch (error) {
+                            console.error('Error updating product:', error);
+                            this.showNotification(`Error updating product: ${error.message}`, 'error');
+                        }
                     }
                 }
             }
@@ -1034,57 +1072,335 @@
             async deleteProduct(productId) {
                 const product = this.products.find(p => p.id === productId);
                 if (product) {
-                    const confirmDelete = await customConfirm(
-                        'Delete Product',
-                        `Are you sure you want to delete "${product.name}"? This action cannot be undone.`,
-                        'danger'
+                    const confirmDelete = confirm(
+                        `Are you sure you want to delete "${product.name}"? This action cannot be undone.`
                     );
 
                     if (confirmDelete) {
-                        this.products = this.products.filter(p => p.id !== productId);
-                        this.applyFilters();
-                        this.updateStats();
-                        this.showNotification('Product deleted successfully!', 'success');
+                        try {
+                            const response = await window.apiService.delete(`/shop/products/${productId}`);
+                            
+                            if (response.success !== false) {
+                                this.products = this.products.filter(p => p.id !== productId);
+                                this.applyFilters();
+                                this.updateStats();
+                                this.showNotification('Product deleted successfully!', 'success');
+                            } else {
+                                throw new Error(response.message || 'Failed to delete product');
+                            }
+                        } catch (error) {
+                            console.error('Error deleting product:', error);
+                            this.showNotification(`Error deleting product: ${error.message}`, 'error');
+                        }
                     }
                 }
             }
 
-            addNewProduct() {
-                // For demo purposes, show a simple form
-                const name = prompt('Product Name:');
-                if (!name) return;
-                
-                const price = prompt('Price (NPR):');
-                if (!price || isNaN(price)) return;
-                
-                const category = prompt('Category:', 'Groceries');
-                if (!category) return;
-                
-                const stock = prompt('Stock quantity:', '50');
-                if (!stock || isNaN(stock)) return;
+            async addNewProduct() {
+                // Create a professional modal for adding products
+                const modalHTML = `
+                    <div id="addProductModal" style="
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0,0,0,0.8);
+                        z-index: 1000;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 20px;
+                    ">
+                        <div style="
+                            background: white;
+                            border-radius: 12px;
+                            padding: 30px;
+                            max-width: 600px;
+                            width: 100%;
+                            max-height: 90vh;
+                            overflow-y: auto;
+                            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                        ">
+                            <div style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                margin-bottom: 30px;
+                                padding-bottom: 15px;
+                                border-bottom: 2px solid #f0f0f0;
+                            ">
+                                <h2 style="margin: 0; color: #2c3e50; font-size: 24px; font-weight: 700;">
+                                    <i class="fas fa-plus-circle" style="color: #3498db; margin-right: 10px;"></i>
+                                    Add New Product
+                                </h2>
+                                <button onclick="closeAddProductModal()" style="
+                                    background: none;
+                                    border: none;
+                                    font-size: 24px;
+                                    cursor: pointer;
+                                    color: #7f8c8d;
+                                    padding: 5px;
+                                    border-radius: 50%;
+                                    width: 35px;
+                                    height: 35px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                ">&times;</button>
+                            </div>
+                            
+                            <form id="addProductForm" style="display: grid; gap: 20px;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    <div>
+                                        <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                            Product Name *
+                                        </label>
+                                        <input type="text" name="name" required style="
+                                            width: 100%;
+                                            padding: 12px;
+                                            border: 2px solid #e0e0e0;
+                                            border-radius: 8px;
+                                            font-size: 16px;
+                                            transition: border-color 0.3s;
+                                        " placeholder="Enter product name">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                            Category *
+                                        </label>
+                                        <select name="category" required style="
+                                            width: 100%;
+                                            padding: 12px;
+                                            border: 2px solid #e0e0e0;
+                                            border-radius: 8px;
+                                            font-size: 16px;
+                                            transition: border-color 0.3s;
+                                        ">
+                                            <option value="">Select Category</option>
+                                            <option value="Groceries">Groceries</option>
+                                            <option value="Beverages">Beverages</option>
+                                            <option value="Snacks">Snacks</option>
+                                            <option value="Dairy Products">Dairy Products</option>
+                                            <option value="Personal Care">Personal Care</option>
+                                            <option value="Household Items">Household Items</option>
+                                        </select>
+                                    </div>
+                                </div>
 
-                const newProduct = {
-                    id: 'user_' + Date.now(),
-                    name: name,
-                    price: parseFloat(price),
-                    cost: parseFloat(price) * 0.8, // 20% margin
-                    barcode: '9843' + Date.now().toString().slice(-9),
-                    category: category,
-                    stock: parseInt(stock),
-                    minStock: Math.max(5, parseInt(stock) * 0.1),
-                    status: 'active',
-                    listed: true,
-                    image: '',
-                    description: '',
-                    brand: 'Local',
-                    sku: name.toUpperCase().replace(/\s+/g, '-') + '-' + Date.now().toString().slice(-4),
-                    icon: this.getProductIcon(category)
-                };
+                                <div>
+                                    <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                        Description
+                                    </label>
+                                    <textarea name="description" rows="3" style="
+                                        width: 100%;
+                                        padding: 12px;
+                                        border: 2px solid #e0e0e0;
+                                        border-radius: 8px;
+                                        font-size: 16px;
+                                        resize: vertical;
+                                        transition: border-color 0.3s;
+                                    " placeholder="Product description (optional)"></textarea>
+                                </div>
 
-                this.products.unshift(newProduct);
-                this.applyFilters();
-                this.updateStats();
-                this.showNotification('Product added successfully!', 'success');
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                                    <div>
+                                        <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                            Selling Price (NPR) *
+                                        </label>
+                                        <input type="number" name="price" required min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 12px;
+                                            border: 2px solid #e0e0e0;
+                                            border-radius: 8px;
+                                            font-size: 16px;
+                                            transition: border-color 0.3s;
+                                        " placeholder="0.00">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                            Cost Price (NPR)
+                                        </label>
+                                        <input type="number" name="cost" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 12px;
+                                            border: 2px solid #e0e0e0;
+                                            border-radius: 8px;
+                                            font-size: 16px;
+                                            transition: border-color 0.3s;
+                                        " placeholder="0.00">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                            Initial Stock
+                                        </label>
+                                        <input type="number" name="stock" min="0" style="
+                                            width: 100%;
+                                            padding: 12px;
+                                            border: 2px solid #e0e0e0;
+                                            border-radius: 8px;
+                                            font-size: 16px;
+                                            transition: border-color 0.3s;
+                                        " placeholder="0">
+                                    </div>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                                    <div>
+                                        <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                            Barcode/SKU
+                                        </label>
+                                        <input type="text" name="barcode" style="
+                                            width: 100%;
+                                            padding: 12px;
+                                            border: 2px solid #e0e0e0;
+                                            border-radius: 8px;
+                                            font-size: 16px;
+                                            transition: border-color 0.3s;
+                                        " placeholder="Optional">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                            Brand
+                                        </label>
+                                        <input type="text" name="brand" style="
+                                            width: 100%;
+                                            padding: 12px;
+                                            border: 2px solid #e0e0e0;
+                                            border-radius: 8px;
+                                            font-size: 16px;
+                                            transition: border-color 0.3s;
+                                        " placeholder="Brand name">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                            Min Stock Level
+                                        </label>
+                                        <input type="number" name="minStockLevel" min="0" style="
+                                            width: 100%;
+                                            padding: 12px;
+                                            border: 2px solid #e0e0e0;
+                                            border-radius: 8px;
+                                            font-size: 16px;
+                                            transition: border-color 0.3s;
+                                        " placeholder="5">
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 15px; margin-top: 20px; justify-content: flex-end;">
+                                    <button type="button" onclick="closeAddProductModal()" style="
+                                        background: #95a5a6;
+                                        color: white;
+                                        border: none;
+                                        padding: 12px 24px;
+                                        border-radius: 8px;
+                                        cursor: pointer;
+                                        font-weight: 600;
+                                        font-size: 16px;
+                                        transition: background 0.3s;
+                                    ">Cancel</button>
+                                    <button type="submit" style="
+                                        background: linear-gradient(135deg, #3498db, #2980b9);
+                                        color: white;
+                                        border: none;
+                                        padding: 12px 24px;
+                                        border-radius: 8px;
+                                        cursor: pointer;
+                                        font-weight: 600;
+                                        font-size: 16px;
+                                        transition: all 0.3s;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 8px;
+                                    ">
+                                        <i class="fas fa-plus"></i>
+                                        Add Product
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+
+                // Add modal to page
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+                // Add form submission handler
+                document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(e.target);
+                    const productData = {};
+                    
+                    // Convert FormData to object
+                    for (let [key, value] of formData.entries()) {
+                        if (value.trim()) {
+                            productData[key] = value;
+                        }
+                    }
+
+                    // Validate required fields
+                    if (!productData.name || !productData.category || !productData.price) {
+                        this.showNotification('Please fill in all required fields (Name, Category, Price)', 'error');
+                        return;
+                    }
+
+                    // Set default values
+                    productData.status = 'active';
+                    productData.minStockLevel = productData.minStockLevel || 5;
+                    
+                    // Generate barcode if not provided
+                    if (!productData.barcode) {
+                        productData.barcode = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
+                    }
+
+                    try {
+                        // Show loading state
+                        const submitBtn = e.target.querySelector('button[type="submit"]');
+                        const originalHTML = submitBtn.innerHTML;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+                        submitBtn.disabled = true;
+
+                        // Send to backend
+                        const response = await window.apiService.post('/shop/products', productData);
+                        
+                        if (response.success !== false) {
+                            this.showNotification('Product added successfully!', 'success');
+                            closeAddProductModal();
+                            this.loadProducts(); // Refresh the products list
+                        } else {
+                            throw new Error(response.message || response.error || 'Failed to add product');
+                        }
+                    } catch (error) {
+                        console.error('Error adding product:', error);
+                        this.showNotification(`Error adding product: ${error.message}`, 'error');
+                        
+                        // Reset button
+                        const submitBtn = e.target.querySelector('button[type="submit"]');
+                        submitBtn.innerHTML = originalHTML;
+                        submitBtn.disabled = false;
+                    }
+                });
+
+                // Add input focus effects
+                const inputs = document.querySelectorAll('#addProductForm input, #addProductForm select, #addProductForm textarea');
+                inputs.forEach(input => {
+                    input.addEventListener('focus', function() {
+                        this.style.borderColor = '#3498db';
+                        this.style.boxShadow = '0 0 0 3px rgba(52, 152, 219, 0.1)';
+                    });
+                    input.addEventListener('blur', function() {
+                        this.style.borderColor = '#e0e0e0';
+                        this.style.boxShadow = 'none';
+                    });
+                });
+
+                // Close modal on outside click
+                document.getElementById('addProductModal').addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeAddProductModal();
+                    }
+                });
             }
 
             showNotification(message, type = 'info') {
@@ -1145,8 +1461,24 @@
             }
         }
 
+        function closeAddProductModal() {
+            const modal = document.getElementById('addProductModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
         // Initialize everything
         document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication first
+            if (!window.authService || !window.authService.isLoggedIn()) {
+                console.log('User not authenticated, redirecting...');
+                window.location.href = '../landing.html';
+                return;
+            }
+            
+            console.log('User authenticated, initializing products page...');
+            
             // Initialize navbar
             const navbar = new SmartPOSNavbar({
                 title: 'Products Management'
@@ -1155,7 +1487,7 @@
             // Initialize products manager
             window.productsManager = new ProductsManager();
             
-            console.log('Products page initialized');
+            console.log('Products page initialized successfully');
         });
     </script>
 </body>

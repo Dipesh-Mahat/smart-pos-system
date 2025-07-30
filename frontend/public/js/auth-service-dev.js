@@ -7,7 +7,7 @@
 class AuthService {
     constructor() {
         console.warn('DEVELOPMENT MODE: Using mock authentication service');
-        this.apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
+        this.apiBaseUrl = 'http://localhost:5000/api';
         this.tokenKey = 'neopos_auth_token';
         this.userKey = 'neopos_user';
         this.refreshTokenKey = 'neopos_refresh_token';
