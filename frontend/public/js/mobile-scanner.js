@@ -22,6 +22,7 @@ class MobileScanner {
         this.setupUI();
         this.updateConnectionStatus();
         this.requestCamera();
+        this.setupQRCodeHandling();
     }
 
     isMobileDevice() {
@@ -644,6 +645,74 @@ class MobileScanner {
     generateToken() {
         return Math.random().toString(36).substring(2, 15) + 
                Math.random().toString(36).substring(2, 15);
+    }
+
+    setupQRCodeHandling() {
+        // QR Button click handler
+        const qrButton = document.getElementById('qrButton');
+        if (qrButton) {
+            qrButton.addEventListener('click', () => {
+                this.showQRCodeModal();
+            });
+        }
+
+        // Close QR modal button click handler
+        const closeQrModal = document.getElementById('closeQrModal');
+        if (closeQrModal) {
+            closeQrModal.addEventListener('click', () => {
+                document.getElementById('qrCodeModal').classList.remove('active');
+            });
+        }
+
+        // Copy URL button click handler
+        const copyUrlBtn = document.getElementById('copyUrlBtn');
+        if (copyUrlBtn) {
+            copyUrlBtn.addEventListener('click', () => {
+                const urlText = document.getElementById('qrCodeUrl').textContent;
+                navigator.clipboard.writeText(urlText)
+                    .then(() => {
+                        this.showNotification('URL copied to clipboard', 'success');
+                    })
+                    .catch(err => {
+                        this.showNotification('Failed to copy URL', 'error');
+                    });
+            });
+        }
+    }
+
+    showQRCodeModal() {
+        const qrCodeModal = document.getElementById('qrCodeModal');
+        const qrCodeImage = document.getElementById('qrCodeImage');
+        const qrCodeUrl = document.getElementById('qrCodeUrl');
+        
+        // Get current URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentUrl = new URL(window.location.href);
+        
+        // Generate QR code for the current URL
+        if (typeof qrcode !== 'undefined') {
+            // Clear previous QR code
+            qrCodeImage.innerHTML = '';
+            
+            // Generate new QR code
+            const qr = qrcode(0, 'M');
+            qr.addData(currentUrl.href);
+            qr.make();
+            
+            // Create QR code element
+            const qrImg = qr.createImgTag(5);
+            qrCodeImage.innerHTML = qrImg;
+            
+            // Display URL
+            qrCodeUrl.textContent = currentUrl.href;
+            
+            // Show modal
+            qrCodeModal.classList.add('active');
+            
+            this.showNotification('QR Code generated', 'success');
+        } else {
+            this.showNotification('QR Code library not loaded', 'error');
+        }
     }
 }
 

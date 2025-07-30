@@ -829,7 +829,14 @@
 
             hideLoading() {
                 document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('productsGrid').style.display = 'grid';
+                const productsGrid = document.getElementById('productsGrid');
+                productsGrid.style.display = 'grid';
+                
+                // Remove skeleton cards when loading is complete
+                const skeletonCards = productsGrid.querySelectorAll('.skeleton-card');
+                if (skeletonCards.length > 0) {
+                    skeletonCards.forEach(card => card.remove());
+                }
             }
 
             showEmpty() {

@@ -6,6 +6,7 @@
     <title>Smart POS Mobile Scanner</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
         :root {
             --primary-color: #4f46e5;
@@ -208,9 +209,61 @@
             display: none;
         }
 
-        .qr-section.show {
+        .qr-section.show, .scan-history.show {
             display: block;
             animation: slideIn 0.3s ease;
+        }
+        
+        .scan-history {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 50;
+            display: none;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .scan-history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: calc(70vh - 60px);
+            overflow-y: auto;
+        }
+        
+        .scan-history-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .scan-history-item.offline {
+            border-left-color: var(--warning);
+        }
+        
+        .scan-history-item .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .scan-history-item .content {
+            font-size: 14px;
+        }
+        
+        .empty-history-message {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.5);
         }
 
         @keyframes slideIn {
@@ -439,6 +492,123 @@
             padding: 20px;
             text-align: center;
         }
+        
+        /* QR Code Modal Styles */
+        .qr-code-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .qr-code-modal.active {
+            display: flex;
+        }
+
+        .qr-code-container {
+            width: 90%;
+            max-width: 400px;
+            background-color: #121212;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            animation: slideIn 0.3s ease;
+        }
+
+        .qr-code-header {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .qr-code-header h3 {
+            color: white;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .qr-code-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .qr-code-content p {
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+        }
+
+        #qrCodeImage {
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            margin: 10px 0;
+        }
+
+        .qr-code-url {
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            width: 100%;
+            word-break: break-all;
+            text-align: center;
+        }
+
+        .copy-url-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            margin-top: 5px;
+        }
+
+        .copy-url-btn:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-dark));
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -497,6 +667,17 @@
             </p>
         </div>
 
+        <!-- Scan History Section -->
+        <div class="scan-history" id="scanHistorySection">
+            <h3 style="margin-bottom: 15px; text-align: center;">
+                <i class="fas fa-history"></i> Scan History
+            </h3>
+            <div class="scan-history-list" id="scanHistoryList">
+                <!-- Scan history will be inserted here -->
+                <div class="empty-history-message">No scans yet</div>
+            </div>
+        </div>
+
         <!-- OCR Upload Area -->
         <div class="ocr-upload-area" id="ocrUploadArea" style="display: none;">
             <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
@@ -546,18 +727,81 @@
         <div class="processing-spinner"></div>
         <p id="processingText">Processing...</p>
     </div>
+    
+    <!-- QR Code Modal -->
+    <div class="qr-code-modal" id="qrCodeModal">
+        <div class="qr-code-container">
+            <div class="qr-code-header">
+                <h3><i class="fas fa-qrcode"></i> Share Scanner</h3>
+                <button class="close-btn" id="closeQrModal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="qr-code-content">
+                <p>Scan this QR code to open this scanner on another device:</p>
+                <div id="qrCodeImage"></div>
+                <div class="qr-code-url" id="qrCodeUrl"></div>
+                <button class="copy-url-btn" id="copyUrlBtn">
+                    <i class="fas fa-copy"></i> Copy URL
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Notification -->
     <div class="notification" id="notification"></div>
 
     <!-- Socket.IO for real-time communication -->
-    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Dynamic Socket.IO script loading with error handling
+        (function loadSocketIO() {
+            const socketScript = document.createElement('script');
+            socketScript.src = '/socket.io/socket.io.js';
+            socketScript.onerror = function() {
+                console.warn('Could not load Socket.IO from local server, trying CDN...');
+                // Try from CDN as fallback
+                const cdnScript = document.createElement('script');
+                cdnScript.src = 'https://cdn.socket.io/4.5.4/socket.io.min.js';
+                cdnScript.onerror = function() {
+                    console.error('Failed to load Socket.IO from CDN');
+                };
+                document.head.appendChild(cdnScript);
+            };
+            document.head.appendChild(socketScript);
+        })();
+    </script>
     
     <script>
-        // API Configuration
-        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:5000' 
-            : window.location.protocol + '//' + window.location.hostname;
+        // API Configuration with multi-environment support
+        const API_BASE = (function() {
+            // Check for explicitly set API base in localStorage (for debugging)
+            const storedApiBase = localStorage.getItem('api_base_override');
+            if (storedApiBase) {
+                console.log('Using API base override:', storedApiBase);
+                return storedApiBase;
+            }
+            
+            // Environment detection
+            const isLocalhost = window.location.hostname === 'localhost' || 
+                               window.location.hostname === '127.0.0.1';
+            
+            // Check if running on Vercel or another production platform
+            const isVercel = window.location.hostname.includes('vercel.app');
+            const isCustomDomain = !isLocalhost && !isVercel;
+            
+            // Choose the appropriate API base URL
+            if (isLocalhost) {
+                // Local development
+                return 'http://localhost:5000';
+            } else if (isVercel) {
+                // Vercel deployment
+                return window.location.protocol + '//' + window.location.hostname;
+            } else if (isCustomDomain) {
+                // Custom domain deployment
+                return window.location.protocol + '//' + window.location.hostname + '/api';
+            } else {
+                // Fallback
+                return window.location.protocol + '//' + window.location.hostname;
+            }
+        })();
 
         class EnhancedMobileScanner {
             constructor() {
@@ -579,35 +823,173 @@
             }
 
             init() {
+                // Initialize state
+                this.offlineMode = false;
+                this.scanHistory = JSON.parse(localStorage.getItem('scanHistory') || '[]');
+                this.offlineScans = JSON.parse(localStorage.getItem('offlineScans') || '[]');
+                
+                // Check if we have offline scans
+                if (this.offlineScans && this.offlineScans.length > 0) {
+                    console.log(`Found ${this.offlineScans.length} offline scans to sync`);
+                }
+                
+                // Initialize device data
+                this.deviceData = {
+                    uuid: this.getDeviceUUID(),
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform,
+                    screenWidth: window.innerWidth,
+                    screenHeight: window.innerHeight,
+                    language: navigator.language,
+                    hasCamera: !!navigator.mediaDevices
+                };
+                
+                // Set up event listeners and UI
                 this.setupEventListeners();
-                this.updateConnectionStatus();
-                this.initializeSocket();
+                
+                // Initialize connections
+                this.updateConnectionStatus().then(() => {
+                    this.initializeSocket();
+                    
+                    // Connect to session if sessionId is provided
+                    if (this.sessionId) {
+                        this.connectToSession();
+                    }
+                }).catch(error => {
+                    console.error('Connection initialization error:', error);
+                    // Continue in offline mode
+                    this.enableOfflineMode();
+                });
+                
+                // Initialize camera
                 this.requestCamera();
                 
-                // Connect to session if sessionId is provided
-                if (this.sessionId) {
-                    this.connectToSession();
+                // Show initialization message
+                this.showNotification('Smart POS Scanner ready', 'success');
+            }
+            
+            getDeviceUUID() {
+                // Try to get a persistent device identifier
+                let uuid = localStorage.getItem('device_uuid');
+                if (!uuid) {
+                    // Create a new UUID
+                    uuid = 'device_' + Math.random().toString(36).substring(2, 15) + 
+                           Math.random().toString(36).substring(2, 15);
+                    localStorage.setItem('device_uuid', uuid);
                 }
+                return uuid;
             }
 
             initializeSocket() {
                 try {
-                    this.socket = io();
+                    // Use socket.io with reconnection options
+                    const socketOptions = {
+                        reconnection: true,
+                        reconnectionAttempts: 5,
+                        reconnectionDelay: 1000,
+                        reconnectionDelayMax: 5000,
+                        timeout: 20000,
+                        autoConnect: true
+                    };
                     
+                    // Check if Socket.IO is available
+                    if (typeof io === 'undefined') {
+                        console.warn('Socket.IO not available, falling back to HTTP polling');
+                        this.startPollingConnection();
+                        return;
+                    }
+                    
+                    // Try to connect to socket.io server
+                    this.socket = io(socketOptions);
+                    
+                    // Connection event
                     this.socket.on('connect', () => {
-                        console.log('Socket.IO connected');
+                        console.log('Socket.IO connected successfully');
                         if (this.sessionId) {
                             this.socket.emit('join-scanner-session', this.sessionId);
+                            this.showNotification('Connected to scanner session', 'success');
                         }
                     });
                     
-                    this.socket.on('scan-request', () => {
+                    // Disconnection event
+                    this.socket.on('disconnect', (reason) => {
+                        console.log('Socket.IO disconnected:', reason);
+                        this.showNotification('Connection lost. Trying to reconnect...', 'warning');
+                    });
+                    
+                    // Error event
+                    this.socket.on('connect_error', (error) => {
+                        console.error('Socket.IO connection error:', error);
+                        // After several failures, fallback to HTTP polling
+                        if (this.socket.io.backoff.attempts >= 3) {
+                            this.showNotification('Using HTTP fallback mode', 'warning');
+                            this.startPollingConnection();
+                        }
+                    });
+                    
+                    // Scan request event
+                    this.socket.on('scan-request', (data) => {
                         this.showNotification('Desktop requested scan', 'info');
+                        // Automatically start scanning if requested
+                        if (data && data.autoStart) {
+                            this.startBarcodeScan();
+                        }
+                    });
+                    
+                    // Server acknowledgment
+                    this.socket.on('scanner-connected', (data) => {
+                        console.log('Scanner connection acknowledged by server:', data);
+                        this.showNotification('Connected to POS terminal', 'success');
                     });
                     
                 } catch (error) {
-                    console.log('Socket.IO initialization failed:', error);
+                    console.error('Socket.IO initialization failed:', error);
+                    this.showNotification('Connection system initialization failed', 'error');
+                    this.startPollingConnection(); // Fallback
                 }
+            }
+            
+            // Fallback method when socket.io isn't available or fails
+            startPollingConnection() {
+                // Use HTTP polling as a fallback
+                console.log('Starting HTTP polling fallback');
+                
+                // Clear any existing polling
+                if (this.pollingInterval) {
+                    clearInterval(this.pollingInterval);
+                }
+                
+                // Check for commands every few seconds
+                this.pollingInterval = setInterval(async () => {
+                    try {
+                        if (!this.sessionId) return;
+                        
+                        const response = await fetch(`${API_BASE}/api/mobile-scanner/poll-commands?sessionId=${this.sessionId}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Cache-Control': 'no-cache'
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.commands && data.commands.length > 0) {
+                                // Handle commands
+                                data.commands.forEach(cmd => {
+                                    if (cmd.type === 'scan') {
+                                        this.showNotification('Desktop requested scan', 'info');
+                                        if (cmd.autoStart) {
+                                            this.startBarcodeScan();
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    } catch (error) {
+                        console.log('Polling error (normal if server is offline):', error);
+                    }
+                }, 5000); // Poll every 5 seconds
             }
 
             async connectToSession() {
@@ -643,10 +1025,23 @@
                 // Control buttons
                 document.getElementById('scanButton').addEventListener('click', () => this.startBarcodeScan());
                 document.getElementById('ocrButton').addEventListener('click', () => this.toggleOCRMode());
-                document.getElementById('qrButton').addEventListener('click', () => this.toggleQRCode());
+                document.getElementById('qrButton').addEventListener('click', () => this.generateQRCode());
                 document.getElementById('flashButton').addEventListener('click', () => this.toggleFlash());
-                document.getElementById('backButton').addEventListener('click', () => this.goBack());
+                document.getElementById('backButton').addEventListener('click', () => this.showScanHistory());
                 document.getElementById('enableCameraBtn').addEventListener('click', () => this.requestCamera());
+                
+                // QR Code modal
+                document.getElementById('closeQrModal').addEventListener('click', () => {
+                    document.getElementById('qrCodeModal').classList.remove('active');
+                });
+                
+                // Copy URL button
+                document.getElementById('copyUrlBtn').addEventListener('click', () => {
+                    const urlText = document.getElementById('qrCodeUrl').textContent;
+                    navigator.clipboard.writeText(urlText)
+                        .then(() => this.showNotification('URL copied to clipboard', 'success'))
+                        .catch(() => this.showNotification('Failed to copy URL', 'error'));
+                });
 
                 // Scan type buttons
                 document.querySelectorAll('.scan-type-btn').forEach(btn => {
@@ -690,22 +1085,154 @@
                 try {
                     statusDot.classList.add('connecting');
                     connectionStatus.textContent = 'Connecting...';
-
+                    
+                    // Create a timeout to ensure we don't wait forever
+                    const connectionTimeout = new Promise((_, reject) => {
+                        setTimeout(() => reject(new Error('Connection timeout')), 5000);
+                    });
+                    
                     // Test connection to backend
-                    const response = await fetch(`${API_BASE}/api/mobile-scanner/status`);
+                    const connectionPromise = fetch(`${API_BASE}/api/mobile-scanner/status`);
+                    
+                    // Race the fetch against a timeout
+                    const response = await Promise.race([connectionPromise, connectionTimeout]);
                     
                     if (response.ok) {
+                        const data = await response.json();
                         statusDot.classList.remove('connecting');
                         statusDot.classList.add('connected');
-                        connectionStatus.textContent = 'Connected';
-                        this.showNotification('Connected to Smart POS', 'success');
+                        
+                        // Detect environment and show appropriate message
+                        const env = data.environment || 'unknown';
+                        const serverVersion = data.version || '';
+                        
+                        if (env === 'production') {
+                            connectionStatus.textContent = 'Connected (Production)';
+                            this.showNotification(`Connected to production server ${serverVersion}`, 'success');
+                        } else {
+                            connectionStatus.textContent = `Connected (${env})`;
+                            this.showNotification(`Connected to ${env} server ${serverVersion}`, 'success');
+                        }
+                        
+                        // Check if room connection is available
+                        if (this.sessionId) {
+                            this.checkRoomConnection();
+                        }
                     } else {
-                        throw new Error('Connection failed');
+                        throw new Error(`Connection failed: ${response.status}`);
                     }
                 } catch (error) {
                     statusDot.classList.remove('connecting');
-                    connectionStatus.textContent = 'Offline';
-                    this.showNotification('Connection failed - working offline', 'warning');
+                    statusDot.classList.remove('connected');
+                    
+                    // Check if we're in development mode
+                    const isDev = window.location.hostname === 'localhost' || 
+                                 window.location.hostname === '127.0.0.1';
+                    
+                    if (isDev) {
+                        connectionStatus.textContent = 'Server Offline';
+                        this.showNotification('Backend server is offline. Working in standalone mode.', 'warning');
+                        console.warn('Backend server connection failed. Make sure your Node.js server is running.');
+                    } else {
+                        connectionStatus.textContent = 'Offline';
+                        this.showNotification('Connection to server failed. Working in offline mode.', 'warning');
+                    }
+                    
+                    // Since connection failed, start polling
+                    this.enableOfflineMode();
+                }
+            }
+            
+            async checkRoomConnection() {
+                // If we have a sessionId, check if it's valid
+                if (!this.sessionId) return;
+                
+                try {
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/check-session/${this.sessionId}`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.valid) {
+                            this.showNotification('Room connection valid', 'success');
+                        } else {
+                            this.showNotification('Room connection invalid or expired', 'warning');
+                        }
+                    }
+                } catch (error) {
+                    console.log('Room connection check failed:', error);
+                }
+            }
+            
+            enableOfflineMode() {
+                // Set up offline mode capabilities
+                this.offlineMode = true;
+                
+                // In offline mode, store scans locally
+                this.offlineScans = JSON.parse(localStorage.getItem('offlineScans') || '[]');
+                
+                // Try to reconnect periodically
+                if (!this.reconnectionInterval) {
+                    this.reconnectionInterval = setInterval(() => {
+                        this.tryReconnect();
+                    }, 30000); // Try every 30 seconds
+                }
+            }
+            
+            async tryReconnect() {
+                try {
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/status`);
+                    
+                    if (response.ok) {
+                        // Server is back online
+                        clearInterval(this.reconnectionInterval);
+                        this.reconnectionInterval = null;
+                        this.offlineMode = false;
+                        
+                        // Update UI
+                        const statusDot = document.getElementById('statusDot');
+                        const connectionStatus = document.getElementById('connectionStatus');
+                        
+                        statusDot.classList.add('connected');
+                        connectionStatus.textContent = 'Connected';
+                        this.showNotification('Connection restored', 'success');
+                        
+                        // Sync offline scans if any
+                        if (this.offlineScans && this.offlineScans.length > 0) {
+                            this.syncOfflineScans();
+                        }
+                    }
+                } catch (error) {
+                    // Still offline, continue waiting
+                }
+            }
+            
+            async syncOfflineScans() {
+                if (!this.offlineScans || this.offlineScans.length === 0) return;
+                
+                this.showNotification(`Syncing ${this.offlineScans.length} offline scans...`, 'info');
+                
+                try {
+                    const response = await fetch(`${API_BASE}/api/mobile-scanner/sync-offline-scans`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            scans: this.offlineScans,
+                            sessionId: this.sessionId
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        // Clear offline scans
+                        this.offlineScans = [];
+                        localStorage.removeItem('offlineScans');
+                        this.showNotification('Offline scans synchronized successfully', 'success');
+                    } else {
+                        this.showNotification('Failed to sync some offline scans', 'warning');
+                    }
+                } catch (error) {
+                    this.showNotification('Error syncing offline scans', 'error');
                 }
             }
 
@@ -781,47 +1308,197 @@
             }
 
             async processBarcode(barcode) {
+                if (!barcode) {
+                    this.showNotification('No barcode detected', 'warning');
+                    return;
+                }
+                
                 this.showProcessing('Processing barcode...');
                 
+                // Create a scan record
+                const scanRecord = {
+                    barcode: barcode,
+                    scanType: this.currentScanType,
+                    sessionId: this.sessionId,
+                    connectionMode: this.connectionMode,
+                    timestamp: new Date().toISOString(),
+                    deviceInfo: {
+                        userAgent: navigator.userAgent,
+                        platform: navigator.platform,
+                        screenWidth: window.innerWidth,
+                        screenHeight: window.innerHeight
+                    }
+                };
+                
+                // Check if we're in offline mode
+                if (this.offlineMode) {
+                    this.saveOfflineScan(scanRecord);
+                    return;
+                }
+                
+                // Set up a timeout to prevent long waits
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Request timeout')), 8000);
+                });
+                
                 try {
-                    const response = await fetch(`${API_BASE}/api/mobile-scanner/process-barcode`, {
+                    // Race against a timeout
+                    const fetchPromise = fetch(`${API_BASE}/api/mobile-scanner/process-barcode`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({
-                            barcode: barcode,
-                            scanType: this.currentScanType,
-                            sessionId: this.sessionId,
-                            connectionMode: this.connectionMode
-                        })
+                        body: JSON.stringify(scanRecord)
                     });
-
+                    
+                    const response = await Promise.race([fetchPromise, timeoutPromise]);
                     const result = await response.json();
                     this.hideProcessing();
 
                     if (result.success) {
                         this.showNotification(`Found: ${result.product.name}`, 'success');
+                        
+                        // Add scan to history
+                        this.addScanToHistory({
+                            barcode: barcode,
+                            product: result.product,
+                            timestamp: new Date().toISOString()
+                        });
+                        
                         // Vibrate if supported
                         if ('vibrate' in navigator) {
                             navigator.vibrate(200);
                         }
                         
-                        // Send result to desktop via Socket.IO if connected
-                        if (this.socket && this.sessionId) {
-                            this.socket.emit('scan-result', {
-                                sessionId: this.sessionId,
-                                barcode: barcode,
-                                product: result.product,
-                                timestamp: new Date()
-                            });
-                        }
+                        // Send result via all available methods
+                        this.sendScanResult({
+                            sessionId: this.sessionId,
+                            barcode: barcode,
+                            product: result.product,
+                            timestamp: new Date().toISOString(),
+                            success: true
+                        });
+                        
+                        return result;
                     } else {
+                        // Product not found or other error
                         this.showNotification(result.message || 'Product not found', 'warning');
+                        
+                        // Send failure result
+                        this.sendScanResult({
+                            sessionId: this.sessionId,
+                            barcode: barcode,
+                            error: result.message || 'Product not found',
+                            timestamp: new Date().toISOString(),
+                            success: false
+                        });
+                        
+                        return result;
                     }
                 } catch (error) {
                     this.hideProcessing();
-                    this.showNotification('Error processing barcode', 'error');
+                    console.error('Error processing barcode:', error);
+                    
+                    // Check if it's a network error
+                    if (error.name === 'TypeError' || error.message === 'Request timeout') {
+                        this.showNotification('Network error - saving scan for later', 'warning');
+                        
+                        // Save for later sync
+                        this.saveOfflineScan(scanRecord);
+                    } else {
+                        this.showNotification('Error processing barcode: ' + error.message, 'error');
+                    }
+                    
+                    return { success: false, error: error.message };
+                }
+            }
+            
+            saveOfflineScan(scanRecord) {
+                // Make sure offline scans array is initialized
+                if (!this.offlineScans) {
+                    this.offlineScans = JSON.parse(localStorage.getItem('offlineScans') || '[]');
+                }
+                
+                // Add scan to offline storage
+                this.offlineScans.push(scanRecord);
+                
+                // Save to local storage
+                try {
+                    localStorage.setItem('offlineScans', JSON.stringify(this.offlineScans));
+                    this.hideProcessing();
+                    this.showNotification('Scan saved for later processing', 'info');
+                    
+                    // Add to history
+                    this.addScanToHistory({
+                        barcode: scanRecord.barcode,
+                        offline: true,
+                        timestamp: scanRecord.timestamp
+                    });
+                    
+                    // Vibrate to confirm
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate([100, 50, 100]);
+                    }
+                } catch (e) {
+                    console.error('Error saving offline scan:', e);
+                    this.hideProcessing();
+                    this.showNotification('Failed to save scan', 'error');
+                }
+            }
+            
+            addScanToHistory(scan) {
+                // Initialize scan history if needed
+                if (!this.scanHistory) {
+                    this.scanHistory = JSON.parse(localStorage.getItem('scanHistory') || '[]');
+                }
+                
+                // Add to beginning of array
+                this.scanHistory.unshift(scan);
+                
+                // Limit history size to 50 items
+                if (this.scanHistory.length > 50) {
+                    this.scanHistory = this.scanHistory.slice(0, 50);
+                }
+                
+                // Save history
+                try {
+                    localStorage.setItem('scanHistory', JSON.stringify(this.scanHistory));
+                } catch (e) {
+                    console.error('Error saving scan history:', e);
+                }
+            }
+            
+            sendScanResult(scanData) {
+                // Try all available sending methods
+                
+                // 1. Socket.IO if connected
+                if (this.socket && this.socket.connected) {
+                    try {
+                        this.socket.emit('scan-result', scanData);
+                        console.log('Sent scan result via Socket.IO');
+                        return;
+                    } catch (e) {
+                        console.error('Socket.IO send error:', e);
+                    }
+                }
+                
+                // 2. HTTP POST as fallback
+                try {
+                    fetch(`${API_BASE}/api/mobile-scanner/receive-scan`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(scanData)
+                    }).then(response => {
+                        if (response.ok) {
+                            console.log('Sent scan result via HTTP');
+                        }
+                    }).catch(error => {
+                        console.error('HTTP send error:', error);
+                    });
+                } catch (e) {
+                    console.error('Error sending scan result:', e);
                 }
             }
 
@@ -839,40 +1516,147 @@
             }
 
             async toggleQRCode() {
-                const qrSection = document.getElementById('qrSection');
-                const isVisible = qrSection.classList.contains('show');
-                
-                if (isVisible) {
-                    qrSection.classList.remove('show');
-                } else {
-                    this.hideOtherSections();
-                    qrSection.classList.add('show');
-                    await this.generateQRCode();
-                }
+                // We now directly show the QR code modal from generateQRCode
+                await this.generateQRCode();
             }
 
             async generateQRCode() {
                 try {
-                    const response = await fetch(`${API_BASE}/api/mobile-scanner/generate-qr`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            scanType: this.currentScanType
-                        })
-                    });
-
-                    const result = await response.json();
+                    // Show QR code modal
+                    document.getElementById('qrCodeModal').classList.add('active');
                     
-                    if (result.success) {
-                        const qrContainer = document.getElementById('qrCodeContainer');
-                        qrContainer.innerHTML = `<img src="${result.qrCode}" alt="QR Code" />`;
-                    } else {
+                    // Get existing room or generate a new one
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const existingRoom = urlParams.get('room');
+                    const roomCode = existingRoom || 'SC' + Math.floor(100000 + Math.random() * 900000);
+                    const existingToken = urlParams.get('token');
+                    const token = existingToken || this.generateToken();
+                    const existingSessionId = urlParams.get('sessionId');
+                    const sessionId = existingSessionId || Math.random().toString(36).substring(2, 15);
+                    
+                    // Generate the correct URL for sharing
+                    this.showProcessing('Detecting best connection URL...');
+                    
+                    // Try multiple network detection methods in parallel
+                    const [localIp, publicIp] = await Promise.all([
+                        this.getLocalIpAddress(),
+                        this.getPublicNetworkInfo()
+                    ]);
+                    
+                    this.hideProcessing();
+                    
+                    // Create base URL - try several options for maximum compatibility
+                    let baseUrls = [];
+                    
+                    // Option 1: Use local IP if available (best for local network)
+                    if (localIp) {
+                        const protocol = window.location.protocol;
+                        const port = window.location.port ? `:${window.location.port}` : '';
+                        const localUrl = `${protocol}//${localIp}${port}${window.location.pathname}`;
+                        baseUrls.push({ url: localUrl, label: 'Local Network' });
+                    }
+                    
+                    // Option 2: Always include the original URL as fallback
+                    const originalUrl = window.location.href.split('?')[0];
+                    baseUrls.push({ url: originalUrl, label: 'Direct Link' });
+                    
+                    // Option 3: Add a production URL if in production environment
+                    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                        baseUrls.push({ url: window.location.href.split('?')[0], label: 'Internet' });
+                    }
+                    
+                    // Create all QR codes and display them
+                    const qrContainer = document.getElementById('qrCodeImage');
+                    qrContainer.innerHTML = '';
+                    
+                    // URL params for all versions
+                    const params = new URLSearchParams();
+                    params.append('room', roomCode);
+                    params.append('mode', this.currentScanType);
+                    params.append('token', token);
+                    params.append('sessionId', sessionId);
+                    
+                    // Create container for all QR codes
+                    const qrCodesContainer = document.createElement('div');
+                    qrCodesContainer.className = 'qr-codes-wrapper';
+                    qrCodesContainer.style.display = 'flex';
+                    qrCodesContainer.style.flexDirection = 'column';
+                    qrCodesContainer.style.gap = '15px';
+                    qrContainer.appendChild(qrCodesContainer);
+                    
+                    // Function to create a QR code
+                    const createQrCode = (baseUrl, label) => {
+                        const fullUrl = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}${params.toString()}`;
+                        
+                        const qrWrapper = document.createElement('div');
+                        qrWrapper.style.textAlign = 'center';
+                        
+                        // QR Code
+                        const qr = qrcode(0, 'L');
+                        qr.addData(fullUrl);
+                        qr.make();
+                        const qrImg = qr.createImgTag(5);
+                        
+                        // QR Code label
+                        qrWrapper.innerHTML = `
+                            <div class="qr-label" style="margin-bottom:8px;font-size:14px;color:#a5b4fc">
+                                <strong>${label}</strong>
+                            </div>
+                            ${qrImg}
+                        `;
+                        
+                        return {wrapper: qrWrapper, url: fullUrl};
+                    };
+                    
+                    // Generate all QR codes
+                    let primaryQrUrl = '';
+                    baseUrls.forEach((baseUrlData, index) => {
+                        const {wrapper, url} = createQrCode(baseUrlData.url, baseUrlData.label);
+                        qrCodesContainer.appendChild(wrapper);
+                        
+                        // Use the first URL as primary for the copy button
+                        if (index === 0) {
+                            primaryQrUrl = url;
+                        }
+                    });
+                    
+                    // Set URL text to the most likely to work option
+                    document.getElementById('qrCodeUrl').textContent = primaryQrUrl;
+                    
+                    // Connection help text
+                    const helpText = document.createElement('p');
+                    helpText.innerHTML = '<small>If one QR code doesn\'t connect, try another. Both devices must be on the same network for local connections.</small>';
+                    helpText.style.fontSize = '11px';
+                    helpText.style.opacity = '0.7';
+                    helpText.style.marginTop = '5px';
+                    qrContainer.appendChild(helpText);
+                    
+                    this.showNotification('QR codes generated successfully', 'success');
+                    
+                } catch (error) {
+                    this.hideProcessing();
+                    console.error('Error generating QR code:', error);
+                    
+                    // Fallback to simple QR code if complex method fails
+                    try {
+                        const simpleUrl = window.location.href.split('?')[0] + 
+                                         '?room=SC' + Math.floor(100000 + Math.random() * 900000) + 
+                                         '&token=' + this.generateToken();
+                        
+                        const qrContainer = document.getElementById('qrCodeImage');
+                        qrContainer.innerHTML = '';
+                        
+                        const qr = qrcode(0, 'M');
+                        qr.addData(simpleUrl);
+                        qr.make();
+                        
+                        qrContainer.innerHTML = qr.createImgTag(5);
+                        document.getElementById('qrCodeUrl').textContent = simpleUrl;
+                        
+                        this.showNotification('Basic QR code generated (fallback mode)', 'warning');
+                    } catch (fallbackError) {
                         this.showNotification('Failed to generate QR code', 'error');
                     }
-                } catch (error) {
-                    this.showNotification('Error generating QR code', 'error');
                 }
             }
 
@@ -1016,8 +1800,10 @@
 
             hideOtherSections() {
                 document.getElementById('qrSection').classList.remove('show');
+                document.getElementById('scanHistorySection').classList.remove('show');
                 document.getElementById('ocrUploadArea').style.display = 'none';
                 document.getElementById('ocrResults').classList.remove('show');
+                document.getElementById('qrCodeModal').classList.remove('active');
             }
 
             showProcessing(text) {
@@ -1048,6 +1834,143 @@
                     window.history.back();
                 }
             }
+            
+            showScanHistory() {
+                const historySection = document.getElementById('scanHistorySection');
+                const historyList = document.getElementById('scanHistoryList');
+                
+                // Toggle visibility
+                if (historySection.classList.contains('show')) {
+                    historySection.classList.remove('show');
+                    return;
+                }
+                
+                // Hide other sections
+                this.hideOtherSections();
+                
+                // Show history section
+                historySection.classList.add('show');
+                
+                // Clear previous content
+                historyList.innerHTML = '';
+                
+                // Show history items or empty message
+                if (!this.scanHistory || this.scanHistory.length === 0) {
+                    historyList.innerHTML = '<div class="empty-history-message">No scans yet</div>';
+                    return;
+                }
+                
+                // Add history items
+                this.scanHistory.forEach(scan => {
+                    const item = document.createElement('div');
+                    item.className = `scan-history-item ${scan.offline ? 'offline' : ''}`;
+                    
+                    const scanDate = new Date(scan.timestamp);
+                    const formattedDate = scanDate.toLocaleString();
+                    
+                    let content = '';
+                    if (scan.product) {
+                        content = `
+                            <div class="header">
+                                <span>${formattedDate}</span>
+                                <span>${scan.offline ? 'Offline' : 'Online'}</span>
+                            </div>
+                            <div class="content">
+                                <strong>${scan.product.name || 'Unknown Product'}</strong><br>
+                                Barcode: ${scan.barcode}
+                                ${scan.product.price ? `<br>Price: $${scan.product.price}` : ''}
+                                ${scan.product.category ? `<br>Category: ${scan.product.category}` : ''}
+                            </div>
+                        `;
+                    } else {
+                        content = `
+                            <div class="header">
+                                <span>${formattedDate}</span>
+                                <span>${scan.offline ? 'Offline' : 'Online'}</span>
+                            </div>
+                            <div class="content">
+                                <strong>Barcode:</strong> ${scan.barcode}
+                                ${scan.offline ? '<br><small>Waiting to be processed</small>' : ''}
+                            </div>
+                        `;
+                    }
+                    
+                    item.innerHTML = content;
+                    historyList.appendChild(item);
+                });
+            }
+            
+            generateToken() {
+                return Math.random().toString(36).substring(2, 15);
+            }
+            
+            async getLocalIpAddress() {
+                try {
+                    // Try to get local network IP using WebRTC
+                    const pc = new RTCPeerConnection({ iceServers: [] });
+                    pc.createDataChannel('');
+                    await pc.createOffer().then(offer => pc.setLocalDescription(offer));
+                    
+                    return new Promise((resolve) => {
+                        // Set timeout to avoid hanging if WebRTC doesn't provide results
+                        const timeout = setTimeout(() => {
+                            try {
+                                if (pc && pc.connectionState !== 'closed') {
+                                    pc.close();
+                                }
+                            } catch (e) {}
+                            resolve(null);
+                        }, 1500);
+                        
+                        pc.onicecandidate = (ice) => {
+                            if (ice && ice.candidate && ice.candidate.candidate) {
+                                // Look for local network IPs (non-loopback)
+                                const ipMatch = /([0-9]{1,3}(\.[0-9]{1,3}){3})/.exec(ice.candidate.candidate);
+                                if (ipMatch && ipMatch[1]) {
+                                    const ip = ipMatch[1];
+                                    
+                                    // Check for non-loopback and private IP addresses
+                                    // Private IP ranges: 10.x.x.x, 172.16-31.x.x, 192.168.x.x
+                                    if (!ip.startsWith('127.') && 
+                                        (ip.startsWith('10.') || 
+                                         ip.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./) ||
+                                         ip.startsWith('192.168.'))) {
+                                        clearTimeout(timeout);
+                                        try { pc.close(); } catch(e) {}
+                                        resolve(ip);
+                                    }
+                                }
+                            }
+                        };
+                    });
+                } catch (error) {
+                    console.error('Error getting local IP:', error);
+                    return null;
+                }
+            }
+            
+            async getPublicNetworkInfo() {
+                try {
+                    // Check if we're on a production server or local development
+                    if (window.location.hostname !== 'localhost' && 
+                        window.location.hostname !== '127.0.0.1') {
+                        // We're already on a public domain, use it
+                        return {
+                            type: 'public',
+                            domain: window.location.host
+                        };
+                    }
+                    
+                    // In local development, just return that we're local
+                    return {
+                        type: 'local',
+                        domain: null
+                    };
+                } catch (error) {
+                    console.error('Error getting public network info:', error);
+                    return null;
+                }
+            }
         }
 
         // Initialize scanner when page loads
@@ -1062,6 +1985,25 @@
                 scanner.stream.getTracks().forEach(track => track.stop());
             }
         });
+        
+        // Network status monitoring
+        window.addEventListener('online', () => {
+            if (scanner) {
+                scanner.showNotification('Network connection restored', 'success');
+                scanner.tryReconnect();
+            }
+        });
+        
+        window.addEventListener('offline', () => {
+            if (scanner) {
+                scanner.showNotification('Network connection lost - working offline', 'warning');
+                scanner.enableOfflineMode();
+            }
+        });
+        
+        // Debug helper for developers
+        console.log(`Smart POS Scanner initialized with API endpoint: ${API_BASE}`);
+        console.log('Mobile Scanner Version: 1.2.0 (Production Ready)');
     </script>
 </body>
 </html>
