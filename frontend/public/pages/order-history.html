@@ -506,6 +506,8 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="../js/auth-service.js"></script>
+    <script src="../js/api-service.js"></script>
     <script src="../js/bill-generator.js"></script>
     <script src="../js/qrcode.min.js"></script>
     <script>
@@ -515,11 +517,20 @@
         let currentBillData = null;
         const billGenerator = new SmartPOSBillGenerator();
 
-        // Load orders and suppliers on page load
+        // Authentication check
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is authenticated
+            if (!window.authService || !window.authService.isLoggedIn()) {
+                window.location.href = '../landing.html';
+                return;
+            }
+            
+            // Initialize the page
             loadSuppliers();
             loadOrders();
         });
+
+        // Load orders and suppliers on page load
 
         async function loadSuppliers() {
             try {
@@ -547,40 +558,111 @@
 
         async function loadOrders() {
             try {
-                const response = await fetch('/api/shop/orders/suppliers');
-                if (response.ok) {
-                    const suppliersData = await response.json();
-                    
-                    // Extract all orders from all suppliers
-                    allOrders = [];
+                // Add loading indicator
+                document.getElementById('orders-list').innerHTML = '<div class="loading"><div>Loading your order history...</div></div>';
+                
+                // Use proper API endpoint with authentication headers
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                // Add auth token if available
+                const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch('/api/shop/orders/suppliers', { headers });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const suppliersData = await response.json();
+                console.log('Orders data loaded:', suppliersData);
+                
+                // Extract all orders from all suppliers with better error handling
+                allOrders = [];
+                
+                if (Array.isArray(suppliersData)) {
                     suppliersData.forEach(supplier => {
-                        if (supplier.orders && supplier.orders.length > 0) {
+                        if (supplier.orders && Array.isArray(supplier.orders) && supplier.orders.length > 0) {
                             supplier.orders.forEach(order => {
-                                // Add supplier info to each order
-                                order.supplierInfo = {
-                                    _id: supplier._id,
-                                    supplierName: supplier.supplierName,
-                                    email: supplier.email,
-                                    phone: supplier.phone,
-                                    address: supplier.address
+                                // Ensure proper order structure
+                                const processedOrder = {
+                                    ...order,
+                                    _id: order._id || order.id || `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                                    status: order.status || 'pending',
+                                    createdAt: order.createdAt || order.orderDate || new Date().toISOString(),
+                                    items: Array.isArray(order.items) ? order.items : [],
+                                    total: parseFloat(order.total || order.totalAmount || 0),
+                                    subtotal: parseFloat(order.subtotal || order.subTotal || order.total || 0),
+                                    supplierInfo: {
+                                        _id: supplier._id,
+                                        supplierName: supplier.supplierName || supplier.name || 'Unknown Supplier',
+                                        email: supplier.email || 'No email provided',
+                                        phone: supplier.phone || 'No phone provided',
+                                        address: supplier.address || 'No address provided'
+                                    }
                                 };
-                                allOrders.push(order);
+                                allOrders.push(processedOrder);
                             });
                         }
                     });
-
-                    // Sort orders by date (newest first)
-                    allOrders.sort((a, b) => new Date(b.createdAt || b.orderDate) - new Date(a.createdAt || a.orderDate));
-                    
-                    filteredOrders = [...allOrders];
-                    displayOrders();
                 } else {
-                    console.error('Failed to load orders');
-                    document.getElementById('orders-list').innerHTML = '<div class="no-orders">Failed to load orders</div>';
+                    console.warn('Unexpected data format:', suppliersData);
                 }
+
+                // Sort orders by date (newest first)
+                allOrders.sort((a, b) => {
+                    const dateA = new Date(a.createdAt);
+                    const dateB = new Date(b.createdAt);
+                    return dateB - dateA;
+                });
+                
+                filteredOrders = [...allOrders];
+                displayOrders();
+                
+                console.log(`Loaded ${allOrders.length} orders successfully`);
+                
             } catch (error) {
                 console.error('Error loading orders:', error);
-                document.getElementById('orders-list').innerHTML = '<div class="no-orders">Error loading orders</div>';
+                const errorMessage = getErrorMessage(error);
+                document.getElementById('orders-list').innerHTML = `
+                    <div class="no-orders">
+                        <i style="font-size: 3rem; color: #e74c3c;">⚠️</i>
+                        <h3>Error Loading Orders</h3>
+                        <p>${errorMessage}</p>
+                        <button onclick="loadOrders()" style="
+                            background: #3498db; 
+                            color: white; 
+                            border: none; 
+                            padding: 10px 20px; 
+                            border-radius: 5px; 
+                            cursor: pointer; 
+                            margin-top: 15px;
+                            font-weight: 600;
+                        ">
+                            <i class="fas fa-refresh"></i> Retry
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function getErrorMessage(error) {
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                return 'Cannot connect to server. Please ensure the backend server is running on the correct port.';
+            } else if (error.message.includes('401')) {
+                return 'Authentication failed. Please log in again.';
+            } else if (error.message.includes('403')) {
+                return 'Access denied. Please check your permissions.';
+            } else if (error.message.includes('404')) {
+                return 'Orders endpoint not found. Please check the API configuration.';
+            } else if (error.message.includes('500')) {
+                return 'Server error. Please try again later.';
+            } else {
+                return `${error.message || 'Unknown error occurred'}. Please check your connection and try again.`;
             }
         }
 
@@ -591,9 +673,9 @@
             if (filteredOrders.length === 0) {
                 ordersList.innerHTML = `
                     <div class="no-orders">
-                        <i>📦</i>
+                        <i style="font-size: 4rem; color: #bdc3c7;">📦</i>
                         <h3>No orders found</h3>
-                        <p>No orders match your current filters.</p>
+                        <p>No orders match your current filters. Try adjusting your search criteria or check back later.</p>
                     </div>
                 `;
                 ordersCount.textContent = '0 orders found';
@@ -602,78 +684,130 @@
 
             ordersCount.textContent = `${filteredOrders.length} order${filteredOrders.length !== 1 ? 's' : ''} found`;
 
-            const ordersHTML = filteredOrders.map(order => {
-                const orderDate = new Date(order.createdAt || order.orderDate);
-                const formattedDate = orderDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
+            const ordersHTML = filteredOrders.map((order, index) => {
+                // Safely handle date formatting
+                let formattedDate;
+                try {
+                    const orderDate = new Date(order.createdAt || order.orderDate || Date.now());
+                    formattedDate = orderDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                } catch (e) {
+                    formattedDate = 'Invalid Date';
+                }
 
-                const statusClass = `status-${order.status || 'pending'}`;
+                const statusClass = `status-${(order.status || 'pending').toLowerCase()}`;
+                const statusDisplay = (order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1);
+                
+                // Calculate order summary safely
+                const itemsCount = Array.isArray(order.items) ? order.items.length : 0;
+                const orderTotal = parseFloat(order.total || order.totalAmount || 0);
+                
+                // Generate order ID display
+                const orderId = order._id ? order._id.slice(-8).toUpperCase() : `ORD-${(index + 1).toString().padStart(4, '0')}`;
                 
                 return `
-                    <div class="order-card">
+                    <div class="order-card" data-order-id="${order._id}">
                         <div class="order-header">
                             <div class="order-info">
-                                <h3 class="order-number">Order #${order._id.slice(-8).toUpperCase()}</h3>
-                                <p class="order-date">${formattedDate}</p>
+                                <h3 class="order-number">Order #${orderId}</h3>
+                                <p class="order-date">
+                                    <i class="fas fa-calendar-alt" style="margin-right: 5px; color: #7f8c8d;"></i>
+                                    ${formattedDate}
+                                </p>
                             </div>
-                            <span class="order-status ${statusClass}">${order.status || 'pending'}</span>
+                            <span class="order-status ${statusClass}">${statusDisplay}</span>
                         </div>
 
                         <div class="order-details">
                             <div class="detail-group">
-                                <div class="detail-label">Supplier</div>
+                                <div class="detail-label">
+                                    <i class="fas fa-store" style="margin-right: 5px;"></i>
+                                    Supplier
+                                </div>
                                 <div class="detail-value supplier-name">${order.supplierInfo.supplierName}</div>
                             </div>
                             <div class="detail-group">
-                                <div class="detail-label">Items Count</div>
-                                <div class="detail-value">${order.items ? order.items.length : 0} items</div>
+                                <div class="detail-label">
+                                    <i class="fas fa-box" style="margin-right: 5px;"></i>
+                                    Items Count
+                                </div>
+                                <div class="detail-value">${itemsCount} item${itemsCount !== 1 ? 's' : ''}</div>
                             </div>
                             <div class="detail-group">
-                                <div class="detail-label">Total Amount</div>
-                                <div class="detail-value order-total">NPR ${(order.total || 0).toFixed(2)}</div>
+                                <div class="detail-label">
+                                    <i class="fas fa-dollar-sign" style="margin-right: 5px;"></i>
+                                    Total Amount
+                                </div>
+                                <div class="detail-value order-total">NPR ${orderTotal.toLocaleString('en-NP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                             </div>
                         </div>
 
-                        ${order.items && order.items.length > 0 ? `
+                        ${itemsCount > 0 ? `
                             <div class="order-items">
-                                <div class="items-header">Order Items</div>
-                                <div class="item-row" style="font-weight: 600; color: #2c3e50;">
+                                <div class="items-header">
+                                    <i class="fas fa-list" style="margin-right: 8px;"></i>
+                                    Order Items
+                                </div>
+                                <div class="item-row" style="font-weight: 600; color: #2c3e50; background: #f8f9fa; padding: 10px 0; border-radius: 5px;">
                                     <div>Product</div>
                                     <div style="text-align: right;">Quantity</div>
-                                    <div style="text-align: right;">Price</div>
+                                    <div style="text-align: right;">Unit Price</div>
                                     <div style="text-align: right;">Total</div>
                                 </div>
-                                ${order.items.slice(0, 3).map(item => `
-                                    <div class="item-row">
-                                        <div class="item-name">${item.productName || item.name || 'Unknown Product'}</div>
-                                        <div class="item-quantity">${item.quantity || 1}</div>
-                                        <div class="item-price">NPR ${(item.price || 0).toFixed(2)}</div>
-                                        <div class="item-total">NPR ${((item.quantity || 1) * (item.price || 0)).toFixed(2)}</div>
-                                    </div>
-                                `).join('')}
-                                ${order.items.length > 3 ? `
-                                    <div class="item-row" style="font-style: italic; color: #7f8c8d;">
-                                        <div>... and ${order.items.length - 3} more items</div>
+                                ${order.items.slice(0, 3).map(item => {
+                                    const itemPrice = parseFloat(item.price || item.unitPrice || 0);
+                                    const itemQuantity = parseInt(item.quantity || 1);
+                                    const itemTotal = itemPrice * itemQuantity;
+                                    
+                                    return `
+                                        <div class="item-row">
+                                            <div class="item-name" title="${item.productName || item.name || 'Unknown Product'}">
+                                                ${(item.productName || item.name || 'Unknown Product').length > 25 ? 
+                                                    (item.productName || item.name || 'Unknown Product').substring(0, 25) + '...' : 
+                                                    (item.productName || item.name || 'Unknown Product')
+                                                }
+                                            </div>
+                                            <div class="item-quantity">${itemQuantity}</div>
+                                            <div class="item-price">NPR ${itemPrice.toFixed(2)}</div>
+                                            <div class="item-total">NPR ${itemTotal.toFixed(2)}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                                ${itemsCount > 3 ? `
+                                    <div class="item-row" style="font-style: italic; color: #7f8c8d; background: #f8f9fa; border-radius: 5px;">
+                                        <div>
+                                            <i class="fas fa-ellipsis-h" style="margin-right: 5px;"></i>
+                                            and ${itemsCount - 3} more item${itemsCount - 3 !== 1 ? 's' : ''}
+                                        </div>
                                         <div></div>
                                         <div></div>
                                         <div></div>
                                     </div>
                                 ` : ''}
                             </div>
-                        ` : ''}
+                        ` : `
+                            <div class="order-items">
+                                <div style="text-align: center; color: #7f8c8d; padding: 20px; font-style: italic;">
+                                    <i class="fas fa-info-circle" style="margin-right: 5px;"></i>
+                                    No items details available for this order
+                                </div>
+                            </div>
+                        `}
 
                         <div class="order-actions">
-                            <button class="action-btn view-btn" onclick="viewOrderBill('${order._id}')">
-                                👁️ View Bill
+                            <button class="action-btn view-btn" onclick="viewOrderBill('${order._id}')" title="View detailed bill">
+                                <i class="fas fa-eye"></i> View Bill
                             </button>
-                            <button class="action-btn export-btn" onclick="exportOrderBill('${order._id}')">
-                                📄 Export PDF
+                            <button class="action-btn export-btn" onclick="exportOrderBill('${order._id}')" title="Export as PDF">
+                                <i class="fas fa-file-pdf"></i> Export PDF
                             </button>
-                            <button class="action-btn reorder-btn" onclick="reorderItems('${order._id}')">
-                                🔄 Reorder
+                            <button class="action-btn reorder-btn" onclick="reorderItems('${order._id}')" title="Reorder these items">
+                                <i class="fas fa-redo"></i> Reorder
                             </button>
                         </div>
                     </div>
