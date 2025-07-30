@@ -725,13 +725,6 @@
         }
 
 
-        async function handleImportSuppliers() {
-            await customAlert({
-                title: 'Feature Coming Soon',
-                message: 'Import suppliers functionality will be implemented in the next update.',
-                type: 'info'
-            });
-        }
 
         function createOrder(supplierId) {
             // Redirect to order creation page
@@ -803,8 +796,7 @@
             const navbar = new SmartPOSNavbar({
                 title: 'Suppliers - Smart POS',
                 customActions: [
-                    { id: 'export-suppliers', title: 'Export', icon: 'download' },
-                    { id: 'import-suppliers', title: 'Import', icon: 'upload' }
+                    { id: 'export-suppliers', title: 'Export', icon: 'download' }
                 ]
             });
             // Handle navbar action clicks
@@ -812,14 +804,6 @@
                 switch(e.detail.actionId) {
                     case 'export-suppliers':
                         exportSuppliers();
-                        break;
-                    case 'import-suppliers':
-                        console.log('Importing suppliers...');
-                        customAlert({
-                            title: 'Feature Coming Soon',
-                            message: 'Import suppliers functionality will be implemented in the next update.',
-                            type: 'info'
-                        });
                         break;
                 }
             });
