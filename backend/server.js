@@ -286,6 +286,6 @@ app.use(errorLogger);
 // Start the server
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);
-  console.log(`Socket.IO server ready for enhanced scanner connections`);
+  console.log(`Socket.IO server ready for scanner connections`);
 });
 
