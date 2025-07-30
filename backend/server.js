@@ -165,6 +165,7 @@ if (false) { // Temporarily disabled for testing
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const routes = require('./routes/index');
+const geminiProxy = require('./routes/geminiProxy');
 
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -179,6 +180,7 @@ if (process.env.NODE_ENV !== 'production') {
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api', routes);
+app.use('/api', geminiProxy);
 
 // Basic route to test backend
 app.get('/', (req, res) => {
