@@ -2787,8 +2787,7 @@
             const navbar = new SmartPOSNavbar({
                 title: 'Point of Sale',
                 customActions: [
-                    { id: 'clearPos', icon: 'redo', title: 'Clear' },
-                    { id: 'newSale', icon: 'receipt', title: 'New Sale' }
+                    { id: 'clearPos', icon: 'redo', title: 'Clear' }
                 ]
             });
             
@@ -2825,23 +2824,9 @@
                         'warning'
                     );
                     if (confirmClear) {
-                        cart = [];
+                        if (posSystem && Array.isArray(posSystem.cart)) posSystem.cart = [];
+                        if (window.cart) window.cart = [];
                         posSystem.updateCartDisplay();
-                    }
-                } else if (e.target.closest('[data-action="newSale"]') || e.target.closest('[data-action="newSale"] *')) {
-                    // New sale functionality
-                    if (cart.length > 0) {
-                        const confirmNewSale = await customConfirm(
-                            'Start New Sale',
-                            'Start a new sale? Current items will be cleared.',
-                            'primary'
-                        );
-                        if (confirmNewSale) {
-                            cart = [];
-                            posSystem.updateCartDisplay();
-                        }
-                    } else {
-                        await customAlert('New Sale', 'New sale started', 'success');
                     }
                 }
             });
