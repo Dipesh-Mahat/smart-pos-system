@@ -389,10 +389,88 @@
                     <button class="filter-btn">1 Year</button>
                 </div>
             </div>
-            <div class="chart-placeholder">
-                <i class="fas fa-chart-line" style="font-size: 48px; margin-right: 15px;"></i>
-                Sales Chart (Chart.js integration would go here)
+            <div style="width:100%;max-width:100%;height:320px;">
+                <canvas id="salesChart" style="width:100%;height:100%;display:block;"></canvas>
             </div>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    // Chart.js chart instance
+    let salesChartInstance = null;
+
+    // Fetch sales chart data from backend
+    async function fetchSalesChartData(period = 'week') {
+        // Determine API base URL for local or Vercel
+        let apiBase = '';
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            apiBase = 'http://localhost:5000/api/reports';
+        } else {
+            apiBase = '/api/reports';
+        }
+        try {
+            const response = await fetch(`${apiBase}/sales/chart?period=${period}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${window.authService ? window.authService.getToken() : ''}`
+                }
+            });
+            if (response.ok) {
+                const chartData = await response.json();
+                renderSalesChart(chartData);
+            } else {
+                renderSalesChart(null);
+            }
+        } catch (err) {
+            renderSalesChart(null);
+        }
+    }
+
+    // Render Chart.js line chart
+    function renderSalesChart(data) {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        // If no data, show empty chart
+        let labels = [];
+        let values = [];
+        if (data && Array.isArray(data.labels) && Array.isArray(data.values) && data.labels.length > 0) {
+            labels = data.labels;
+            values = data.values;
+        }
+        else {
+            labels = ['No Data'];
+            values = [0];
+        }
+        if (salesChartInstance) {
+            salesChartInstance.destroy();
+        }
+        salesChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Sales',
+                    data: values,
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0,123,255,0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: false }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Date' } },
+                    y: { title: { display: true, text: 'Sales' }, beginAtZero: true }
+                }
+            }
+        });
+    }
+    </script>
         </div>
 
         <!-- Report Categories -->
@@ -611,7 +689,6 @@
                     // Remove active class from all buttons
                     filterBtns.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    
                     // Map button text to API period
                     const periodMap = {
                         '7 Days': 'week',
@@ -619,13 +696,15 @@
                         '90 Days': 'month', // Using month for now
                         '1 Year': 'year'
                     };
-                    
                     const period = periodMap[this.textContent] || 'today';
                     fetchAnalyticsData(period);
-                    
+                    fetchSalesChartData(period);
                     console.log('Updating analytics for:', period);
                 });
             });
+
+            // Initial chart load (default to 7 Days/week)
+            fetchSalesChartData('week');
 
             // Auto-refresh data every 5 minutes
             setInterval(() => {
@@ -639,6 +718,7 @@
                 };
                 const period = periodMap[activePeriod] || 'today';
                 fetchAnalyticsData(period);
+                fetchSalesChartData(period);
                 console.log('Auto-refreshing analytics data...');
             }, 300000); // 5 minutes
         });
