@@ -751,17 +751,36 @@
 
     <!-- Socket.IO for real-time communication -->
     <script>
-        // Dynamic Socket.IO script loading with error handling
+        // Dynamic Socket.IO script loading with multiple fallbacks
         (function loadSocketIO() {
+            // Try CDN directly to avoid 404s when running on GitHub Pages or other static hosts
             const socketScript = document.createElement('script');
-            socketScript.src = '/socket.io/socket.io.js';
+            
+            // First, try loading from the API base URL if using HTTP server
+            const isUsingServer = window.location.hostname === 'localhost' || 
+                                window.location.hostname === '127.0.0.1';
+            
+            if (isUsingServer) {
+                socketScript.src = '/socket.io/socket.io.js';
+            } else {
+                // Skip straight to CDN for production environments
+                socketScript.src = 'https://cdn.socket.io/4.5.4/socket.io.min.js';
+            }
+            
             socketScript.onerror = function() {
-                console.warn('Could not load Socket.IO from local server, trying CDN...');
+                console.warn('Could not load Socket.IO from primary source, trying CDN...');
                 // Try from CDN as fallback
                 const cdnScript = document.createElement('script');
                 cdnScript.src = 'https://cdn.socket.io/4.5.4/socket.io.min.js';
                 cdnScript.onerror = function() {
-                    console.error('Failed to load Socket.IO from CDN');
+                    console.error('Failed to load Socket.IO from CDN, trying unpkg fallback...');
+                    // Try unpkg as a second fallback
+                    const unpkgScript = document.createElement('script');
+                    unpkgScript.src = 'https://unpkg.com/socket.io-client@4.5.4/dist/socket.io.min.js';
+                    unpkgScript.onerror = function() {
+                        console.error('All Socket.IO loading attempts failed, will use HTTP fallback');
+                    };
+                    document.head.appendChild(unpkgScript);
                 };
                 document.head.appendChild(cdnScript);
             };
@@ -823,10 +842,21 @@
             }
 
             init() {
+                // Log version info for debugging
+                console.log("Smart POS Scanner initialized with API endpoint:", API_BASE);
+                console.log("Mobile Scanner Version: 1.2.0 (Production Ready)");
+                
                 // Initialize state
-                this.offlineMode = false;
+                this.isOfflineMode = false;
+                this.connectionAttempts = 0;
                 this.scanHistory = JSON.parse(localStorage.getItem('scanHistory') || '[]');
                 this.offlineScans = JSON.parse(localStorage.getItem('offlineScans') || '[]');
+                
+                // Set startup time
+                this.startupTime = new Date();
+                
+                // Check for network status at startup
+                this.networkStatus = navigator.onLine ? 'online' : 'offline';
                 
                 // Check if we have offline scans
                 if (this.offlineScans && this.offlineScans.length > 0) {
@@ -841,28 +871,71 @@
                     screenWidth: window.innerWidth,
                     screenHeight: window.innerHeight,
                     language: navigator.language,
-                    hasCamera: !!navigator.mediaDevices
+                    hasCamera: !!navigator.mediaDevices,
+                    pixelRatio: window.devicePixelRatio || 1,
+                    networkType: this.networkStatus,
+                    timestamp: this.startupTime.toISOString()
                 };
+                
+                // Add network change listeners
+                window.addEventListener('online', () => {
+                    this.networkStatus = 'online';
+                    this.handleOnlineEvent();
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.networkStatus = 'offline';
+                    this.handleOfflineEvent();
+                });
                 
                 // Set up event listeners and UI
                 this.setupEventListeners();
                 
-                // Initialize connections
-                this.updateConnectionStatus().then(() => {
-                    this.initializeSocket();
+                // Add unload handler to save state
+                window.addEventListener('beforeunload', () => {
+                    this.saveApplicationState();
+                });
+                
+                // Try to load previous state if available
+                this.loadApplicationState();
+                
+                // Initialize connections - use Promise.all to run in parallel for speed
+                Promise.all([
+                    this.updateConnectionStatus().catch(err => {
+                        console.warn('Connection status check failed:', err);
+                        return false;
+                    }),
+                    this.getLocalIpAddress().catch(() => null)
+                ]).then(([connectionSuccess, localIp]) => {
+                    // Store local IP if detected
+                    if (localIp) {
+                        this.localIpAddress = localIp;
+                        this.deviceData.localIp = localIp;
+                    }
                     
-                    // Connect to session if sessionId is provided
-                    if (this.sessionId) {
-                        this.connectToSession();
+                    // Initialize socket if connection is successful
+                    if (connectionSuccess) {
+                        this.initializeSocket();
+                        
+                        // Connect to session if sessionId is provided
+                        if (this.sessionId) {
+                            this.connectToSession();
+                        }
+                    } else {
+                        // Continue in offline mode
+                        this.enableOfflineMode();
                     }
                 }).catch(error => {
-                    console.error('Connection initialization error:', error);
+                    console.error('Initialization error:', error);
                     // Continue in offline mode
                     this.enableOfflineMode();
                 });
                 
-                // Initialize camera
-                this.requestCamera();
+                // Initialize camera in parallel
+                this.requestCamera().catch(err => {
+                    console.error('Camera initialization failed:', err);
+                    this.showNotification('Camera access denied. Please check permissions.', 'error');
+                });
                 
                 // Show initialization message
                 this.showNotification('Smart POS Scanner ready', 'success');
@@ -882,71 +955,129 @@
 
             initializeSocket() {
                 try {
-                    // Use socket.io with reconnection options
-                    const socketOptions = {
-                        reconnection: true,
-                        reconnectionAttempts: 5,
-                        reconnectionDelay: 1000,
-                        reconnectionDelayMax: 5000,
-                        timeout: 20000,
-                        autoConnect: true
-                    };
-                    
-                    // Check if Socket.IO is available
-                    if (typeof io === 'undefined') {
-                        console.warn('Socket.IO not available, falling back to HTTP polling');
+                    // Check for explicitly disabled socket.io in localStorage (for debugging)
+                    if (localStorage.getItem('disable_socket_io') === 'true') {
+                        console.log('Socket.IO disabled via localStorage setting');
                         this.startPollingConnection();
                         return;
                     }
                     
-                    // Try to connect to socket.io server
-                    this.socket = io(socketOptions);
+                    // Use socket.io with enhanced reconnection options
+                    const socketOptions = {
+                        reconnection: true,
+                        reconnectionAttempts: 10,         // Increased attempts
+                        reconnectionDelay: 1000,
+                        reconnectionDelayMax: 10000,      // Increased max delay
+                        timeout: 30000,                   // Increased timeout
+                        autoConnect: true,
+                        transports: ['websocket', 'polling'] // Try WebSocket first, fallback to polling
+                    };
                     
-                    // Connection event
-                    this.socket.on('connect', () => {
-                        console.log('Socket.IO connected successfully');
-                        if (this.sessionId) {
-                            this.socket.emit('join-scanner-session', this.sessionId);
-                            this.showNotification('Connected to scanner session', 'success');
-                        }
-                    });
+                    // Check if Socket.IO is available
+                    if (typeof io === 'undefined') {
+                        console.warn('Socket.IO not available, waiting 2 seconds for potential async load...');
+                        
+                        // Give a short delay for potentially async-loaded Socket.IO
+                        setTimeout(() => {
+                            if (typeof io === 'undefined') {
+                                console.warn('Socket.IO still not available after waiting, falling back to HTTP polling');
+                                this.showNotification('Using simple connection mode', 'info');
+                                this.startPollingConnection();
+                            } else {
+                                console.log('Socket.IO became available, continuing with initialization');
+                                this.continueSocketInitialization(socketOptions);
+                            }
+                        }, 2000);
+                        return;
+                    }
                     
-                    // Disconnection event
-                    this.socket.on('disconnect', (reason) => {
-                        console.log('Socket.IO disconnected:', reason);
-                        this.showNotification('Connection lost. Trying to reconnect...', 'warning');
-                    });
-                    
-                    // Error event
-                    this.socket.on('connect_error', (error) => {
-                        console.error('Socket.IO connection error:', error);
-                        // After several failures, fallback to HTTP polling
-                        if (this.socket.io.backoff.attempts >= 3) {
-                            this.showNotification('Using HTTP fallback mode', 'warning');
-                            this.startPollingConnection();
-                        }
-                    });
-                    
-                    // Scan request event
-                    this.socket.on('scan-request', (data) => {
-                        this.showNotification('Desktop requested scan', 'info');
-                        // Automatically start scanning if requested
-                        if (data && data.autoStart) {
-                            this.startBarcodeScan();
-                        }
-                    });
-                    
-                    // Server acknowledgment
-                    this.socket.on('scanner-connected', (data) => {
-                        console.log('Scanner connection acknowledged by server:', data);
-                        this.showNotification('Connected to POS terminal', 'success');
-                    });
-                    
+                    this.continueSocketInitialization(socketOptions);
                 } catch (error) {
                     console.error('Socket.IO initialization failed:', error);
-                    this.showNotification('Connection system initialization failed', 'error');
+                    this.showNotification('Using backup connection mode', 'warning');
                     this.startPollingConnection(); // Fallback
                 }
+            }
+            
+            continueSocketInitialization(socketOptions) {
+                // Determine the correct endpoint to connect to
+                let socketEndpoint = '';
+                
+                // Check if we're running on localhost
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    // For local development, try to connect to the development server
+                    socketEndpoint = API_BASE;
+                } else {
+                    // For production, use the current domain
+                    socketEndpoint = window.location.origin;
+                }
+                
+                console.log(`Attempting Socket.IO connection to: ${socketEndpoint}`);
+                
+                // Try to connect to socket.io server
+                this.socket = io(socketEndpoint, socketOptions);
+                
+                // Connection event
+                this.socket.on('connect', () => {
+                    console.log('Socket.IO connected successfully');
+                    this.updateConnectionStatus(true);
+                    
+                    if (this.sessionId) {
+                        this.socket.emit('join-scanner-session', this.sessionId);
+                        this.showNotification('Connected to scanner session', 'success');
+                    }
+                    
+                    // Send device info to server
+                    this.socket.emit('scanner-info', {
+                        deviceId: this.getDeviceUUID(),
+                        userAgent: navigator.userAgent,
+                        capabilities: {
+                            camera: !!navigator.mediaDevices,
+                            flash: this.hasFlash
+                        }
+                    });
+                });
+                
+                // Disconnection event
+                this.socket.on('disconnect', (reason) => {
+                    console.log('Socket.IO disconnected:', reason);
+                    this.updateConnectionStatus(false);
+                    
+                    if (reason === 'io server disconnect') {
+                        // Server disconnected us intentionally, don't reconnect automatically
+                        this.showNotification('Disconnected by server', 'warning');
+                    } else {
+                        this.showNotification('Connection lost. Trying to reconnect...', 'warning');
+                    }
+                });
+                
+                // Error event
+                this.socket.on('connect_error', (error) => {
+                    console.error('Socket.IO connection error:', error);
+                    
+                    // After several failures, fallback to HTTP polling
+                    if (this.socket && this.socket.io && this.socket.io.backoff && 
+                        this.socket.io.backoff.attempts >= 5) {
+                        this.showNotification('Using HTTP fallback mode', 'warning');
+                        this.startPollingConnection();
+                    }
+                });
+                
+                // Scan request event
+                this.socket.on('scan-request', (data) => {
+                    this.showNotification('Desktop requested scan', 'info');
+                    // Automatically start scanning if requested
+                    if (data && data.autoStart) {
+                        this.startBarcodeScan();
+                    }
+                });
+                
+                // Server acknowledgment
+                this.socket.on('scanner-connected', (data) => {
+                    console.log('Scanner connection acknowledged by server:', data);
+                    this.showNotification('Connected to POS terminal', 'success');
+                    this.updateConnectionStatus(true);
+                });
             }
             
             // Fallback method when socket.io isn't available or fails
@@ -1078,9 +1209,22 @@
                 });
             }
 
-            async updateConnectionStatus() {
+            async updateConnectionStatus(forceStatus) {
                 const statusDot = document.getElementById('statusDot');
                 const connectionStatus = document.getElementById('connectionStatus');
+                
+                // Handle direct status setting from socket events
+                if (forceStatus === true) {
+                    statusDot.classList.remove('connecting');
+                    statusDot.classList.add('connected');
+                    connectionStatus.textContent = 'Connected';
+                    return;
+                } else if (forceStatus === false) {
+                    statusDot.classList.remove('connecting');
+                    statusDot.classList.remove('connected');
+                    connectionStatus.textContent = 'Disconnected';
+                    return;
+                }
                 
                 try {
                     statusDot.classList.add('connecting');
@@ -1091,39 +1235,79 @@
                         setTimeout(() => reject(new Error('Connection timeout')), 5000);
                     });
                     
-                    // Test connection to backend
-                    const connectionPromise = fetch(`${API_BASE}/api/mobile-scanner/status`);
+                    // Check for network connectivity first
+                    if (!navigator.onLine) {
+                        throw new Error('Browser reports no internet connection');
+                    }
                     
-                    // Race the fetch against a timeout
-                    const response = await Promise.race([connectionPromise, connectionTimeout]);
+                    // Try multiple connection strategies in parallel for better resilience
+                    let connectionPromises = [
+                        // Strategy 1: Direct API call to configured endpoint
+                        fetch(`${API_BASE}/api/mobile-scanner/status`).catch(e => ({ ok: false, error: e })),
+                        
+                        // Strategy 2: Try a relative path for same-origin case
+                        fetch('/api/mobile-scanner/status').catch(e => ({ ok: false, error: e }))
+                    ];
                     
-                    if (response.ok) {
-                        const data = await response.json();
+                    // Race against timeout
+                    const responses = await Promise.race([
+                        Promise.all(connectionPromises),
+                        connectionTimeout.then(() => [{ ok: false, error: 'Timeout' }])
+                    ]);
+                    
+                    // Find the first successful response
+                    const successResponse = responses.find(r => r.ok);
+                    
+                    if (successResponse) {
+                        const data = await successResponse.json();
                         statusDot.classList.remove('connecting');
                         statusDot.classList.add('connected');
                         
-                        // Detect environment and show appropriate message
-                        const env = data.environment || 'unknown';
-                        const serverVersion = data.version || '';
+                        // Store server info
+                        this.serverInfo = {
+                            environment: data.environment || 'unknown',
+                            version: data.version || 'unknown',
+                            apiBase: successResponse.url.split('/api')[0],
+                            lastConnected: new Date().toISOString()
+                        };
                         
-                        if (env === 'production') {
+                        // Store in localStorage for offline reference
+                        localStorage.setItem('scanner_server_info', JSON.stringify(this.serverInfo));
+                        
+                        // Detect environment and show appropriate message
+                        if (data.environment === 'production') {
                             connectionStatus.textContent = 'Connected (Production)';
-                            this.showNotification(`Connected to production server ${serverVersion}`, 'success');
+                            this.showNotification(`Connected to production server ${data.version}`, 'success');
                         } else {
-                            connectionStatus.textContent = `Connected (${env})`;
-                            this.showNotification(`Connected to ${env} server ${serverVersion}`, 'success');
+                            connectionStatus.textContent = `Connected (${data.environment || 'dev'})`;
+                            this.showNotification(`Connected to server ${data.version || ''}`, 'success');
                         }
                         
                         // Check if room connection is available
                         if (this.sessionId) {
                             this.checkRoomConnection();
                         }
+                        
+                        // We're online, disable offline mode if it was enabled
+                        this.isOfflineMode = false;
+                        
+                        return true;
                     } else {
-                        throw new Error(`Connection failed: ${response.status}`);
+                        // All connection attempts failed
+                        throw new Error(`All connection attempts failed`);
                     }
                 } catch (error) {
+                    console.error('Connection error:', error);
                     statusDot.classList.remove('connecting');
                     statusDot.classList.remove('connected');
+                    
+                    // Check if we have cached server info
+                    let cachedServerInfo;
+                    try {
+                        cachedServerInfo = JSON.parse(localStorage.getItem('scanner_server_info'));
+                    } catch (e) {
+                        cachedServerInfo = null;
+                    }
                     
                     // Check if we're in development mode
                     const isDev = window.location.hostname === 'localhost' || 
@@ -1131,15 +1315,22 @@
                     
                     if (isDev) {
                         connectionStatus.textContent = 'Server Offline';
-                        this.showNotification('Backend server is offline. Working in standalone mode.', 'warning');
-                        console.warn('Backend server connection failed. Make sure your Node.js server is running.');
+                        
+                        if (cachedServerInfo) {
+                            this.showNotification(`Working offline. Last connected to ${cachedServerInfo.environment} server at ${new Date(cachedServerInfo.lastConnected).toLocaleTimeString()}`, 'warning');
+                        } else {
+                            this.showNotification('Backend server is offline. Working in standalone mode.', 'warning');
+                            console.warn('Backend server connection failed. Make sure your Node.js server is running.');
+                        }
                     } else {
                         connectionStatus.textContent = 'Offline';
                         this.showNotification('Connection to server failed. Working in offline mode.', 'warning');
                     }
                     
-                    // Since connection failed, start polling
+                    // Since connection failed, enable offline mode
                     this.enableOfflineMode();
+                    
+                    return false;
                 }
             }
             
@@ -1165,10 +1356,36 @@
             
             enableOfflineMode() {
                 // Set up offline mode capabilities
-                this.offlineMode = true;
+                this.isOfflineMode = true;
                 
-                // In offline mode, store scans locally
-                this.offlineScans = JSON.parse(localStorage.getItem('offlineScans') || '[]');
+                // Show offline mode indicator
+                const statusIndicator = document.createElement('div');
+                statusIndicator.className = 'offline-indicator';
+                statusIndicator.innerHTML = '<i class="fas fa-cloud-slash"></i> Offline Mode';
+                statusIndicator.style.position = 'fixed';
+                statusIndicator.style.top = '60px';
+                statusIndicator.style.left = '0';
+                statusIndicator.style.width = '100%';
+                statusIndicator.style.backgroundColor = 'rgba(249, 115, 22, 0.8)';
+                statusIndicator.style.color = 'white';
+                statusIndicator.style.textAlign = 'center';
+                statusIndicator.style.padding = '6px';
+                statusIndicator.style.fontSize = '12px';
+                statusIndicator.style.zIndex = '999';
+                statusIndicator.style.backdropFilter = 'blur(5px)';
+                statusIndicator.id = 'offlineModeIndicator';
+                
+                // Only add if not already there
+                if (!document.getElementById('offlineModeIndicator')) {
+                    document.body.appendChild(statusIndicator);
+                }
+                
+                // In offline mode, load and manage local scans
+                this.loadOfflineScans();
+                
+                // Add offline mode event listeners for connectivity changes
+                window.addEventListener('online', this.handleOnlineEvent.bind(this));
+                window.addEventListener('offline', this.handleOfflineEvent.bind(this));
                 
                 // Try to reconnect periodically
                 if (!this.reconnectionInterval) {
@@ -1176,6 +1393,63 @@
                         this.tryReconnect();
                     }, 30000); // Try every 30 seconds
                 }
+            }
+            
+            loadOfflineScans() {
+                // Load locally stored scans
+                try {
+                    this.offlineScans = JSON.parse(localStorage.getItem('offlineScans') || '[]');
+                    console.log(`Loaded ${this.offlineScans.length} offline scans`);
+                    
+                    // Update the UI with the number of pending scans
+                    this.updateOfflineScanCount();
+                } catch (error) {
+                    console.error('Error loading offline scans:', error);
+                    this.offlineScans = [];
+                    localStorage.setItem('offlineScans', '[]');
+                }
+            }
+            
+            updateOfflineScanCount() {
+                const countIndicator = document.getElementById('offlineScanCount');
+                if (countIndicator) {
+                    countIndicator.textContent = this.offlineScans.length;
+                    countIndicator.style.display = this.offlineScans.length > 0 ? 'block' : 'none';
+                }
+            }
+            
+            saveOfflineScan(scanData) {
+                // Add timestamp and device info
+                const scan = {
+                    ...scanData,
+                    timestamp: new Date().toISOString(),
+                    device: this.getDeviceUUID(),
+                    sessionId: this.sessionId || null,
+                    syncStatus: 'pending'
+                };
+                
+                // Add to local storage
+                this.offlineScans.push(scan);
+                localStorage.setItem('offlineScans', JSON.stringify(this.offlineScans));
+                
+                // Update UI count
+                this.updateOfflineScanCount();
+                
+                // Show notification
+                this.showNotification('Scan saved offline. Will sync when online.', 'info');
+                
+                return scan;
+            }
+            
+            handleOnlineEvent() {
+                this.showNotification('Network connected! Attempting to sync...', 'success');
+                // Try reconnecting to server
+                this.tryReconnect();
+            }
+            
+            handleOfflineEvent() {
+                this.showNotification('Network disconnected! Working offline.', 'warning');
+                this.enableOfflineMode();
             }
             
             async tryReconnect() {
@@ -1186,7 +1460,18 @@
                         // Server is back online
                         clearInterval(this.reconnectionInterval);
                         this.reconnectionInterval = null;
-                        this.offlineMode = false;
+                        this.isOfflineMode = false;
+                        
+                        // Remove offline indicator if present
+                        const indicator = document.getElementById('offlineModeIndicator');
+                        if (indicator) {
+                            indicator.style.animation = 'fadeOut 0.5s forwards';
+                            setTimeout(() => {
+                                if (indicator.parentNode) {
+                                    indicator.parentNode.removeChild(indicator);
+                                }
+                            }, 500);
+                        }
                         
                         // Update UI
                         const statusDot = document.getElementById('statusDot');
@@ -1238,24 +1523,105 @@
 
             async requestCamera() {
                 try {
-                    this.stream = await navigator.mediaDevices.getUserMedia({
+                    // Check if we've previously been denied permission
+                    if (this.cameraPermission === 'denied') {
+                        console.warn('Camera permission was previously denied. Showing prompt to re-request.');
+                        document.getElementById('noCamera').style.display = 'flex';
+                        this.handleCameraDenied();
+                        return;
+                    }
+                    
+                    // Show loading indicator
+                    const cameraSection = document.querySelector('.camera-section');
+                    if (cameraSection) {
+                        cameraSection.classList.add('loading');
+                    }
+                    
+                    // Try to get available video devices
+                    let devices = [];
+                    try {
+                        devices = await navigator.mediaDevices.enumerateDevices();
+                        // Filter for video devices
+                        devices = devices.filter(device => device.kind === 'videoinput');
+                        console.log(`Found ${devices.length} video devices`);
+                    } catch (e) {
+                        console.warn('Could not enumerate devices:', e);
+                    }
+                    
+                    // Configure camera constraints
+                    let constraints = {
                         video: {
-                            facingMode: 'environment',
+                            facingMode: 'environment', // Prefer back camera
                             width: { ideal: 1280 },
                             height: { ideal: 720 }
                         }
-                    });
+                    };
+                    
+                    // If we have a previously used camera, try to use it
+                    if (this.lastUsedCamera && devices.length > 0) {
+                        const matchingDevice = devices.find(d => d.deviceId === this.lastUsedCamera);
+                        if (matchingDevice) {
+                            console.log('Using previously selected camera:', this.lastUsedCamera);
+                            constraints.video.deviceId = { exact: this.lastUsedCamera };
+                        }
+                    }
+                    
+                    // Try to get camera stream
+                    this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    
+                    // Successfully got camera
+                    this.cameraPermission = 'granted';
+                    
+                    // Save the device ID if available
+                    const videoTrack = this.stream.getVideoTracks()[0];
+                    if (videoTrack) {
+                        const settings = videoTrack.getSettings();
+                        if (settings.deviceId) {
+                            this.lastUsedCamera = settings.deviceId;
+                        }
+                        
+                        // Check if we have flash capability
+                        this.hasFlash = 'torch' in settings || 'flashMode' in videoTrack.getCapabilities();
+                        
+                        // Log video track details
+                        console.log('Video track:', videoTrack.label, settings);
+                    }
+                    
+                    // Save our camera state
+                    this.saveApplicationState();
 
+                    // Display the stream in the video element
                     const video = document.getElementById('mobileVideo');
                     video.srcObject = this.stream;
                     video.play();
+                    
+                    // Remove loading indicator
+                    if (cameraSection) {
+                        cameraSection.classList.remove('loading');
+                    }
 
                     document.getElementById('noCamera').style.display = 'none';
                     this.showNotification('Camera ready', 'success');
                 } catch (error) {
                     console.error('Camera error:', error);
-                    document.getElementById('noCamera').style.display = 'flex';
-                    this.showNotification('Camera access denied', 'error');
+                    
+                    // Check for specific permission errors
+                    if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                        this.cameraPermission = 'denied';
+                        this.handleCameraDenied();
+                    } else {
+                        // For other types of errors
+                        document.getElementById('noCamera').style.display = 'flex';
+                        this.showNotification(`Camera error: ${error.message}`, 'error');
+                    }
+                    
+                    // Remove loading indicator
+                    const cameraSection = document.querySelector('.camera-section');
+                    if (cameraSection) {
+                        cameraSection.classList.remove('loading');
+                    }
+                    
+                    throw error; // Propagate error to caller
                 }
             }
 
@@ -1413,6 +1779,113 @@
                 }
             }
             
+            // Application state management
+            saveApplicationState() {
+                // Save critical application state
+                const stateToSave = {
+                    currentScanType: this.currentScanType,
+                    sessionId: this.sessionId,
+                    lastScan: this.lastScan,
+                    hasFlash: this.hasFlash,
+                    cameraPermission: this.cameraPermission,
+                    serverInfo: this.serverInfo || null,
+                    networkStatus: this.networkStatus,
+                    localIpAddress: this.localIpAddress,
+                    isOfflineMode: this.isOfflineMode,
+                    lastUsedCamera: this.lastUsedCamera,
+                    savedAt: new Date().toISOString()
+                };
+                
+                try {
+                    localStorage.setItem('scannerAppState', JSON.stringify(stateToSave));
+                    console.log('Application state saved');
+                } catch (error) {
+                    console.error('Error saving application state:', error);
+                }
+            }
+            
+            loadApplicationState() {
+                try {
+                    const savedState = localStorage.getItem('scannerAppState');
+                    if (savedState) {
+                        const state = JSON.parse(savedState);
+                        
+                        // Only restore non-critical state properties
+                        if (state.currentScanType) {
+                            this.currentScanType = state.currentScanType;
+                        }
+                        
+                        if (state.hasFlash !== undefined) {
+                            this.hasFlash = state.hasFlash;
+                        }
+                        
+                        if (state.cameraPermission) {
+                            this.cameraPermission = state.cameraPermission;
+                        }
+                        
+                        if (state.serverInfo) {
+                            this.serverInfo = state.serverInfo;
+                        }
+                        
+                        if (state.localIpAddress) {
+                            this.localIpAddress = state.localIpAddress;
+                        }
+                        
+                        if (state.lastUsedCamera) {
+                            this.lastUsedCamera = state.lastUsedCamera;
+                        }
+                        
+                        console.log('Application state loaded from', state.savedAt);
+                    } else {
+                        console.log('No saved application state found');
+                    }
+                } catch (error) {
+                    console.error('Error loading application state:', error);
+                }
+            }
+            
+            // Camera permission handling
+            handleCameraDenied() {
+                this.cameraPermission = 'denied';
+                this.saveApplicationState();
+                
+                // Show a prominent message
+                const cameraErrorMessage = document.createElement('div');
+                cameraErrorMessage.className = 'camera-permission-error';
+                cameraErrorMessage.innerHTML = `
+                    <div class="permission-error-content">
+                        <i class="fas fa-exclamation-triangle" style="font-size:48px;color:#ef4444;margin-bottom:15px;"></i>
+                        <h3>Camera Access Required</h3>
+                        <p>This application needs camera access to scan codes. Please check your browser permissions and try again.</p>
+                        <button id="retryCameraBtn" class="btn-retry-camera">
+                            <i class="fas fa-camera"></i> Request Camera Access
+                        </button>
+                    </div>
+                `;
+                
+                cameraErrorMessage.style.position = 'fixed';
+                cameraErrorMessage.style.top = '0';
+                cameraErrorMessage.style.left = '0';
+                cameraErrorMessage.style.width = '100%';
+                cameraErrorMessage.style.height = '100%';
+                cameraErrorMessage.style.backgroundColor = 'rgba(0,0,0,0.9)';
+                cameraErrorMessage.style.zIndex = '1000';
+                cameraErrorMessage.style.display = 'flex';
+                cameraErrorMessage.style.alignItems = 'center';
+                cameraErrorMessage.style.justifyContent = 'center';
+                cameraErrorMessage.style.textAlign = 'center';
+                cameraErrorMessage.style.padding = '20px';
+                cameraErrorMessage.style.color = '#fff';
+                
+                document.body.appendChild(cameraErrorMessage);
+                
+                // Add retry button listener
+                document.getElementById('retryCameraBtn').addEventListener('click', () => {
+                    document.body.removeChild(cameraErrorMessage);
+                    this.requestCamera();
+                });
+            }
+            
             saveOfflineScan(scanRecord) {
                 // Make sure offline scans array is initialized
                 if (!this.offlineScans) {
@@ -1531,50 +2004,115 @@
                     const roomCode = existingRoom || 'SC' + Math.floor(100000 + Math.random() * 900000);
                     const existingToken = urlParams.get('token');
                     const token = existingToken || this.generateToken();
-                    const existingSessionId = urlParams.get('sessionId');
-                    const sessionId = existingSessionId || Math.random().toString(36).substring(2, 15);
+                    
+                    // Use a meaningful return URL if we have one
+                    let returnUrl = urlParams.get('returnUrl') || '';
+                    if (!returnUrl && document.referrer) {
+                        returnUrl = document.referrer;
+                    }
                     
                     // Generate the correct URL for sharing
-                    this.showProcessing('Detecting best connection URL...');
+                    this.showProcessing('Detecting network connections...');
                     
                     // Try multiple network detection methods in parallel
-                    const [localIp, publicIp] = await Promise.all([
+                    let [localIp, publicIpInfo] = await Promise.all([
                         this.getLocalIpAddress(),
                         this.getPublicNetworkInfo()
-                    ]);
+                    ]).catch(err => {
+                        console.error('Network detection error:', err);
+                        return [null, null];
+                    });
                     
                     this.hideProcessing();
                     
                     // Create base URL - try several options for maximum compatibility
                     let baseUrls = [];
+                    const currentHost = window.location.host;
+                    const currentPort = window.location.port;
+                    const currentProtocol = window.location.protocol;
+                    const currentPath = window.location.pathname;
                     
                     // Option 1: Use local IP if available (best for local network)
                     if (localIp) {
-                        const protocol = window.location.protocol;
-                        const port = window.location.port ? `:${window.location.port}` : '';
-                        const localUrl = `${protocol}//${localIp}${port}${window.location.pathname}`;
-                        baseUrls.push({ url: localUrl, label: 'Local Network' });
+                        const port = currentPort ? `:${currentPort}` : '';
+                        const localUrl = `${currentProtocol}//${localIp}${port}${currentPath}`;
+                        baseUrls.push({ 
+                            url: localUrl, 
+                            label: 'Local Network', 
+                            priority: 1,
+                            description: 'Best for devices on same WiFi'
+                        });
                     }
                     
-                    // Option 2: Always include the original URL as fallback
+                    // Option 2: Try using the host IP instead of 'localhost' if in local development
+                    if ((currentHost === 'localhost' || currentHost === '127.0.0.1') && currentPort) {
+                        // For http-server, create a variation with the actual local IP address
+                        if (localIp) {
+                            const localWithoutServerUrl = `${currentProtocol}//${localIp}:${currentPort}${currentPath}`;
+                            baseUrls.push({ 
+                                url: localWithoutServerUrl, 
+                                label: 'Direct Local', 
+                                priority: 2,
+                                description: 'Local with actual IP (no server)'
+                            });
+                        }
+                    }
+                    
+                    // Option 3: Always include the original URL as fallback
                     const originalUrl = window.location.href.split('?')[0];
-                    baseUrls.push({ url: originalUrl, label: 'Direct Link' });
+                    baseUrls.push({ 
+                        url: originalUrl, 
+                        label: 'Current URL', 
+                        priority: 3,
+                        description: 'Uses current address'
+                    });
                     
-                    // Option 3: Add a production URL if in production environment
+                    // Option 4: Add a production URL if in production environment
                     if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                        baseUrls.push({ url: window.location.href.split('?')[0], label: 'Internet' });
+                        baseUrls.push({ 
+                            url: window.location.origin + currentPath, 
+                            label: 'Internet', 
+                            priority: 0,
+                            description: 'For remote connections'
+                        });
                     }
+                    
+                    // Sort by priority
+                    baseUrls.sort((a, b) => a.priority - b.priority);
                     
                     // Create all QR codes and display them
                     const qrContainer = document.getElementById('qrCodeImage');
                     qrContainer.innerHTML = '';
+                    
+                    // Create a debug element with network information
+                    const debugInfo = document.createElement('div');
+                    debugInfo.className = 'debug-network-info';
+                    debugInfo.innerHTML = `
+                        <details>
+                            <summary>Connection Debug</summary>
+                            <div class="debug-content" style="font-size:10px; margin-top:5px; text-align:left;">
+                                <div><strong>Host:</strong> ${currentHost}</div>
+                                <div><strong>Local IP:</strong> ${localIp || 'Not detected'}</div>
+                                <div><strong>Port:</strong> ${currentPort || 'None'}</div>
+                                <div><strong>Protocol:</strong> ${currentProtocol}</div>
+                            </div>
+                        </details>
+                    `;
+                    debugInfo.style.fontSize = '10px';
+                    debugInfo.style.marginBottom = '10px';
+                    debugInfo.style.color = '#a5b4fc';
+                    qrContainer.appendChild(debugInfo);
                     
                     // URL params for all versions
                     const params = new URLSearchParams();
                     params.append('room', roomCode);
                     params.append('mode', this.currentScanType);
                     params.append('token', token);
-                    params.append('sessionId', sessionId);
+                    
+                    // Add return URL if available
+                    if (returnUrl) {
+                        params.append('returnUrl', returnUrl);
+                    }
                     
                     // Create container for all QR codes
                     const qrCodesContainer = document.createElement('div');
@@ -1585,25 +2123,52 @@
                     qrContainer.appendChild(qrCodesContainer);
                     
                     // Function to create a QR code
-                    const createQrCode = (baseUrl, label) => {
+                    const createQrCode = (baseUrl, label, description) => {
                         const fullUrl = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}${params.toString()}`;
                         
                         const qrWrapper = document.createElement('div');
                         qrWrapper.style.textAlign = 'center';
+                        qrWrapper.style.position = 'relative';
+                        qrWrapper.style.border = '1px solid rgba(165, 180, 252, 0.3)';
+                        qrWrapper.style.borderRadius = '8px';
+                        qrWrapper.style.padding = '10px 5px';
+                        qrWrapper.style.marginBottom = '10px';
                         
                         // QR Code
-                        const qr = qrcode(0, 'L');
-                        qr.addData(fullUrl);
-                        qr.make();
-                        const qrImg = qr.createImgTag(5);
+                        let qrImg = '';
+                        try {
+                            const qr = qrcode(0, 'M'); // Medium error correction level
+                            qr.addData(fullUrl);
+                            qr.make();
+                            qrImg = qr.createImgTag(5);
+                        } catch (e) {
+                            console.error('QR code generation error:', e);
+                            qrImg = '<div style="width:200px;height:200px;background:#333;display:flex;align-items:center;justify-content:center;"><span>QR Error</span></div>';
+                        }
                         
-                        // QR Code label
+                        // QR Code label and description
                         qrWrapper.innerHTML = `
                             <div class="qr-label" style="margin-bottom:8px;font-size:14px;color:#a5b4fc">
                                 <strong>${label}</strong>
+                                <div style="font-size:10px;opacity:0.7;margin-bottom:5px;">${description}</div>
                             </div>
                             ${qrImg}
+                            <button class="copy-qr-url-btn" style="background:#4f46e5;color:white;border:none;padding:5px 10px;border-radius:4px;margin-top:8px;font-size:12px;cursor:pointer;">
+                                <i class="fas fa-copy"></i> Copy URL
+                            </button>
                         `;
+                        
+                        // Add copy functionality
+                        const copyBtn = qrWrapper.querySelector('.copy-qr-url-btn');
+                        copyBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            navigator.clipboard.writeText(fullUrl).then(() => {
+                                copyBtn.textContent = 'Copied!';
+                                setTimeout(() => {
+                                    copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy URL';
+                                }, 2000);
+                            });
+                        });
                         
                         return {wrapper: qrWrapper, url: fullUrl};
                     };
@@ -1611,7 +2176,11 @@
                     // Generate all QR codes
                     let primaryQrUrl = '';
                     baseUrls.forEach((baseUrlData, index) => {
-                        const {wrapper, url} = createQrCode(baseUrlData.url, baseUrlData.label);
+                        const {wrapper, url} = createQrCode(
+                            baseUrlData.url, 
+                            baseUrlData.label, 
+                            baseUrlData.description || ''
+                        );
                         qrCodesContainer.appendChild(wrapper);
                         
                         // Use the first URL as primary for the copy button
@@ -1625,10 +2194,21 @@
                     
                     // Connection help text
                     const helpText = document.createElement('p');
-                    helpText.innerHTML = '<small>If one QR code doesn\'t connect, try another. Both devices must be on the same network for local connections.</small>';
+                    helpText.innerHTML = `
+                        <small>
+                            <strong>Connection Tips:</strong><br>
+                            1. Both devices must be on the same network for local connections<br>
+                            2. Try different QR codes if one doesn't work<br>
+                            3. If using mobile data, use the Internet/Direct URL option<br>
+                            4. Make sure the backend server is running
+                        </small>`;
                     helpText.style.fontSize = '11px';
-                    helpText.style.opacity = '0.7';
-                    helpText.style.marginTop = '5px';
+                    helpText.style.opacity = '0.8';
+                    helpText.style.marginTop = '10px';
+                    helpText.style.textAlign = 'left';
+                    helpText.style.padding = '8px';
+                    helpText.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
+                    helpText.style.borderRadius = '4px';
                     qrContainer.appendChild(helpText);
                     
                     this.showNotification('QR codes generated successfully', 'success');
@@ -1641,21 +2221,69 @@
                     try {
                         const simpleUrl = window.location.href.split('?')[0] + 
                                          '?room=SC' + Math.floor(100000 + Math.random() * 900000) + 
+                                         '&mode=' + this.currentScanType +
                                          '&token=' + this.generateToken();
                         
                         const qrContainer = document.getElementById('qrCodeImage');
-                        qrContainer.innerHTML = '';
+                        qrContainer.innerHTML = `
+                            <div style="text-align:center;padding:10px;border:1px solid #ef4444;border-radius:8px;margin-bottom:15px;">
+                                <div style="color:#ef4444;font-size:12px;margin-bottom:10px;">
+                                    <i class="fas fa-exclamation-triangle"></i> 
+                                    Advanced QR generation failed. Using simplified mode.
+                                </div>
+                            </div>
+                        `;
                         
-                        const qr = qrcode(0, 'M');
+                        // Create simplified QR code
+                        const qrWrapper = document.createElement('div');
+                        qrWrapper.style.textAlign = 'center';
+                        
+                        const qr = qrcode(0, 'H'); // High error correction for better scanning
                         qr.addData(simpleUrl);
                         qr.make();
                         
-                        qrContainer.innerHTML = qr.createImgTag(5);
+                        qrWrapper.innerHTML = `
+                            <div style="margin-bottom:10px;">Fallback QR Code:</div>
+                            ${qr.createImgTag(5)}
+                        `;
+                        qrContainer.appendChild(qrWrapper);
+                        
+                        // URL display and copy button
+                        const urlDisplay = document.createElement('div');
+                        urlDisplay.style.marginTop = '15px';
+                        urlDisplay.innerHTML = `
+                            <div style="word-break:break-all;font-size:10px;margin-bottom:5px;background:#1e293b;padding:8px;border-radius:4px;">
+                                ${simpleUrl}
+                            </div>
+                            <button id="fallbackCopyBtn" style="background:#4f46e5;color:white;border:none;padding:5px 10px;border-radius:4px;font-size:12px;cursor:pointer;">
+                                <i class="fas fa-copy"></i> Copy URL
+                            </button>
+                        `;
+                        qrContainer.appendChild(urlDisplay);
+                        
+                        // Set up copy button
                         document.getElementById('qrCodeUrl').textContent = simpleUrl;
+                        document.getElementById('fallbackCopyBtn').addEventListener('click', () => {
+                            navigator.clipboard.writeText(simpleUrl).then(() => {
+                                document.getElementById('fallbackCopyBtn').textContent = 'Copied!';
+                                setTimeout(() => {
+                                    document.getElementById('fallbackCopyBtn').innerHTML = '<i class="fas fa-copy"></i> Copy URL';
+                                }, 2000);
+                            });
+                        });
                         
                         this.showNotification('Basic QR code generated (fallback mode)', 'warning');
                     } catch (fallbackError) {
                         this.showNotification('Failed to generate QR code', 'error');
+                        document.getElementById('qrCodeImage').innerHTML = `
+                            <div style="text-align:center;padding:20px;color:#ef4444;">
+                                <i class="fas fa-exclamation-circle" style="font-size:48px;margin-bottom:15px;"></i>
+                                <div>QR Code Generation Failed</div>
+                                <div style="font-size:12px;margin-top:10px;">
+                                    Please check your internet connection and try again.
+                                </div>
+                            </div>
+                        `;
                     }
                 }
             }
