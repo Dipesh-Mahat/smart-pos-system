@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order History - Smart POS System</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/suppliers.css">
+    <style>
+        .order-history-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .order-history-header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .order-history-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+
+        .order-history-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .filters-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1rem;
+            min-width: 150px;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .apply-filters-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        .apply-filters-btn:hover {
+            background: #2980b9;
+        }
+
+        .orders-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .orders-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .orders-count {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .export-all-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .export-all-btn:hover {
+            background: #229954;
+        }
+
+        .order-card {
+            border-bottom: 1px solid #e0e0e0;
+            padding: 20px;
+            transition: background 0.3s;
+        }
+
+        .order-card:hover {
+            background: #f8f9fa;
+        }
+
+        .order-card:last-child {
+            border-bottom: none;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .order-info {
+            flex: 1;
+        }
+
+        .order-number {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .order-date {
+            color: #7f8c8d;
+            margin: 5px 0;
+        }
+
+        .order-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .order-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .detail-group {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .detail-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .supplier-name {
+            color: #3498db;
+        }
+
+        .order-total {
+            color: #27ae60;
+        }
+
+        .order-items {
+            margin: 15px 0;
+        }
+
+        .items-header {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .item-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 15px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .item-quantity,
+        .item-price,
+        .item-total {
+            text-align: right;
+            color: #7f8c8d;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .view-btn {
+            background: #3498db;
+            color: white;
+        }
+
+        .view-btn:hover {
+            background: #2980b9;
+        }
+
+        .export-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .export-btn:hover {
+            background: #c0392b;
+        }
+
+        .reorder-btn {
+            background: #f39c12;
+            color: white;
+        }
+
+        .reorder-btn:hover {
+            background: #e67e22;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+        }
+
+        .no-orders {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+        }
+
+        .no-orders i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #2980b9;
+        }
+
+        /* Bill Modal */
+        .bill-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .bill-modal-content {
+            background: white;
+            max-width: 900px;
+            margin: 20px auto;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .bill-modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bill-modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #7f8c8d;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            color: #2c3e50;
+        }
+
+        .bill-modal-body {
+            padding: 20px;
+        }
+
+        .bill-modal-actions {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 768px) {
+            .order-details {
+                grid-template-columns: 1fr;
+            }
+
+            .item-row {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+
+            .filters-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group select,
+            .filter-group input {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="order-history-container">
+        <!-- Back Link -->
+        <a href="suppliers.html" class="back-link">
+            ← Back to Suppliers
+        </a>
+
+        <!-- Header -->
+        <div class="order-history-header">
+            <h1>Order History</h1>
+            <p>View and manage all your orders with suppliers</p>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <div class="filter-group">
+                <label for="supplier-filter">Supplier</label>
+                <select id="supplier-filter">
+                    <option value="">All Suppliers</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="status-filter">Status</label>
+                <select id="status-filter">
+                    <option value="">All Status</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="pending">Pending</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="date-from">From Date</label>
+                <input type="date" id="date-from">
+            </div>
+
+            <div class="filter-group">
+                <label for="date-to">To Date</label>
+                <input type="date" id="date-to">
+            </div>
+
+            <button class="apply-filters-btn" onclick="applyFilters()">Apply Filters</button>
+        </div>
+
+        <!-- Orders Section -->
+        <div class="orders-section">
+            <div class="orders-header">
+                <div class="orders-count" id="orders-count">Loading orders...</div>
+                <button class="export-all-btn" onclick="exportAllOrders()">Export All as PDF</button>
+            </div>
+
+            <!-- Orders List -->
+            <div id="orders-list" class="loading">
+                <div>Loading your orders...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bill Modal -->
+    <div id="bill-modal" class="bill-modal">
+        <div class="bill-modal-content">
+            <div class="bill-modal-header">
+                <h3 class="bill-modal-title">Order Bill</h3>
+                <button class="close-modal" onclick="closeBillModal()">&times;</button>
+            </div>
+            <div class="bill-modal-body" id="bill-content">
+                <!-- Bill content will be generated here -->
+            </div>
+            <div class="bill-modal-actions">
+                <button class="action-btn export-btn" onclick="exportCurrentBill()">
+                    📄 Export as PDF
+                </button>
+                <button class="action-btn view-btn" onclick="printCurrentBill()">
+                    🖨️ Print
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="../js/bill-generator.js"></script>
+    <script src="../js/qrcode.min.js"></script>
+    <script>
+        let allOrders = [];
+        let filteredOrders = [];
+        let suppliers = [];
+        let currentBillData = null;
+        const billGenerator = new SmartPOSBillGenerator();
+
+        // Load orders and suppliers on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSuppliers();
+            loadOrders();
+        });
+
+        async function loadSuppliers() {
+            try {
+                const response = await fetch('/api/shop/orders/suppliers');
+                if (response.ok) {
+                    suppliers = await response.json();
+                    populateSupplierFilter();
+                } else {
+                    console.error('Failed to load suppliers');
+                }
+            } catch (error) {
+                console.error('Error loading suppliers:', error);
+            }
+        }
+
+        function populateSupplierFilter() {
+            const supplierFilter = document.getElementById('supplier-filter');
+            suppliers.forEach(supplier => {
+                const option = document.createElement('option');
+                option.value = supplier._id;
+                option.textContent = supplier.supplierName;
+                supplierFilter.appendChild(option);
+            });
+        }
+
+        async function loadOrders() {
+            try {
+                const response = await fetch('/api/shop/orders/suppliers');
+                if (response.ok) {
+                    const suppliersData = await response.json();
+                    
+                    // Extract all orders from all suppliers
+                    allOrders = [];
+                    suppliersData.forEach(supplier => {
+                        if (supplier.orders && supplier.orders.length > 0) {
+                            supplier.orders.forEach(order => {
+                                // Add supplier info to each order
+                                order.supplierInfo = {
+                                    _id: supplier._id,
+                                    supplierName: supplier.supplierName,
+                                    email: supplier.email,
+                                    phone: supplier.phone,
+                                    address: supplier.address
+                                };
+                                allOrders.push(order);
+                            });
+                        }
+                    });
+
+                    // Sort orders by date (newest first)
+                    allOrders.sort((a, b) => new Date(b.createdAt || b.orderDate) - new Date(a.createdAt || a.orderDate));
+                    
+                    filteredOrders = [...allOrders];
+                    displayOrders();
+                } else {
+                    console.error('Failed to load orders');
+                    document.getElementById('orders-list').innerHTML = '<div class="no-orders">Failed to load orders</div>';
+                }
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('orders-list').innerHTML = '<div class="no-orders">Error loading orders</div>';
+            }
+        }
+
+        function displayOrders() {
+            const ordersList = document.getElementById('orders-list');
+            const ordersCount = document.getElementById('orders-count');
+
+            if (filteredOrders.length === 0) {
+                ordersList.innerHTML = `
+                    <div class="no-orders">
+                        <i>📦</i>
+                        <h3>No orders found</h3>
+                        <p>No orders match your current filters.</p>
+                    </div>
+                `;
+                ordersCount.textContent = '0 orders found';
+                return;
+            }
+
+            ordersCount.textContent = `${filteredOrders.length} order${filteredOrders.length !== 1 ? 's' : ''} found`;
+
+            const ordersHTML = filteredOrders.map(order => {
+                const orderDate = new Date(order.createdAt || order.orderDate);
+                const formattedDate = orderDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+                const statusClass = `status-${order.status || 'pending'}`;
+                
+                return `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <h3 class="order-number">Order #${order._id.slice(-8).toUpperCase()}</h3>
+                                <p class="order-date">${formattedDate}</p>
+                            </div>
+                            <span class="order-status ${statusClass}">${order.status || 'pending'}</span>
+                        </div>
+
+                        <div class="order-details">
+                            <div class="detail-group">
+                                <div class="detail-label">Supplier</div>
+                                <div class="detail-value supplier-name">${order.supplierInfo.supplierName}</div>
+                            </div>
+                            <div class="detail-group">
+                                <div class="detail-label">Items Count</div>
+                                <div class="detail-value">${order.items ? order.items.length : 0} items</div>
+                            </div>
+                            <div class="detail-group">
+                                <div class="detail-label">Total Amount</div>
+                                <div class="detail-value order-total">NPR ${(order.total || 0).toFixed(2)}</div>
+                            </div>
+                        </div>
+
+                        ${order.items && order.items.length > 0 ? `
+                            <div class="order-items">
+                                <div class="items-header">Order Items</div>
+                                <div class="item-row" style="font-weight: 600; color: #2c3e50;">
+                                    <div>Product</div>
+                                    <div style="text-align: right;">Quantity</div>
+                                    <div style="text-align: right;">Price</div>
+                                    <div style="text-align: right;">Total</div>
+                                </div>
+                                ${order.items.slice(0, 3).map(item => `
+                                    <div class="item-row">
+                                        <div class="item-name">${item.productName || item.name || 'Unknown Product'}</div>
+                                        <div class="item-quantity">${item.quantity || 1}</div>
+                                        <div class="item-price">NPR ${(item.price || 0).toFixed(2)}</div>
+                                        <div class="item-total">NPR ${((item.quantity || 1) * (item.price || 0)).toFixed(2)}</div>
+                                    </div>
+                                `).join('')}
+                                ${order.items.length > 3 ? `
+                                    <div class="item-row" style="font-style: italic; color: #7f8c8d;">
+                                        <div>... and ${order.items.length - 3} more items</div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+
+                        <div class="order-actions">
+                            <button class="action-btn view-btn" onclick="viewOrderBill('${order._id}')">
+                                👁️ View Bill
+                            </button>
+                            <button class="action-btn export-btn" onclick="exportOrderBill('${order._id}')">
+                                📄 Export PDF
+                            </button>
+                            <button class="action-btn reorder-btn" onclick="reorderItems('${order._id}')">
+                                🔄 Reorder
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            ordersList.innerHTML = ordersHTML;
+        }
+
+        function applyFilters() {
+            const supplierFilter = document.getElementById('supplier-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+            const dateFrom = document.getElementById('date-from').value;
+            const dateTo = document.getElementById('date-to').value;
+
+            filteredOrders = allOrders.filter(order => {
+                // Supplier filter
+                if (supplierFilter && order.supplierInfo._id !== supplierFilter) {
+                    return false;
+                }
+
+                // Status filter
+                if (statusFilter && (order.status || 'pending') !== statusFilter) {
+                    return false;
+                }
+
+                // Date filters
+                const orderDate = new Date(order.createdAt || order.orderDate);
+                if (dateFrom && orderDate < new Date(dateFrom)) {
+                    return false;
+                }
+                if (dateTo && orderDate > new Date(dateTo + 'T23:59:59')) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            displayOrders();
+        }
+
+        function viewOrderBill(orderId) {
+            const order = allOrders.find(o => o._id === orderId);
+            if (!order) {
+                alert('Order not found');
+                return;
+            }
+
+            generateOrderBill(order, true);
+        }
+
+        function exportOrderBill(orderId) {
+            const order = allOrders.find(o => o._id === orderId);
+            if (!order) {
+                alert('Order not found');
+                return;
+            }
+
+            generateOrderBill(order, false);
+        }
+
+        function generateOrderBill(order, showModal = true) {
+            // Convert order data to bill format
+            const billData = {
+                billNo: `ORD-${order._id.slice(-8).toUpperCase()}`,
+                date: new Date(order.createdAt || order.orderDate),
+                supplier: {
+                    name: order.supplierInfo.supplierName,
+                    email: order.supplierInfo.email,
+                    phone: order.supplierInfo.phone,
+                    address: order.supplierInfo.address
+                },
+                customer: {
+                    name: 'Smart POS Shop',
+                    email: 'shop@smartpos.com',
+                    phone: '+977-1-234567',
+                    address: 'Kathmandu, Nepal'
+                },
+                items: order.items.map(item => ({
+                    name: item.productName || item.name || 'Unknown Product',
+                    quantity: item.quantity || 1,
+                    cost: item.price || 0,
+                    sell: item.price || 0,
+                    unit: item.unit || 'pcs'
+                })),
+                subtotal: order.subtotal || order.total || 0,
+                discount: order.discount || 0,
+                tax: order.tax || 0,
+                deliveryDate: order.deliveryDate || order.createdAt
+            };
+
+            // Create bill using the generator
+            const bill = billGenerator.createBill(billData);
+            const billHTML = billGenerator.generateBillHTML(false);
+
+            currentBillData = bill;
+
+            if (showModal) {
+                // Show in modal
+                document.getElementById('bill-content').innerHTML = '';
+                document.getElementById('bill-content').appendChild(billHTML);
+                document.getElementById('bill-modal').style.display = 'block';
+            } else {
+                // Export directly to PDF
+                exportToPDF(billHTML, `Order-${order._id.slice(-8).toUpperCase()}.pdf`);
+            }
+        }
+
+        function exportCurrentBill() {
+            if (!currentBillData) {
+                alert('No bill data available');
+                return;
+            }
+
+            const billElement = document.querySelector('#bill-content .smart-pos-bill');
+            if (billElement) {
+                exportToPDF(billElement, `Order-${currentBillData.billNo}.pdf`);
+            }
+        }
+
+        function printCurrentBill() {
+            if (!currentBillData) {
+                alert('No bill data available');
+                return;
+            }
+
+            const billElement = document.querySelector('#bill-content .smart-pos-bill');
+            if (billElement) {
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Print Bill - ${currentBillData.billNo}</title>
+                            <style>
+                                body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                                @media print { body { padding: 0; } }
+                            </style>
+                        </head>
+                        <body>
+                            ${billElement.outerHTML}
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.print();
+            }
+        }
+
+        function exportToPDF(element, filename) {
+            const options = {
+                margin: 1,
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(options).from(element).save();
+        }
+
+        function exportAllOrders() {
+            if (filteredOrders.length === 0) {
+                alert('No orders to export');
+                return;
+            }
+
+            if (confirm(`Export ${filteredOrders.length} orders as PDF? This may take a moment.`)) {
+                // Create a combined document with all bills
+                const combinedHTML = document.createElement('div');
+                
+                filteredOrders.forEach((order, index) => {
+                    const billData = {
+                        billNo: `ORD-${order._id.slice(-8).toUpperCase()}`,
+                        date: new Date(order.createdAt || order.orderDate),
+                        supplier: {
+                            name: order.supplierInfo.supplierName,
+                            email: order.supplierInfo.email,
+                            phone: order.supplierInfo.phone,
+                            address: order.supplierInfo.address
+                        },
+                        customer: {
+                            name: 'Smart POS Shop',
+                            email: 'shop@smartpos.com',
+                            phone: '+977-1-234567',
+                            address: 'Kathmandu, Nepal'
+                        },
+                        items: order.items.map(item => ({
+                            name: item.productName || item.name || 'Unknown Product',
+                            quantity: item.quantity || 1,
+                            cost: item.price || 0,
+                            sell: item.price || 0,
+                            unit: item.unit || 'pcs'
+                        })),
+                        subtotal: order.subtotal || order.total || 0,
+                        discount: order.discount || 0,
+                        tax: order.tax || 0,
+                        deliveryDate: order.deliveryDate || order.createdAt
+                    };
+
+                    const bill = billGenerator.createBill(billData);
+                    const billHTML = billGenerator.generateBillHTML(true);
+                    
+                    combinedHTML.appendChild(billHTML);
+                    
+                    // Add page break except for last item
+                    if (index < filteredOrders.length - 1) {
+                        const pageBreak = document.createElement('div');
+                        pageBreak.style.pageBreakAfter = 'always';
+                        combinedHTML.appendChild(pageBreak);
+                    }
+                });
+
+                exportToPDF(combinedHTML, `All-Orders-${new Date().toISOString().split('T')[0]}.pdf`);
+            }
+        }
+
+        function reorderItems(orderId) {
+            const order = allOrders.find(o => o._id === orderId);
+            if (!order) {
+                alert('Order not found');
+                return;
+            }
+
+            if (confirm(`Reorder ${order.items.length} items from ${order.supplierInfo.supplierName}?`)) {
+                // In a real implementation, this would add items to cart
+                alert('Items added to cart! Redirecting to suppliers page...');
+                window.location.href = 'suppliers.html';
+            }
+        }
+
+        function closeBillModal() {
+            document.getElementById('bill-modal').style.display = 'none';
+            currentBillData = null;
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('bill-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeBillModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeBillModal();
+            }
+        });
+    </script>
+</body>
+</html>
