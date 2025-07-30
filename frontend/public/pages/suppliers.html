@@ -724,13 +724,6 @@
             window.location.href = `supplier-products-shopowner.html?supplierId=${supplierId}`;
         }
 
-        async function addSupplier() {
-            await customAlert({
-                title: 'Supplier Registration Info',
-                message: 'Adding new suppliers is handled through the registration system. New suppliers can register on the platform and await admin approval.',
-                type: 'info'
-            });
-        }
 
         async function handleImportSuppliers() {
             await customAlert({
@@ -810,7 +803,6 @@
             const navbar = new SmartPOSNavbar({
                 title: 'Suppliers - Smart POS',
                 customActions: [
-                    { id: 'add-supplier', title: 'Add Supplier', icon: 'plus' },
                     { id: 'export-suppliers', title: 'Export', icon: 'download' },
                     { id: 'import-suppliers', title: 'Import', icon: 'upload' }
                 ]
@@ -818,9 +810,6 @@
             // Handle navbar action clicks
             window.addEventListener('navbarAction', function(e) {
                 switch(e.detail.actionId) {
-                    case 'add-supplier':
-                        addSupplier();
-                        break;
                     case 'export-suppliers':
                         exportSuppliers();
                         break;
