@@ -102,7 +102,7 @@
 
         .insights-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 16px;
             margin-bottom: 20px;
         }
@@ -441,18 +441,7 @@
                     "ABC analysis shows 20% of products generate 80% of revenue"
                 ]
             },
-            customers: {
-                title: 'Customer Behavior Analysis',
-                icon: 'customers',
-                iconClass: 'fas fa-users',
-                confidence: 'medium',
-                insights: [
-                    "Regular customers make purchases every 7-10 days on average",
-                    "New customer retention rate improves with follow-up contact within 48 hours",
-                    "Customers prefer bundle deals over individual item discounts",
-                    "Personal recommendations increase purchase probability by 60%"
-                ]
-            },
+            // customers card removed: no customer behavior tracking implemented
             finance: {
                 title: 'Financial Health',
                 icon: 'finance',
