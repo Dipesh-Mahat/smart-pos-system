@@ -18,6 +18,7 @@ const dashboardController = require('../controllers/dashboardController');
 const productController = require('../controllers/productController');
 const transactionController = require('../controllers/transactionController');
 const orderController = require('../controllers/orderController');
+const supplierProductsController = require('../controllers/supplierProductsController');
 
 // Public routes (no authentication required)
 router.get('/health', (req, res) => {
@@ -26,10 +27,17 @@ router.get('/health', (req, res) => {
 
 // Supplier routes (temporarily disable authentication for testing)
 router.get('/shop/orders/suppliers', (req, res, next) => {
-  // Mock authentication for testing
-  req.user = { _id: '507f1f77bcf86cd799439011', role: 'shopowner' };
+  // Mock authentication for testing - using actual shop owner ID
+  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
   next();
 }, orderController.getAvailableSuppliers);
+
+// Add mock authentication for supplier products route
+router.get('/shop/suppliers/:supplierId/products', (req, res, next) => {
+  // Mock authentication for testing - using actual shop owner ID
+  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  next();
+}, supplierProductsController.getSupplierProducts);
 
 // Protected routes (authentication required)
 // Apply JWT authentication middleware to all routes below

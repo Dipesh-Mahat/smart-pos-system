@@ -41,6 +41,15 @@ function loadSupplierInfo(supplierId) {
 }
 
 function loadSupplierProducts(supplierId) {
+    // Show loading state
+    document.getElementById('productsGrid').innerHTML = `
+        <div class="empty-state">
+            <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #007bff; margin-bottom: 20px;"></i>
+            <h3>Loading Products...</h3>
+            <p>Please wait while we fetch the supplier's product catalog.</p>
+        </div>
+    `;
+    
     apiService.get('/shop/suppliers/' + supplierId + '/products').then(res => {
         if (res.success && res.data && res.data.products && res.data.products.length) {
             supplierProducts = res.data.products;
@@ -53,10 +62,30 @@ function loadSupplierProducts(supplierId) {
                     `<b>Email:</b> ${res.data.supplier.email} <br><b>Phone:</b> ${res.data.supplier.phone || 'N/A'}`;
             }
         } else {
-            document.getElementById('productsGrid').innerHTML = '<div class="empty-state">No products found for this supplier.</div>';
+            document.getElementById('productsGrid').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-boxes" style="font-size: 64px; color: #dee2e6; margin-bottom: 20px;"></i>
+                    <h3>No Products Available</h3>
+                    <p>This supplier hasn't added any products to their catalog yet.</p>
+                    <p style="color: #6c757d; font-size: 14px; margin-top: 15px;">
+                        <i class="fas fa-info-circle"></i> 
+                        Contact the supplier to add products or check back later.
+                    </p>
+                </div>
+            `;
         }
-    }).catch(() => {
-        document.getElementById('productsGrid').innerHTML = '<div class="empty-state">Failed to load products. Please try again later.</div>';
+    }).catch(error => {
+        console.error('Error loading supplier products:', error);
+        document.getElementById('productsGrid').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle" style="font-size: 64px; color: #dc3545; margin-bottom: 20px;"></i>
+                <h3>Error Loading Products</h3>
+                <p>Failed to load products. Please check your connection and try again.</p>
+                <button class="btn btn-primary" onclick="loadSupplierProducts('${supplierId}')" style="margin-top: 15px;">
+                    <i class="fas fa-refresh"></i> Retry
+                </button>
+            </div>
+        `;
     });
 }
 
