@@ -1023,8 +1023,6 @@
                 showNotifications: true,
                 showProfile: true,
                 customActions: [
-                    // Removed refresh button
-                    { id: 'export-report', icon: 'download', title: 'Export Report' },
                     { id: 'quick-sale', icon: 'cash-register', title: 'Quick Sale' }
                 ]
             });
@@ -1036,14 +1034,6 @@
             window.addEventListener('navbarAction', async (event) => {
                 const { actionId } = event.detail;
                 switch(actionId) {
-                    // Removed refresh case
-                    case 'export-report':
-                        await customAlert({
-                            title: 'Feature Coming Soon',
-                            message: 'Export report functionality will be implemented in the next update.',
-                            type: 'info'
-                        });
-                        break;
                     case 'quick-sale':
                         window.location.href = 'pos.html';
                         break;
