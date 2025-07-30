@@ -455,9 +455,69 @@
         </div>    </div>
 
     <script>
-        function generateReport(type) {
-            alert(`Generating ${type} report...`);
-            // Here you would implement the actual report generation logic
+
+        // Download CSV helper
+        function downloadCSV(filename, csvContent) {
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Generate and download report (fetch from backend or use sample)
+        async function generateReport(type) {
+            let endpoint = '';
+            let filename = '';
+            // Determine API base URL for local or Vercel
+            let apiBase = '';
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                apiBase = 'http://localhost:5000/api/reports';
+            } else {
+                // Use same origin for Vercel or production
+                apiBase = '/api/reports';
+            }
+            switch(type) {
+                case 'sales':
+                    endpoint = `${apiBase}/sales`;
+                    filename = 'sales-report.csv';
+                    break;
+                case 'inventory':
+                    endpoint = `${apiBase}/inventory`;
+                    filename = 'inventory-report.csv';
+                    break;
+                case 'financial':
+                    endpoint = `${apiBase}/financial`;
+                    filename = 'financial-report.csv';
+                    break;
+                default:
+                    alert('Unknown report type');
+                    return;
+            }
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${window.authService ? window.authService.getToken() : ''}`
+                    }
+                });
+                if (response.ok) {
+                    const csv = await response.text();
+                    // Check if CSV has more than just a header row (no data)
+                    const lines = csv.trim().split('\n');
+                    if (lines.length > 1) {
+                        downloadCSV(filename, csv);
+                    } else {
+                        alert('No data available for this report.');
+                    }
+                } else {
+                    alert('No data available for this report.');
+                }
+            } catch (err) {
+                alert('No data available for this report.');
+            }
         }
 
         function exportData(type) {
