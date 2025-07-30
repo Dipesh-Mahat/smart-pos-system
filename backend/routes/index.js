@@ -10,6 +10,9 @@ const smartInventoryRoutes = require('./smartInventoryRoutes');
 const festivalIntelligenceRoutes = require('./festivalIntelligenceRoutes');
 const aiBusinessIntelligenceRoutes = require('./aiBusinessIntelligenceRoutes');
 const mobileScannerRoutes = require('./mobileScannerRoutes');
+const reportRoutes = require('./reportRoutes');
+// Reports/analytics routes
+router.use('/reports', reportRoutes);
 const adminController = require('../controllers/adminController');
 const dashboardController = require('../controllers/dashboardController');
 const productController = require('../controllers/productController');
