@@ -413,11 +413,7 @@
                 <i class="fas fa-truck"></i>
                 Suppliers
             </div>
-            <div class="header-actions">
-                <button class="btn btn-secondary" onclick="exportSuppliers()">
-                    <i class="fas fa-download"></i> Export
-                </button>
-            </div>
+            <!-- header-actions removed -->
         </div>
 
         <!-- Statistics -->
@@ -731,23 +727,6 @@
             window.location.href = `create-order.html?supplierId=${supplierId}`;
         }
 
-        function exportSuppliers() {
-            try {
-                const dataStr = JSON.stringify(allSuppliers, null, 2);
-                const dataBlob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(dataBlob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `suppliers_${new Date().toISOString().split('T')[0]}.json`;
-                link.click();
-                URL.revokeObjectURL(url);
-                
-                showToast('Suppliers data exported successfully!', 'success');
-            } catch (error) {
-                console.error('Export error:', error);
-                showToast('Failed to export suppliers data', 'error');
-            }
-        }
 
         function showToast(message, type = 'info') {
             const toast = document.createElement('div');
@@ -795,17 +774,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const navbar = new SmartPOSNavbar({
                 title: 'Suppliers - Smart POS',
-                customActions: [
-                    { id: 'export-suppliers', title: 'Export', icon: 'download' }
-                ]
-            });
-            // Handle navbar action clicks
-            window.addEventListener('navbarAction', function(e) {
-                switch(e.detail.actionId) {
-                    case 'export-suppliers':
-                        exportSuppliers();
-                        break;
-                }
+                customActions: []
             });
         });
     </script>
