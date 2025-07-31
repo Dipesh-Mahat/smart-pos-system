@@ -1,3 +1,15 @@
+/* Supplier Applications Section Padding */
+.supplier-management-section {
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+@media (max-width: 600px) {
+    .supplier-management-section {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+}
 /* Admin Dashboard Styles */
 * {
     margin: 0;
