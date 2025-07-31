@@ -18,6 +18,9 @@ class ScannerUnified {
     }
 
     init() {
+        // Create event handler system if needed
+        this.createEventSystem();
+        
         // Check for existing connection
         this.restoreConnection();
         
@@ -26,6 +29,50 @@ class ScannerUnified {
         
         // Add global connection indicator
         this.addConnectionIndicator();
+    }
+    
+    /**
+     * Create an event system if one doesn't exist
+     */
+    createEventSystem() {
+        // Check if mobileScannerConnection exists
+        if (typeof window.mobileScannerConnection === 'undefined') {
+            // Create a basic event emitter
+            window.mobileScannerConnection = {
+                events: {},
+                on: function(eventName, callback) {
+                    if (!this.events[eventName]) {
+                        this.events[eventName] = [];
+                    }
+                    this.events[eventName].push(callback);
+                },
+                emit: function(eventName, data) {
+                    if (this.events[eventName]) {
+                        this.events[eventName].forEach(callback => {
+                            callback(data);
+                        });
+                    }
+                }
+            };
+            console.log('Created fallback event system for scanner connections');
+        } else if (typeof window.mobileScannerConnection.on !== 'function') {
+            // Add event methods to existing object
+            window.mobileScannerConnection.events = {};
+            window.mobileScannerConnection.on = function(eventName, callback) {
+                if (!this.events[eventName]) {
+                    this.events[eventName] = [];
+                }
+                this.events[eventName].push(callback);
+            };
+            window.mobileScannerConnection.emit = function(eventName, data) {
+                if (this.events[eventName]) {
+                    this.events[eventName].forEach(callback => {
+                        callback(data);
+                    });
+                }
+            };
+            console.log('Added event methods to existing mobileScannerConnection');
+        }
     }
 
     /**
@@ -358,16 +405,17 @@ class ScannerUnified {
      * Setup connection listeners
      */
     setupConnectionListeners() {
-        if (typeof mobileScannerConnection !== 'undefined') {
+        // Use the Enhanced Scanner Connection if available, otherwise create our own event handling
+        if (typeof window.mobileScannerConnection !== 'undefined' && typeof window.mobileScannerConnection.on === 'function') {
             // Listen for device connections
-            mobileScannerConnection.on('device_connected', (data) => {
+            window.mobileScannerConnection.on('device_connected', (data) => {
                 if (data.roomCode === this.roomCode) {
                     this.handleDeviceConnected(data);
                 }
             });
             
             // Listen for scan events
-            mobileScannerConnection.on('scan_received', (data) => {
+            window.mobileScannerConnection.on('scan_received', (data) => {
                 if (data.roomCode === this.roomCode) {
                     this.handleScanReceived(data);
                 }

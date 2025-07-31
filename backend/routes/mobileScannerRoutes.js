@@ -6,6 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
+const mobileScannerController = require('../controllers/mobileScannerController');
 
 // Simple status endpoint for testing
 router.get('/status', (req, res) => {
@@ -107,6 +108,12 @@ router.get('/health', (req, res) => {
         service: 'mobile-scanner'
     });
 });
+
+// Use controller endpoints for QR code generation and connection management
+router.get('/generate-qr', mobileScannerController.generateScannerQR);
+router.get('/check-session/:sessionId', mobileScannerController.checkSessionStatus);
+router.get('/connection-modes', mobileScannerController.getConnectionModes);
+router.get('/config', mobileScannerController.getScannerConfig);
 
 // Enhanced QR Code generation endpoint for WiFi connection
 router.post('/generate-qr', async (req, res) => {

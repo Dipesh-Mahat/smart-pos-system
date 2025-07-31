@@ -28,26 +28,13 @@ class SmartPOSSystem {
         if (loadingElement) loadingElement.style.display = 'flex';
         if (productsListElement) productsListElement.style.display = 'none';
 
-        fetch('/products')
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.success && Array.isArray(data.products) && data.products.length > 0) {
-                    this.products = data.products;
-                    this.displayAllProducts();
-                } else {
-                    this.products = getDemoProducts();
-                    this.displayAllProducts();
-                }
-            })
-            .catch(error => {
-                console.error('Error loading products:', error);
-                this.products = getDemoProducts();
-                this.displayAllProducts();
-            })
-            .finally(() => {
-                if (loadingElement) loadingElement.style.display = 'none';
-                if (productsListElement) productsListElement.style.display = 'grid';
-            });
+        // Directly use demo products to avoid API calls during development
+        this.products = getDemoProducts();
+        this.displayAllProducts();
+        
+        // Complete loading state
+        if (loadingElement) loadingElement.style.display = 'none';
+        if (productsListElement) productsListElement.style.display = 'grid';
     }
 
     // Initialize product database with barcodes

@@ -25,49 +25,176 @@ const upload = multer({
 });
 
 /**
- * Generate QR Code for mobile scanner access
+ * Generate QR Code for mobile scanner access - Enhanced Version
+ * Supports multiple connection methods including online (Vercel), LAN, and local hotspot
  */
 const generateScannerQR = async (req, res) => {
   try {
-    const { type = 'product' } = req.query; // product, bill, inventory
-    const shopId = req.user.shopId;
-    const userId = req.user.id;
+    const { type = 'product', mode = 'auto' } = req.query; // product, bill, inventory
+    const shopId = req.user?.shopId || 'demo';
+    const userId = req.user?.id || 'demo-user';
     
-    // Determine the base URL based on environment
-    let baseUrl;
+    // Generate a unique session ID for this connection
+    const { v4: uuidv4 } = require('uuid');
+    const sessionId = uuidv4();
+    
+    // Store session information in global variable (use Redis in production)
+    global.scannerSessions = global.scannerSessions || {};
+    global.scannerSessions[sessionId] = {
+      id: sessionId,
+      createdAt: new Date(),
+      shopId,
+      userId,
+      type,
+      active: true,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
+    };
+    
+    // Get network IP addresses for local connections
+    const os = require('os');
+    const networkInterfaces = os.networkInterfaces();
+    
+    // Find suitable IP addresses for different connection types
+    let localNetworkIPs = [];
+    let hotspotIPs = [];
+    
+    Object.keys(networkInterfaces).forEach(ifaceName => {
+      const iface = networkInterfaces[ifaceName];
+      iface.forEach(details => {
+        // Only include IPv4 addresses that are not internal
+        if (details.family === 'IPv4' && !details.internal) {
+          // Check if it might be a hotspot (often 192.168.137.x or 172.20.x.x)
+          if (details.address.startsWith('192.168.137.') || 
+              details.address.startsWith('172.20.') || 
+              details.address.includes('hotspot')) {
+            hotspotIPs.push(details.address);
+          } else if (!details.address.startsWith('169.254.')) { 
+            // Skip link-local addresses
+            localNetworkIPs.push(details.address);
+          }
+        }
+      });
+    });
+    
+    // Determine the base URLs based on connection mode and environment
+    let urls = {
+      online: '',
+      local: [],
+      hotspot: []
+    };
+    
+    // Online URL (Vercel or production)
     if (process.env.VERCEL_URL) {
-      baseUrl = `https://${process.env.VERCEL_URL}`;
+      urls.online = `https://${process.env.VERCEL_URL}`;
     } else if (process.env.NODE_ENV === 'production') {
-      baseUrl = process.env.PRODUCTION_URL || 'https://smart-pos-system.vercel.app';
+      urls.online = process.env.PRODUCTION_URL || 'https://smart-pos-system.vercel.app';
     } else {
-      // Local development
-      const host = req.get('host') || 'localhost:3000';
-      baseUrl = `http://${host}`;
+      // In development, online is same as first local IP
+      const host = req.get('host')?.split(':')[0] || 'localhost';
+      const port = process.env.PORT || '3000';
+      urls.online = `http://${host}:${port}`;
     }
     
-    // Create scanner URL with authentication token
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    const scannerUrl = `${baseUrl}/mobile-scanner.html?type=${type}&token=${token}&shopId=${shopId}&userId=${userId}`;
-    
-    // Generate QR code
-    const qrCodeDataURL = await QRCode.toDataURL(scannerUrl, {
-      errorCorrectionLevel: 'M',
-      type: 'image/png',
-      quality: 0.92,
-      margin: 1,
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      },
-      width: 256
+    // Local network URLs
+    localNetworkIPs.forEach(ip => {
+      const port = process.env.PORT || '3000';
+      urls.local.push(`http://${ip}:${port}`);
     });
+    
+    // Hotspot URLs
+    hotspotIPs.forEach(ip => {
+      const port = process.env.PORT || '3000';
+      urls.hotspot.push(`http://${ip}:${port}`);
+    });
+    
+    // If no local IPs found, fall back to localhost
+    if (urls.local.length === 0) {
+      urls.local.push(`http://localhost:${process.env.PORT || '3000'}`);
+    }
+    
+    console.log('Available connection URLs:', urls);
+    
+    // Create scanner URLs with authentication and session ID
+    const token = req.headers.authorization?.replace('Bearer ', '') || 'demo-token';
+    
+    // Prepare QR codes for different connection types
+    const qrCodes = {};
+    const scannerUrls = {};
+    
+    // Online URL
+    if (urls.online) {
+      const onlineUrl = `${urls.online}/mobile-scanner.html?sessionId=${sessionId}&type=${type}&mode=online&token=${token}&shopId=${shopId}&userId=${userId}`;
+      scannerUrls.online = onlineUrl;
+      qrCodes.online = await QRCode.toDataURL(onlineUrl, {
+        errorCorrectionLevel: 'M',
+        type: 'image/png',
+        quality: 0.92,
+        margin: 1,
+        color: { dark: '#000000', light: '#FFFFFF' },
+        width: 256
+      });
+    }
+    
+    // Local network URL (use first IP)
+    if (urls.local.length > 0) {
+      const localUrl = `${urls.local[0]}/mobile-scanner.html?sessionId=${sessionId}&type=${type}&mode=local&token=${token}&shopId=${shopId}&userId=${userId}`;
+      scannerUrls.local = localUrl;
+      qrCodes.local = await QRCode.toDataURL(localUrl, {
+        errorCorrectionLevel: 'M',
+        type: 'image/png',
+        quality: 0.92,
+        margin: 1,
+        color: { dark: '#2563eb', light: '#FFFFFF' },
+        width: 256
+      });
+    }
+    
+    // Hotspot URL (use first IP if available)
+    if (hotspotIPs.length > 0) {
+      const hotspotUrl = `${urls.hotspot[0]}/mobile-scanner.html?sessionId=${sessionId}&type=${type}&mode=hotspot&token=${token}&shopId=${shopId}&userId=${userId}`;
+      scannerUrls.hotspot = hotspotUrl;
+      qrCodes.hotspot = await QRCode.toDataURL(hotspotUrl, {
+        errorCorrectionLevel: 'M',
+        type: 'image/png',
+        quality: 0.92,
+        margin: 1,
+        color: { dark: '#047857', light: '#FFFFFF' },
+        width: 256
+      });
+    }
+    
+    // Determine which mode to return based on request
+    let primaryMode = mode;
+    if (mode === 'auto') {
+      // In auto mode, prioritize based on availability
+      if (process.env.NODE_ENV === 'production' && urls.online) {
+        primaryMode = 'online';
+      } else if (hotspotIPs.length > 0) {
+        primaryMode = 'hotspot';
+      } else if (localNetworkIPs.length > 0) {
+        primaryMode = 'local';
+      } else {
+        primaryMode = 'online';
+      }
+    }
     
     res.status(200).json({
       success: true,
+      sessionId,
       data: {
-        qrCode: qrCodeDataURL,
-        scannerUrl: scannerUrl,
-        type: type,
+        primaryMode,
+        qrCodes,
+        scannerUrls,
+        allModes: {
+          online: !!urls.online,
+          local: urls.local.length > 0,
+          hotspot: hotspotIPs.length > 0
+        },
+        networkInfo: {
+          localIPs: localNetworkIPs,
+          hotspotIPs
+        },
+        type,
         instructions: {
           product: 'Scan product barcodes to add items to inventory',
           bill: 'Scan bills and receipts to extract product information',
@@ -577,10 +704,106 @@ const getScannerConfig = async (req, res) => {
   }
 };
 
+/**
+ * Check session status
+ */
+const checkSessionStatus = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    
+    // Check if session exists
+    if (!global.scannerSessions || !global.scannerSessions[sessionId]) {
+      return res.status(404).json({
+        success: false,
+        valid: false,
+        message: 'Session not found'
+      });
+    }
+    
+    const session = global.scannerSessions[sessionId];
+    
+    // Check if session is still valid (less than 30 minutes old)
+    const sessionAge = Date.now() - new Date(session.createdAt).getTime();
+    const isValid = sessionAge < 24 * 60 * 60 * 1000; // 24 hours
+    
+    res.status(200).json({
+      success: true,
+      valid: isValid,
+      connected: !!session.connected,
+      sessionId,
+      createdAt: session.createdAt,
+      deviceInfo: session.deviceInfo || null
+    });
+    
+  } catch (error) {
+    console.error('Error checking session status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check session status',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Get available connection modes
+ */
+const getConnectionModes = async (req, res) => {
+  try {
+    const os = require('os');
+    const networkInterfaces = os.networkInterfaces();
+    
+    // Find suitable IP addresses for different connection types
+    let localNetworkIPs = [];
+    let hotspotIPs = [];
+    
+    Object.keys(networkInterfaces).forEach(ifaceName => {
+      const iface = networkInterfaces[ifaceName];
+      iface.forEach(details => {
+        // Only include IPv4 addresses that are not internal
+        if (details.family === 'IPv4' && !details.internal) {
+          // Check if it might be a hotspot (often 192.168.137.x or 172.20.x.x)
+          if (details.address.startsWith('192.168.137.') || 
+              details.address.startsWith('172.20.') || 
+              details.address.includes('hotspot')) {
+            hotspotIPs.push(details.address);
+          } else if (!details.address.startsWith('169.254.')) { 
+            // Skip link-local addresses
+            localNetworkIPs.push(details.address);
+          }
+        }
+      });
+    });
+    
+    res.status(200).json({
+      success: true,
+      modes: {
+        online: process.env.NODE_ENV === 'production',
+        local: localNetworkIPs.length > 0,
+        hotspot: hotspotIPs.length > 0
+      },
+      networkInfo: {
+        localIPs: localNetworkIPs,
+        hotspotIPs
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error getting connection modes:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get connection modes',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   generateScannerQR,
   processOCRScan,
   uploadScanImage: uploadScanImage,
   processScanImage,
-  getScannerConfig
+  getScannerConfig,
+  checkSessionStatus,
+  getConnectionModes
 };

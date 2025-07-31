@@ -10,12 +10,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Socket.IO for real-time communication -->
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
     <script src="../js/scanner-mobile.js"></script>
     <script src="../js/scanner-connection.js"></script>
     <script src="../js/scanner-unified.js"></script>
+    <script src="../js/google-auth.js"></script>
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
     <script src="../js/custom-modals.js"></script>
+    <script src="../js/enhanced-scanner.js"></script>
+    <script src="../js/qr-connection-helper.js"></script>
+    <script src="../js/scanner-qr-interface.js"></script>
     <script src="../js/demo-products.js"></script>    <!-- Preload menu styles to prevent flicker -->
     <style>
         /* Comprehensive preload styles to prevent menu flicker */
@@ -2289,7 +2295,7 @@
             posSystem = new SmartPOSSystem();
             
             // Initialize unified scanner connection
-            window.unifiedScannerConnection = new UnifiedScannerConnection();
+            window.unifiedScannerConnection = new ScannerUnified();
             
             // Device detection function
             function isMobileDevice() {
@@ -2918,5 +2924,70 @@ function showBillModal(cartArr) {
             }
         }
    </style>
+   
+   <script>
+        // Enhanced scanner QR interface
+        let scannerQRInterface;
+        
+        /**
+         * Initialize the enhanced scanner QR interface
+         */
+        function initEnhancedScannerInterface() {
+            // Update the scanner modal with our new container
+            const scannerModalContent = document.querySelector('#scannerModal .scanner-modal-content');
+            if (scannerModalContent) {
+                // Replace inner content with our scanner container
+                scannerModalContent.innerHTML = `
+                    <div class="scanner-modal-header">
+                        <h3><i class="fas fa-qrcode"></i> Mobile Scanner Connection</h3>
+                        <button class="close-modal" id="closeScannerModal">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="scannerContainer"></div>
+                `;
+                
+                // Reinitialize the close button event
+                document.getElementById('closeScannerModal').addEventListener('click', function() {
+                    document.getElementById('scannerModal').classList.remove('active');
+                });
+                
+                // Ensure the necessary components are ready
+                if (typeof ScannerQRInterface !== 'undefined') {
+                    try {
+                        // Initialize the scanner interface
+                        scannerQRInterface = new ScannerQRInterface('scannerContainer');
+                        console.log('Enhanced scanner interface initialized');
+                    } catch (error) {
+                        console.error('Failed to initialize scanner interface:', error);
+                    }
+                } else {
+                    console.error('ScannerQRInterface not defined. Check script loading order.');
+                }
+            }
+        }
+        
+        /**
+         * Override the checkDeviceConnectivity function to use our enhanced interface
+         */
+        function checkDeviceConnectivity() {
+            // Simply show the scanner modal, our interface handles everything else
+            document.getElementById('scannerModal').classList.add('active');
+            
+            // Make sure the QR code is generated if needed
+            if (scannerQRInterface && typeof scannerQRInterface.generateQR === 'function') {
+                try {
+                    scannerQRInterface.generateQR();
+                } catch (error) {
+                    console.error('Error generating QR code:', error);
+                }
+            }
+        }
+        
+        // Initialize when the page is fully loaded - with a small delay to ensure all scripts are loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initEnhancedScannerInterface, 500);
+        });
+   </script>
 </body>
 </html>
