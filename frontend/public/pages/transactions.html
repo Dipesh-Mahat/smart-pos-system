@@ -11,7 +11,6 @@
     <!-- Include Auth Service for token management -->
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
-    <script src="../js/demo-products.js"></script>
     
     <!-- Check authentication on page load -->
     <script>
@@ -772,125 +771,7 @@
 
         <!-- Transactions Grid -->
         <div class="transactions-grid" id="transactionsGrid">
-            <a href="receipt-detail.html?id=TXN-2024-001" class="transaction-item">
-                <div class="transaction-header">
-                    <div class="receipt-number">
-                        <i class="fas fa-receipt"></i>
-                        TXN-2024-001
-                    </div>
-                    <div class="transaction-amount">NPR 124.50</div>
-                </div>
-                <div class="transaction-details">
-                    <div class="detail-item">
-                        <div class="detail-label">Date</div>
-                        <div class="detail-value">Jan 15, 2024</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Time</div>
-                        <div class="detail-value">14:30</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Items</div>
-                        <div class="detail-value">5</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Status</div>
-                        <div class="detail-value">
-                            <span class="status-badge status-completed">Completed</span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="receipt-detail.html?id=TXN-2024-002" class="transaction-item">
-                <div class="transaction-header">
-                    <div class="receipt-number">
-                        <i class="fas fa-receipt"></i>
-                        TXN-2024-002
-                    </div>
-                    <div class="transaction-amount">NPR 89.25</div>
-                </div>
-                <div class="transaction-details">
-                    <div class="detail-item">
-                        <div class="detail-label">Date</div>
-                        <div class="detail-value">Jan 15, 2024</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Time</div>
-                        <div class="detail-value">13:15</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Items</div>
-                        <div class="detail-value">3</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Status</div>
-                        <div class="detail-value">
-                            <span class="status-badge status-completed">Completed</span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="receipt-detail.html?id=TXN-2024-003" class="transaction-item">
-                <div class="transaction-header">
-                    <div class="receipt-number">
-                        <i class="fas fa-receipt"></i>
-                        TXN-2024-003
-                    </div>
-                    <div class="transaction-amount">NPR 256.75</div>
-                </div>
-                <div class="transaction-details">
-                    <div class="detail-item">
-                        <div class="detail-label">Date</div>
-                        <div class="detail-value">Jan 15, 2024</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Time</div>
-                        <div class="detail-value">12:45</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Items</div>
-                        <div class="detail-value">8</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Status</div>
-                        <div class="detail-value">
-                            <span class="status-badge status-pending">Pending</span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="receipt-detail.html?id=TXN-2024-004" class="transaction-item">
-                <div class="transaction-header">
-                    <div class="receipt-number">
-                        <i class="fas fa-receipt"></i>
-                        TXN-2024-004
-                    </div>
-                    <div class="transaction-amount">NPR 45.00</div>
-                </div>
-                <div class="transaction-details">
-                    <div class="detail-item">
-                        <div class="detail-label">Date</div>
-                        <div class="detail-value">Jan 14, 2024</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Time</div>
-                        <div class="detail-value">16:20</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Items</div>
-                        <div class="detail-value">2</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Status</div>
-                        <div class="detail-value">
-                            <span class="status-badge status-completed">Completed</span>
-                        </div>
-                    </div>
-                </div>
-            </a>
+            <!-- Transactions will be rendered here by JavaScript -->
         </div>    </div>
 
     <!-- Modal for Transaction Details -->
@@ -999,12 +880,6 @@
                     // Show error message to user
                     this.showToast('Error connecting to server. Please check your connection.', 'error');
                 }
-            }
-
-            // Demo transactions generation removed - now using real database data
-            generateDemoTransactions() {
-                // This function is no longer needed as we fetch real data
-                console.log('Using real transaction data from database');
             }
 
             getProductIcon(category) {
