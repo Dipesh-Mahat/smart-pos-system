@@ -10,8 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Socket.IO for real-time communication -->
-    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+    <!-- Socket.IO removed: real-time communication not used -->
     <script src="../js/scanner-mobile.js"></script>
     <script src="../js/scanner-connection.js"></script>
     <script src="../js/scanner-unified.js"></script>
@@ -2581,153 +2580,7 @@
                 posSystem.processBarcode(barcode.trim());
             }
         }
-        
-        // Enhanced Scanner Functions
-        let currentSessionId = null;
-        let currentScanType = 'product';
-        
-        // Check device connectivity (USB or WiFi)
-        async function checkDeviceConnectivity() {
-            const statusElement = document.getElementById('connectionStatus');
-            const indicator = statusElement.querySelector('.status-indicator');
-            
-            try {
-                // Check for USB connected devices
-                if ('usb' in navigator) {
-                    const devices = await navigator.usb.getDevices();
-                    if (devices.length > 0) {
-                        indicator.innerHTML = '<i class="fas fa-usb"></i><span>USB device detected - Ready for direct scanning</span>';
-                        indicator.className = 'status-indicator success';
-                        return;
-                    }
-                }
-                
-                // Check backend connection for WiFi scanning
-                const response = await fetch('/api/mobile-scanner/status');
-                const result = await response.json();
-                
-                if (result.success) {
-                    indicator.innerHTML = '<i class="fas fa-wifi"></i><span>WiFi ready - QR code will be generated</span>';
-                    indicator.className = 'status-indicator success';
-                } else {
-                    throw new Error('Backend not available');
-                }
-            } catch (error) {
-                indicator.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>Connection error - Please check your setup</span>';
-                indicator.className = 'status-indicator error';
-            }
-        }
-        
-        // Start scanning with specified type
-        async function startScanning(scanType) {
-            currentScanType = scanType;
-            document.getElementById('scannerModal').classList.remove('active');
-            
-            try {
-                // First try USB connection
-                const hasUSB = await checkUSBConnection();
-                
-                if (hasUSB) {
-                    // Use USB direct access
-                    openMobileCameraViaUSB(scanType);
-                } else {
-                    // Use WiFi/QR connection
-                    await startWiFiScanning(scanType);
-                }
-            } catch (error) {
-                console.error('Scanning error:', error);
-                alert('Failed to start scanning: ' + error.message);
-            }
-        }
-        
-        // Check USB connection
-        async function checkUSBConnection() {
-            try {
-                if ('usb' in navigator) {
-                    const devices = await navigator.usb.getDevices();
-                    return devices.length > 0;
-                }
-                
-                // Alternative: Check via backend API
-                const response = await fetch('/api/mobile-scanner/usb-status');
-                const result = await response.json();
-                return result.usbConnected;
-            } catch (error) {
-                return false;
-            }
-        }
-        
-        // Open mobile camera via USB
-        function openMobileCameraViaUSB(scanType) {
-            // This would integrate with USB debugging/ADB to access mobile camera
-            // For now, show the direct camera modal as fallback
-            document.getElementById('cameraModal').classList.add('active');
-            if (posSystem && posSystem.startDirectScan) {
-                posSystem.startDirectScan();
-            }
-            
-            // In production, this would:
-            // 1. Connect to mobile device via USB
-            // 2. Request camera permission
-            // 3. Stream camera feed directly to desktop
-            // 4. Process scans in real-time
-        }
-        
-        // Start WiFi scanning with QR code
-        async function startWiFiScanning(scanType) {
-            try {
-                const response = await fetch('/api/mobile-scanner/generate-qr', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        scanType: scanType
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    currentSessionId = result.sessionId;
-                    showQRCodeModal(result.qrCode, scanType);
-                    
-                    // Initialize Socket.IO for real-time updates
-                    if (typeof io !== 'undefined') {
-                        const socket = io();
-                        socket.emit('join-scanner-session', currentSessionId);
-                        
-                        socket.on('scan-result', (data) => {
-                            if (data.sessionId === currentSessionId) {
-                                processScanResult(data);
-                            }
-                        });
-                    }
-                } else {
-                    throw new Error(result.message || 'Failed to generate QR code');
-                }
-            } catch (error) {
-                throw new Error('WiFi scanning setup failed: ' + error.message);
-            }
-        }
-        
-        // Show QR code modal
-        function showQRCodeModal(qrCodeData, scanType) {
-            // Update the mobile scanner modal to show QR code
-            document.getElementById('mobileScannerModal').classList.add('active');
-            
-            // Add QR code to the connection status area
-            const statusElement = document.getElementById('connectionStatus');
-            statusElement.innerHTML = `
-                <div class="qr-code-display">
-                    <h4>Scan with your mobile device</h4>
-                    <img src="${qrCodeData}" alt="QR Code for ${scanType} scanning" />
-                    <p>Both devices must be on the same WiFi network</p>
-                    <p>Scanning mode: <strong>${scanType.toUpperCase()}</strong></p>
-                </div>
-            `;
-        }
-        
+       
         // Process scan result from mobile
         function processScanResult(data) {
             const { barcode, product, scanType } = data;
@@ -2783,7 +2636,7 @@
         }
     </script>
       <!-- Navbar and Menu Scripts -->
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Socket.IO removed: not needed -->
     <script src="../js/navbar.js"></script>
     <script src="../js/menu.js"></script>
     

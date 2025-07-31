@@ -23,16 +23,16 @@ class MobileScanner {
     }
 
     async tryAutoRequestCamera() {
-        // Hide any camera access message if present
+        // Remove any camera access message and request button if present
         const cameraMsg = document.getElementById('cameraAccessMsg');
-        if (cameraMsg) cameraMsg.style.display = 'none';
+        if (cameraMsg) cameraMsg.remove();
+        const requestBtn = document.getElementById('requestCameraBtn');
+        if (requestBtn) requestBtn.remove();
         try {
             await this.requestCamera();
         } catch (err) {
-            // If permission denied, show message
-            if (cameraMsg) {
-                cameraMsg.style.display = 'block';
-            }
+            // Optionally, show a notification if permission denied
+            this.showNotification('Camera access denied. Please check browser permissions.', 'error');
         }
     }
 
