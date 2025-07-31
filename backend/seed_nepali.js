@@ -194,30 +194,27 @@ const seedUsers = async () => {
   
   // Supplier 1 - Wholesale Supplier
   const supplier1 = new User({
-    username: 'ramesh_wholesale',
-    firstName: 'Ramesh',
-    lastName: 'Adhikari',
-    email: 'ramesh@wholesale.com',
-    password: await bcrypt.hash('ramesh123', salt),
+    username: 'sharma_grains',
+    firstName: 'Shyam',
+    lastName: 'Sharma',
+    email: 'sharma@grainssupplier.com',
+    password: await bcrypt.hash('sharma123', salt),
     role: 'supplier',
-    companyName: 'Adhikari Wholesale Suppliers',
-    
-    // Required fields for suppliers
-    businessName: 'Adhikari Wholesale Suppliers',
+    companyName: 'Sharma Grains Supplier',
+    businessName: 'Sharma Grains Supplier',
     businessType: 'wholesale',
-    businessAddress: 'Kalimati Vegetable Market, Kathmandu, Nepal',
-    contactPerson: 'Ramesh Adhikari',
-    position: 'Owner/Manager',
-    phone: '+977-9841111222',
-    
+    businessAddress: 'Kalimati Grain Market, Kathmandu, Nepal',
+    contactPerson: 'Shyam Sharma',
+    position: 'Owner',
+    phone: '+977-9801000001',
     contactDetails: {
-      primaryPhone: '+977-9841111222',
-      secondaryEmail: 'sales@wholesale.com'
+      primaryPhone: '+977-9801000001',
+      secondaryEmail: 'info@grainssupplier.com'
     },
     businessDetails: {
       businessType: 'wholesaler',
-      description: 'Wholesale supplier of daily use items for small shops',
-      establishedYear: 2015
+      description: 'Supplier of rice, lentils, and grains to local marts',
+      establishedYear: 2012
     },
     billingAddress: {
       street: 'Kalimati',
@@ -233,33 +230,30 @@ const seedUsers = async () => {
 
   // Supplier 2 - FMCG Distributor
   const supplier2 = new User({
-    username: 'gopal_distributor',
-    firstName: 'Gopal',
-    lastName: 'Karki',
-    email: 'gopal@distributor.com',
-    password: await bcrypt.hash('gopal123', salt),
+    username: 'nepal_grocery',
+    firstName: 'Manoj',
+    lastName: 'Nepal',
+    email: 'manoj@nepalgrocery.com',
+    password: await bcrypt.hash('manoj123', salt),
     role: 'supplier',
-    companyName: 'Karki Distribution Network',
-    
-    // Required fields for suppliers
-    businessName: 'Karki Distribution Network',
+    companyName: 'Nepal Grocery Traders',
+    businessName: 'Nepal Grocery Traders',
     businessType: 'wholesale',
-    businessAddress: 'Balaju Industrial District, Kathmandu, Nepal',
-    contactPerson: 'Gopal Karki',
-    position: 'Distribution Manager',
-    phone: '+977-9841333444',
-    
+    businessAddress: 'Balkhu, Kathmandu, Nepal',
+    contactPerson: 'Manoj Nepal',
+    position: 'Manager',
+    phone: '+977-9801000002',
     contactDetails: {
-      primaryPhone: '+977-9841333444',
-      secondaryEmail: 'orders@distributor.com'
+      primaryPhone: '+977-9801000002',
+      secondaryEmail: 'contact@nepalgrocery.com'
     },
     businessDetails: {
-      businessType: 'distributor',
-      description: 'Distributor of packaged foods and daily essentials',
-      establishedYear: 2018
+      businessType: 'wholesaler',
+      description: 'Bulk grocery and daily essentials supplier',
+      establishedYear: 2015
     },
     billingAddress: {
-      street: 'Balaju',
+      street: 'Balkhu',
       city: 'Kathmandu',
       state: 'Bagmati',
       country: 'Nepal'
@@ -272,30 +266,27 @@ const seedUsers = async () => {
 
   // Supplier 3 - Local Supplier
   const supplier3 = new User({
-    username: 'bhim_local',
-    firstName: 'Bhim',
-    lastName: 'Bahadur',
-    email: 'bhim@localsupplier.com',
-    password: await bcrypt.hash('bhim123', salt),
+    username: 'bhatta_rice',
+    firstName: 'Suresh',
+    lastName: 'Bhatta',
+    email: 'suresh@bhattarice.com',
+    password: await bcrypt.hash('suresh123', salt),
     role: 'supplier',
-    companyName: 'Bahadur Local Suppliers',
-    
-    // Required fields for suppliers
-    businessName: 'Bahadur Local Suppliers',
+    companyName: 'Bhatta Rice & Pulses',
+    businessName: 'Bhatta Rice & Pulses',
     businessType: 'retailer',
     businessAddress: 'Teku Road, Kathmandu, Nepal',
-    contactPerson: 'Bhim Bahadur',
-    position: 'Shop Owner',
-    phone: '+977-9841555777',
-    
+    contactPerson: 'Suresh Bhatta',
+    position: 'Owner',
+    phone: '+977-9801000003',
     contactDetails: {
-      primaryPhone: '+977-9841555777',
-      secondaryEmail: 'local@supplier.com'
+      primaryPhone: '+977-9801000003',
+      secondaryEmail: 'info@bhattarice.com'
     },
     businessDetails: {
       businessType: 'retailer',
-      description: 'Local supplier of basic necessities and household items',
-      establishedYear: 2020
+      description: 'Supplier of rice, pulses, and grains to local stores',
+      establishedYear: 2017
     },
     billingAddress: {
       street: 'Teku',
@@ -322,9 +313,9 @@ const seedUsers = async () => {
   console.log('4. Username: krishna_mart | Password: krishna123 | Shop: Krishna Mini Mart');
   console.log('5. Username: laxmi_departmental | Password: laxmi123 | Shop: Laxmi Departmental Store');
   console.log('=== SUPPLIERS ===');
-  console.log('1. Username: ramesh_wholesale | Password: ramesh123 | Company: Adhikari Wholesale Suppliers');
-  console.log('2. Username: gopal_distributor | Password: gopal123 | Company: Karki Distribution Network');
-  console.log('3. Username: bhim_local | Password: bhim123 | Company: Bahadur Local Suppliers');
+  console.log('1. Username: sharma_grains | Password: sharma123 | Company: Sharma Grains Supplier');
+  console.log('2. Username: nepal_grocery | Password: manoj123 | Company: Nepal Grocery Traders');
+  console.log('3. Username: bhatta_rice | Password: suresh123 | Company: Bhatta Rice & Pulses');
   
   return savedUsers;
 };
