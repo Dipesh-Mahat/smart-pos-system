@@ -2207,64 +2207,7 @@
     </div>
 
     <!-- Mobile Scanner Connection Modal -->
-    <div class="mobile-scanner-modal" id="mobileScannerModal">
-        <div class="mobile-scanner-content">
-            <div class="mobile-scanner-header">
-                <h3><i class="fas fa-mobile-alt"></i> Mobile Scanner Connection</h3>
-                <button class="close-modal" id="closeMobileScannerModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="connection-steps">
-                <div class="step active" id="step1">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h4>Connect your mobile device</h4>
-                        <p>Make sure your mobile device is connected to the same WiFi network as this computer.</p>
-                    </div>
-                </div>
-                
-                <div class="step" id="step2">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h4>Scan this QR code</h4>
-                        <p>Use your mobile camera to scan this QR code</p>
-                        <div class="qr-container" id="qrCodeContainer">
-                            <!-- QR code will be inserted here -->
-                            <div class="qr-loading">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                <span>Generating QR code...</span>
-                            </div>
-                        </div>
-                        <div class="connection-info">
-                            <p>Room code: <strong id="roomCodeDisplay">------</strong></p>
-                            <p>Or open this URL on your mobile device:</p>
-                            <div class="scanner-url">
-                                <input type="text" id="scannerUrlInput" readonly>
-                                <button id="copyUrlButton" title="Copy URL">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="step" id="step3">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h4>Waiting for connection...</h4>
-                        <p>The scanner will automatically start when your device connects</p>
-                        <div class="connection-status">
-                            <div class="status-spinner">
-                                <i class="fas fa-spinner fa-spin"></i>
-                            </div>
-                            <span id="connectionStatus">Waiting for mobile device...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <div class="bill-modal" id="billModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:3000; justify-content:center; align-items:center;">
   <div style="background:#fff; border-radius:12px; max-width:400px; width:95%; padding:24px; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
@@ -2294,9 +2237,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             posSystem = new SmartPOSSystem();
             
-            // Initialize unified scanner connection
-            window.unifiedScannerConnection = new ScannerUnified();
-            
             // Device detection function
             function isMobileDevice() {
                 return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
@@ -2309,17 +2249,10 @@
             const scanBtn = document.getElementById('scanBtn');
             if (scanBtn) {
                 scanBtn.addEventListener('click', function() {
-                    // Check if on mobile device
-                    if (isMobileDevice()) {
-                        // On mobile: directly open camera scanner
-                        document.getElementById('cameraModal').classList.add('active');
-                        if (posSystem && posSystem.startDirectScan) {
-                            posSystem.startDirectScan();
-                        }
-                    } else {
-                        // On laptop/desktop: show scanner type selection and check connectivity
-                        document.getElementById('scannerModal').classList.add('active');
-                        checkDeviceConnectivity();
+                    // Always open camera scanner directly (no connection logic)
+                    document.getElementById('cameraModal').classList.add('active');
+                    if (posSystem && posSystem.startDirectScan) {
+                        posSystem.startDirectScan();
                     }
                 });
             }
@@ -2383,29 +2316,7 @@
             }
             
             // Connection options
-            const wifiScanOption = document.getElementById('wifiScanOption');
-            if (wifiScanOption) {
-                wifiScanOption.addEventListener('click', function() {
-                    document.getElementById('scannerModal').classList.remove('active');
-                    posSystem.connectMobile('wifi');
-                });
-            }
-            
-            const bluetoothScanOption = document.getElementById('bluetoothScanOption');
-            if (bluetoothScanOption) {
-                bluetoothScanOption.addEventListener('click', function() {
-                    document.getElementById('scannerModal').classList.remove('active');
-                    posSystem.connectMobile('bluetooth');
-                });
-            }
-            
-            const mobileScanOption = document.getElementById('mobileScanOption');
-            if (mobileScanOption) {
-                mobileScanOption.addEventListener('click', function() {
-                    document.getElementById('scannerModal').classList.remove('active');
-                    posSystem.openMobileScanner();
-                });
-            }
+
         });
         
         // Product scan dialog specifically for POS page
@@ -2420,11 +2331,11 @@
             const overlay = document.createElement('div');
             overlay.id = 'productScanDialog';
             overlay.className = 'smart-scan-overlay';
-            
+
             // Create dialog content
             const dialog = document.createElement('div');
             dialog.className = 'smart-scan-dialog';
-            
+
             dialog.innerHTML = `
                 <div class="scan-dialog-header">
                     <h3><i class="fas fa-qrcode"></i> Smart Scanner</h3>
@@ -2432,17 +2343,8 @@
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                
                 <div class="scan-dialog-content">
                     <p>Ready to scan product barcodes for quick checkout and inventory.</p>
-                    
-                    <div class="scan-connection-info">
-                        <div class="connection-status" id="productScanConnectionStatus">
-                            <div class="status-dot ${window.unifiedScannerConnection && window.unifiedScannerConnection.isConnected ? 'connected' : 'connecting'}"></div>
-                            <span>${window.unifiedScannerConnection && window.unifiedScannerConnection.isConnected ? 'Mobile scanner connected' : 'Connecting to mobile scanner...'}</span>
-                        </div>
-                    </div>
-                    
                     <div class="scan-options">
                         <div class="scan-option" id="startProductScan">
                             <div class="scan-option-icon">
@@ -2456,7 +2358,6 @@
                                 <i class="fas fa-chevron-right"></i>
                             </div>
                         </div>
-                        
                         <div class="scan-option" id="manualBarcodeEntry">
                             <div class="scan-option-icon">
                                 <i class="fas fa-keyboard"></i>
@@ -2472,106 +2373,35 @@
                     </div>
                 </div>
             `;
-            
+
             overlay.appendChild(dialog);
             document.body.appendChild(overlay);
-            
+
             // Add event listeners
             document.getElementById('closeProductScanDialog').addEventListener('click', () => {
                 overlay.remove();
             });
-            
+
             document.getElementById('startProductScan').addEventListener('click', () => {
-                if (window.unifiedScannerConnection) {
-                    // Check if already connected
-                    if (window.unifiedScannerConnection.isConnected) {
-                        // Already connected, close dialog and show scanning feedback
-                        overlay.remove();
-                        showScanningFeedback('Product');
-                    } else {
-                        // Connect specifically for barcode scanning
-                        window.unifiedScannerConnection.connectBarcode()
-                            .then(() => {
-                                overlay.remove();
-                                showScanningFeedback('Product');
-                            })
-                            .catch(async error => {
-                                console.error('Failed to connect:', error);
-                                await customAlert('Connection Failed', 'Failed to connect to mobile scanner. Please try again.', 'danger');
-                            });
-                    }
-                } else {
-                    // Fallback to direct scanning
-                    overlay.remove();
-                    document.getElementById('scannerModal').classList.add('active');
-                }
+                overlay.remove();
+                document.getElementById('scannerModal').classList.add('active');
             });
-            
+
             document.getElementById('manualBarcodeEntry').addEventListener('click', () => {
                 overlay.remove();
                 showManualBarcodeEntry();
             });
-            
+
             // Close on overlay click
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) {
                     overlay.remove();
                 }
             });
-            
-            // If unified scanner is available, listen for scan results
-            if (window.unifiedScannerConnection) {
-                window.unifiedScannerConnection.on('scan', (data) => {
-                    // Process the scanned barcode regardless of scan type for POS
-                    if (data.content || data.barcode) {
-                        const barcode = data.content || data.barcode;
-                        posSystem.processBarcode(barcode);
-                        overlay.remove();
-                    }
-                });
-                
-                // Update connection status
-                const statusElement = document.getElementById('productScanConnectionStatus');
-                if (statusElement) {
-                    window.unifiedScannerConnection.on('statusChange', (data) => {
-                        const dot = statusElement.querySelector('.status-dot');
-                        const text = statusElement.querySelector('span');
-                        
-                        if (data.status === 'connected') {
-                            dot.className = 'status-dot connected';
-                            text.textContent = 'Mobile scanner connected';
-                        } else if (data.status === 'connecting') {
-                            dot.className = 'status-dot connecting';
-                            text.textContent = 'Connecting to mobile scanner...';
-                        } else {
-                            dot.className = 'status-dot disconnected';
-                            text.textContent = 'Not connected';
-                        }
-                    });
-                }
-            }
         }
         
         // Show scanning feedback
-        function showScanningFeedback(type) {
-            const notification = document.createElement('div');
-            notification.className = 'scan-notification';
-            notification.innerHTML = `
-                <div class="scan-notification-content">
-                    <i class="fas fa-camera"></i>
-                    <span>Ready to scan ${type.toLowerCase()}s. Point your mobile camera at a barcode.</span>
-                </div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // Auto remove after 3 seconds
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
-                }
-            }, 3000);
-        }
+        // No longer needed: showScanningFeedback
         
         // Manual barcode entry
         function showManualBarcodeEntry() {
@@ -2582,58 +2412,10 @@
         }
        
         // Process scan result from mobile
-        function processScanResult(data) {
-            const { barcode, product, scanType } = data;
-            
-            if (scanType === 'product') {
-                // Add product to cart
-                if (posSystem && posSystem.addProductToCart) {
-                    posSystem.addProductToCart(product);
-                }
-            } else if (scanType === 'bill') {
-                // Process bill/receipt data
-                console.log('Bill scanned:', data);
-                // Handle bill processing logic here
-            }
-            
-            // Show success notification
-            showNotification(`${scanType} scanned successfully: ${product.name}`, 'success');
-            
-            // Close modals
-            document.getElementById('mobileScannerModal').classList.remove('active');
-        }
+        // No longer needed: processScanResult
         
         // Show notification
-        function showNotification(message, type = 'info') {
-            // Create notification element if it doesn't exist
-            let notification = document.getElementById('scanNotification');
-            if (!notification) {
-                notification = document.createElement('div');
-                notification.id = 'scanNotification';
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: #4CAF50;
-                    color: white;
-                    padding: 15px 20px;
-                    border-radius: 8px;
-                    z-index: 10000;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                    transform: translateX(400px);
-                    transition: transform 0.3s ease;
-                `;
-                document.body.appendChild(notification);
-            }
-            
-            notification.textContent = message;
-            notification.style.backgroundColor = type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3';
-            notification.style.transform = 'translateX(0)';
-            
-            setTimeout(() => {
-                notification.style.transform = 'translateX(400px)';
-            }, 3000);
-        }
+        // No longer needed: showNotification
     </script>
       <!-- Navbar and Menu Scripts -->
     <!-- Socket.IO removed: not needed -->
@@ -2804,43 +2586,4 @@ function showBillModal(cartArr) {
                 document.getElementById('closeScannerModal').addEventListener('click', function() {
                     document.getElementById('scannerModal').classList.remove('active');
                 });
-                
-                // Ensure the necessary components are ready
-                if (typeof ScannerQRInterface !== 'undefined') {
-                    try {
-                        // Initialize the scanner interface
-                        scannerQRInterface = new ScannerQRInterface('scannerContainer');
-                        console.log('Enhanced scanner interface initialized');
-                    } catch (error) {
-                        console.error('Failed to initialize scanner interface:', error);
-                    }
-                } else {
-                    console.error('ScannerQRInterface not defined. Check script loading order.');
-                }
-            }
-        }
-        
-        /**
-         * Override the checkDeviceConnectivity function to use our enhanced interface
-         */
-        function checkDeviceConnectivity() {
-            // Simply show the scanner modal, our interface handles everything else
-            document.getElementById('scannerModal').classList.add('active');
-            
-            // Make sure the QR code is generated if needed
-            if (scannerQRInterface && typeof scannerQRInterface.generateQR === 'function') {
-                try {
-                    scannerQRInterface.generateQR();
-                } catch (error) {
-                    console.error('Error generating QR code:', error);
-                }
-            }
-        }
-        
-        // Initialize when the page is fully loaded - with a small delay to ensure all scripts are loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(initEnhancedScannerInterface, 500);
-        });
-   </script>
-</body>
-</html>
+            }}
