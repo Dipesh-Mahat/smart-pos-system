@@ -990,7 +990,7 @@ class SmartPOSNavbar {
     }
 
     handleScanButtonClick() {
-        // Create Smart Scan Dialog
+        // Open scan options dialog
         this.showSmartScanDialog();
     }
 
@@ -1005,11 +1005,11 @@ class SmartPOSNavbar {
         const overlay = document.createElement('div');
         overlay.id = 'smartScanDialog';
         overlay.className = 'smart-scan-overlay';
-        
+
         // Create dialog content
         const dialog = document.createElement('div');
         dialog.className = 'smart-scan-dialog';
-        
+
         dialog.innerHTML = `
             <div class="scan-dialog-header">
                 <h3><i class="fas fa-qrcode"></i> Smart Scanner</h3>
@@ -1017,10 +1017,8 @@ class SmartPOSNavbar {
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
             <div class="scan-dialog-content">
                 <p>Choose what you want to scan:</p>
-                
                 <div class="scan-options">
                     <div class="scan-option" data-scan-type="barcode">
                         <div class="scan-option-icon">
@@ -1034,7 +1032,6 @@ class SmartPOSNavbar {
                             <i class="fas fa-chevron-right"></i>
                         </div>
                     </div>
-                    
                     <div class="scan-option" data-scan-type="bill">
                         <div class="scan-option-icon">
                             <i class="fas fa-receipt"></i>
@@ -1048,32 +1045,39 @@ class SmartPOSNavbar {
                         </div>
                     </div>
                 </div>
-                
-                <div class="scan-connection-info">
-                    <div class="connection-status" id="scanConnectionStatus">
-                        <div class="status-dot connecting"></div>
-                        <span>Preparing scanner...</span>
-                    </div>
-                </div>
             </div>
         `;
-        
+
         overlay.appendChild(dialog);
         document.body.appendChild(overlay);
-        
+
         // Add CSS for the dialog
         this.addScanDialogStyles();
-        
+
         // Show with animation
         setTimeout(() => {
             overlay.classList.add('show');
         }, 10);
-        
-        // Setup event listeners
-        this.setupScanDialogEvents(overlay);
-        
-        // Initialize scanner connection
-        this.initializeScannerConnection();
+
+        // Setup event listeners for scan options
+        const closeBtn = overlay.querySelector('#closeScanDialog');
+        closeBtn?.addEventListener('click', () => {
+            overlay.classList.remove('show');
+            setTimeout(() => overlay.remove(), 300);
+        });
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('show');
+                setTimeout(() => overlay.remove(), 300);
+            }
+        });
+        // Scan option clicks: redirect to scanner page with correct mode
+        overlay.querySelectorAll('.scan-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const scanType = option.dataset.scanType;
+                window.location.href = `/frontend/mobile-scanner.html?mode=${scanType}`;
+            });
+        });
     }
 
     addScanDialogStyles() {
