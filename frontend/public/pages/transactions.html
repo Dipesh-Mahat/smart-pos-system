@@ -176,80 +176,6 @@
             box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
         }
 
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            text-align: center;
-            border: 1px solid #e9ecef;
-            color: #495057;
-        }
-
-        .stat-card.success {
-            border-left: 4px solid #28a745;
-        }
-
-        .stat-card.warning {
-            border-left: 4px solid #ffc107;
-        }
-
-        .stat-card.info {
-            border-left: 4px solid #17a2b8;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: bold;
-            margin: 10px 0;
-            color: #2c3e50;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #6c757d;
-        }
-
-        .stat-icon {
-            font-size: 32px;
-            margin-bottom: 15px;
-            color: #007bff;
-        }
-
-        .stat-card.success .stat-icon {
-            color: #28a745;
-        }
-
-        .stat-card.warning .stat-icon {
-            color: #ffc107;
-        }
-
-        .stat-card.info .stat-icon {
-            color: #17a2b8;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: #6c757d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
 
         .transactions-grid {
             display: grid;
@@ -839,31 +765,7 @@
             </div>
         </div>
 
-        <!-- Statistics Cards -->
-        <div class="stats-container">
-            <div class="stat-card success">
-                <div class="stat-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-value" id="completedCount">0</div>
-                <div class="stat-label">Completed</div>
-            </div>
-            <div class="stat-card warning">
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-value" id="pendingCount">0</div>
-                <div class="stat-label">Pending</div>
-            </div>
-            <div class="stat-card info">
-                <div class="stat-icon">
-                    <i class="fas fa-rupee-sign"></i>
-                </div>
-                <div class="stat-value" id="totalSalesAmount">NPR 0.00</div>
-                <div class="stat-label">Total Sales</div>
-            </div>
-
-        </div>
+        <!-- Statistics Cards removed as requested -->
 
         <!-- Filter Buttons -->
         <!-- Filter buttons removed as requested -->
@@ -1057,12 +959,8 @@
 
             async loadTransactionData() {
                 try {
-                    // Fetch transaction summary statistics
-                    await this.fetchTransactionSummary();
-                    
                     // Fetch actual transactions from database
                     await this.fetchTransactions();
-                    
                     this.renderTransactions();
                 } catch (error) {
                     console.error('Error loading transaction data:', error);
@@ -1073,40 +971,7 @@
                 }
             }
 
-            async fetchTransactionSummary() {
-                try {
-                    // Use the API service for proper authentication and base URL
-                    const data = await window.apiService.request('/shop/transaction-summary');
-
-                    // The API should return the summary stats directly
-                    if (data) {
-                        this.updateStatsDisplay(data);
-                    } else {
-                        console.error('Failed to fetch transaction summary:', 'No data received');
-                        this.updateStatsDisplay({
-                            completedCount: 0,
-                            pendingCount: 0,
-                            totalSalesAmount: 0
-                        });
-                        
-                        // Show error message to user
-                        this.showToast('Failed to load transaction summary data. Please try again later.', 'error');
-                    }
-                } catch (error) {
-                    console.error('Error fetching transaction summary:', error);
-                    this.updateStatsDisplay({
-                        completedCount: 0,
-                        pendingCount: 0,
-                        totalSalesAmount: 0
-                    });
-                }
-            }
-
-            updateStatsDisplay(data) {
-                document.getElementById('completedCount').textContent = data.completedCount || 0;
-                document.getElementById('pendingCount').textContent = data.pendingCount || 0;
-                document.getElementById('totalSalesAmount').textContent = `NPR ${(data.totalSalesAmount || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-            }
+            // fetchTransactionSummary and updateStatsDisplay removed (no stats)
 
             async fetchTransactions() {
                 try {
