@@ -1,5 +1,12 @@
 // Admin Dashboard Main Controller
 class AdminDashboard {
+    getApiBaseUrl() {
+        if (window.API_BASE_URL) return window.API_BASE_URL;
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            return 'http://localhost:5000/api';
+        }
+        return window.location.origin + '/api';
+    }
     constructor() {
         this.users = [];
         this.filteredUsers = [];
@@ -56,11 +63,12 @@ class AdminDashboard {
 
             // Fetch real user data from backend API
             const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-            const response = await fetch('/api/users', {
+            const response = await fetch(`${this.getApiBaseUrl()}/users`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                credentials: 'include'
             });
 
             if (!response.ok) {
@@ -138,11 +146,12 @@ class AdminDashboard {
     async loadDashboardStats() {
         try {
             const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-            const response = await fetch('/api/admin/dashboard-stats', {
+            const response = await fetch(`${this.getApiBaseUrl()}/admin/dashboard-stats`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                credentials: 'include'
             });
 
             if (!response.ok) {
@@ -173,7 +182,7 @@ class AdminDashboard {
     async loadTransactionStats() {
         try {
             const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-            const response = await fetch('/api/admin/transaction-stats', {
+            const response = await fetch(`${this.getApiBaseUrl()}/admin/transaction-stats`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -593,7 +602,7 @@ class AdminDashboard {
             confirmBtn.disabled = true;
 
             // Real API call to backend
-            const response = await fetch('/api/admin/users/action', {
+            const response = await fetch(`${getApiBaseUrl()}/api/admin/users/action`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -831,7 +840,7 @@ class AdminDashboard {
             
             // Send user data to backend API
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`/api/admin/users/${userId}`, {
+            const response = await fetch(`${getApiBaseUrl()}/api/admin/users/${userId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -917,7 +926,7 @@ class AdminDashboard {
         }
         try {
             // Fetch real user growth data from backend
-            const res = await fetch('/api/users/admin/user-growth', {
+            const res = await fetch(`${getApiBaseUrl()}/api/users/admin/user-growth`, {
                 headers: { 'Authorization': `Bearer ${window.localStorage.getItem('token')}` }
             });
             if (!res.ok) throw new Error('Failed to fetch user growth data');
@@ -971,7 +980,7 @@ class AdminDashboard {
         if (!ctx) return;
         try {
             // Fetch real monthly revenue data from backend
-            const res = await fetch('/api/users/admin/monthly-revenue', {
+            const res = await fetch(`${getApiBaseUrl()}/api/users/admin/monthly-revenue`, {
                 headers: { 'Authorization': `Bearer ${window.localStorage.getItem('token')}` }
             });
             if (!res.ok) throw new Error('Failed to fetch monthly revenue data');
@@ -1032,7 +1041,7 @@ class AdminDashboard {
         if (!ctx) return;
         try {
             // Fetch real user distribution data from backend
-            const res = await fetch('/api/users/admin/user-distribution', {
+            const res = await fetch(`${getApiBaseUrl()}/api/users/admin/user-distribution`, {
                 headers: { 'Authorization': `Bearer ${window.localStorage.getItem('token')}` }
             });
         } catch (error) {
@@ -1045,7 +1054,7 @@ class AdminDashboard {
         if (!ctx) return;
         try {
             // Fetch real user distribution data from backend
-            const res = await fetch('/api/users/admin/user-distribution', {
+            const res = await fetch(`${getApiBaseUrl()}/api/users/admin/user-distribution`, {
                 headers: { 'Authorization': `Bearer ${window.localStorage.getItem('token')}` }
             });
             if (!res.ok) throw new Error('Failed to fetch user distribution data');
@@ -1085,7 +1094,7 @@ class AdminDashboard {
     // Fetch and display audit logs
     async loadAuditLogs() {
         try {
-            const response = await fetch('/api/users/admin/audit-logs', {
+            const response = await fetch(`${getApiBaseUrl()}/api/users/admin/audit-logs`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
             });
             if (!response.ok) throw new Error('Failed to fetch audit logs');
@@ -1100,7 +1109,7 @@ class AdminDashboard {
     // Fetch and display system health
     async updateSystemHealth() {
         try {
-            const response = await fetch('/api/users/admin/system-health', {
+            const response = await fetch(`${getApiBaseUrl()}/api/users/admin/system-health`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
             });
             if (!response.ok) throw new Error('Failed to fetch system health');
@@ -1115,7 +1124,7 @@ class AdminDashboard {
     // Fetch and display activity logs
     async loadRecentActivity() {
         try {
-            const response = await fetch('/api/users/admin/activity-logs', {
+            const response = await fetch(`${getApiBaseUrl()}/api/users/admin/activity-logs`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
             });
             if (!response.ok) throw new Error('Failed to fetch activity logs');
@@ -1137,7 +1146,7 @@ class AdminDashboard {
             
             // Fetch real activity data from API
             const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-            const response = await fetch('/api/admin/recent-activity', {
+            const response = await fetch(`${getApiBaseUrl()}/api/admin/recent-activity`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -1682,7 +1691,7 @@ class AdminDashboard {
     async loadSettings() {
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch('/api/admin/settings', {
+            const response = await fetch(`${getApiBaseUrl()}/api/admin/settings`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -1782,7 +1791,7 @@ class AdminDashboard {
             
             // Send settings to server
             const token = localStorage.getItem('adminToken');
-            const response = await fetch('/api/admin/settings', {
+            const response = await fetch(`${getApiBaseUrl()}/api/admin/settings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1817,7 +1826,7 @@ class AdminDashboard {
             backupBtn.disabled = true;
             
             const token = localStorage.getItem('adminToken');
-            const response = await fetch('/api/admin/backup', {
+            const response = await fetch(`${getApiBaseUrl()}/api/admin/backup`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -2004,7 +2013,7 @@ class AdminDashboard {
             
             // Fetch logs from API
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`/api/admin/security-logs?${params.toString()}`, {
+            const response = await fetch(`${getApiBaseUrl()}/api/admin/security-logs?${params.toString()}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -2097,7 +2106,7 @@ class AdminDashboard {
             
             // Request export from API
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`/api/admin/security-logs/export?${params.toString()}`, {
+            const response = await fetch(`${getApiBaseUrl()}/api/admin/security-logs/export?${params.toString()}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -2211,7 +2220,7 @@ class AdminDashboard {
 
             // Send user data to backend API
             const token = localStorage.getItem('adminToken');
-            const response = await fetch('/api/users', {
+            const response = await fetch(`${getApiBaseUrl()}/api/users`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2361,7 +2370,7 @@ class AdminDashboard {
             
             // Fetch more activities from server with offset
             const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-            const response = await fetch(`/api/admin/recent-activity?offset=${currentActivities}&limit=10`, {
+            const response = await fetch(`${getApiBaseUrl()}/api/admin/recent-activity?offset=${currentActivities}&limit=10`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -2544,7 +2553,7 @@ class AdminDashboard {
             
             // Fetch supplier applications from server
             const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-            const response = await fetch('/api/users?role=supplier&status=pending', {
+            const response = await fetch(`${getApiBaseUrl()}/api/users?role=supplier&status=pending`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -2621,7 +2630,7 @@ class AdminDashboard {
             
             // Call API to approve supplier
             const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-            const response = await fetch(`/api/admin/users/${supplierId}/status`, {
+            const response = await fetch(`${getApiBaseUrl()}/api/admin/users/${supplierId}/status`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -2656,7 +2665,7 @@ class AdminDashboard {
             
             // Call API to reject supplier
             const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-            const response = await fetch(`/api/admin/users/${supplierId}/status`, {
+            const response = await fetch(`${getApiBaseUrl()}/api/admin/users/${supplierId}/status`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
