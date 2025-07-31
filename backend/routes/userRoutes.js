@@ -38,6 +38,9 @@ router.get('/profile', authenticateJWT, async (req, res) => {
   }
 });
 
+// Admin: Get all users
+router.get('/', authenticateJWT, authorize('admin'), getAllUsers);
+
 // Admin-only route
 router.get('/admin-dashboard', authenticateJWT, authorize('admin'), (req, res) => {
   res.status(200).json({
