@@ -76,13 +76,12 @@
         }        .settings-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto auto;
+            grid-template-rows: auto;
             gap: 30px;
             max-width: 1200px;
             margin: 0 auto;
             grid-template-areas: 
-                "main-settings profile"
-                "support profile";
+                "main-settings support";
         }
 
         /* Improve balance with fewer items */
@@ -90,8 +89,7 @@
             .settings-grid {
                 grid-template-columns: 1fr 1fr;
                 grid-template-areas: 
-                    "main-settings profile"
-                    "support profile";
+                    "main-settings support";
             }
         }
 
@@ -247,132 +245,12 @@
             left: 2px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }        .toggle-switch.active::before {
+        }        
+        
+        .toggle-switch.active::before {
             transform: translateX(26px);
             box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-        }        /* Updated Profile Section to match other settings groups */
-        .profile-settings-group {
-            grid-area: profile;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            overflow: hidden;
-            transition: transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid rgba(0,0,0,0.05);
         }
-        
-        .profile-settings-group:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-        
-        .profile-settings-group::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to bottom right, rgba(0,123,255,0.05), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: -1;
-            border-radius: 12px;
-        }
-        
-        .profile-settings-group:hover::after {
-            opacity: 1;
-        }
-        
-        .profile-header {
-            background: #007bff;
-            color: white;
-            padding: 20px;
-            font-weight: 600;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-          .profile-content {
-            padding: 25px;
-            flex: 1;
-        }
-        
-        .profile-header-info {
-            text-align: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-        }
-        
-        .profile-avatar {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            border: 3px solid #007bff;
-            margin: 0 auto 12px;
-            object-fit: cover;
-            box-shadow: 0 3px 10px rgba(0,123,255,0.2);
-            transition: transform 0.3s ease;
-        }
-        
-        .profile-avatar:hover {
-            transform: scale(1.05);
-        }
-
-        .profile-name {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: #2c3e50;
-        }
-
-        .profile-role {
-            color: #6c757d;
-            font-size: 13px;
-            background: rgba(0,123,255,0.1);
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 12px;
-            border: 1px solid rgba(0,123,255,0.2);
-            margin-bottom: 15px;
-        }
-        
-        .profile-details {
-            text-align: left;
-        }
-        
-        .profile-detail-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
-            font-size: 14px;
-        }
-        
-        .profile-detail-item:last-child {
-            margin-bottom: 0;
-        }
-        
-        .profile-detail-icon {
-            width: 16px;
-            color: #007bff;
-            margin-right: 10px;
-            flex-shrink: 0;
-        }
-        
-        .profile-detail-label {
-            color: #6c757d;
-            font-weight: 500;
-            min-width: 70px;
-            margin-right: 8px;
-        }
-        
-        .profile-detail-value {
-            color: #2c3e50;
-            font-weight: 400;
-            flex: 1;
-        }
-        
 
         
         /* Grid area assignments */
@@ -392,7 +270,6 @@
             .settings-grid {
                 grid-template-columns: 1fr;
                 grid-template-areas: 
-                    "profile"
                     "main-settings"
                     "support";
             }
@@ -954,50 +831,6 @@
                         <i class="fas fa-chevron-right"></i>
                     </div>
                 </div>
-            </div>            <!-- Profile Section -->
-            <div class="profile-settings-group">
-                <div class="profile-header">
-                    <i class="fas fa-user-circle"></i> Profile Information
-                </div>                <div class="profile-content">
-                    <div class="profile-header-info">
-                        <img src="../images/avatars/user-avatar.png" alt="Profile" class="profile-avatar" id="profileAvatar" onerror="this.src='../images/avatars/user-avatar.png'">
-                        <div class="profile-name" id="profileName"><div class="skeleton-title" style="width: 150px;"></div></div>
-                        <div class="profile-role" id="profileRole"><div class="skeleton-text" style="width: 100px;"></div></div>
-                    </div>
-                    
-                    <div class="profile-details">
-                        <div class="profile-detail-item">
-                            <i class="fas fa-envelope profile-detail-icon"></i>
-                            <span class="profile-detail-label">Email:</span>
-                            <span class="profile-detail-value" id="profileEmail"><div class="skeleton-text" style="width: 180px;"></div></span>
-                        </div>
-                        
-                        <div class="profile-detail-item">
-                            <i class="fas fa-phone profile-detail-icon"></i>
-                            <span class="profile-detail-label">Phone:</span>
-                            <span class="profile-detail-value" id="profilePhone"><div class="skeleton-text" style="width: 120px;"></div></span>
-                        </div>
-                        
-                        <div class="profile-detail-item">
-                            <i class="fas fa-store profile-detail-icon"></i>
-                            <span class="profile-detail-label">Store:</span>
-                            <span class="profile-detail-value" id="profileStore"><div class="skeleton-text" style="width: 140px;"></div></span>
-                        </div>
-                        
-                        <div class="profile-detail-item">
-                            <i class="fas fa-calendar-alt profile-detail-icon"></i>
-                            <span class="profile-detail-label">Joined:</span>
-                            <span class="profile-detail-value" id="profileJoined"><div class="skeleton-text" style="width: 90px;"></div></span>
-                        </div>
-                        
-                        <div class="profile-detail-item">
-                            <i class="fas fa-clock profile-detail-icon"></i>
-                            <span class="profile-detail-label">Last Login:</span>
-                            <span class="profile-detail-value" id="profileLastLogin"><div class="skeleton-text" style="width: 80px;"></div></span>
-                        </div>
-                    </div>
-                    
-                </div>
             </div>
 
             <!-- Support & Help -->
@@ -1164,10 +997,7 @@
                     localStorage.setItem(key, storage[key]);
                 });
                 
-                // Refresh profile data after clearing cache
-                loadProfileData();
-                
-                showToast('Cache cleared and profile refreshed!');
+                showToast('Cache cleared!');
             }
         }
 
@@ -1209,100 +1039,7 @@
                 toast.remove();
             }, 3000);
         }        function loadUserProfile() {
-            // Load user profile data from localStorage or API
-        // Load profile data from auth service
-        function loadProfileData() {
-            console.log('loadProfileData called');
-            
-            // Set initial loading state
-            const elements = {
-                name: document.getElementById('profileName'),
-                email: document.getElementById('profileEmail'),
-                role: document.getElementById('profileRole'),
-                phone: document.getElementById('profilePhone'),
-                store: document.getElementById('profileStore'),
-                joined: document.getElementById('profileJoined'),
-                lastLogin: document.getElementById('profileLastLogin')
-            };
-
-            // Set loading state
-            // Skip setting loading state as skeleton is already in HTML
-
-            // Create a promise that will resolve with the user data or reject after 5 seconds
-            const getUserData = new Promise((resolve, reject) => {
-                if (window.authService) {
-                    const user = window.authService.getUser();
-                    if (user) {
-                        resolve(user);
-                    } else {
-                        setTimeout(() => reject(new Error('Unable to load user data')), 5000);
-                    }
-                } else {
-                    setTimeout(() => reject(new Error('Auth service not available')), 5000);
-                }
-            });
-
-            // Handle the user data
-            getUserData
-                .then(user => {
-                    // Update name
-                    const displayName = user.fullName || 
-                        (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName) ||
-                        user.username || 
-                        'No Username';
-                    if (elements.name) elements.name.textContent = displayName;
-
-                    // Update email
-                    if (elements.email) elements.email.textContent = user.email || 'No Email';
-
-                    // Update role
-                    const userRole = user.role || 'shopowner';
-                    const formattedRole = userRole === 'shopowner' ? 'Shop Owner' : 
-                                        userRole === 'admin' ? 'Administrator' : 
-                                        userRole === 'supplier' ? 'Supplier' : 
-                                        userRole.charAt(0).toUpperCase() + userRole.slice(1);
-                    if (elements.role) elements.role.innerHTML = formattedRole;
-
-                    // Update other fields
-                    if (elements.phone) elements.phone.innerHTML = user.phone || 'No Phone Number';
-                    if (elements.store) elements.store.innerHTML = user.shopName || 'No Store Name';
-
-                    // Set join date
-                    const joinDate = user.createdAt ? new Date(user.createdAt) : new Date();
-                    const formattedJoinDate = joinDate.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                    });
-                    if (elements.joined) elements.joined.innerHTML = formattedJoinDate;
-
-                    // Set last login
-                    const now = new Date();
-                    const lastLoginFormatted = now.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                    }) + ', ' + now.toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                    });
-                    if (elements.lastLogin) elements.lastLogin.innerHTML = lastLoginFormatted;
-
-                    console.log('Profile data loaded successfully');
-                })
-                .catch(error => {
-                    console.warn('Failed to load profile data:', error);
-                    // Set default values if data loading fails
-                    if (elements.name) elements.name.innerHTML = 'No Username';
-                    if (elements.email) elements.email.innerHTML = 'No Email';
-                    if (elements.role) elements.role.innerHTML = 'Shop Owner';
-                    if (elements.phone) elements.phone.innerHTML = 'No Phone Number';
-                    if (elements.store) elements.store.innerHTML = 'No Store Name';
-                    if (elements.joined) elements.joined.innerHTML = 'Not Available';
-                    if (elements.lastLogin) elements.lastLogin.innerHTML = 'Not Available';
-                });
-        }
+            // Profile loading function has been removed as profile section is no longer needed
 
         // Debug function to clear all data and force fresh login
         function clearAllDataAndRelogin() {
@@ -1562,10 +1299,7 @@
 
         // Load saved settings on page load and setup password functionality
         document.addEventListener('DOMContentLoaded', function() {
-            // Load user profile information with a small delay to ensure auth service is ready
-            setTimeout(() => {
-                loadProfileData();
-            }, 100);
+            // Profile loading has been removed as profile section is no longer needed
             
             // Load notification setting
             const notificationsEnabled = localStorage.getItem('notifications') !== 'false';
