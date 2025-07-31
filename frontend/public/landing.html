@@ -453,6 +453,14 @@
                 
                 <form class="popup-form" id="loginForm">
                     <div class="form-group">
+                        <label for="loginUserType">User Type</label>
+                        <select id="loginUserType" name="userType" required>
+                            <option value="shopowner" selected>Shop Owner</option>
+                            <option value="supplier">Supplier</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="loginEmail">Email Address</label>
                         <input type="email" id="loginEmail" name="email" required>
                         <div class="error-message" id="loginEmailError">Please enter a valid email address</div>
@@ -501,10 +509,24 @@
                 
                 <form class="popup-form" id="registerForm">
                     <div class="form-group">
+                        <label for="registerUserType">User Type</label>
+                        <select id="registerUserType" name="userType" required onchange="toggleRegistrationFields()">
+                            <option value="shopowner" selected>Shop Owner</option>
+                            <option value="supplier">Supplier</option>
+                        </select>
+                        <div class="error-message" id="userTypeError" style="display: none;">Please select a user type</div>
+                    </div>
+                    <div class="form-group" id="shopNameGroup">
                         <label for="shopName">Shop Name</label>
                         <input type="text" id="shopName" name="shopName" required
                                oninput="document.getElementById('shopNameError').style.display='none';">
                         <div class="error-message" id="shopNameError" style="display: none;">Please enter your shop name</div>
+                    </div>
+                    <div class="form-group" id="companyNameGroup" style="display: none;">
+                        <label for="companyName">Company Name</label>
+                        <input type="text" id="companyName" name="companyName"
+                               oninput="document.getElementById('companyNameError').style.display='none';">
+                        <div class="error-message" id="companyNameError" style="display: none;">Please enter your company name</div>
                     </div>
                     <div class="form-group">
                         <label for="email">Email Address</label>
@@ -624,7 +646,27 @@
           passwordInput.type = 'password';
           icon.classList.remove('fa-eye-slash');
           icon.classList.add('fa-eye');
-        }      }    </script>    <!-- Auth Service and Forms functionality -->
+        }      }
+        
+      // Function to toggle registration fields based on user type
+      function toggleRegistrationFields() {
+          const userType = document.getElementById('registerUserType').value;
+          const shopNameGroup = document.getElementById('shopNameGroup');
+          const companyNameGroup = document.getElementById('companyNameGroup');
+          
+          if (userType === 'shopowner') {
+              shopNameGroup.style.display = 'block';
+              companyNameGroup.style.display = 'none';
+              document.getElementById('shopName').required = true;
+              document.getElementById('companyName').required = false;
+          } else if (userType === 'supplier') {
+              shopNameGroup.style.display = 'none';
+              companyNameGroup.style.display = 'block';
+              document.getElementById('shopName').required = false;
+              document.getElementById('companyName').required = true;
+          }
+      }
+    </script>    <!-- Auth Service and Forms functionality -->
     <script src="js/security-logger.js"></script>
     <script src="js/auth-service.js"></script>
     <script src="js/api-service.js"></script>

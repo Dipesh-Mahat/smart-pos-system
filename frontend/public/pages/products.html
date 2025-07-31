@@ -702,6 +702,8 @@
             </div>
         </div>
     </div>    <!-- Include JavaScript files -->
+    <script src="../js/auth-service.js"></script>
+    <script src="../js/api-service.js"></script>
     <script src="../js/menu.js"></script>
     <script src="../js/navbar.js"></script>
     <script>
@@ -811,8 +813,8 @@
             }
 
             showLoading() {
-                // Hide other states
-                document.getElementById('loadingState').style.display = 'none';
+                // Show loading state
+                document.getElementById('loadingState').style.display = 'flex';
                 document.getElementById('emptyState').style.display = 'none';
                 
                 // Show skeleton grid
