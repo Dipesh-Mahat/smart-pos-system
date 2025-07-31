@@ -619,10 +619,7 @@
                 <i class="fas fa-qrcode"></i>
                 Smart Scanner
             </h1>
-            <div class="connection-status">
-                <div class="status-dot" id="statusDot"></div>
-                <span id="connectionStatus">Connecting...</span>
-            </div>
+        <!-- Connection status removed: direct scan only -->
         </div>
 
         <!-- Camera Section -->
@@ -643,29 +640,7 @@
             </button>
         </div>
 
-        <!-- QR Code Section -->
-        <div class="qr-section" id="qrSection">
-            <h3 style="margin-bottom: 15px; text-align: center;">
-                <i class="fas fa-qrcode"></i> Generate QR Code
-            </h3>
-            <div class="scan-type-buttons">
-                <button class="scan-type-btn active" data-type="product">
-                    <i class="fas fa-box"></i><br>Product
-                </button>
-                <button class="scan-type-btn" data-type="bill">
-                    <i class="fas fa-receipt"></i><br>Bill
-                </button>
-                <button class="scan-type-btn" data-type="inventory">
-                    <i class="fas fa-warehouse"></i><br>Inventory
-                </button>
-            </div>
-            <div class="qr-code-container" id="qrCodeContainer">
-                <!-- QR code will be inserted here -->
-            </div>
-            <p style="font-size: 12px; text-align: center; color: rgba(255,255,255,0.7);">
-                Scan this QR code with another device to open the scanner
-            </p>
-        </div>
+        <!-- QR code section removed: direct scan only -->
 
         <!-- Scan History Section -->
         <div class="scan-history" id="scanHistorySection">
@@ -712,9 +687,7 @@
                 <i class="fas fa-camera"></i>
             </button>
             
-            <button class="control-btn" id="qrButton">
-                <i class="fas fa-qrcode"></i>
-            </button>
+            <!-- QR button removed: direct scan only -->
             
             <button class="control-btn" id="flashButton">
                 <i class="fas fa-flashlight"></i>
@@ -728,65 +701,12 @@
         <p id="processingText">Processing...</p>
     </div>
     
-    <!-- QR Code Modal -->
-    <div class="qr-code-modal" id="qrCodeModal">
-        <div class="qr-code-container">
-            <div class="qr-code-header">
-                <h3><i class="fas fa-qrcode"></i> Share Scanner</h3>
-                <button class="close-btn" id="closeQrModal"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="qr-code-content">
-                <p>Scan this QR code to open this scanner on another device:</p>
-                <div id="qrCodeImage"></div>
-                <div class="qr-code-url" id="qrCodeUrl"></div>
-                <button class="copy-url-btn" id="copyUrlBtn">
-                    <i class="fas fa-copy"></i> Copy URL
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- QR code modal removed: direct scan only -->
 
     <!-- Notification -->
     <div class="notification" id="notification"></div>
 
-    <!-- Socket.IO for real-time communication -->
-    <script>
-        // Dynamic Socket.IO script loading with multiple fallbacks
-        (function loadSocketIO() {
-            // Try CDN directly to avoid 404s when running on GitHub Pages or other static hosts
-            const socketScript = document.createElement('script');
-            
-            // First, try loading from the API base URL if using HTTP server
-            const isUsingServer = window.location.hostname === 'localhost' || 
-                                window.location.hostname === '127.0.0.1';
-            
-            if (isUsingServer) {
-                socketScript.src = '/socket.io/socket.io.js';
-            } else {
-                // Skip straight to CDN for production environments
-                socketScript.src = 'https://cdn.socket.io/4.5.4/socket.io.min.js';
-            }
-            
-            socketScript.onerror = function() {
-                console.warn('Could not load Socket.IO from primary source, trying CDN...');
-                // Try from CDN as fallback
-                const cdnScript = document.createElement('script');
-                cdnScript.src = 'https://cdn.socket.io/4.5.4/socket.io.min.js';
-                cdnScript.onerror = function() {
-                    console.error('Failed to load Socket.IO from CDN, trying unpkg fallback...');
-                    // Try unpkg as a second fallback
-                    const unpkgScript = document.createElement('script');
-                    unpkgScript.src = 'https://unpkg.com/socket.io-client@4.5.4/dist/socket.io.min.js';
-                    unpkgScript.onerror = function() {
-                        console.error('All Socket.IO loading attempts failed, will use HTTP fallback');
-                    };
-                    document.head.appendChild(unpkgScript);
-                };
-                document.head.appendChild(cdnScript);
-            };
-            document.head.appendChild(socketScript);
-        })();
-    </script>
+    <!-- Socket.IO removed: direct scan only -->
     
     <script>
         // API Configuration with multi-environment support
@@ -952,206 +872,7 @@
                 }
                 return uuid;
             }
-
-            initializeSocket() {
-                try {
-                    // Check for explicitly disabled socket.io in localStorage (for debugging)
-                    if (localStorage.getItem('disable_socket_io') === 'true') {
-                        console.log('Socket.IO disabled via localStorage setting');
-                        this.startPollingConnection();
-                        return;
-                    }
-                    
-                    // Use socket.io with enhanced reconnection options
-                    const socketOptions = {
-                        reconnection: true,
-                        reconnectionAttempts: 10,         // Increased attempts
-                        reconnectionDelay: 1000,
-                        reconnectionDelayMax: 10000,      // Increased max delay
-                        timeout: 30000,                   // Increased timeout
-                        autoConnect: true,
-                        transports: ['websocket', 'polling'] // Try WebSocket first, fallback to polling
-                    };
-                    
-                    // Check if Socket.IO is available
-                    if (typeof io === 'undefined') {
-                        console.warn('Socket.IO not available, waiting 2 seconds for potential async load...');
-                        
-                        // Give a short delay for potentially async-loaded Socket.IO
-                        setTimeout(() => {
-                            if (typeof io === 'undefined') {
-                                console.warn('Socket.IO still not available after waiting, falling back to HTTP polling');
-                                this.showNotification('Using simple connection mode', 'info');
-                                this.startPollingConnection();
-                            } else {
-                                console.log('Socket.IO became available, continuing with initialization');
-                                this.continueSocketInitialization(socketOptions);
-                            }
-                        }, 2000);
-                        return;
-                    }
-                    
-                    this.continueSocketInitialization(socketOptions);
-                } catch (error) {
-                    console.error('Socket.IO initialization failed:', error);
-                    this.showNotification('Using backup connection mode', 'warning');
-                    this.startPollingConnection(); // Fallback
-                }
-            }
-            
-            continueSocketInitialization(socketOptions) {
-                // Determine the correct endpoint to connect to
-                let socketEndpoint = '';
-                
-                // Check if we're running on localhost
-                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                    // For local development, try to connect to the development server
-                    socketEndpoint = API_BASE;
-                } else {
-                    // For production, use the current domain
-                    socketEndpoint = window.location.origin;
-                }
-                
-                console.log(`Attempting Socket.IO connection to: ${socketEndpoint}`);
-                
-                // Try to connect to socket.io server
-                this.socket = io(socketEndpoint, socketOptions);
-                
-                // Connection event
-                this.socket.on('connect', () => {
-                    console.log('Socket.IO connected successfully');
-                    this.updateConnectionStatus(true);
-                    
-                    if (this.sessionId) {
-                        this.socket.emit('join-scanner-session', this.sessionId);
-                        this.showNotification('Connected to scanner session', 'success');
-                    }
-                    
-                    // Send device info to server
-                    this.socket.emit('scanner-info', {
-                        deviceId: this.getDeviceUUID(),
-                        userAgent: navigator.userAgent,
-                        capabilities: {
-                            camera: !!navigator.mediaDevices,
-                            flash: this.hasFlash
-                        }
-                    });
-                });
-                
-                // Disconnection event
-                this.socket.on('disconnect', (reason) => {
-                    console.log('Socket.IO disconnected:', reason);
-                    this.updateConnectionStatus(false);
-                    
-                    if (reason === 'io server disconnect') {
-                        // Server disconnected us intentionally, don't reconnect automatically
-                        this.showNotification('Disconnected by server', 'warning');
-                    } else {
-                        this.showNotification('Connection lost. Trying to reconnect...', 'warning');
-                    }
-                });
-                
-                // Error event
-                this.socket.on('connect_error', (error) => {
-                    console.error('Socket.IO connection error:', error);
-                    
-                    // After several failures, fallback to HTTP polling
-                    if (this.socket && this.socket.io && this.socket.io.backoff && 
-                        this.socket.io.backoff.attempts >= 5) {
-                        this.showNotification('Using HTTP fallback mode', 'warning');
-                        this.startPollingConnection();
-                    }
-                });
-                
-                // Scan request event
-                this.socket.on('scan-request', (data) => {
-                    this.showNotification('Desktop requested scan', 'info');
-                    // Automatically start scanning if requested
-                    if (data && data.autoStart) {
-                        this.startBarcodeScan();
-                    }
-                });
-                
-                // Server acknowledgment
-                this.socket.on('scanner-connected', (data) => {
-                    console.log('Scanner connection acknowledged by server:', data);
-                    this.showNotification('Connected to POS terminal', 'success');
-                    this.updateConnectionStatus(true);
-                });
-            }
-            
-            // Fallback method when socket.io isn't available or fails
-            startPollingConnection() {
-                // Use HTTP polling as a fallback
-                console.log('Starting HTTP polling fallback');
-                
-                // Clear any existing polling
-                if (this.pollingInterval) {
-                    clearInterval(this.pollingInterval);
-                }
-                
-                // Check for commands every few seconds
-                this.pollingInterval = setInterval(async () => {
-                    try {
-                        if (!this.sessionId) return;
-                        
-                        const response = await fetch(`${API_BASE}/api/mobile-scanner/poll-commands?sessionId=${this.sessionId}`, {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Cache-Control': 'no-cache'
-                            }
-                        });
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.commands && data.commands.length > 0) {
-                                // Handle commands
-                                data.commands.forEach(cmd => {
-                                    if (cmd.type === 'scan') {
-                                        this.showNotification('Desktop requested scan', 'info');
-                                        if (cmd.autoStart) {
-                                            this.startBarcodeScan();
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    } catch (error) {
-                        console.log('Polling error (normal if server is offline):', error);
-                    }
-                }, 5000); // Poll every 5 seconds
-            }
-
-            async connectToSession() {
-                try {
-                    const response = await fetch(`${API_BASE}/api/mobile-scanner/connect-session/${this.sessionId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            deviceInfo: {
-                                userAgent: navigator.userAgent,
-                                screenWidth: screen.width,
-                                screenHeight: screen.height,
-                                timestamp: new Date().toISOString()
-                            }
-                        })
-                    });
-
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        this.showNotification('Connected to desktop successfully', 'success');
-                    } else {
-                        this.showNotification('Failed to connect to desktop', 'error');
-                    }
-                } catch (error) {
-                    this.showNotification('Connection error: ' + error.message, 'error');
-                }
-            }
-
+    
             setupEventListeners() {
                 // Control buttons
                 document.getElementById('scanButton').addEventListener('click', () => this.startBarcodeScan());
@@ -1334,30 +1055,11 @@
                 }
             }
             
-            async checkRoomConnection() {
-                // If we have a sessionId, check if it's valid
-                if (!this.sessionId) return;
-                
-                try {
-                    const response = await fetch(`${API_BASE}/api/mobile-scanner/check-session/${this.sessionId}`);
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.valid) {
-                            this.showNotification('Room connection valid', 'success');
-                        } else {
-                            this.showNotification('Room connection invalid or expired', 'warning');
-                        }
-                    }
-                } catch (error) {
-                    console.log('Room connection check failed:', error);
-                }
-            }
+
             
             enableOfflineMode() {
                 // Set up offline mode capabilities
                 this.isOfflineMode = true;
-                
                 // Show offline mode indicator
                 const statusIndicator = document.createElement('div');
                 statusIndicator.className = 'offline-indicator';
@@ -1374,25 +1076,12 @@
                 statusIndicator.style.zIndex = '999';
                 statusIndicator.style.backdropFilter = 'blur(5px)';
                 statusIndicator.id = 'offlineModeIndicator';
-                
                 // Only add if not already there
                 if (!document.getElementById('offlineModeIndicator')) {
                     document.body.appendChild(statusIndicator);
                 }
-                
                 // In offline mode, load and manage local scans
                 this.loadOfflineScans();
-                
-                // Add offline mode event listeners for connectivity changes
-                window.addEventListener('online', this.handleOnlineEvent.bind(this));
-                window.addEventListener('offline', this.handleOfflineEvent.bind(this));
-                
-                // Try to reconnect periodically
-                if (!this.reconnectionInterval) {
-                    this.reconnectionInterval = setInterval(() => {
-                        this.tryReconnect();
-                    }, 30000); // Try every 30 seconds
-                }
             }
             
             loadOfflineScans() {
@@ -1942,20 +1631,7 @@
             }
             
             sendScanResult(scanData) {
-                // Try all available sending methods
-                
-                // 1. Socket.IO if connected
-                if (this.socket && this.socket.connected) {
-                    try {
-                        this.socket.emit('scan-result', scanData);
-                        console.log('Sent scan result via Socket.IO');
-                        return;
-                    } catch (e) {
-                        console.error('Socket.IO send error:', e);
-                    }
-                }
-                
-                // 2. HTTP POST as fallback
+                // Only HTTP POST method remains
                 try {
                     fetch(`${API_BASE}/api/mobile-scanner/receive-scan`, {
                         method: 'POST',
@@ -1988,305 +1664,7 @@
                 }
             }
 
-            async toggleQRCode() {
-                // We now directly show the QR code modal from generateQRCode
-                await this.generateQRCode();
-            }
 
-            async generateQRCode() {
-                try {
-                    // Show QR code modal
-                    document.getElementById('qrCodeModal').classList.add('active');
-                    
-                    // Get existing room or generate a new one
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const existingRoom = urlParams.get('room');
-                    const roomCode = existingRoom || 'SC' + Math.floor(100000 + Math.random() * 900000);
-                    const existingToken = urlParams.get('token');
-                    const token = existingToken || this.generateToken();
-                    
-                    // Use a meaningful return URL if we have one
-                    let returnUrl = urlParams.get('returnUrl') || '';
-                    if (!returnUrl && document.referrer) {
-                        returnUrl = document.referrer;
-                    }
-                    
-                    // Generate the correct URL for sharing
-                    this.showProcessing('Detecting network connections...');
-                    
-                    // Try multiple network detection methods in parallel
-                    let [localIp, publicIpInfo] = await Promise.all([
-                        this.getLocalIpAddress(),
-                        this.getPublicNetworkInfo()
-                    ]).catch(err => {
-                        console.error('Network detection error:', err);
-                        return [null, null];
-                    });
-                    
-                    this.hideProcessing();
-                    
-                    // Create base URL - try several options for maximum compatibility
-                    let baseUrls = [];
-                    const currentHost = window.location.host;
-                    const currentPort = window.location.port;
-                    const currentProtocol = window.location.protocol;
-                    const currentPath = window.location.pathname;
-                    
-                    // Option 1: Use local IP if available (best for local network)
-                    if (localIp) {
-                        const port = currentPort ? `:${currentPort}` : '';
-                        const localUrl = `${currentProtocol}//${localIp}${port}${currentPath}`;
-                        baseUrls.push({ 
-                            url: localUrl, 
-                            label: 'Local Network', 
-                            priority: 1,
-                            description: 'Best for devices on same WiFi'
-                        });
-                    }
-                    
-                    // Option 2: Try using the host IP instead of 'localhost' if in local development
-                    if ((currentHost === 'localhost' || currentHost === '127.0.0.1') && currentPort) {
-                        // For http-server, create a variation with the actual local IP address
-                        if (localIp) {
-                            const localWithoutServerUrl = `${currentProtocol}//${localIp}:${currentPort}${currentPath}`;
-                            baseUrls.push({ 
-                                url: localWithoutServerUrl, 
-                                label: 'Direct Local', 
-                                priority: 2,
-                                description: 'Local with actual IP (no server)'
-                            });
-                        }
-                    }
-                    
-                    // Option 3: Always include the original URL as fallback
-                    const originalUrl = window.location.href.split('?')[0];
-                    baseUrls.push({ 
-                        url: originalUrl, 
-                        label: 'Current URL', 
-                        priority: 3,
-                        description: 'Uses current address'
-                    });
-                    
-                    // Option 4: Add a production URL if in production environment
-                    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                        baseUrls.push({ 
-                            url: window.location.origin + currentPath, 
-                            label: 'Internet', 
-                            priority: 0,
-                            description: 'For remote connections'
-                        });
-                    }
-                    
-                    // Sort by priority
-                    baseUrls.sort((a, b) => a.priority - b.priority);
-                    
-                    // Create all QR codes and display them
-                    const qrContainer = document.getElementById('qrCodeImage');
-                    qrContainer.innerHTML = '';
-                    
-                    // Create a debug element with network information
-                    const debugInfo = document.createElement('div');
-                    debugInfo.className = 'debug-network-info';
-                    debugInfo.innerHTML = `
-                        <details>
-                            <summary>Connection Debug</summary>
-                            <div class="debug-content" style="font-size:10px; margin-top:5px; text-align:left;">
-                                <div><strong>Host:</strong> ${currentHost}</div>
-                                <div><strong>Local IP:</strong> ${localIp || 'Not detected'}</div>
-                                <div><strong>Port:</strong> ${currentPort || 'None'}</div>
-                                <div><strong>Protocol:</strong> ${currentProtocol}</div>
-                            </div>
-                        </details>
-                    `;
-                    debugInfo.style.fontSize = '10px';
-                    debugInfo.style.marginBottom = '10px';
-                    debugInfo.style.color = '#a5b4fc';
-                    qrContainer.appendChild(debugInfo);
-                    
-                    // URL params for all versions
-                    const params = new URLSearchParams();
-                    params.append('room', roomCode);
-                    params.append('mode', this.currentScanType);
-                    params.append('token', token);
-                    
-                    // Add return URL if available
-                    if (returnUrl) {
-                        params.append('returnUrl', returnUrl);
-                    }
-                    
-                    // Create container for all QR codes
-                    const qrCodesContainer = document.createElement('div');
-                    qrCodesContainer.className = 'qr-codes-wrapper';
-                    qrCodesContainer.style.display = 'flex';
-                    qrCodesContainer.style.flexDirection = 'column';
-                    qrCodesContainer.style.gap = '15px';
-                    qrContainer.appendChild(qrCodesContainer);
-                    
-                    // Function to create a QR code
-                    const createQrCode = (baseUrl, label, description) => {
-                        const fullUrl = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}${params.toString()}`;
-                        
-                        const qrWrapper = document.createElement('div');
-                        qrWrapper.style.textAlign = 'center';
-                        qrWrapper.style.position = 'relative';
-                        qrWrapper.style.border = '1px solid rgba(165, 180, 252, 0.3)';
-                        qrWrapper.style.borderRadius = '8px';
-                        qrWrapper.style.padding = '10px 5px';
-                        qrWrapper.style.marginBottom = '10px';
-                        
-                        // QR Code
-                        let qrImg = '';
-                        try {
-                            const qr = qrcode(0, 'M'); // Medium error correction level
-                            qr.addData(fullUrl);
-                            qr.make();
-                            qrImg = qr.createImgTag(5);
-                        } catch (e) {
-                            console.error('QR code generation error:', e);
-                            qrImg = '<div style="width:200px;height:200px;background:#333;display:flex;align-items:center;justify-content:center;"><span>QR Error</span></div>';
-                        }
-                        
-                        // QR Code label and description
-                        qrWrapper.innerHTML = `
-                            <div class="qr-label" style="margin-bottom:8px;font-size:14px;color:#a5b4fc">
-                                <strong>${label}</strong>
-                                <div style="font-size:10px;opacity:0.7;margin-bottom:5px;">${description}</div>
-                            </div>
-                            ${qrImg}
-                            <button class="copy-qr-url-btn" style="background:#4f46e5;color:white;border:none;padding:5px 10px;border-radius:4px;margin-top:8px;font-size:12px;cursor:pointer;">
-                                <i class="fas fa-copy"></i> Copy URL
-                            </button>
-                        `;
-                        
-                        // Add copy functionality
-                        const copyBtn = qrWrapper.querySelector('.copy-qr-url-btn');
-                        copyBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            navigator.clipboard.writeText(fullUrl).then(() => {
-                                copyBtn.textContent = 'Copied!';
-                                setTimeout(() => {
-                                    copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy URL';
-                                }, 2000);
-                            });
-                        });
-                        
-                        return {wrapper: qrWrapper, url: fullUrl};
-                    };
-                    
-                    // Generate all QR codes
-                    let primaryQrUrl = '';
-                    baseUrls.forEach((baseUrlData, index) => {
-                        const {wrapper, url} = createQrCode(
-                            baseUrlData.url, 
-                            baseUrlData.label, 
-                            baseUrlData.description || ''
-                        );
-                        qrCodesContainer.appendChild(wrapper);
-                        
-                        // Use the first URL as primary for the copy button
-                        if (index === 0) {
-                            primaryQrUrl = url;
-                        }
-                    });
-                    
-                    // Set URL text to the most likely to work option
-                    document.getElementById('qrCodeUrl').textContent = primaryQrUrl;
-                    
-                    // Connection help text
-                    const helpText = document.createElement('p');
-                    helpText.innerHTML = `
-                        <small>
-                            <strong>Connection Tips:</strong><br>
-                            1. Both devices must be on the same network for local connections<br>
-                            2. Try different QR codes if one doesn't work<br>
-                            3. If using mobile data, use the Internet/Direct URL option<br>
-                            4. Make sure the backend server is running
-                        </small>`;
-                    helpText.style.fontSize = '11px';
-                    helpText.style.opacity = '0.8';
-                    helpText.style.marginTop = '10px';
-                    helpText.style.textAlign = 'left';
-                    helpText.style.padding = '8px';
-                    helpText.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
-                    helpText.style.borderRadius = '4px';
-                    qrContainer.appendChild(helpText);
-                    
-                    this.showNotification('QR codes generated successfully', 'success');
-                    
-                } catch (error) {
-                    this.hideProcessing();
-                    console.error('Error generating QR code:', error);
-                    
-                    // Fallback to simple QR code if complex method fails
-                    try {
-                        const simpleUrl = window.location.href.split('?')[0] + 
-                                         '?room=SC' + Math.floor(100000 + Math.random() * 900000) + 
-                                         '&mode=' + this.currentScanType +
-                                         '&token=' + this.generateToken();
-                        
-                        const qrContainer = document.getElementById('qrCodeImage');
-                        qrContainer.innerHTML = `
-                            <div style="text-align:center;padding:10px;border:1px solid #ef4444;border-radius:8px;margin-bottom:15px;">
-                                <div style="color:#ef4444;font-size:12px;margin-bottom:10px;">
-                                    <i class="fas fa-exclamation-triangle"></i> 
-                                    Advanced QR generation failed. Using simplified mode.
-                                </div>
-                            </div>
-                        `;
-                        
-                        // Create simplified QR code
-                        const qrWrapper = document.createElement('div');
-                        qrWrapper.style.textAlign = 'center';
-                        
-                        const qr = qrcode(0, 'H'); // High error correction for better scanning
-                        qr.addData(simpleUrl);
-                        qr.make();
-                        
-                        qrWrapper.innerHTML = `
-                            <div style="margin-bottom:10px;">Fallback QR Code:</div>
-                            ${qr.createImgTag(5)}
-                        `;
-                        qrContainer.appendChild(qrWrapper);
-                        
-                        // URL display and copy button
-                        const urlDisplay = document.createElement('div');
-                        urlDisplay.style.marginTop = '15px';
-                        urlDisplay.innerHTML = `
-                            <div style="word-break:break-all;font-size:10px;margin-bottom:5px;background:#1e293b;padding:8px;border-radius:4px;">
-                                ${simpleUrl}
-                            </div>
-                            <button id="fallbackCopyBtn" style="background:#4f46e5;color:white;border:none;padding:5px 10px;border-radius:4px;font-size:12px;cursor:pointer;">
-                                <i class="fas fa-copy"></i> Copy URL
-                            </button>
-                        `;
-                        qrContainer.appendChild(urlDisplay);
-                        
-                        // Set up copy button
-                        document.getElementById('qrCodeUrl').textContent = simpleUrl;
-                        document.getElementById('fallbackCopyBtn').addEventListener('click', () => {
-                            navigator.clipboard.writeText(simpleUrl).then(() => {
-                                document.getElementById('fallbackCopyBtn').textContent = 'Copied!';
-                                setTimeout(() => {
-                                    document.getElementById('fallbackCopyBtn').innerHTML = '<i class="fas fa-copy"></i> Copy URL';
-                                }, 2000);
-                            });
-                        });
-                        
-                        this.showNotification('Basic QR code generated (fallback mode)', 'warning');
-                    } catch (fallbackError) {
-                        this.showNotification('Failed to generate QR code', 'error');
-                        document.getElementById('qrCodeImage').innerHTML = `
-                            <div style="text-align:center;padding:20px;color:#ef4444;">
-                                <i class="fas fa-exclamation-circle" style="font-size:48px;margin-bottom:15px;"></i>
-                                <div>QR Code Generation Failed</div>
-                                <div style="font-size:12px;margin-top:10px;">
-                                    Please check your internet connection and try again.
-                                </div>
-                            </div>
-                        `;
-                    }
-                }
-            }
 
             async handleFileUpload(file) {
                 if (!file || this.isProcessing) return;
