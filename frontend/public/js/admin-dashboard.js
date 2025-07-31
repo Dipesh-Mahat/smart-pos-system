@@ -23,169 +23,8 @@ class AdminDashboard {
 
     // Check if user is authenticated as admin
     checkAuthentication() {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-        const userRole = localStorage.getItem('userRole');
-        
-        if (!token || userRole !== 'admin') {
-            // Redirect to login page or show login modal
-            this.showLoginModal();
-            return false;
-        }
+        // No-op: allow access like normal users
         return true;
-    }
-
-    // Show admin login modal
-    showLoginModal() {
-        // Add blur to background content only
-        const container = document.querySelector('.container');
-        if (container) {
-            container.style.filter = 'blur(8px)';
-            container.style.pointerEvents = 'none';
-        }
-
-        const modal = document.createElement('div');
-        modal.className = 'admin-login-modal';
-        modal.innerHTML = `
-            <div class="modal-backdrop"></div>
-            <div class="modal-overlay">
-                <div class="login-modal-content">
-                    <div class="login-brand">
-                        <img src="../images/logos/smart-pos-logo.png" alt="Smart POS" class="login-logo">
-                        <h1>Smart POS Admin</h1>
-                    </div>
-                    <div class="login-header">
-                        <h2>Admin Portal</h2>
-                        <p>Sign in to access the administrative dashboard</p>
-                    </div>
-                    <form id="adminLoginForm" class="admin-login-form">
-                        <div class="form-group">
-                            <div class="input-wrapper">
-                                <i class="fas fa-envelope input-icon"></i>
-                                <input type="email" id="adminEmail" required placeholder="Email Address" autocomplete="email">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="input-wrapper">
-                                <i class="fas fa-lock input-icon"></i>
-                                <input type="password" id="adminPassword" required placeholder="Password" autocomplete="current-password">
-                                <button type="button" class="password-toggle" onclick="this.previousElementSibling.type = this.previousElementSibling.type === 'password' ? 'text' : 'password'; this.innerHTML = this.previousElementSibling.type === 'password' ? '<i class=\\'fas fa-eye\\'></i>' : '<i class=\\'fas fa-eye-slash\\'></i>'">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <button type="submit" class="login-btn">
-                            <span class="btn-text">
-                                <i class="fas fa-sign-in-alt"></i>
-                                Access Admin Dashboard
-                            </span>
-                            <span class="btn-loading" style="display: none;">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                Authenticating...
-                            </span>
-                        </button>
-                        <div class="login-footer">
-                            <div class="security-notice">
-                                <i class="fas fa-shield-alt"></i>
-                                <span>Secure Admin Access (Bypass Mode)</span>
-                            </div>
-                        </div>
-                    </form>
-                    <div id="loginError" class="error-message" style="display: none;"></div>
-                </div>
-            </div>
-        `;
-
-        // Add styles with enhanced blur effect
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        `;
-
-        document.body.appendChild(modal);
-
-        // Handle form submission
-        const form = modal.querySelector('#adminLoginForm');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await this.handleAdminLogin(form, modal);
-        });
-    }
-
-    // Handle admin login with real authentication
-    async handleAdminLogin(form, modal) {
-        const email = form.querySelector('#adminEmail').value.trim();
-        const password = form.querySelector('#adminPassword').value;
-        const submitBtn = form.querySelector('.login-btn');
-        const errorDiv = modal.querySelector('#loginError');
-        const btnText = submitBtn.querySelector('.btn-text');
-        const btnLoading = submitBtn.querySelector('.btn-loading');
-
-        // Basic validation
-        if (!email || !password) {
-            errorDiv.textContent = 'Please enter both email and password';
-            errorDiv.style.display = 'block';
-            return;
-        }
-
-        // Show loading state
-        btnText.style.display = 'none';
-        btnLoading.style.display = 'flex';
-        submitBtn.disabled = true;
-        errorDiv.style.display = 'none';
-
-        try {
-            // Make a real authentication request to the backend
-            const response = await fetch('/api/auth/admin-login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, password })
-            });
-
-            const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.message || 'Authentication failed');
-            }
-
-            // Store admin token and user info
-            localStorage.setItem('adminToken', data.token);
-            localStorage.setItem('authToken', data.token);
-            localStorage.setItem('userRole', 'admin');
-            localStorage.setItem('adminUser', JSON.stringify(data.user));
-
-            // Remove blur and modal
-            const container = document.querySelector('.container');
-            if (container) {
-                container.style.filter = 'none';
-                container.style.pointerEvents = 'auto';
-            }
-            modal.remove();
-            
-            this.showMessage(`Welcome back, ${data.user.firstName || 'Admin'}!`, 'success');
-            
-            // Re-initialize dashboard with proper auth
-            window.location.reload();
-            return true;
-
-        } catch (error) {
-            console.error('Admin login error:', error);
-            errorDiv.textContent = error.message || 'Login failed. Please try again.';
-            errorDiv.style.display = 'block';
-        } finally {
-            // Reset button state
-            btnText.style.display = 'flex';
-            btnLoading.style.display = 'none';
-            submitBtn.disabled = false;
-        }
     }
 
     async init() {
@@ -1182,6 +1021,19 @@ class AdminDashboard {
                         }
                     }
                 }
+            });
+        } catch (error) {
+            console.error('Error creating revenue chart:', error);
+        }
+    }
+
+    async initUserDistributionChart() {
+        const ctx = document.getElementById('userDistributionChart');
+        if (!ctx) return;
+        try {
+            // Fetch real user distribution data from backend
+            const res = await fetch('/api/users/admin/user-distribution', {
+                headers: { 'Authorization': `Bearer ${window.localStorage.getItem('token')}` }
             });
         } catch (error) {
             console.error('Error creating revenue chart:', error);
@@ -3017,5 +2869,9 @@ class AdminDashboard {
         setTimeout(() => {
             this.showMessage('System logs viewer will be implemented in next version', 'info');
         }, 1000);
+
     }
 }
+
+// Expose the dashboard instance globally for inline event handlers
+window.adminDashboard = new AdminDashboard();
