@@ -80,7 +80,7 @@ exports.getSupplierProducts = async (req, res) => {
     
     // Get supplier inventory for stock information
     const inventoryItems = await SupplierInventory.find({
-      supplierId: ObjectId(supplierId)
+      supplierId: new ObjectId(supplierId)
     }).lean();
     
     // Map inventory data to products

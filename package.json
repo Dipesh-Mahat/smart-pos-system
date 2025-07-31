@@ -10,13 +10,20 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "install-deps": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "lint": "cd backend && npx eslint .",
-    "seed": "cd backend && npm run seed"
+    "seed": "cd backend && npm run seed",
+    "prebuild": "npm audit fix"
   },
   "dependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.1.0",
+    "moment": "^2.30.1"
   },
-  "devDependencies": {},
-  "keywords": ["pos", "point-of-sale", "retail", "inventory", "sales"],
+  "keywords": [
+    "pos",
+    "point-of-sale",
+    "retail",
+    "inventory",
+    "sales"
+  ],
   "author": "Dipesh Mahat",
   "license": "MIT"
 }

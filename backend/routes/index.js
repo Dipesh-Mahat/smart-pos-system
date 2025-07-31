@@ -6,11 +6,19 @@ const userRoutes = require('./userRoutes');
 const shopRoutes = require('./shopRoutes');
 const autoOrderRoutes = require('./autoOrderRoutes');
 const supplierRoutes = require('./supplierRoutes');
+const smartInventoryRoutes = require('./smartInventoryRoutes');
+const festivalIntelligenceRoutes = require('./festivalIntelligenceRoutes');
+const aiBusinessIntelligenceRoutes = require('./aiBusinessIntelligenceRoutes');
+const mobileScannerRoutes = require('./mobileScannerRoutes');
+const reportRoutes = require('./reportRoutes');
+// Reports/analytics routes
+router.use('/reports', reportRoutes);
 const adminController = require('../controllers/adminController');
 const dashboardController = require('../controllers/dashboardController');
 const productController = require('../controllers/productController');
 const transactionController = require('../controllers/transactionController');
 const orderController = require('../controllers/orderController');
+const supplierProductsController = require('../controllers/supplierProductsController');
 
 // Public routes (no authentication required)
 router.get('/health', (req, res) => {
@@ -19,10 +27,42 @@ router.get('/health', (req, res) => {
 
 // Supplier routes (temporarily disable authentication for testing)
 router.get('/shop/orders/suppliers', (req, res, next) => {
-  // Mock authentication for testing
-  req.user = { _id: '507f1f77bcf86cd799439011', role: 'shopowner' };
+  // Mock authentication for testing - using actual shop owner ID
+  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
   next();
 }, orderController.getAvailableSuppliers);
+
+// Add mock authentication for supplier products route
+router.get('/shop/suppliers/:supplierId/products', (req, res, next) => {
+  // Mock authentication for testing - using actual shop owner ID
+  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  next();
+}, supplierProductsController.getSupplierProducts);
+
+// Add mock authentication for shop products route (development testing)
+router.get('/shop/products', (req, res, next) => {
+  // Mock authentication for testing - using actual shop owner ID
+  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  next();
+}, productController.getProducts);
+
+router.post('/shop/products', (req, res, next) => {
+  // Mock authentication for testing - using actual shop owner ID
+  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  next();
+}, productController.createProduct);
+
+router.put('/shop/products/:id', (req, res, next) => {
+  // Mock authentication for testing - using actual shop owner ID
+  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  next();
+}, productController.updateProduct);
+
+router.delete('/shop/products/:id', (req, res, next) => {
+  // Mock authentication for testing - using actual shop owner ID
+  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  next();
+}, productController.deleteProduct);
 
 // Protected routes (authentication required)
 // Apply JWT authentication middleware to all routes below
@@ -36,6 +76,18 @@ router.use('/supplier', supplierRoutes);
 
 // Add auto-order routes for shopowners
 router.use('/auto-orders', authenticateJWT, autoOrderRoutes);
+
+// Add smart inventory routes for shopowners
+router.use('/smart-inventory', smartInventoryRoutes);
+
+// Add festival intelligence routes for Nepal-specific features
+router.use('/festival-intelligence', festivalIntelligenceRoutes);
+
+// Add AI business intelligence routes for advanced analytics
+router.use('/ai-intelligence', aiBusinessIntelligenceRoutes);
+
+// Add mobile scanner routes for QR code generation and OCR processing
+router.use('/mobile-scanner', mobileScannerRoutes);
 
 // Dashboard routes (for shopowners and admins)
 // Temporarily disable authentication for development testing

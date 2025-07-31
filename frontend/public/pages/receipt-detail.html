@@ -93,6 +93,67 @@
             margin-top: 8px;
             padding-top: 16px;
         }
+
+        /* Skeleton Loading Animation */
+        .loading-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #666;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-receipt {
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .skeleton-header {
+            height: 24px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            width: 80%;
+        }
+
+        .skeleton-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-item-name {
+            height: 14px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            width: 60%;
+        }
+
+        .skeleton-item-price {
+            height: 14px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            width: 25%;
+        }
+        
+        @keyframes pulse {
+            0% { background-position: 0% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>
@@ -263,8 +324,28 @@
             
             const apiService = window.apiService;
             if (apiService) {
-                // Show loading state
-                document.getElementById('receipt-contents').innerHTML = '<div class="loading-state">Loading receipt details...</div>';
+                // Show loading state with skeleton
+                document.getElementById('receipt-contents').innerHTML = `
+                    <div class="loading-state">
+                        <div class="skeleton-receipt">
+                            <div class="skeleton-header"></div>
+                            <div class="skeleton-item">
+                                <div class="skeleton-item-name"></div>
+                                <div class="skeleton-item-price"></div>
+                            </div>
+                            <div class="skeleton-item">
+                                <div class="skeleton-item-name"></div>
+                                <div class="skeleton-item-price"></div>
+                            </div>
+                            <div class="skeleton-item">
+                                <div class="skeleton-item-name"></div>
+                                <div class="skeleton-item-price"></div>
+                            </div>
+                            <div class="skeleton-text" style="width: 70%; margin: 20px auto 10px;"></div>
+                            <div class="skeleton-text" style="width: 50%; margin: 0 auto;"></div>
+                        </div>
+                    </div>
+                `;
                 
                 // Fetch transaction from API
                 apiService.request(`/transactions/${transactionId}`)

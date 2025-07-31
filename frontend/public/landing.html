@@ -28,6 +28,27 @@
         }
     </style>
 </head>
+    <style>
+    /* Custom style for User Type select */
+    .user-type-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1.5px solid #007bff;
+        border-radius: 6px;
+        background: #f8f9fa;
+        color: #333;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: border-color 0.2s;
+        margin-top: 4px;
+        margin-bottom: 8px;
+    }
+    .user-type-select:focus {
+        border-color: #0056b3;
+        outline: none;
+        background: #fff;
+    }
+    </style>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
@@ -246,7 +267,7 @@
             <div class="pricing-cards">                <div class="pricing-card">
                     <div class="price-header">
                         <h3>Starter</h3>
-                        <div class="price">NPR 500<span>/month</span></div>
+                        <div class="price">Free<span></span></div>
                     </div>
                     <ul class="price-features">
                         <li><i class="fas fa-check"></i> Single register</li>                        <li><i class="fas fa-check"></i> Basic inventory management</li>
@@ -258,7 +279,7 @@
                     <div class="popular-badge">Most Popular</div>
                     <div class="price-header">
                         <h3>Professional</h3>
-                        <div class="price">NPR 1,500<span>/month</span></div>
+                        <div class="price">NPR 500<span>/month</span></div>
                     </div>
                     <ul class="price-features">
                         <li><i class="fas fa-check"></i> Up to 3 registers</li>
@@ -453,6 +474,13 @@
                 
                 <form class="popup-form" id="loginForm">
                     <div class="form-group">
+                        <label for="loginUserType">User Type</label>
+                        <select id="loginUserType" name="userType" class="user-type-select" required>
+                            <option value="shopowner" selected>Shop Owner</option>
+                            <option value="supplier">Supplier</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="loginEmail">Email Address</label>
                         <input type="email" id="loginEmail" name="email" required>
                         <div class="error-message" id="loginEmailError">Please enter a valid email address</div>
@@ -501,10 +529,24 @@
                 
                 <form class="popup-form" id="registerForm">
                     <div class="form-group">
+                        <label for="registerUserType">User Type</label>
+                        <select id="registerUserType" name="userType" required onchange="toggleRegistrationFields()">
+                            <option value="shopowner" selected>Shop Owner</option>
+                            <option value="supplier">Supplier</option>
+                        </select>
+                        <div class="error-message" id="userTypeError" style="display: none;">Please select a user type</div>
+                    </div>
+                    <div class="form-group" id="shopNameGroup">
                         <label for="shopName">Shop Name</label>
                         <input type="text" id="shopName" name="shopName" required
                                oninput="document.getElementById('shopNameError').style.display='none';">
                         <div class="error-message" id="shopNameError" style="display: none;">Please enter your shop name</div>
+                    </div>
+                    <div class="form-group" id="companyNameGroup" style="display: none;">
+                        <label for="companyName">Company Name</label>
+                        <input type="text" id="companyName" name="companyName"
+                               oninput="document.getElementById('companyNameError').style.display='none';">
+                        <div class="error-message" id="companyNameError" style="display: none;">Please enter your company name</div>
                     </div>
                     <div class="form-group">
                         <label for="email">Email Address</label>
@@ -624,7 +666,27 @@
           passwordInput.type = 'password';
           icon.classList.remove('fa-eye-slash');
           icon.classList.add('fa-eye');
-        }      }    </script>    <!-- Auth Service and Forms functionality -->
+        }      }
+        
+      // Function to toggle registration fields based on user type
+      function toggleRegistrationFields() {
+          const userType = document.getElementById('registerUserType').value;
+          const shopNameGroup = document.getElementById('shopNameGroup');
+          const companyNameGroup = document.getElementById('companyNameGroup');
+          
+          if (userType === 'shopowner') {
+              shopNameGroup.style.display = 'block';
+              companyNameGroup.style.display = 'none';
+              document.getElementById('shopName').required = true;
+              document.getElementById('companyName').required = false;
+          } else if (userType === 'supplier') {
+              shopNameGroup.style.display = 'none';
+              companyNameGroup.style.display = 'block';
+              document.getElementById('shopName').required = false;
+              document.getElementById('companyName').required = true;
+          }
+      }
+    </script>    <!-- Auth Service and Forms functionality -->
     <script src="js/security-logger.js"></script>
     <script src="js/auth-service.js"></script>
     <script src="js/api-service.js"></script>

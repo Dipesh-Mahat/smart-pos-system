@@ -479,6 +479,39 @@
             background: #d1ecf1;
             color: #0c5460;
         }
+
+        /* Skeleton Loading Animation */
+        .skeleton-text {
+            height: 16px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .skeleton-title {
+            height: 24px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .skeleton-small {
+            height: 14px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        @keyframes pulse {
+            0% { background-position: 0% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>
@@ -510,45 +543,31 @@
                 </div>
                 
                 <div class="profile-info">
-                    <h1 id="storeName">Loading...</h1>
-                    <div class="profile-role" id="storeType">Loading...</div>
+                    <h1 id="storeName"><div class="skeleton-title" style="width: 200px;"></div></h1>
+                    <div class="profile-role" id="storeType"><div class="skeleton-text" style="width: 120px;"></div></div>
                     
                     <div class="profile-meta">
                         <div class="meta-item">
                             <i class="fas fa-map-marker-alt"></i>
-                            <span id="storeAddress">Loading...</span>
+                            <span id="storeAddress"><div class="skeleton-small" style="width: 180px;"></div></span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-phone"></i>
-                            <span id="storePhone">Not provided</span>
+                            <span id="storePhone"><div class="skeleton-small" style="width: 120px;"></div></span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-envelope"></i>
-                            <span id="storeEmail">Loading...</span>
+                            <span id="storeEmail"><div class="skeleton-small" style="width: 160px;"></div></span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-calendar-alt"></i>
-                            <span>Opened <span id="storeOpened">Loading...</span></span>
+                            <span>Opened <span id="storeOpened"><div class="skeleton-small" style="width: 80px;"></div></span></span>
                         </div>
                     </div>
                     
                     <div class="profile-stats">
-                        <div class="stat-item">
-                            <span class="stat-value" id="totalProducts">0</span>
-                            <span class="stat-label">Products</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="totalEmployees">0</span>
-                            <span class="stat-label">Employees</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="monthlyRevenue">NPR 0</span>
-                            <span class="stat-label">Monthly Revenue</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="storeRating">4.5</span>
-                            <span class="stat-label">Rating</span>
-                        </div>
+                        <!-- Store statistics removed as requested -->
+                        <!-- Users can add their own statistics when needed -->
                     </div>
                 </div>
             </div>
@@ -687,19 +706,27 @@
             showToast('Store information updated successfully!', 'success');
         }
 
-        function resetStoreForm() {
-            if (confirm('Are you sure you want to reset all changes?')) {
+        async function resetStoreForm() {
+            const confirmReset = await customConfirm({
+                title: 'Reset Form',
+                message: 'Are you sure you want to reset all changes? This will restore all fields to their saved values.',
+                confirmText: 'Reset',
+                cancelText: 'Cancel',
+                type: 'warning'
+            });
+
+            if (confirmReset) {
                 loadStoreInformation();
                 showToast('Form reset to saved values', 'info');
             }
         }
 
         function updateStoreHeaderDisplay(data) {
-            document.getElementById('storeName').textContent = data.name;
-            document.getElementById('storeType').textContent = data.type;
-            document.getElementById('storeEmail').textContent = data.email;
-            document.getElementById('storePhone').textContent = data.phone || 'Not provided';
-            document.getElementById('storeAddress').textContent = `${data.address}, ${data.city}`;
+            document.getElementById('storeName').innerHTML = data.name;
+            document.getElementById('storeType').innerHTML = data.type;
+            document.getElementById('storeEmail').innerHTML = data.email;
+            document.getElementById('storePhone').innerHTML = data.phone || 'Not provided';
+            document.getElementById('storeAddress').innerHTML = `${data.address}, ${data.city}`;
         }
 
         function showToast(message, type = 'info') {
@@ -743,17 +770,17 @@
             // Load store information from localStorage or API
             const storeData = JSON.parse(localStorage.getItem('storeData') || '{}');
             const defaultData = {
-                name: 'Thapa General Store',
+                name: 'Store Name',
                 type: 'General Store',
-                email: 'info@thapastore.com',
-                phone: '+977-1-4567890',
-                address: 'Thamel Marg, Ward 29',
-                city: 'Kathmandu',
-                province: 'Bagmati Province',
-                postalCode: '44600',
-                pan: '301234567',
-                vat: '123456789',
-                openDate: '2020-03-15'
+                email: 'store@gmail.com',
+                phone: '',
+                address: '',
+                city: '',
+                province: '',
+                postalCode: '',
+                pan: '',
+                vat: '',
+                openDate: new Date().toISOString().split('T')[0] // Today's date
             };
 
             // Merge default data with stored data
@@ -781,17 +808,10 @@
                 month: 'short',
                 day: 'numeric'
             });
-            document.getElementById('storeOpened').textContent = formattedOpenDate;
+            document.getElementById('storeOpened').innerHTML = formattedOpenDate;
 
-            // Load and display stats
-            const totalProducts = localStorage.getItem('storeTotalProducts') || '1,247';
-            const totalEmployees = localStorage.getItem('storeTotalEmployees') || '8';
-            const monthlyRevenue = localStorage.getItem('storeMonthlyRevenue') || '445200';
-
-            document.getElementById('totalProducts').textContent = totalProducts;
-            document.getElementById('totalEmployees').textContent = totalEmployees;
-            document.getElementById('monthlyRevenue').textContent = `NPR ${parseInt(monthlyRevenue).toLocaleString()}`;
-            document.getElementById('storeRating').textContent = '4.5';
+            // Statistics removed as requested by user
+            // Users can add their own store statistics when needed
 
             // Update store logo if available
             if (storeInfo.logo) {
@@ -836,6 +856,7 @@
     <script src="../js/menu.js"></script>
     <!-- Professional Reusable Navbar Component -->
     <script src="../js/navbar.js"></script>
+    <script src="../js/custom-modals.js"></script>
     <script>
         // Initialize navbar with store information-specific options
         window.navbarManualInit = true; // Prevent auto-initialization

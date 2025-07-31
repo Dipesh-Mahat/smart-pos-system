@@ -17,6 +17,13 @@ function clearFormErrors() {
     document.querySelectorAll('input').forEach(input => {
         input.style.borderColor = '';
     });
+    
+    // Reset alert elements to default error styling
+    const loginErrorAlert = document.getElementById('loginErrorAlert');
+    if (loginErrorAlert) {
+        loginErrorAlert.className = 'error-alert';
+        loginErrorAlert.style.display = 'none';
+    }
 }
 
 // Show error message
@@ -184,14 +191,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Clear previous errors
         clearFormErrors();
-        document.getElementById('loginErrorAlert').style.display = 'none';
         
         // Get form values
+        const userType = document.getElementById('loginUserType').value;
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
         
         // Validate inputs
         let hasError = false;
+        
+        if (!userType) {
+            hasError = true;
+        }
         
         if (!email) {
             showError('loginEmailError', 'Email is required');
@@ -220,7 +231,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ 
+                    email, 
+                    password,
+                    role: userType // Include the user role in the login request
+                })
             });
             
             const data = await response.json();
@@ -232,15 +247,44 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.authService.saveTokenData(data.token, refreshToken, data.user);
                 }
                 
-                // Redirect to dashboard
-                window.location.href = 'pages/dashboard.html';
+                // Redirect based on user role
+                if (data.user && data.user.role) {
+                    console.log('Login successful as:', data.user.role);
+                    switch (data.user.role) {
+                        case 'admin':
+                            window.location.href = 'pages/admin-dashboard.html';
+                            break;
+                        case 'supplier':
+                            window.location.href = 'pages/supplier-dashboard.html';
+                            break;
+                        case 'shopowner':
+                        default:
+                            window.location.href = 'pages/dashboard.html';
+                            break;
+                    }
+                } else {
+                    // Default redirect if no role information
+                    console.log('No role information, using default redirect');
+                    window.location.href = 'pages/dashboard.html';
+                }
             } else {
                 // Show error
                 loginForm.style.display = 'block';
                 loginLoading.style.display = 'none';
                 const errorAlert = document.getElementById('loginErrorAlert');
-                errorAlert.textContent = data.message || 'Login failed';
+                
+                // Provide more specific error message for role mismatch
+                let errorMessage = data.message || 'Login failed';
+                if (data.message === 'Invalid credentials' && userType !== 'admin') {
+                    errorMessage = `Invalid credentials or this email is not registered as a ${userType}. Please check your user type selection.`;
+                }
+                
+                errorAlert.textContent = errorMessage;
+                errorAlert.className = 'error-alert';  // Reset to error styling
                 errorAlert.style.display = 'block';
+                
+                // Log the error for debugging
+                console.error('Login failed:', data);
             }
         } catch (error) {
             console.error('Login error:', error);
@@ -248,6 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loginLoading.style.display = 'none';
             const errorAlert = document.getElementById('loginErrorAlert');
             errorAlert.textContent = 'Network error. Please try again.';
+            errorAlert.className = 'error-alert';  // Reset to error styling
             errorAlert.style.display = 'block';
         }
     });
@@ -264,12 +309,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Get form values with proper element checking
+        const userTypeInput = document.getElementById('registerUserType');
         const shopNameInput = document.getElementById('shopName');
+        const companyNameInput = document.getElementById('companyName');
         const regEmailInput = document.getElementById('email');
         const passwordInput = document.getElementById('registerPassword');
         const confirmPasswordInput = document.getElementById('confirmPassword');
         
+        const userType = userTypeInput ? userTypeInput.value : 'shopowner';
         const shopName = shopNameInput ? shopNameInput.value.trim() : '';
+        const companyName = companyNameInput ? companyNameInput.value.trim() : '';
         const email = regEmailInput ? regEmailInput.value.trim() : '';
         const password = passwordInput ? passwordInput.value : '';
         const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : '';
@@ -277,10 +326,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Validate inputs
         let hasError = false;
         
-        // Shop name validation
-        if (!shopName || shopName === '') {
-            showError('shopNameError', 'Shop name is required');
-            hasError = true;
+        // Name validation based on user type
+        if (userType === 'shopowner') {
+            if (!shopName || shopName === '') {
+                showError('shopNameError', 'Shop name is required');
+                hasError = true;
+            }
+        } else if (userType === 'supplier') {
+            if (!companyName || companyName === '') {
+                showError('companyNameError', 'Company name is required');
+                hasError = true;
+            }
         }
         
         // Email validation
@@ -322,9 +378,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 email,
                 password,
                 confirmPassword,
-                shopName,
-                role: 'shopowner'
+                role: userType
             };
+            
+            // Add the appropriate name field based on user type
+            if (userType === 'shopowner') {
+                requestData.shopName = shopName;
+            } else if (userType === 'supplier') {
+                requestData.companyName = companyName;
+            }
             
             const response = await fetch(`${apiBaseUrl}/auth/register`, {
                 method: 'POST',
@@ -352,7 +414,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const loginErrorAlert = document.getElementById('loginErrorAlert');
                 if (loginErrorAlert) {
                     loginErrorAlert.textContent = 'Registration successful! Please log in.';
-                    loginErrorAlert.style.color = '#28a745';
+                    // Remove error styling and add success styling
+                    loginErrorAlert.className = 'success-alert';
                     loginErrorAlert.style.display = 'block';
                 }
                 

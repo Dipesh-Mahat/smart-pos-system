@@ -5,9 +5,20 @@
 
 class ApiService {
     constructor() {
-        // Use full URL for API to work with both local development and production
-        this.baseUrl = 'http://localhost:5000/api';
+        // Automatically determine if we're using local or production API
+        this.baseUrl = this.determineApiBaseUrl();
         this.authService = window.authService;
+        console.log('API Service initialized with base URL:', this.baseUrl);
+    }
+    
+    determineApiBaseUrl() {
+        // Check if running on Vercel deployment
+        if (window.location.hostname === 'smart-pos-system-lime.vercel.app') {
+            return 'https://smart-pos-system.onrender.com/api';
+        }
+        
+        // For local development
+        return 'http://localhost:5000/api';
     }
 
     /**
@@ -207,3 +218,74 @@ const apiService = new ApiService();
 
 // Make it globally available
 window.apiService = apiService;
+
+/**
+ * Landing Forms
+ * Handles all forms on the landing page
+ */
+
+class LandingForms {
+    constructor() {
+        this.apiService = window.apiService;
+        this.authService = window.authService;
+    }
+
+    /**
+     * Handles form submission
+     * @param {Event} event - The form submission event
+     */
+    async handleSubmit(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formName = form.name;
+
+        // Handle form submission
+        if (formName === 'login') {
+            this.handleLogin(form);
+        }
+    }
+
+    /**
+     * Handles login form submission
+     * @param {HTMLFormElement} form - The login form
+     */
+    async handleLogin(form) {
+        const email = form.elements.email.value;
+        const password = form.elements.password.value;
+
+        // Check for existing user
+        const user = await this.authService.getUser();
+
+        if (user) {
+            // User is already logged in
+            this.authService.redirect();
+        } else {
+            // Login with email and password
+            const result = await this.authService.loginWithEmailAndPassword(email, password);
+
+            if (result.success) {
+                // Redirect to dashboard
+                this.authService.redirect();
+            } else {
+                // Show error message
+                this.showError(result.message);
+            }
+        }
+    }
+
+    /**
+     * Shows an error message
+     * @param {string} message - The error message
+     */
+    showError(message) {
+        // Show error message
+        alert(message);
+    }
+}
+
+// Create a singleton instance
+const landingForms = new LandingForms();
+
+// Make it globally available
+window.landingForms = landingForms;

@@ -239,3 +239,16 @@ body {
 .back-button:hover {
     color: #007bff;
 }
+
+/* Assuming .hamburger-menu is your menu class */
+@media (max-width: 768px) {
+    .hamburger-menu {
+        height: auto; /* Change from 100% or fixed value */
+        overflow: hidden;
+        background-color: inherit; /* Match page background to eliminate white gap */
+    }
+    .hamburger-menu.open {
+        max-height: calc(100vh - 60px); /* Adjust for header height */
+        overflow-y: auto;
+    }
+}

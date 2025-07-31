@@ -1,3 +1,17 @@
+# Ignore documentation markdown files
+AI_CONFIGURATION_GUIDE.md
+BILL_ECOSYSTEM_GUIDE.md
+BILL_GENERATOR_USAGE.md
+DATABASE_SEEDING.md
+FESTIVAL_INTELLIGENCE_DOCUMENTATION.md
+next steps.md
+demo users.md
+PRESENTATION_CHECKLIST.md
+SECURITY_STATUS_REPORT.md
+SMART_INVENTORY_DOCUMENTATION.md
+SMART_POS_BILL_FORMAT.md
+# Ignore temporary test file
+tmp.json
 # Dependencies
 node_modules/
 .pnp
@@ -81,5 +95,3 @@ google_oauth_credentials.json
 /backend/config/secrets/
 *client_secret*.json
 google_oauth_credentials.json
-
-capstone/

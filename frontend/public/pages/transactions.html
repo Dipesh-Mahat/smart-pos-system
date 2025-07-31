@@ -11,7 +11,6 @@
     <!-- Include Auth Service for token management -->
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
-    <script src="../js/demo-products.js"></script>
     
     <!-- Check authentication on page load -->
     <script>
@@ -27,10 +26,12 @@
         });
     </script>
 
-    <style>        .main-content {
+    <style>
+        .main-content {
             padding: 20px;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: auto;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            color: #495057;
         }
 
         @media (max-width: 768px) {
@@ -40,65 +41,140 @@
             }
         }
 
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+        /* Updated Styles for Dark Theme */
+        .transactions-grid {
+            margin-top: 20px;
         }
 
-        .stat-card {
+        .transaction-item {
             background: white;
-            padding: 25px;
-            border-radius: 15px;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: #495057;
+            display: block;
+            border: 1px solid #e9ecef;
+        }
+
+        .transaction-item:hover {
+            transform: translateY(-2px);
+            background: white;
             box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            text-align: center;
-            border-top: 4px solid #007bff;
         }
 
-        .stat-card.success {
-            border-top-color: #28a745;
-        }
-
-        .stat-card.warning {
-            border-top-color: #ffc107;
-        }
-
-        .stat-card.info {
-            border-top-color: #17a2b8;
-        }
-
-        .stat-icon {
-            font-size: 32px;
-            margin-bottom: 15px;
-            color: #007bff;
-        }
-
-        .stat-card.success .stat-icon {
-            color: #28a745;
-        }
-
-        .stat-card.warning .stat-icon {
-            color: #ffc107;
-        }
-
-        .stat-card.info .stat-icon {
-            color: #17a2b8;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 14px;
+        .filter-btn {
+            padding: 12px 28px;
+            border: 2px solid #e9ecef;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
             color: #6c757d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin: 0 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: #4361ee;
+            border-color: #4361ee;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.25);
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+            justify-content: flex-start;
+            margin-left: 2px;
+        }
+
+        .action-btns-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .detail-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .detail-value {
+            color: white;
+        }
+
+        .transaction-amount {
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .status-completed {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .status-pending {
+            background: rgba(234, 179, 8, 0.2);
+            color: #facc15;
+            border: 1px solid rgba(250, 204, 21, 0.3);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #4361ee;
+            color: white;
+            border: none;
+            box-shadow: 0 2px 4px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #3730a3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+        }
+
 
         .transactions-grid {
             display: grid;
@@ -187,13 +263,15 @@
         }
 
         .status-completed {
-            background: #d4edda;
-            color: #155724;
+            background: #d1fae5;
+            color: #059669;
+            border: 1px solid #34d399;
         }
 
         .status-pending {
-            background: #fff3cd;
-            color: #856404;
+            background: #fef3c7;
+            color: #d97706;
+            border: 1px solid #fbbf24;
         }
 
         .filters-container {
@@ -201,25 +279,6 @@
             gap: 15px;
             flex-wrap: wrap;
             margin-bottom: 20px;
-        }
-
-        .filter-btn {
-            padding: 10px 20px;
-            border: 2px solid #e9ecef;
-            background: white;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #6c757d;
-        }
-
-        .filter-btn.active,
-        .filter-btn:hover {
-            border-color: #007bff;
-            background: #007bff;
-            color: white;
         }
 
         .empty-state {
@@ -249,8 +308,9 @@
         .action-buttons {
             display: flex;
             gap: 10px;
-            justify-content: flex-end;
+            align-items: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -285,6 +345,52 @@
         .btn-secondary:hover {
             background: #545b62;
             transform: translateY(-2px);
+        }
+        
+        /* Toast notification styles */
+        .toast-message {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: white;
+            color: #333;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .toast-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .toast-message.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .toast-message.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        
+        .toast-message.info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+        }
+        
+        .toast-message i {
+            font-size: 18px;
         }
 
         .modal {
@@ -647,181 +753,25 @@
     </style>
 </head>
 <body>    <div class="main-content">
-        <!-- Statistics Cards -->
-        <div class="stats-container">
-            <div class="stat-card success">
-                <div class="stat-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-value" id="completedCount">247</div>
-                <div class="stat-label">Completed</div>
-            </div>
-            <div class="stat-card warning">
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-value" id="pendingCount">12</div>
-                <div class="stat-label">Pending</div>
-            </div>
-            <div class="stat-card info">
-                <div class="stat-icon">
-                    <i class="fas fa-rupee-sign"></i>
-                </div>
-                <div class="stat-value" id="totalSalesAmount">NPR 125,450</div>
-                <div class="stat-label">Total Sales</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-calendar-day"></i>
-                </div>
-                <div class="stat-value" id="todayCount">48</div>
-                <div class="stat-label">Today</div>
-            </div>
-        </div>
-
         <!-- Action Buttons -->
         <div class="action-buttons">
-            <a href="pos.html" class="btn btn-primary">
-                <i class="fas fa-plus"></i>
-                New Transaction
-            </a>
-            <button class="btn btn-secondary" onclick="exportTransactions()">
-                <i class="fas fa-download"></i>
-                Export
-            </button>
+            <div></div>
+            <div class="action-btns-right">
+                <button class="btn btn-secondary" onclick="exportTransactions()">
+                    <i class="fas fa-download"></i>
+                    Export
+                </button>
+            </div>
         </div>
 
+        <!-- Statistics Cards removed as requested -->
+
         <!-- Filter Buttons -->
-        <div class="filters-container">
-            <button class="filter-btn active" data-filter="all">All Transactions</button>
-            <button class="filter-btn" data-filter="today">Today</button>
-            <button class="filter-btn" data-filter="week">This Week</button>
-            <button class="filter-btn" data-filter="month">This Month</button>
-            <button class="filter-btn" data-filter="completed">Completed</button>
-            <button class="filter-btn" data-filter="pending">Pending</button>
-        </div>
+        <!-- Filter buttons removed as requested -->
 
         <!-- Transactions Grid -->
         <div class="transactions-grid" id="transactionsGrid">
-            <a href="receipt-detail.html?id=TXN-2024-001" class="transaction-item">
-                <div class="transaction-header">
-                    <div class="receipt-number">
-                        <i class="fas fa-receipt"></i>
-                        TXN-2024-001
-                    </div>
-                    <div class="transaction-amount">NPR 124.50</div>
-                </div>
-                <div class="transaction-details">
-                    <div class="detail-item">
-                        <div class="detail-label">Date</div>
-                        <div class="detail-value">Jan 15, 2024</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Time</div>
-                        <div class="detail-value">14:30</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Items</div>
-                        <div class="detail-value">5</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Status</div>
-                        <div class="detail-value">
-                            <span class="status-badge status-completed">Completed</span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="receipt-detail.html?id=TXN-2024-002" class="transaction-item">
-                <div class="transaction-header">
-                    <div class="receipt-number">
-                        <i class="fas fa-receipt"></i>
-                        TXN-2024-002
-                    </div>
-                    <div class="transaction-amount">NPR 89.25</div>
-                </div>
-                <div class="transaction-details">
-                    <div class="detail-item">
-                        <div class="detail-label">Date</div>
-                        <div class="detail-value">Jan 15, 2024</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Time</div>
-                        <div class="detail-value">13:15</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Items</div>
-                        <div class="detail-value">3</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Status</div>
-                        <div class="detail-value">
-                            <span class="status-badge status-completed">Completed</span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="receipt-detail.html?id=TXN-2024-003" class="transaction-item">
-                <div class="transaction-header">
-                    <div class="receipt-number">
-                        <i class="fas fa-receipt"></i>
-                        TXN-2024-003
-                    </div>
-                    <div class="transaction-amount">NPR 256.75</div>
-                </div>
-                <div class="transaction-details">
-                    <div class="detail-item">
-                        <div class="detail-label">Date</div>
-                        <div class="detail-value">Jan 15, 2024</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Time</div>
-                        <div class="detail-value">12:45</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Items</div>
-                        <div class="detail-value">8</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Status</div>
-                        <div class="detail-value">
-                            <span class="status-badge status-pending">Pending</span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="receipt-detail.html?id=TXN-2024-004" class="transaction-item">
-                <div class="transaction-header">
-                    <div class="receipt-number">
-                        <i class="fas fa-receipt"></i>
-                        TXN-2024-004
-                    </div>
-                    <div class="transaction-amount">NPR 45.00</div>
-                </div>
-                <div class="transaction-details">
-                    <div class="detail-item">
-                        <div class="detail-label">Date</div>
-                        <div class="detail-value">Jan 14, 2024</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Time</div>
-                        <div class="detail-value">16:20</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Items</div>
-                        <div class="detail-value">2</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Status</div>
-                        <div class="detail-value">
-                            <span class="status-badge status-completed">Completed</span>
-                        </div>
-                    </div>
-                </div>
-            </a>
+            <!-- Transactions will be rendered here by JavaScript -->
         </div>    </div>
 
     <!-- Modal for Transaction Details -->
@@ -875,75 +825,61 @@
     <script>
         // Transaction Management System
         class TransactionManager {
+
             constructor() {
                 this.transactions = [];
                 this.filteredTransactions = [];
-                this.currentFilter = 'all';
                 this.searchTerm = '';
                 this.init();
             }
 
             init() {
-                this.generateDemoTransactions();
-                this.setupEventListeners();
-                this.renderTransactions();
-                this.updateStats();
+                this.loadTransactionData();
+                // No filter event listeners needed
             }
 
-            generateDemoTransactions() {
-                const demoProducts = getDemoProducts();
-                const statuses = ['completed', 'pending'];
-                const now = new Date();
-                
-                this.transactions = [];
-                
-                // Generate transactions for the last 30 days
-                for (let i = 0; i < 50; i++) {
-                    const transactionDate = new Date(now - Math.random() * 30 * 24 * 60 * 60 * 1000);
-                    const itemCount = Math.floor(Math.random() * 5) + 1;
-                    const items = [];
-                    let subtotal = 0;
-                    
-                    // Generate random items for this transaction
-                    for (let j = 0; j < itemCount; j++) {
-                        const product = demoProducts[Math.floor(Math.random() * demoProducts.length)];
-                        const quantity = Math.floor(Math.random() * 3) + 1;
-                        const total = product.price * quantity;
-                        
-                        items.push({
-                            id: product.id,
-                            name: product.name,
-                            price: product.price,
-                            quantity: quantity,
-                            total: total,
-                            category: product.category,
-                            icon: this.getProductIcon(product.category)
-                        });
-                        
-                        subtotal += total;
-                    }
-                    
-                    const tax = subtotal * 0.08; // 8% tax
-                    const total = subtotal + tax;
-                    const status = statuses[Math.floor(Math.random() * statuses.length)];
-                    
-                    this.transactions.push({
-                        id: `TXN-2025-${String(i + 1).padStart(3, '0')}`,
-                        date: transactionDate,
-                        items: items,
-                        subtotal: subtotal,
-                        tax: tax,
-                        total: total,
-                        status: status,
-                        paymentMethod: 'Cash',
-                        customerName: `Customer ${i + 1}`,
-                        receiptNumber: `R${String(Date.now() + i).slice(-8)}`
-                    });
+            async loadTransactionData() {
+                try {
+                    // Fetch actual transactions from database
+                    await this.fetchTransactions();
+                    this.renderTransactions();
+                } catch (error) {
+                    console.error('Error loading transaction data:', error);
+                    // Fallback to empty data
+                    this.transactions = [];
+                    this.filteredTransactions = [];
+                    this.renderTransactions();
                 }
-                
-                // Sort by date (newest first)
-                this.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-                this.filteredTransactions = [...this.transactions];
+            }
+
+            // fetchTransactionSummary and updateStatsDisplay removed (no stats)
+
+            async fetchTransactions() {
+                try {
+                    // Use the API service for proper authentication and base URL
+                    const data = await window.apiService.request('/shop/transactions');
+
+                    // The API returns transactions directly in the response object
+                    if (data && data.transactions) {
+                        this.transactions = data.transactions || [];
+                        this.filteredTransactions = [...this.transactions];
+                        this.renderTransactions();
+                    } else {
+                        console.error('Failed to fetch transactions:', data?.error || 'Unknown error');
+                        this.transactions = [];
+                        this.filteredTransactions = [];
+                        
+                        // Show error message to user
+                        this.showToast('Failed to load transaction data. Please try again later.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error fetching transactions:', error);
+                    this.transactions = [];
+                    this.filteredTransactions = [];
+                    
+                    // Show error message to user
+                    this.showToast('Error connecting to server. Please check your connection.', 'error');
+                }
             }
 
             getProductIcon(category) {
@@ -959,23 +895,12 @@
             }
 
             setupEventListeners() {
-                // Filter buttons
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        this.setActiveFilter(e.target);
-                        this.currentFilter = e.target.getAttribute('data-filter');
-                        this.applyFilters();
-                    });
-                });
-
-                // Modal close events
+                // Only modal close events needed
                 const modal = document.getElementById('transactionModal');
                 const closeBtn = document.getElementById('closeTransactionModal');
-                
                 if (closeBtn) {
                     closeBtn.addEventListener('click', () => this.closeModal());
                 }
-                
                 if (modal) {
                     modal.addEventListener('click', (e) => {
                         if (e.target === modal) {
@@ -985,48 +910,9 @@
                 }
             }
 
-            setActiveFilter(activeBtn) {
-                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-                activeBtn.classList.add('active');
-            }
+            // setActiveFilter removed (no filters)
 
-            applyFilters() {
-                let filtered = [...this.transactions];
-
-                // Apply status filter
-                if (this.currentFilter !== 'all') {
-                    if (this.currentFilter === 'today') {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        filtered = filtered.filter(t => new Date(t.date) >= today);
-                    } else if (this.currentFilter === 'week') {
-                        const week = new Date();
-                        week.setDate(week.getDate() - 7);
-                        filtered = filtered.filter(t => new Date(t.date) >= week);
-                    } else if (this.currentFilter === 'month') {
-                        const month = new Date();
-                        month.setMonth(month.getMonth() - 1);
-                        filtered = filtered.filter(t => new Date(t.date) >= month);
-                    } else {
-                        filtered = filtered.filter(t => t.status === this.currentFilter);
-                    }
-                }
-
-                // Apply search filter
-                if (this.searchTerm) {
-                    const term = this.searchTerm.toLowerCase();
-                    filtered = filtered.filter(t => 
-                        t.id.toLowerCase().includes(term) ||
-                        t.receiptNumber.toLowerCase().includes(term) ||
-                        t.total.toString().includes(term) ||
-                        t.customerName.toLowerCase().includes(term) ||
-                        t.items.some(item => item.name.toLowerCase().includes(term))
-                    );
-                }
-
-                this.filteredTransactions = filtered;
-                this.renderTransactions();
-            }
+            // applyFilters removed (no filters)
 
             renderTransactions() {
                 const grid = document.getElementById('transactionsGrid');
@@ -1076,20 +962,7 @@
                 `).join('');
             }
 
-            updateStats() {
-                const completed = this.transactions.filter(t => t.status === 'completed').length;
-                const pending = this.transactions.filter(t => t.status === 'pending').length;
-                const totalSales = this.transactions.filter(t => t.status === 'completed').reduce((sum, t) => sum + t.total, 0);
-                
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const todayCount = this.transactions.filter(t => new Date(t.date) >= today).length;
-
-                document.getElementById('completedCount').textContent = completed;
-                document.getElementById('pendingCount').textContent = pending;
-                document.getElementById('totalSalesAmount').textContent = `NPR ${totalSales.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-                document.getElementById('todayCount').textContent = todayCount;
-            }
+            // updateStats removed (no filters)
 
             showTransactionDetails(transactionId) {
                 const transaction = this.transactions.find(t => t.id === transactionId);
@@ -1217,17 +1090,43 @@
             capitalizeFirst(str) {
                 return str.charAt(0).toUpperCase() + str.slice(1);
             }
+            
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = 'toast-message ' + type;
+                
+                const icon = document.createElement('i');
+                
+                // Set icon based on type
+                if (type === 'error') {
+                    icon.className = 'fas fa-exclamation-circle';
+                } else if (type === 'success') {
+                    icon.className = 'fas fa-check-circle';
+                } else {
+                    icon.className = 'fas fa-info-circle';
+                }
+                
+                toast.appendChild(icon);
+                
+                const textSpan = document.createElement('span');
+                textSpan.textContent = message;
+                toast.appendChild(textSpan);
+                
+                document.body.appendChild(toast);
+                
+                // Add show class for animation
+                setTimeout(() => toast.classList.add('show'), 10);
+                
+                // Remove toast after 3 seconds
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
         }
 
         // Global functions
-        function filterTransactions(filter) {
-            if (window.transactionManager) {
-                const btn = event.target;
-                window.transactionManager.setActiveFilter(btn);
-                window.transactionManager.currentFilter = filter;
-                window.transactionManager.applyFilters();
-            }
-        }
+        // filterTransactions removed (no filters)
 
         function exportTransactions() {
             console.log('Exporting transactions...');
@@ -1276,6 +1175,8 @@
     <!-- Navbar and Menu Scripts -->
     <script src="../js/navbar.js"></script>
     <script src="../js/menu.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         // Initialize navbar with transactions-specific options
         document.addEventListener('DOMContentLoaded', function() {
@@ -1285,6 +1186,92 @@
             
             console.log('Transactions page initialized');
         });
+
+        // Export functionality
+        function exportTransactions() {
+            if (!window.transactionManager || !window.transactionManager.transactions || window.transactionManager.transactions.length === 0) {
+                alert('No transactions to export.');
+                return;
+            }
+            // Show export option prompt
+            const choice = prompt('Export as PDF or CSV? Type "pdf" or "csv".');
+            if (!choice) return;
+            if (choice.toLowerCase() === 'csv') {
+                exportTransactionsCSV();
+            } else if (choice.toLowerCase() === 'pdf') {
+                exportTransactionsPDF();
+            } else {
+                alert('Invalid option. Please type "pdf" or "csv".');
+            }
+        }
+
+        function exportTransactionsCSV() {
+            const transactions = window.transactionManager.transactions;
+            if (!transactions || transactions.length === 0) {
+                alert('No transactions to export.');
+                return;
+            }
+            const headers = ['Transaction ID', 'Date', 'Time', 'Customer', 'Payment', 'Status', 'Total Amount'];
+            const rows = transactions.map(t => [
+                t.id,
+                new Date(t.date).toLocaleDateString('en-US'),
+                new Date(t.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+                t.customerName || '',
+                t.paymentMethod || '',
+                t.status,
+                t.total
+            ]);
+            let csvContent = '';
+            csvContent += headers.join(',') + '\n';
+            rows.forEach(row => {
+                csvContent += row.map(val => '"' + String(val).replace(/"/g, '""') + '"').join(',') + '\n';
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'transactions.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportTransactionsPDF() {
+            const transactions = window.transactionManager.transactions;
+            if (!transactions || transactions.length === 0) {
+                alert('No transactions to export.');
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(16);
+            doc.text('Transaction History', 14, 16);
+            doc.setFontSize(10);
+            const headers = ['ID', 'Date', 'Time', 'Customer', 'Payment', 'Status', 'Total'];
+            let startY = 24;
+            // Table header
+            headers.forEach((h, i) => {
+                doc.text(h, 14 + i * 28, startY);
+            });
+            startY += 6;
+            // Table rows
+            transactions.forEach((t, idx) => {
+                const row = [
+                    t.id,
+                    new Date(t.date).toLocaleDateString('en-US'),
+                    new Date(t.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+                    t.customerName || '',
+                    t.paymentMethod || '',
+                    t.status,
+                    t.total
+                ];
+                row.forEach((val, i) => {
+                    doc.text(String(val), 14 + i * 28, startY + idx * 6);
+                });
+            });
+            doc.save('transactions.pdf');
+        }
     </script>
 </body>
 </html>

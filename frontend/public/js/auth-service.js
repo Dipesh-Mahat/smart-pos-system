@@ -446,3 +446,19 @@ authService.createFetchInterceptor();
 
 // Make it globally available
 window.authService = authService;
+
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE_URL = isLocal ? 'http://localhost:5000/api' : 'https://smart-pos-system.onrender.com/api';
+console.log('Auth service initialized with API base URL:', API_BASE_URL);
+// Add retry logic for failed fetches if needed
+async function requestWithRetry(url, options, retries = 3) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            return await fetch(url, options);
+        } catch (error) {
+            if (i === retries - 1) throw error;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+    }
+}
+// Replace fetch calls with requestWithRetry

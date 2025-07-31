@@ -1,6 +1,6 @@
 /**
- * Seed script for Smart POS System
- * This script populates the database with sample data for development
+ * Enhanced Seed script for Smart POS System - Nepali Small Mart Focus
+ * Realistic data for small Nepali grocery shops/kirana pasals
  */
 
 const mongoose = require('mongoose');
@@ -14,6 +14,10 @@ const Customer = require('./models/Customer');
 const Category = require('./models/Category');
 const Order = require('./models/Order');
 const Settings = require('./models/Settings');
+const AutoOrder = require('./models/AutoOrder');
+const SupplierInventory = require('./models/SupplierInventory');
+const SupplierInventoryLog = require('./models/SupplierInventoryLog');
+const NotificationLog = require('./models/NotificationLog');
 const bcrypt = require('bcryptjs');
 
 // Connect to MongoDB
@@ -39,16 +43,18 @@ const clearDB = async () => {
   await Category.deleteMany({});
   await Order.deleteMany({});
   await Settings.deleteMany({});
+  await AutoOrder.deleteMany({});
+  await SupplierInventory.deleteMany({});
   console.log('Database cleared');
 };
 
-// Seed Users
+// Seed Users - Realistic Nepali Names and Small Mart Focus
 const seedUsers = async () => {
   console.log('Seeding users...');
   
   const salt = await bcrypt.genSalt(10);
   
-  // Admin User - Production Ready
+  // Admin User
   const admin = new User({
     username: 'admin',
     firstName: 'System',
@@ -62,399 +68,730 @@ const seedUsers = async () => {
     lastLogin: new Date()
   });
 
-  // Shop Owner - Production Ready
-  const shopOwner = new User({
-    username: 'shopowner1',
-    firstName: 'Rajesh',
+  // ==== 5 NEPALI SHOP OWNERS - SMALL MARTS ====
+  
+  // Shop Owner 1 - Kirana Pasal
+  const shopOwner1 = new User({
+    username: 'ram_kirana',
+    firstName: 'Ram Bahadur',
     lastName: 'Shrestha',
-    email: 'rajesh.shrestha@smartpos.com',
-    password: await bcrypt.hash('shop123', salt),
+    email: 'ram@kirana.com',
+    password: await bcrypt.hash('ram123', salt),
     role: 'shopowner',
-    shopName: 'Shrestha Electronics & General Store',
-    contactNumber: '+977-9841234567',
-    address: {
-      street: 'New Road, Commercial Area',
+    shopName: 'Ram Kirana Pasal',
+    contactDetails: {
+      primaryPhone: '+977-9841234567'
+    },
+    billingAddress: {
+      street: 'Naya Sadak',
       city: 'Kathmandu',
       state: 'Bagmati',
-      postalCode: '44600',
       country: 'Nepal'
     },
     status: 'active',
     isVerified: true,
-    businessLicense: 'BL-2024-001',
-    panNumber: 'PAN123456789',
     createdAt: new Date('2024-01-05'),
     lastLogin: new Date()
   });
   
-  // Multiple Suppliers - Production Ready
-  const supplier1 = new User({
-    username: 'supplier1',
-    firstName: 'Krishna',
-    lastName: 'Adhikari',
-    email: 'krishna@wholesale.com.np',
-    password: await bcrypt.hash('supplier123', salt),
-    role: 'supplier',
-    companyName: 'Adhikari Wholesale Distribution',
-    businessName: 'Adhikari Wholesale Distribution',
-    businessType: 'wholesale',
-    contactNumber: '+977-9800000001',
-    address: {
-      street: 'Industrial District, Balaju',
-      city: 'Kathmandu',
-      state: 'Bagmati',
-      postalCode: '44600',
-      country: 'Nepal'
-    },
-    businessAddress: 'Industrial District, Balaju, Kathmandu',
-    contactPerson: 'Krishna Adhikari',
-    position: 'Managing Director',
-    phone: '+977-9800000001',
-    productCategories: ['groceries', 'beverages', 'household'],
-    yearsInBusiness: '10+',
-    deliveryAreas: 'Kathmandu Valley, Pokhara, Chitwan',
-    businessDescription: 'Leading wholesale distributor of FMCG products across Nepal',
-    status: 'approved',
-    isVerified: true,
-    businessLicense: 'SUP-2024-001',
-    panNumber: 'SUP123456789',
-    createdAt: new Date('2024-01-03')
-  });
-
-  const supplier2 = new User({
-    username: 'supplier2',
+  // Shop Owner 2 - General Store
+  const shopOwner2 = new User({
+    username: 'sita_general',
     firstName: 'Sita',
-    lastName: 'Gurung',
-    email: 'sita@freshproduce.com.np',
-    password: await bcrypt.hash('supplier123', salt),
-    role: 'supplier',
-    companyName: 'Gurung Fresh Produce & Dairy',
-    businessName: 'Gurung Fresh Produce & Dairy',
-    businessType: 'wholesale',
-    contactNumber: '+977-9800000002',
-    address: {
-      street: 'Kalimati Vegetable Market',
+    lastName: 'Tamang',
+    email: 'sita@generalstore.com',
+    password: await bcrypt.hash('sita123', salt),
+    role: 'shopowner',
+    shopName: 'Sita General Store',
+    contactDetails: {
+      primaryPhone: '+977-9841987654'
+    },
+    billingAddress: {
+      street: 'Baneshwor',
       city: 'Kathmandu',
       state: 'Bagmati',
-      postalCode: '44600',
       country: 'Nepal'
     },
-    businessAddress: 'Kalimati Vegetable Market, Kathmandu',
-    contactPerson: 'Sita Gurung',
-    position: 'Owner',
-    phone: '+977-9800000002',
-    productCategories: ['dairy', 'vegetables', 'fruits'],
-    yearsInBusiness: '5-10',
-    deliveryAreas: 'Kathmandu Valley',
-    businessDescription: 'Fresh produce and dairy products supplier',
-    status: 'pending',
-    isVerified: false,
-    createdAt: new Date('2024-01-10')
+    status: 'active',
+    isVerified: true,
+    createdAt: new Date('2024-01-10'),
+    lastLogin: new Date()
   });
 
-  await admin.save();
-  await shopOwner.save();
-  await supplier1.save();
-  await supplier2.save();
+  // Shop Owner 3 - Grocery
+  const shopOwner3 = new User({
+    username: 'hari_grocery',
+    firstName: 'Hari Prasad',
+    lastName: 'Thapa',
+    email: 'hari@grocery.com',
+    password: await bcrypt.hash('hari123', salt),
+    role: 'shopowner',
+    shopName: 'Hari Grocery Corner',
+    contactDetails: {
+      primaryPhone: '+977-9841555666'
+    },
+    billingAddress: {
+      street: 'Bhaktapur',
+      city: 'Bhaktapur',
+      state: 'Bagmati',
+      country: 'Nepal'
+    },
+    status: 'active',
+    isVerified: true,
+    createdAt: new Date('2024-01-15'),
+    lastLogin: new Date()
+  });
 
-  console.log('Users seeded - Admin, Shop Owner, and Suppliers created');
-  return { admin, shopOwner, supplier1, supplier2 };
+  // Shop Owner 4 - Mini Mart
+  const shopOwner4 = new User({
+    username: 'krishna_mart',
+    firstName: 'Krishna',
+    lastName: 'Gurung',
+    email: 'krishna@minimart.com',
+    password: await bcrypt.hash('krishna123', salt),
+    role: 'shopowner',
+    shopName: 'Krishna Mini Mart',
+    contactDetails: {
+      primaryPhone: '+977-9841777888'
+    },
+    billingAddress: {
+      street: 'Pokhara',
+      city: 'Pokhara',
+      state: 'Gandaki',
+      country: 'Nepal'
+    },
+    status: 'active',
+    isVerified: true,
+    createdAt: new Date('2024-01-20'),
+    lastLogin: new Date()
+  });
+
+  // Shop Owner 5 - Departmental Store
+  const shopOwner5 = new User({
+    username: 'laxmi_departmental',
+    firstName: 'Laxmi',
+    lastName: 'Poudel',
+    email: 'laxmi@departmental.com',
+    password: await bcrypt.hash('laxmi123', salt),
+    role: 'shopowner',
+    shopName: 'Laxmi Departmental Store',
+    contactDetails: {
+      primaryPhone: '+977-9841999000'
+    },
+    billingAddress: {
+      street: 'Chitwan',
+      city: 'Bharatpur',
+      state: 'Bagmati',
+      country: 'Nepal'
+    },
+    status: 'active',
+    isVerified: true,
+    createdAt: new Date('2024-01-25'),
+    lastLogin: new Date()
+  });
+
+  // ==== 3 SUPPLIERS FOR SMALL MARTS ====
+  
+  // Supplier 1 - Wholesale Supplier
+  const supplier1 = new User({
+    username: 'sharma_grains',
+    firstName: 'Shyam',
+    lastName: 'Sharma',
+    email: 'sharma@grainssupplier.com',
+    password: await bcrypt.hash('sharma123', salt),
+    role: 'supplier',
+    companyName: 'Sharma Grains Supplier',
+    businessName: 'Sharma Grains Supplier',
+    businessType: 'wholesale',
+    businessAddress: 'Kalimati Grain Market, Kathmandu, Nepal',
+    contactPerson: 'Shyam Sharma',
+    position: 'Owner',
+    phone: '+977-9801000001',
+    contactDetails: {
+      primaryPhone: '+977-9801000001',
+      secondaryEmail: 'info@grainssupplier.com'
+    },
+    businessDetails: {
+      businessType: 'wholesaler',
+      description: 'Supplier of rice, lentils, and grains to local marts',
+      establishedYear: 2012
+    },
+    billingAddress: {
+      street: 'Kalimati',
+      city: 'Kathmandu',
+      state: 'Bagmati',
+      country: 'Nepal'
+    },
+    status: 'active',
+    isVerified: true,
+    createdAt: new Date('2024-01-01'),
+    lastLogin: new Date()
+  });
+
+  // Supplier 2 - FMCG Distributor
+  const supplier2 = new User({
+    username: 'nepal_grocery',
+    firstName: 'Manoj',
+    lastName: 'Nepal',
+    email: 'manoj@nepalgrocery.com',
+    password: await bcrypt.hash('manoj123', salt),
+    role: 'supplier',
+    companyName: 'Nepal Grocery Traders',
+    businessName: 'Nepal Grocery Traders',
+    businessType: 'wholesale',
+    businessAddress: 'Balkhu, Kathmandu, Nepal',
+    contactPerson: 'Manoj Nepal',
+    position: 'Manager',
+    phone: '+977-9801000002',
+    contactDetails: {
+      primaryPhone: '+977-9801000002',
+      secondaryEmail: 'contact@nepalgrocery.com'
+    },
+    businessDetails: {
+      businessType: 'wholesaler',
+      description: 'Bulk grocery and daily essentials supplier',
+      establishedYear: 2015
+    },
+    billingAddress: {
+      street: 'Balkhu',
+      city: 'Kathmandu',
+      state: 'Bagmati',
+      country: 'Nepal'
+    },
+    status: 'active',
+    isVerified: true,
+    createdAt: new Date('2024-01-02'),
+    lastLogin: new Date()
+  });
+
+  // Supplier 3 - Local Supplier
+  const supplier3 = new User({
+    username: 'bhatta_rice',
+    firstName: 'Suresh',
+    lastName: 'Bhatta',
+    email: 'suresh@bhattarice.com',
+    password: await bcrypt.hash('suresh123', salt),
+    role: 'supplier',
+    companyName: 'Bhatta Rice & Pulses',
+    businessName: 'Bhatta Rice & Pulses',
+    businessType: 'retailer',
+    businessAddress: 'Teku Road, Kathmandu, Nepal',
+    contactPerson: 'Suresh Bhatta',
+    position: 'Owner',
+    phone: '+977-9801000003',
+    contactDetails: {
+      primaryPhone: '+977-9801000003',
+      secondaryEmail: 'info@bhattarice.com'
+    },
+    businessDetails: {
+      businessType: 'retailer',
+      description: 'Supplier of rice, pulses, and grains to local stores',
+      establishedYear: 2017
+    },
+    billingAddress: {
+      street: 'Teku',
+      city: 'Kathmandu',
+      state: 'Bagmati',
+      country: 'Nepal'
+    },
+    status: 'active',
+    isVerified: true,
+    createdAt: new Date('2024-01-03'),
+    lastLogin: new Date()
+  });
+
+  const users = [admin, shopOwner1, shopOwner2, shopOwner3, shopOwner4, shopOwner5, supplier1, supplier2, supplier3];
+  const savedUsers = await User.insertMany(users);
+  
+  console.log('✅ DEMO USERS CREATED:');
+  console.log('=== ADMIN ===');
+  console.log('Username: admin | Password: admin123');
+  console.log('=== SHOP OWNERS (Small Nepali Marts) ===');
+  console.log('1. Username: ram_kirana | Password: ram123 | Shop: Ram Kirana Pasal');
+  console.log('2. Username: sita_general | Password: sita123 | Shop: Sita General Store');
+  console.log('3. Username: hari_grocery | Password: hari123 | Shop: Hari Grocery Corner');
+  console.log('4. Username: krishna_mart | Password: krishna123 | Shop: Krishna Mini Mart');
+  console.log('5. Username: laxmi_departmental | Password: laxmi123 | Shop: Laxmi Departmental Store');
+  console.log('=== SUPPLIERS ===');
+  console.log('1. Username: sharma_grains | Password: sharma123 | Company: Sharma Grains Supplier');
+  console.log('2. Username: nepal_grocery | Password: manoj123 | Company: Nepal Grocery Traders');
+  console.log('3. Username: bhatta_rice | Password: suresh123 | Company: Bhatta Rice & Pulses');
+  
+  return savedUsers;
 };
 
-// Seed Products - Comprehensive Product Catalog
-const seedProducts = async (shopOwner, supplier1) => {
-  console.log('Seeding products...');
+// Seed Products - Daily Use Nepali Items
+const seedProducts = async (shopOwner, supplier) => {
+  console.log('Seeding products with daily use Nepali items...');
   
   const products = [
-    // Grocery Items
+    // Rice and Grains
     {
-      name: 'Basmati Rice Premium (5kg)',
-      barcode: 'RICE001',
-      description: 'Premium quality aged Basmati rice imported from India',
-      category: 'Groceries',
-      price: 950,
-      costPrice: 780,
+      name: 'Chamal (Rice) - 5kg',
+      barcode: 'RICE005',
+      description: 'Daily use white rice 5kg pack',
+      category: 'Grains',
+      price: 650,
+      costPrice: 520,
       stock: 45,
       minStockLevel: 10,
       unit: 'pack',
-      imageUrl: '/images/products/basmati-rice.jpg',
       shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier1._id,
-        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
-        supplierCode: 'SUP001'
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      tax: 13,
-      brand: 'India Gate',
-      expiryDate: new Date('2025-12-31'),
+      brand: 'Local',
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Nepali Local Rice (10kg)',
-      barcode: 'RICE002',
-      description: 'Fresh local rice from Chitwan valley',
-      category: 'Groceries',
-      price: 650,
-      costPrice: 520,
+      name: 'Daal Masoor (Red Lentils) - 1kg',
+      barcode: 'DAAL001',
+      description: 'Red lentils 1kg pack',
+      category: 'Grains',
+      price: 180,
+      costPrice: 150,
       stock: 60,
       minStockLevel: 15,
       unit: 'pack',
-      imageUrl: '/images/products/local-rice.jpg',
       shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier1._id,
-        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
-        supplierCode: 'SUP001'
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      tax: 13,
-      brand: 'Nepal Agro',
+      brand: 'Local',
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Chiura (Beaten Rice) - 500g',
+      barcode: 'CHIURA500',
+      description: 'Traditional beaten rice 500g',
+      category: 'Grains',
+      price: 85,
+      costPrice: 65,
+      stock: 40,
+      minStockLevel: 10,
+      unit: 'pack',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Local',
       createdAt: new Date('2024-01-06')
     },
     
-    // Beverages
+    // Spices and Oil
     {
-      name: 'Coca Cola (330ml)',
-      barcode: 'COKE330',
-      description: 'Refreshing Coca Cola soft drink',
-      category: 'Beverages',
-      price: 45,
-      costPrice: 32,
-      stock: 200,
-      minStockLevel: 50,
-      unit: 'piece',
-      imageUrl: '/images/products/coca-cola.jpg',
-      shopId: shopOwner._id,
-      isActive: true,
-      supplierInfo: {
-        supplierId: supplier1._id,
-        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
-        supplierCode: 'SUP001'
-      },
-      tax: 13,
-      brand: 'Coca Cola',
-      expiryDate: new Date('2024-12-31'),
-      createdAt: new Date('2024-01-06')
-    },
-    {
-      name: 'Nepali Tea Premium (500g)',
-      barcode: 'TEA001',
-      description: 'Premium quality orthodox black tea from Ilam',
-      category: 'Beverages',
-      price: 380,
-      costPrice: 280,
-      stock: 85,
+      name: 'Nun (Salt) - 1kg',
+      barcode: 'SALT1KG',
+      description: 'Table salt 1kg pack',
+      category: 'Spices',
+      price: 35,
+      costPrice: 25,
+      stock: 80,
       minStockLevel: 20,
       unit: 'pack',
-      imageUrl: '/images/products/nepali-tea.jpg',
       shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier1._id,
-        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
-        supplierCode: 'SUP001'
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      tax: 13,
-      brand: 'Himalayan Tea',
+      brand: 'Trishul',
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Khana Pakune Tel (Cooking Oil) - 1L',
+      barcode: 'OIL1L',
+      description: 'Refined cooking oil 1 liter',
+      category: 'Oil',
+      price: 250,
+      costPrice: 220,
+      stock: 35,
+      minStockLevel: 8,
+      unit: 'liter',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Dhara',
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Haldi (Turmeric Powder) - 100g',
+      barcode: 'HALDI100',
+      description: 'Pure turmeric powder 100g',
+      category: 'Spices',
+      price: 45,
+      costPrice: 35,
+      stock: 50,
+      minStockLevel: 12,
+      unit: 'pack',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Local',
       createdAt: new Date('2024-01-06')
     },
     
-    // Snacks
+    // Noodles and Snacks
     {
-      name: 'Wai Wai Noodles Chicken',
+      name: 'Wai Wai Noodles',
       barcode: 'WAIWAI001',
-      description: 'Popular instant noodles with chicken flavor',
+      description: 'Popular instant noodles',
       category: 'Snacks',
       price: 32,
       costPrice: 24,
-      stock: 300,
-      minStockLevel: 100,
-      unit: 'pack',
-      imageUrl: '/images/products/waiwai.jpg',
+      stock: 200,
+      minStockLevel: 50,
+      unit: 'piece',
       shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier1._id,
-        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
-        supplierCode: 'SUP001'
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      tax: 13,
       brand: 'Wai Wai',
-      expiryDate: new Date('2024-08-31'),
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Rara Noodles Vegetarian',
+      name: 'Rara Noodles',
       barcode: 'RARA001',
-      description: 'Healthy vegetarian instant noodles',
+      description: 'Instant noodles rara brand',
       category: 'Snacks',
       price: 28,
       costPrice: 21,
-      stock: 250,
-      minStockLevel: 80,
-      unit: 'pack',
-      imageUrl: '/images/products/rara.jpg',
+      stock: 180,
+      minStockLevel: 40,
+      unit: 'piece',
       shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier1._id,
-        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
-        supplierCode: 'SUP001'
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      tax: 13,
       brand: 'Rara',
-      expiryDate: new Date('2024-09-30'),
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Kurkure',
+      barcode: 'KURKURE001',
+      description: 'Crunchy corn snacks',
+      category: 'Snacks',
+      price: 20,
+      costPrice: 15,
+      stock: 100,
+      minStockLevel: 25,
+      unit: 'piece',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Kurkure',
       createdAt: new Date('2024-01-06')
     },
     
     // Personal Care
     {
-      name: 'Lux Beauty Soap (100g)',
-      barcode: 'LUX100',
-      description: 'Premium beauty soap with rose fragrance',
+      name: 'Sabun (Soap) - Lux',
+      barcode: 'LUXSOAP',
+      description: 'Beauty soap bar',
       category: 'Personal Care',
       price: 48,
       costPrice: 36,
-      stock: 120,
-      minStockLevel: 30,
+      stock: 80,
+      minStockLevel: 20,
       unit: 'piece',
-      imageUrl: '/images/products/lux-soap.jpg',
       shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier1._id,
-        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
-        supplierCode: 'SUP001'
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      tax: 13,
       brand: 'Lux',
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Colgate Toothpaste (175g)',
-      barcode: 'COLGATE175',
-      description: 'Advanced whitening toothpaste for healthy teeth',
+      name: 'Daant Saaf Paste (Toothpaste)',
+      barcode: 'COLGATE001',
+      description: 'Toothpaste for dental care',
       category: 'Personal Care',
       price: 185,
       costPrice: 140,
-      stock: 90,
-      minStockLevel: 25,
+      stock: 60,
+      minStockLevel: 15,
       unit: 'pack',
-      imageUrl: '/images/products/colgate.jpg',
       shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier1._id,
-        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
-        supplierCode: 'SUP001'
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      tax: 13,
       brand: 'Colgate',
-      expiryDate: new Date('2026-01-31'),
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Daant Brush (Toothbrush)',
+      barcode: 'BRUSH001',
+      description: 'Soft bristle toothbrush',
+      category: 'Personal Care',
+      price: 35,
+      costPrice: 25,
+      stock: 45,
+      minStockLevel: 10,
+      unit: 'piece',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Oral-B',
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Shampoo Sachet',
+      barcode: 'SHAMPOO001',
+      description: 'Hair shampoo small pack',
+      category: 'Personal Care',
+      price: 15,
+      costPrice: 10,
+      stock: 150,
+      minStockLevel: 30,
+      unit: 'pack',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Head & Shoulders',
       createdAt: new Date('2024-01-06')
     },
     
-    // Dairy Products
+    // Beverages
     {
-      name: 'DDC Fresh Milk (1L)',
-      barcode: 'DDC1L',
-      description: 'Fresh pasteurized milk from DDC dairy',
-      category: 'Dairy',
-      price: 92,
-      costPrice: 75,
-      stock: 35,
+      name: 'Chiya Patti (Tea Leaves) - 250g',
+      barcode: 'TEA250',
+      description: 'Black tea leaves 250g pack',
+      category: 'Beverages',
+      price: 180,
+      costPrice: 150,
+      stock: 40,
       minStockLevel: 10,
-      unit: 'liter',
-      imageUrl: '/images/products/ddc-milk.jpg',
+      unit: 'pack',
       shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier1._id,
-        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
-        supplierCode: 'SUP001'
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      tax: 13,
-      brand: 'DDC',
-      expiryDate: new Date('2024-02-15'),
+      brand: 'Gorkha Tea',
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Local Paneer (250g)',
-      barcode: 'PANEER250',
-      description: 'Fresh homemade paneer from local dairy',
-      category: 'Dairy',
-      price: 180,
-      costPrice: 140,
-      stock: 25,
-      minStockLevel: 8,
+      name: 'Chini (Sugar) - 1kg',
+      barcode: 'SUGAR1KG',
+      description: 'White sugar 1kg pack',
+      category: 'Sweeteners',
+      price: 120,
+      costPrice: 100,
+      stock: 70,
+      minStockLevel: 15,
       unit: 'pack',
-      imageUrl: '/images/products/paneer.jpg',
       shopId: shopOwner._id,
       isActive: true,
       supplierInfo: {
-        supplierId: supplier1._id,
-        supplierName: supplier1.firstName + ' ' + supplier1.lastName,
-        supplierCode: 'SUP001'
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      tax: 13,
-      brand: 'Local Dairy',
-      expiryDate: new Date('2024-02-10'),
+      brand: 'Local',
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Biscuit - Marie',
+      barcode: 'MARIE001',
+      description: 'Plain marie biscuits',
+      category: 'Snacks',
+      price: 45,
+      costPrice: 35,
+      stock: 90,
+      minStockLevel: 20,
+      unit: 'pack',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Parle-G',
+      createdAt: new Date('2024-01-06')
+    },
+    
+    // Stationery
+    {
+      name: 'Pencil',
+      barcode: 'PENCIL001',
+      description: 'Writing pencil HB',
+      category: 'Stationery',
+      price: 8,
+      costPrice: 5,
+      stock: 200,
+      minStockLevel: 50,
+      unit: 'piece',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Apsara',
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Copy Kitab (Notebook)',
+      barcode: 'COPY001',
+      description: 'Exercise notebook 40 pages',
+      category: 'Stationery',
+      price: 25,
+      costPrice: 18,
+      stock: 120,
+      minStockLevel: 30,
+      unit: 'piece',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Local',
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Pen - Ball Point',
+      barcode: 'PEN001',
+      description: 'Blue ball point pen',
+      category: 'Stationery',
+      price: 12,
+      costPrice: 8,
+      stock: 150,
+      minStockLevel: 40,
+      unit: 'piece',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Reynolds',
+      createdAt: new Date('2024-01-06')
+    },
+    
+    // Household Items
+    {
+      name: 'Detergent Powder - 500g',
+      barcode: 'DETERGENT500',
+      description: 'Washing powder 500g',
+      category: 'Household',
+      price: 95,
+      costPrice: 75,
+      stock: 50,
+      minStockLevel: 12,
+      unit: 'pack',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Surf Excel',
       createdAt: new Date('2024-01-06')
     }
   ];
   
   const createdProducts = await Product.insertMany(products);
-  console.log(`Created ${createdProducts.length} products`);
+  console.log(`Created ${createdProducts.length} daily use products`);
   return createdProducts;
 };
 
-// Seed Categories
+// Seed Categories for Nepali Mart
 const seedCategories = async (shopOwner) => {
   console.log('Seeding categories...');
   
   const categories = [
     {
-      name: 'Groceries',
-      description: 'Essential food items and daily necessities',
+      name: 'Grains',
+      description: 'Rice, lentils, beaten rice and other grains',
       shopId: shopOwner._id,
       isActive: true,
       sortOrder: 1
     },
     {
-      name: 'Beverages',
-      description: 'Drinks, tea, coffee, and refreshments',
+      name: 'Spices',
+      description: 'Salt, turmeric, and cooking spices',
       shopId: shopOwner._id,
       isActive: true,
       sortOrder: 2
     },
     {
-      name: 'Snacks & Confectionery',
-      description: 'Biscuits, chips, chocolates, and snack items',
+      name: 'Oil',
+      description: 'Cooking oil and ghee',
       shopId: shopOwner._id,
       isActive: true,
       sortOrder: 3
     },
     {
-      name: 'Personal Care',
-      description: 'Soaps, shampoos, toothpaste, and hygiene products',
+      name: 'Snacks',
+      description: 'Noodles, biscuits, and snack items',
       shopId: shopOwner._id,
       isActive: true,
       sortOrder: 4
     },
     {
-      name: 'Household Items',
-      description: 'Cleaning supplies, detergents, and home essentials',
+      name: 'Personal Care',
+      description: 'Soap, toothpaste, shampoo, and hygiene products',
       shopId: shopOwner._id,
       isActive: true,
       sortOrder: 5
     },
     {
-      name: 'Dairy Products',
-      description: 'Milk, yogurt, cheese, and dairy items',
+      name: 'Beverages',
+      description: 'Tea, coffee, and drink items',
       shopId: shopOwner._id,
       isActive: true,
       sortOrder: 6
+    },
+    {
+      name: 'Sweeteners',
+      description: 'Sugar and sweetening items',
+      shopId: shopOwner._id,
+      isActive: true,
+      sortOrder: 7
+    },
+    {
+      name: 'Stationery',
+      description: 'Pen, pencil, notebook, and school items',
+      shopId: shopOwner._id,
+      isActive: true,
+      sortOrder: 8
+    },
+    {
+      name: 'Household',
+      description: 'Cleaning and household items',
+      shopId: shopOwner._id,
+      isActive: true,
+      sortOrder: 9
     }
   ];
   
@@ -463,104 +800,94 @@ const seedCategories = async (shopOwner) => {
   return createdCategories;
 };
 
-// Seed Customers
+// Seed Customers with Nepali Names
 const seedCustomers = async (shopOwner) => {
   console.log('Seeding customers...');
   
   const customers = [
     {
       shopId: shopOwner._id,
-      name: 'Maya Tamang',
-      email: 'maya.tamang@email.com',
+      name: 'Maya Devi Sharma',
       phone: '+977-9841234567',
       address: {
-        street: 'Boudha Stupa Area',
+        street: 'Boudha',
         city: 'Kathmandu',
         state: 'Bagmati',
-        postalCode: '44600',
+        country: 'Nepal'
+      },
+      type: 'regular',
+      status: 'active',
+      loyaltyPoints: 120,
+      totalSpent: 1850.50,
+      totalOrders: 15,
+      lastOrderDate: new Date('2024-01-15')
+    },
+    {
+      shopId: shopOwner._id,
+      name: 'Bhim Bahadur Rai',
+      phone: '+977-9851234567',
+      address: {
+        street: 'Lalitpur',
+        city: 'Lalitpur',
+        state: 'Bagmati',
+        country: 'Nepal'
+      },
+      type: 'regular',
+      status: 'active',
+      loyaltyPoints: 200,
+      totalSpent: 2650.75,
+      totalOrders: 22,
+      lastOrderDate: new Date('2024-01-12')
+    },
+    {
+      shopId: shopOwner._id,
+      name: 'Kamala Thapa',
+      phone: '+977-9861234567',
+      address: {
+        street: 'Baneshwor',
+        city: 'Kathmandu',
+        state: 'Bagmati',
+        country: 'Nepal'
+      },
+      type: 'regular',
+      status: 'active',
+      loyaltyPoints: 90,
+      totalSpent: 1420.25,
+      totalOrders: 12,
+      lastOrderDate: new Date('2024-01-10')
+    },
+    {
+      shopId: shopOwner._id,
+      name: 'Dil Bahadur Gurung',
+      phone: '+977-9871234567',
+      address: {
+        street: 'Thamel',
+        city: 'Kathmandu',
+        state: 'Bagmati',
+        country: 'Nepal'
+      },
+      type: 'regular',
+      status: 'active',
+      loyaltyPoints: 45,
+      totalSpent: 890.00,
+      totalOrders: 8,
+      lastOrderDate: new Date('2024-01-08')
+    },
+    {
+      shopId: shopOwner._id,
+      name: 'Sunita Magar',
+      phone: '+977-9881234567',
+      address: {
+        street: 'Kirtipur',
+        city: 'Kathmandu',
+        state: 'Bagmati',
         country: 'Nepal'
       },
       type: 'regular',
       status: 'active',
       loyaltyPoints: 150,
-      totalSpent: 2500.75,
-      totalOrders: 8,
-      lastOrderDate: new Date('2024-01-15')
-    },
-    {
-      shopId: shopOwner._id,
-      name: 'Suresh Rai',
-      email: 'suresh.rai@email.com',
-      phone: '+977-9851234567',
-      address: {
-        street: 'Patan Durbar Square',
-        city: 'Lalitpur',
-        state: 'Bagmati',
-        postalCode: '44700',
-        country: 'Nepal'
-      },
-      type: 'wholesale',
-      status: 'active',
-      loyaltyPoints: 300,
-      totalSpent: 5600.25,
-      totalOrders: 15,
-      lastOrderDate: new Date('2024-01-12')
-    },
-    {
-      shopId: shopOwner._id,
-      name: 'Binita Shrestha',
-      email: 'binita.shrestha@email.com',
-      phone: '+977-9861234567',
-      address: {
-        street: 'Newroad Commercial Area',
-        city: 'Kathmandu',
-        state: 'Bagmati',
-        postalCode: '44600',
-        country: 'Nepal'
-      },
-      type: 'vip',
-      status: 'active',
-      loyaltyPoints: 500,
-      totalSpent: 8750.50,
-      totalOrders: 25,
-      lastOrderDate: new Date('2024-01-10')
-    },
-    {
-      shopId: shopOwner._id,
-      name: 'Dipak Thapa',
-      email: 'dipak.thapa@email.com',
-      phone: '+977-9871234567',
-      address: {
-        street: 'Durbarmarg Shopping District',
-        city: 'Kathmandu',
-        state: 'Bagmati',
-        postalCode: '44600',
-        country: 'Nepal'
-      },
-      type: 'regular',
-      status: 'inactive',
-      loyaltyPoints: 75,
-      totalSpent: 980.25,
-      totalOrders: 4,
-      lastOrderDate: new Date('2023-12-20')
-    },
-    {
-      shopId: shopOwner._id,
-      name: 'Anita Gurung',
-      email: 'anita.gurung@email.com',
-      phone: '+977-9881234567',
-      address: {
-        street: 'Lakeside Road',
-        city: 'Pokhara',
-        state: 'Gandaki',
-        postalCode: '33700',
-        country: 'Nepal'
-      },
-      type: 'corporate',
-      status: 'active',
-      loyaltyPoints: 1000,
-      totalSpent: 15420.80,
-      totalOrders: 42,
+      totalSpent: 2180.80,
+      totalOrders: 18,
       lastOrderDate: new Date('2024-01-14')
     }
   ];
@@ -570,176 +897,13 @@ const seedCustomers = async (shopOwner) => {
   return createdCustomers;
 };
 
-// Seed Orders
-const seedOrders = async (shopOwner, supplier, products) => {
-  console.log('Seeding orders...');
-  
-  const orders = [
-    {
-      orderNumber: 'ORD-001-2024',
-      shopId: shopOwner._id,
-      supplierId: supplier._id,
-      items: [
-        {
-          productId: products[0]._id,
-          name: products[0].name,
-          sku: products[0].barcode,
-          quantity: 50,
-          unitPrice: 250.00,
-          totalPrice: 12500.00
-        },
-        {
-          productId: products[1]._id,
-          name: products[1].name,
-          sku: products[1].barcode,
-          quantity: 30,
-          unitPrice: 800.00,
-          totalPrice: 24000.00
-        }
-      ],
-      subtotal: 36500.00,
-      tax: 4745.00,
-      total: 41245.00,
-      status: 'pending',
-      orderDate: new Date('2024-01-15'),
-      notes: 'Urgent order for new store opening',
-      expectedDeliveryDate: new Date('2024-01-20')
-    },
-    {
-      orderNumber: 'ORD-002-2024',
-      shopId: shopOwner._id,
-      supplierId: supplier._id,
-      items: [
-        {
-          productId: products[2]._id,
-          name: products[2].name,
-          sku: products[2].barcode,
-          quantity: 100,
-          unitPrice: 150.00,
-          totalPrice: 15000.00
-        }
-      ],
-      subtotal: 15000.00,
-      tax: 1950.00,
-      total: 16950.00,
-      status: 'confirmed',
-      orderDate: new Date('2024-01-10'),
-      expectedDeliveryDate: new Date('2024-01-18'),
-      notes: 'Regular monthly order'
-    },
-    {
-      orderNumber: 'ORD-003-2024',
-      shopId: shopOwner._id,
-      supplierId: supplier._id,
-      items: [
-        {
-          productId: products[3]._id,
-          name: products[3].name,
-          sku: products[3].barcode,
-          quantity: 20,
-          unitPrice: 300.00,
-          totalPrice: 6000.00
-        },
-        {
-          productId: products[4]._id,
-          name: products[4].name,
-          sku: products[4].barcode,
-          quantity: 25,
-          unitPrice: 200.00,
-          totalPrice: 5000.00
-        }
-      ],
-      subtotal: 11000.00,
-      tax: 1430.00,
-      total: 12430.00,
-      status: 'shipped',
-      orderDate: new Date('2024-01-05'),
-      expectedDeliveryDate: new Date('2024-01-12'),
-      notes: 'Special promotional items'
-    }
-  ];
-  
-  const createdOrders = await Order.insertMany(orders);
-  console.log(`Created ${createdOrders.length} orders`);
-  return createdOrders;
-};
-
-// Seed Settings
-const seedSettings = async (shopOwner) => {
-  console.log('Seeding settings...');
-  
-  const settings = new Settings({
-    shopId: shopOwner._id,
-    business: {
-      name: shopOwner.shopName,
-      logo: '',
-      address: {
-        street: '123 Business Street',
-        city: 'Kathmandu',
-        state: 'Bagmati',
-        postalCode: '44600',
-        country: 'Nepal'
-      },
-      phone: '+977-1-4567890',
-      email: shopOwner.email,
-      website: 'https://testshop.com',
-      taxId: 'TAX123456789',
-      registrationNumber: 'REG987654321'
-    },
-    currency: {
-      code: 'NPR',
-      symbol: 'Rs.',
-      position: 'before',
-      decimalPlaces: 2
-    },
-    tax: {
-      defaultRate: 13,
-      inclusive: false,
-      registrationNumber: 'VAT123456789'
-    },
-    receipt: {
-      showLogo: true,
-      showAddress: true,
-      showPhone: true,
-      showEmail: true,
-      footerText: 'Thank you for shopping with us!'
-    },
-    inventory: {
-      trackStock: true,
-      lowStockAlert: true,
-      lowStockThreshold: 10,
-      autoReorder: false
-    },
-    pos: {
-      allowDiscount: true,
-      maxDiscountPercent: 15,
-      requireCustomer: false
-    },
-    notifications: {
-      lowStock: true,
-      newOrders: true,
-      dailySales: true,
-      emailNotifications: true,
-      pushNotifications: false
-    }
-  });
-  
-  await settings.save();
-  console.log('Created settings');
-  return settings;
-};
-
-// Seed Transactions - Sales Data
+// Seed Transactions - Simple Payment Method
 const seedTransactions = async (shopOwner, customers, products) => {
   console.log('Seeding transactions...');
   
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
-  const weekAgo = new Date();
-  weekAgo.setDate(today.getDate() - 7);
-  const monthAgo = new Date();
-  monthAgo.setDate(today.getDate() - 30);
   
   const transactions = [
     // TODAY'S TRANSACTIONS
@@ -749,29 +913,26 @@ const seedTransactions = async (shopOwner, customers, products) => {
       customerId: customers[0]._id,
       items: [
         {
-          productId: products[0]._id,
+          productId: products[0]._id, // Rice
           name: products[0].name,
           price: products[0].price,
-          quantity: 3,
-          subtotal: products[0].price * 3,
-          tax: (products[0].price * 3) * 0.13
+          quantity: 1,
+          subtotal: products[0].price
         },
         {
-          productId: products[2]._id,
-          name: products[2].name,
-          price: products[2].price,
-          quantity: 2,
-          subtotal: products[2].price * 2,
-          tax: (products[2].price * 2) * 0.13
+          productId: products[6]._id, // Wai Wai
+          name: products[6].name,
+          price: products[6].price,
+          quantity: 3,
+          subtotal: products[6].price * 3
         }
       ],
-      subtotal: (products[0].price * 3) + (products[2].price * 2),
-      tax: ((products[0].price * 3) + (products[2].price * 2)) * 0.13,
-      discount: 100,
-      total: ((products[0].price * 3) + (products[2].price * 2)) * 1.13 - 100,
-      amountPaid: ((products[0].price * 3) + (products[2].price * 2)) * 1.13 - 100,
+      subtotal: products[0].price + (products[6].price * 3),
+      discount: 50,
+      total: (products[0].price + (products[6].price * 3)) - 50,
+      amountPaid: (products[0].price + (products[6].price * 3)) - 50,
       change: 0,
-      paymentMethod: 'cash',
+      paymentMethod: 'paid', // Simple payment tracking
       status: 'completed',
       cashierId: shopOwner._id,
       cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
@@ -783,21 +944,26 @@ const seedTransactions = async (shopOwner, customers, products) => {
       customerId: customers[1]._id,
       items: [
         {
-          productId: products[1]._id,
+          productId: products[1]._id, // Daal
           name: products[1].name,
           price: products[1].price,
-          quantity: 5,
-          subtotal: products[1].price * 5,
-          tax: (products[1].price * 5) * 0.13
+          quantity: 2,
+          subtotal: products[1].price * 2
+        },
+        {
+          productId: products[9]._id, // Soap
+          name: products[9].name,
+          price: products[9].price,
+          quantity: 1,
+          subtotal: products[9].price
         }
       ],
-      subtotal: products[1].price * 5,
-      tax: (products[1].price * 5) * 0.13,
+      subtotal: (products[1].price * 2) + products[9].price,
       discount: 0,
-      total: (products[1].price * 5) * 1.13,
-      amountPaid: (products[1].price * 5) * 1.13,
+      total: (products[1].price * 2) + products[9].price,
+      amountPaid: (products[1].price * 2) + products[9].price,
       change: 0,
-      paymentMethod: 'card',
+      paymentMethod: 'paid',
       status: 'completed',
       cashierId: shopOwner._id,
       cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
@@ -809,82 +975,59 @@ const seedTransactions = async (shopOwner, customers, products) => {
       customerId: customers[2]._id,
       items: [
         {
-          productId: products[3]._id,
-          name: products[3].name,
-          price: products[3].price,
-          quantity: 1,
-          subtotal: products[3].price,
-          tax: products[3].price * 0.13
+          productId: products[16]._id, // Pencil
+          name: products[16].name,
+          price: products[16].price,
+          quantity: 5,
+          subtotal: products[16].price * 5
         },
         {
-          productId: products[4]._id,
-          name: products[4].name,
-          price: products[4].price,
+          productId: products[17]._id, // Notebook
+          name: products[17].name,
+          price: products[17].price,
           quantity: 2,
-          subtotal: products[4].price * 2,
-          tax: (products[4].price * 2) * 0.13
+          subtotal: products[17].price * 2
         }
       ],
-      subtotal: products[3].price + (products[4].price * 2),
-      tax: (products[3].price + (products[4].price * 2)) * 0.13,
-      discount: 50,
-      total: (products[3].price + (products[4].price * 2)) * 1.13 - 50,
-      amountPaid: (products[3].price + (products[4].price * 2)) * 1.13 - 50,
+      subtotal: (products[16].price * 5) + (products[17].price * 2),
+      discount: 10,
+      total: ((products[16].price * 5) + (products[17].price * 2)) - 10,
+      amountPaid: ((products[16].price * 5) + (products[17].price * 2)) - 10,
       change: 0,
-      paymentMethod: 'cash',
+      paymentMethod: 'paid',
       status: 'completed',
       cashierId: shopOwner._id,
       cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
       createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 45, 0)
     },
-    {
-      receiptNumber: `RCP-${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-004`,
-      shopId: shopOwner._id,
-      customerId: customers[0]._id,
-      items: [
-        {
-          productId: products[5]._id,
-          name: products[5].name,
-          price: products[5].price,
-          quantity: 4,
-          subtotal: products[5].price * 4,
-          tax: (products[5].price * 4) * 0.13
-        }
-      ],
-      subtotal: products[5].price * 4,
-      tax: (products[5].price * 4) * 0.13,
-      discount: 0,
-      total: (products[5].price * 4) * 1.13,
-      amountPaid: (products[5].price * 4) * 1.13,
-      change: 0,
-      paymentMethod: 'digital',
-      status: 'completed',
-      cashierId: shopOwner._id,
-      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
-      createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 16, 20, 0)
-    },
+    
     // YESTERDAY'S TRANSACTIONS
     {
       receiptNumber: `RCP-${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}${String(yesterday.getDate()).padStart(2, '0')}-001`,
       shopId: shopOwner._id,
-      customerId: customers[1]._id,
+      customerId: customers[3]._id,
       items: [
         {
-          productId: products[6]._id,
-          name: products[6].name,
-          price: products[6].price,
-          quantity: 2,
-          subtotal: products[6].price * 2,
-          tax: (products[6].price * 2) * 0.13
+          productId: products[13]._id, // Tea
+          name: products[13].name,
+          price: products[13].price,
+          quantity: 1,
+          subtotal: products[13].price
+        },
+        {
+          productId: products[14]._id, // Sugar
+          name: products[14].name,
+          price: products[14].price,
+          quantity: 1,
+          subtotal: products[14].price
         }
       ],
-      subtotal: products[6].price * 2,
-      tax: (products[6].price * 2) * 0.13,
+      subtotal: products[13].price + products[14].price,
       discount: 0,
-      total: (products[6].price * 2) * 1.13,
-      amountPaid: (products[6].price * 2) * 1.13,
+      total: products[13].price + products[14].price,
+      amountPaid: products[13].price + products[14].price,
       change: 0,
-      paymentMethod: 'cash',
+      paymentMethod: 'paid',
       status: 'completed',
       cashierId: shopOwner._id,
       cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
@@ -893,82 +1036,33 @@ const seedTransactions = async (shopOwner, customers, products) => {
     {
       receiptNumber: `RCP-${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}${String(yesterday.getDate()).padStart(2, '0')}-002`,
       shopId: shopOwner._id,
-      customerId: customers[2]._id,
+      customerId: customers[4]._id,
       items: [
         {
-          productId: products[7]._id,
-          name: products[7].name,
-          price: products[7].price,
+          productId: products[10]._id, // Toothpaste
+          name: products[10].name,
+          price: products[10].price,
           quantity: 1,
-          subtotal: products[7].price,
-          tax: products[7].price * 0.13
+          subtotal: products[10].price
+        },
+        {
+          productId: products[11]._id, // Toothbrush
+          name: products[11].name,
+          price: products[11].price,
+          quantity: 1,
+          subtotal: products[11].price
         }
       ],
-      subtotal: products[7].price,
-      tax: products[7].price * 0.13,
-      discount: 25,
-      total: (products[7].price * 1.13) - 25,
-      amountPaid: (products[7].price * 1.13) - 25,
+      subtotal: products[10].price + products[11].price,
+      discount: 20,
+      total: (products[10].price + products[11].price) - 20,
+      amountPaid: (products[10].price + products[11].price) - 20,
       change: 0,
-      paymentMethod: 'card',
+      paymentMethod: 'paid',
       status: 'completed',
       cashierId: shopOwner._id,
       cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
       createdAt: new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 15, 45, 0)
-    },
-    // WEEK'S TRANSACTIONS
-    {
-      receiptNumber: `RCP-${weekAgo.getFullYear()}-${String(weekAgo.getMonth() + 1).padStart(2, '0')}${String(weekAgo.getDate()).padStart(2, '0')}-001`,
-      shopId: shopOwner._id,
-      customerId: customers[0]._id,
-      items: [
-        {
-          productId: products[8]._id,
-          name: products[8].name,
-          price: products[8].price,
-          quantity: 3,
-          subtotal: products[8].price * 3,
-          tax: (products[8].price * 3) * 0.13
-        }
-      ],
-      subtotal: products[8].price * 3,
-      tax: (products[8].price * 3) * 0.13,
-      discount: 0,
-      total: (products[8].price * 3) * 1.13,
-      amountPaid: (products[8].price * 3) * 1.13,
-      change: 0,
-      paymentMethod: 'cash',
-      status: 'completed',
-      cashierId: shopOwner._id,
-      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
-      createdAt: new Date(weekAgo.getFullYear(), weekAgo.getMonth(), weekAgo.getDate(), 12, 30, 0)
-    },
-    // OLDER TRANSACTIONS FOR HISTORICAL DATA
-    {
-      receiptNumber: 'RCP-2024-001',
-      shopId: shopOwner._id,
-      customerId: customers[0]._id,
-      items: [
-        {
-          productId: products[0]._id,
-          name: products[0].name,
-          price: products[0].price,
-          quantity: 2,
-          subtotal: products[0].price * 2,
-          tax: (products[0].price * 2) * 0.13
-        }
-      ],
-      subtotal: products[0].price * 2,
-      tax: (products[0].price * 2) * 0.13,
-      discount: 50,
-      total: ((products[0].price * 2) * 1.13) - 50,
-      amountPaid: ((products[0].price * 2) * 1.13) - 50,
-      change: 0,
-      paymentMethod: 'cash',
-      status: 'completed',
-      cashierId: shopOwner._id,
-      cashierName: shopOwner.firstName + ' ' + shopOwner.lastName,
-      createdAt: new Date(monthAgo.getFullYear(), monthAgo.getMonth(), monthAgo.getDate(), 10, 30, 0)
     }
   ];
   
@@ -977,160 +1071,242 @@ const seedTransactions = async (shopOwner, customers, products) => {
   return createdTransactions;
 };
 
-// Seed Expenses - Business Expenses
-const seedExpenses = async (shopOwner) => {
-  console.log('Seeding expenses...');
+// Seed Auto Orders for Low Stock
+const seedAutoOrders = async (shopOwner, supplier, products) => {
+  console.log('Seeding auto orders...');
   
-  const expenses = [
+  const autoOrders = [
     {
       shopId: shopOwner._id,
-      title: 'Monthly Rent',
-      description: 'Shop rent for January 2024',
-      amount: 25000,
-      category: 'rent',
-      date: new Date('2024-01-01'),
-      addedBy: shopOwner._id,
-      recurring: true,
-      recurringDetails: {
-        frequency: 'monthly'
-      }
+      supplierId: supplier._id,
+      productId: products[0]._id, // Rice
+      productName: products[0].name,
+      quantity: 20,
+      frequency: 'weekly',
+      nextOrderDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 week from now
+      isActive: true,
+      minStockLevel: products[0].minStockLevel,
+      reorderQuantity: 20,
+      autoOrderEnabled: true,
+      priority: 'high'
     },
     {
       shopId: shopOwner._id,
-      description: 'Monthly electricity charges',
-      amount: 3500,
-      category: 'utilities',
-      date: new Date('2024-01-05'),
-      addedBy: shopOwner._id,
-      recurring: true,
-      recurringDetails: {
-        frequency: 'monthly'
-      }
+      supplierId: supplier._id,
+      productId: products[6]._id, // Wai Wai
+      productName: products[6].name,
+      quantity: 100,
+      frequency: 'weekly',
+      nextOrderDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+      isActive: true,
+      minStockLevel: products[6].minStockLevel,
+      reorderQuantity: 100,
+      autoOrderEnabled: true,
+      priority: 'medium'
     },
     {
       shopId: shopOwner._id,
-      description: 'Monthly internet and phone charges',
-      amount: 1800,
-      category: 'utilities',
-      date: new Date('2024-01-03'),
-      addedBy: shopOwner._id,
-      recurring: true,
-      recurringDetails: {
-        frequency: 'monthly'
-      }
-    },
-    {
-      shopId: shopOwner._id,
-      description: 'Stock replenishment from supplier',
-      amount: 45000,
-      category: 'inventory',
-      date: new Date('2024-01-08'),
-      addedBy: shopOwner._id,
-      recurring: false
-    },
-    {
-      shopId: shopOwner._id,
-      description: 'Monthly salary for shop assistant',
-      amount: 18000,
-      category: 'salary',
-      date: new Date('2024-01-10'),
-      addedBy: shopOwner._id,
-      recurring: true,
-      recurringDetails: {
-        frequency: 'monthly'
-      }
+      supplierId: supplier._id,
+      productId: products[9]._id, // Soap
+      productName: products[9].name,
+      quantity: 50,
+      frequency: 'monthly',
+      nextOrderDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 1 month from now
+      isActive: true,
+      minStockLevel: products[9].minStockLevel,
+      reorderQuantity: 50,
+      autoOrderEnabled: true,
+      priority: 'medium'
     }
   ];
   
-  const createdExpenses = await Expense.insertMany(expenses);
-  console.log(`Created ${createdExpenses.length} expenses`);
-  return createdExpenses;
+  const createdAutoOrders = await AutoOrder.insertMany(autoOrders);
+  console.log(`Created ${createdAutoOrders.length} auto orders`);
+  return createdAutoOrders;
 };
 
-// Seed Inventory Logs - Stock Movement
-const seedInventoryLogs = async (shopOwner, products) => {
+// Seed notification logs for system alerts and messages
+const seedNotificationLogs = async (shopOwner, supplier) => {
+  console.log('Seeding notification logs...');
+  
+  const NotificationLog = mongoose.model('NotificationLog');
+  
+  const notifications = [
+    {
+      admin: 'System',
+      recipients: [shopOwner.email],
+      message: 'Low stock alert: Rice (Chamal) stock is below minimum threshold',
+      method: 'push',
+      status: 'sent',
+      time: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
+    },
+    {
+      admin: 'System',
+      recipients: [shopOwner.email],
+      message: 'New order received from Bhim Bahadur Rai',
+      method: 'push',
+      status: 'sent',
+      time: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
+    },
+    {
+      admin: 'System',
+      recipients: [shopOwner.email, supplier.email],
+      message: 'Auto order generated for Wai Wai Noodles',
+      method: 'email',
+      status: 'sent',
+      time: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
+    },
+    {
+      admin: 'System',
+      recipients: [shopOwner.email],
+      message: 'Daily sales summary for yesterday: Total sales NPR 2,850.00',
+      method: 'email',
+      status: 'sent',
+      time: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // Yesterday
+    },
+    {
+      admin: 'System',
+      recipients: [shopOwner.email],
+      message: 'Security alert: New login detected from unknown device',
+      method: 'sms',
+      status: 'sent',
+      time: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
+    },
+    {
+      admin: 'System',
+      recipients: [supplier.email],
+      message: 'New order received from Ram Kirana Pasal',
+      method: 'push',
+      status: 'sent',
+      time: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
+    }
+  ];
+  
+  const createdNotifications = await NotificationLog.insertMany(notifications);
+  console.log(`Created ${createdNotifications.length} notification logs`);
+  return createdNotifications;
+};
+
+// Seed inventory logs to track stock changes
+const seedInventoryLogs = async (shopOwner, products, transactions) => {
   console.log('Seeding inventory logs...');
   
+  const InventoryLog = mongoose.model('InventoryLog');
+  
   const inventoryLogs = [
+    // Purchase logs
     {
-      productId: products[0]._id,
       shopId: shopOwner._id,
+      productId: products[0]._id, // Rice
       type: 'purchase',
-      quantity: 50,
-      previousStock: 0,
-      newStock: 50,
-      notes: 'Opening inventory for new product',
-      performedBy: shopOwner._id
+      quantity: 20,
+      previousStock: 25,
+      newStock: 45,
+      reference: 'Initial purchase',
+      notes: 'Regular stock replenishment',
+      cost: products[0].costPrice * 20,
+      performedBy: shopOwner._id,
+      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000) // 10 days ago
     },
     {
-      productId: products[0]._id,
       shopId: shopOwner._id,
+      productId: products[6]._id, // Wai Wai Noodles
+      type: 'purchase',
+      quantity: 100,
+      previousStock: 100,
+      newStock: 200,
+      reference: 'Bulk purchase',
+      notes: 'Festival season preparation',
+      cost: products[6].costPrice * 100,
+      performedBy: shopOwner._id,
+      createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) // 14 days ago
+    },
+    
+    // Sale logs based on transactions
+    {
+      shopId: shopOwner._id,
+      productId: products[0]._id, // Rice
+      type: 'sale',
+      quantity: -1,
+      previousStock: 45,
+      newStock: 44,
+      reference: transactions[0].receiptNumber,
+      referenceId: transactions[0]._id,
+      referenceModel: 'Transaction',
+      notes: 'Sale to Maya Devi Sharma',
+      cost: products[0].costPrice * 1,
+      performedBy: shopOwner._id,
+      createdAt: new Date(transactions[0].createdAt)
+    },
+    {
+      shopId: shopOwner._id,
+      productId: products[6]._id, // Wai Wai
+      type: 'sale',
+      quantity: -3,
+      previousStock: 200,
+      newStock: 197,
+      reference: transactions[0].receiptNumber,
+      referenceId: transactions[0]._id,
+      referenceModel: 'Transaction',
+      notes: 'Sale to Maya Devi Sharma',
+      cost: products[6].costPrice * 3,
+      performedBy: shopOwner._id,
+      createdAt: new Date(transactions[0].createdAt)
+    },
+    {
+      shopId: shopOwner._id,
+      productId: products[1]._id, // Daal
       type: 'sale',
       quantity: -2,
-      previousStock: 50,
-      newStock: 48,
-      notes: 'Sold to customer Maya Tamang',
-      performedBy: shopOwner._id
+      previousStock: 60,
+      newStock: 58,
+      reference: transactions[1].receiptNumber,
+      referenceId: transactions[1]._id,
+      referenceModel: 'Transaction',
+      notes: 'Sale to Bhim Bahadur Rai',
+      cost: products[1].costPrice * 2,
+      performedBy: shopOwner._id,
+      createdAt: new Date(transactions[1].createdAt)
+    },
+    
+    // Adjustment logs
+    {
+      shopId: shopOwner._id,
+      productId: products[9]._id, // Soap
+      type: 'adjustment',
+      quantity: -2,
+      previousStock: 82,
+      newStock: 80,
+      reference: 'Stocktake adjustment',
+      notes: 'Found damaged items',
+      performedBy: shopOwner._id,
+      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
     },
     {
-      productId: products[1]._id,
       shopId: shopOwner._id,
-      type: 'purchase',
-      quantity: 60,
-      previousStock: 0,
-      newStock: 60,
-      notes: 'Opening inventory',
-      performedBy: shopOwner._id
-    },
-    {
-      productId: products[2]._id,
-      shopId: shopOwner._id,
-      type: 'purchase',
-      quantity: 300,
-      previousStock: 0,
-      newStock: 300,
-      notes: 'Bulk purchase for snacks category',
-      performedBy: shopOwner._id
-    },
-    {
-      productId: products[2]._id,
-      shopId: shopOwner._id,
-      type: 'sale',
-      quantity: -5,
-      previousStock: 300,
-      newStock: 295,
-      notes: 'Sold to customer Maya Tamang',
-      performedBy: shopOwner._id
-    },
-    {
-      productId: products[8]._id,
-      shopId: shopOwner._id,
-      type: 'purchase',
-      quantity: 40,
-      previousStock: 0,
+      productId: products[13]._id, // Tea
+      type: 'adjustment',
+      quantity: 2,
+      previousStock: 38,
       newStock: 40,
-      notes: 'Fresh dairy products delivery',
-      performedBy: shopOwner._id
+      reference: 'Stocktake adjustment',
+      notes: 'Found extra stock in back store',
+      performedBy: shopOwner._id,
+      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
     },
+    
+    // Loss record
     {
-      productId: products[8]._id,
       shopId: shopOwner._id,
-      type: 'sale',
-      quantity: -2,
-      previousStock: 40,
-      newStock: 38,
-      notes: 'Sold to customer Binita Shrestha',
-      performedBy: shopOwner._id
-    },
-    {
-      productId: products[8]._id,
-      shopId: shopOwner._id,
+      productId: products[14]._id, // Sugar
       type: 'loss',
       quantity: -3,
-      previousStock: 38,
-      newStock: 35,
-      notes: 'Removed expired milk products',
-      performedBy: shopOwner._id
+      previousStock: 73,
+      newStock: 70,
+      reference: 'Damage report',
+      notes: 'Water damage due to roof leak',
+      performedBy: shopOwner._id,
+      createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000) // 8 days ago
     }
   ];
   
@@ -1139,60 +1315,536 @@ const seedInventoryLogs = async (shopOwner, products) => {
   return createdInventoryLogs;
 };
 
+// Seed orders to suppliers
+const seedOrders = async (shopOwner, supplier, products) => {
+  console.log('Seeding supplier orders...');
+  
+  const Order = mongoose.model('Order');
+  
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  const lastWeek = new Date();
+  lastWeek.setDate(lastWeek.getDate() - 7);
+  
+  const twoDaysAgo = new Date();
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+  
+  const orders = [
+    {
+      orderNumber: `ORD-${lastWeek.getFullYear()}${String(lastWeek.getMonth() + 1).padStart(2, '0')}${String(lastWeek.getDate()).padStart(2, '0')}-001`,
+      shopId: shopOwner._id,
+      supplierId: supplier._id,
+      items: [
+        {
+          productId: products[0]._id, // Rice
+          name: products[0].name,
+          sku: 'RICE005',
+          quantity: 20,
+          unitPrice: products[0].costPrice,
+          totalPrice: products[0].costPrice * 20,
+          discount: 0
+        },
+        {
+          productId: products[1]._id, // Daal
+          name: products[1].name,
+          sku: 'DAAL001',
+          quantity: 15,
+          unitPrice: products[1].costPrice,
+          totalPrice: products[1].costPrice * 15,
+          discount: 0
+        }
+      ],
+      subtotal: products[0].costPrice * 20 + products[1].costPrice * 15,
+      tax: 0,
+      shippingCost: 200,
+      discount: 500,
+      total: (products[0].costPrice * 20 + products[1].costPrice * 15) + 200 - 500,
+      status: 'delivered',
+      orderDate: lastWeek,
+      expectedDeliveryDate: twoDaysAgo,
+      actualDeliveryDate: twoDaysAgo,
+      shippingAddress: {
+        street: 'Naya Sadak',
+        city: 'Kathmandu',
+        state: 'Bagmati',
+        country: 'Nepal'
+      },
+      paymentMethod: 'bankTransfer',
+      paymentStatus: 'paid',
+      notes: 'Regular weekly order'
+    },
+    {
+      orderNumber: `ORD-${yesterday.getFullYear()}${String(yesterday.getMonth() + 1).padStart(2, '0')}${String(yesterday.getDate()).padStart(2, '0')}-001`,
+      shopId: shopOwner._id,
+      supplierId: supplier._id,
+      items: [
+        {
+          productId: products[6]._id, // Wai Wai
+          name: products[6].name,
+          sku: 'WAIWAI001',
+          quantity: 100,
+          unitPrice: products[6].costPrice,
+          totalPrice: products[6].costPrice * 100,
+          discount: 100
+        },
+        {
+          productId: products[7]._id, // Rara Noodles
+          name: products[7].name,
+          sku: 'RARA001',
+          quantity: 80,
+          unitPrice: products[7].costPrice,
+          totalPrice: products[7].costPrice * 80,
+          discount: 80
+        }
+      ],
+      subtotal: products[6].costPrice * 100 + products[7].costPrice * 80,
+      tax: 0,
+      shippingCost: 150,
+      discount: 180,
+      total: (products[6].costPrice * 100 + products[7].costPrice * 80) + 150 - 180,
+      status: 'confirmed',
+      orderDate: yesterday,
+      expectedDeliveryDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+      shippingAddress: {
+        street: 'Naya Sadak',
+        city: 'Kathmandu',
+        state: 'Bagmati',
+        country: 'Nepal'
+      },
+      paymentMethod: 'creditAccount',
+      paymentStatus: 'pending',
+      notes: 'Urgent order for festival season'
+    },
+    {
+      orderNumber: `ORD-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-001`,
+      shopId: shopOwner._id,
+      supplierId: supplier._id,
+      items: [
+        {
+          productId: products[9]._id, // Soap
+          name: products[9].name,
+          sku: 'LUXSOAP',
+          quantity: 50,
+          unitPrice: products[9].costPrice,
+          totalPrice: products[9].costPrice * 50,
+          discount: 0
+        },
+        {
+          productId: products[10]._id, // Toothpaste
+          name: products[10].name,
+          sku: 'COLGATE001',
+          quantity: 30,
+          unitPrice: products[10].costPrice,
+          totalPrice: products[10].costPrice * 30,
+          discount: 0
+        },
+        {
+          productId: products[11]._id, // Toothbrush
+          name: products[11].name,
+          sku: 'BRUSH001',
+          quantity: 30,
+          unitPrice: products[11].costPrice,
+          totalPrice: products[11].costPrice * 30,
+          discount: 0
+        }
+      ],
+      subtotal: products[9].costPrice * 50 + products[10].costPrice * 30 + products[11].costPrice * 30,
+      tax: 0,
+      shippingCost: 200,
+      discount: 0,
+      total: (products[9].costPrice * 50 + products[10].costPrice * 30 + products[11].costPrice * 30) + 200,
+      status: 'pending',
+      orderDate: new Date(),
+      expectedDeliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+      shippingAddress: {
+        street: 'Naya Sadak',
+        city: 'Kathmandu',
+        state: 'Bagmati',
+        country: 'Nepal'
+      },
+      paymentMethod: 'creditAccount',
+      paymentStatus: 'pending',
+      notes: 'Monthly hygiene products order'
+    }
+  ];
+  
+  const createdOrders = await Order.insertMany(orders);
+  console.log(`Created ${createdOrders.length} supplier orders`);
+  return createdOrders;
+};
+
+// Seed supplier inventories
+const seedSupplierInventories = async (supplier, products) => {
+  console.log('Seeding supplier inventories...');
+  
+  const SupplierInventory = mongoose.model('SupplierInventory');
+  
+  const supplierInventories = [
+    {
+      supplierId: supplier._id,
+      productId: products[0]._id, // Rice
+      sku: 'SUP-RICE005',
+      currentStock: 350,
+      minStock: 100,
+      maxStock: 500,
+      costPrice: products[0].costPrice * 0.9, // 10% lower than shop's cost price
+      sellingPrice: products[0].costPrice,
+      location: 'Warehouse A1',
+      status: 'in-stock',
+      batchNumber: 'BATCH-R22',
+      notes: 'Popular rice brand'
+    },
+    {
+      supplierId: supplier._id,
+      productId: products[1]._id, // Daal
+      sku: 'SUP-DAAL001',
+      currentStock: 250,
+      minStock: 50,
+      maxStock: 400,
+      costPrice: products[1].costPrice * 0.85,
+      sellingPrice: products[1].costPrice,
+      location: 'Warehouse A2',
+      status: 'in-stock',
+      batchNumber: 'BATCH-D18',
+      notes: 'Red lentils imported from India'
+    },
+    {
+      supplierId: supplier._id,
+      productId: products[6]._id, // Wai Wai Noodles
+      sku: 'SUP-WAIWAI001',
+      currentStock: 800,
+      minStock: 200,
+      maxStock: 1500,
+      costPrice: products[6].costPrice * 0.75,
+      sellingPrice: products[6].costPrice,
+      location: 'Warehouse B3',
+      status: 'in-stock',
+      batchNumber: 'BATCH-W45',
+      notes: 'High demand product'
+    },
+    {
+      supplierId: supplier._id,
+      productId: products[7]._id, // Rara Noodles
+      sku: 'SUP-RARA001',
+      currentStock: 600,
+      minStock: 150,
+      maxStock: 1200,
+      costPrice: products[7].costPrice * 0.8,
+      sellingPrice: products[7].costPrice,
+      location: 'Warehouse B3',
+      status: 'in-stock',
+      batchNumber: 'BATCH-R38',
+      notes: 'Secondary noodle brand'
+    },
+    {
+      supplierId: supplier._id,
+      productId: products[9]._id, // Soap
+      sku: 'SUP-LUXSOAP',
+      currentStock: 400,
+      minStock: 100,
+      maxStock: 600,
+      costPrice: products[9].costPrice * 0.8,
+      sellingPrice: products[9].costPrice,
+      location: 'Warehouse C1',
+      status: 'in-stock',
+      batchNumber: 'BATCH-S56',
+      notes: 'Beauty soap, high margin'
+    },
+    {
+      supplierId: supplier._id,
+      productId: products[10]._id, // Toothpaste
+      sku: 'SUP-COLGATE001',
+      currentStock: 180,
+      minStock: 40,
+      maxStock: 300,
+      costPrice: products[10].costPrice * 0.85,
+      sellingPrice: products[10].costPrice,
+      location: 'Warehouse C1',
+      status: 'in-stock',
+      batchNumber: 'BATCH-TP29',
+      notes: 'Premium toothpaste'
+    },
+    {
+      supplierId: supplier._id,
+      productId: products[11]._id, // Toothbrush
+      sku: 'SUP-BRUSH001',
+      currentStock: 250,
+      minStock: 50,
+      maxStock: 350,
+      costPrice: products[11].costPrice * 0.7,
+      sellingPrice: products[11].costPrice,
+      location: 'Warehouse C1',
+      status: 'in-stock',
+      batchNumber: 'BATCH-TB14',
+      notes: 'Soft bristle brush'
+    },
+    {
+      supplierId: supplier._id,
+      productId: products[13]._id, // Tea
+      sku: 'SUP-TEA250',
+      currentStock: 120,
+      minStock: 30,
+      maxStock: 200,
+      costPrice: products[13].costPrice * 0.8,
+      sellingPrice: products[13].costPrice,
+      location: 'Warehouse A3',
+      status: 'in-stock',
+      batchNumber: 'BATCH-T11',
+      notes: 'Nepal grown black tea'
+    },
+    {
+      supplierId: supplier._id,
+      productId: products[14]._id, // Sugar
+      sku: 'SUP-SUGAR1KG',
+      currentStock: 380,
+      minStock: 100,
+      maxStock: 500,
+      costPrice: products[14].costPrice * 0.9,
+      sellingPrice: products[14].costPrice,
+      location: 'Warehouse A2',
+      status: 'in-stock',
+      batchNumber: 'BATCH-SG21',
+      notes: 'Regular white sugar'
+    },
+    {
+      supplierId: supplier._id,
+      productId: products[19]._id, // Detergent
+      sku: 'SUP-DETERGENT500',
+      currentStock: 40,
+      minStock: 50,
+      maxStock: 200,
+      costPrice: products[19].costPrice * 0.85,
+      sellingPrice: products[19].costPrice,
+      location: 'Warehouse C2',
+      status: 'low-stock',
+      batchNumber: 'BATCH-D09',
+      notes: 'Running low, need to restock'
+    }
+  ];
+  
+  const createdSupplierInventories = await SupplierInventory.insertMany(supplierInventories);
+  console.log(`Created ${createdSupplierInventories.length} supplier inventory items`);
+  return createdSupplierInventories;
+};
+
+// Seed supplier inventory logs
+const seedSupplierInventoryLogs = async (supplier, products, orders) => {
+  console.log('Seeding supplier inventory logs...');
+  
+  const SupplierInventoryLog = mongoose.model('SupplierInventoryLog');
+  
+  const supplierInventoryLogs = [
+    // Initial stock entries
+    {
+      supplierId: supplier._id,
+      productId: products[0]._id, // Rice
+      type: 'initial',
+      quantity: 400,
+      previousStock: 0,
+      newStock: 400,
+      reference: 'Initial inventory',
+      notes: 'Opening stock recording',
+      location: 'Warehouse A1',
+      performedBy: supplier._id,
+      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // 30 days ago
+    },
+    {
+      supplierId: supplier._id,
+      productId: products[1]._id, // Daal
+      type: 'initial',
+      quantity: 300,
+      previousStock: 0,
+      newStock: 300,
+      reference: 'Initial inventory',
+      notes: 'Opening stock recording',
+      location: 'Warehouse A2',
+      performedBy: supplier._id,
+      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // 30 days ago
+    },
+    
+    // Sales to shop owners
+    {
+      supplierId: supplier._id,
+      productId: products[0]._id, // Rice
+      type: 'sold',
+      quantity: -20,
+      previousStock: 400,
+      newStock: 380,
+      reference: orders[0].orderNumber,
+      referenceId: orders[0]._id,
+      referenceModel: 'Order',
+      notes: 'Sale to Ram Kirana Pasal',
+      location: 'Warehouse A1',
+      performedBy: supplier._id,
+      createdAt: new Date(orders[0].orderDate)
+    },
+    {
+      supplierId: supplier._id,
+      productId: products[1]._id, // Daal
+      type: 'sold',
+      quantity: -15,
+      previousStock: 300,
+      newStock: 285,
+      reference: orders[0].orderNumber,
+      referenceId: orders[0]._id,
+      referenceModel: 'Order',
+      notes: 'Sale to Ram Kirana Pasal',
+      location: 'Warehouse A2',
+      performedBy: supplier._id,
+      createdAt: new Date(orders[0].orderDate)
+    },
+    
+    // Received new stock
+    {
+      supplierId: supplier._id,
+      productId: products[6]._id, // Wai Wai
+      type: 'received',
+      quantity: 500,
+      previousStock: 350,
+      newStock: 850,
+      reference: 'Manufacturer delivery',
+      notes: 'Bulk purchase from manufacturer',
+      location: 'Warehouse B3',
+      performedBy: supplier._id,
+      createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000) // 15 days ago
+    },
+    {
+      supplierId: supplier._id,
+      productId: products[7]._id, // Rara Noodles
+      type: 'received',
+      quantity: 400,
+      previousStock: 250,
+      newStock: 650,
+      reference: 'Manufacturer delivery',
+      notes: 'Bulk purchase from manufacturer',
+      location: 'Warehouse B3',
+      performedBy: supplier._id,
+      createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000) // 15 days ago
+    },
+    
+    // Damaged stock
+    {
+      supplierId: supplier._id,
+      productId: products[19]._id, // Detergent
+      type: 'damaged',
+      quantity: -10,
+      previousStock: 90,
+      newStock: 80,
+      reference: 'Damage report',
+      notes: 'Damaged during transport',
+      location: 'Warehouse C2',
+      performedBy: supplier._id,
+      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000) // 10 days ago
+    },
+    
+    // More sales
+    {
+      supplierId: supplier._id,
+      productId: products[6]._id, // Wai Wai
+      type: 'sold',
+      quantity: -50,
+      previousStock: 850,
+      newStock: 800,
+      reference: 'Spot sale',
+      notes: 'Direct sale to Krishna Mini Mart',
+      location: 'Warehouse B3',
+      performedBy: supplier._id,
+      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
+    },
+    
+    // Stock correction
+    {
+      supplierId: supplier._id,
+      productId: products[9]._id, // Soap
+      type: 'correction',
+      quantity: -20,
+      previousStock: 420,
+      newStock: 400,
+      reference: 'Stocktake adjustment',
+      notes: 'Correcting inventory after physical count',
+      location: 'Warehouse C1',
+      performedBy: supplier._id,
+      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
+    },
+    {
+      supplierId: supplier._id,
+      productId: products[19]._id, // Detergent
+      type: 'correction',
+      quantity: -30,
+      previousStock: 80,
+      newStock: 50,
+      reference: 'Stocktake adjustment',
+      notes: 'Inventory correction after expiry check',
+      location: 'Warehouse C2',
+      performedBy: supplier._id,
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
+    }
+  ];
+  
+  const createdSupplierInventoryLogs = await SupplierInventoryLog.insertMany(supplierInventoryLogs);
+  console.log(`Created ${createdSupplierInventoryLogs.length} supplier inventory logs`);
+  return createdSupplierInventoryLogs;
+};
+
 // Main seed function
 const seedDB = async () => {
   try {
     await connectDB();
     await clearDB();
     
-    // Seed in order (users first, then dependent data)
-    const { admin, shopOwner, supplier1, supplier2 } = await seedUsers();
+    console.log('🇳🇵 Creating demo data for Nepali small marts...\n');
+    
+    const savedUsers = await seedUsers();
+    const shopOwner = savedUsers.find(u => u.role === 'shopowner');
+    const supplier = savedUsers.find(u => u.role === 'supplier');
+    
     const categories = await seedCategories(shopOwner);
     const customers = await seedCustomers(shopOwner);
-    const products = await seedProducts(shopOwner, supplier1);
+    const products = await seedProducts(shopOwner, supplier);
     const transactions = await seedTransactions(shopOwner, customers, products);
-    const expenses = await seedExpenses(shopOwner);
-    const inventoryLogs = await seedInventoryLogs(shopOwner, products);
-    const orders = await seedOrders(shopOwner, supplier1, products);
-    const settings = await seedSettings(shopOwner);
+    const autoOrders = await seedAutoOrders(shopOwner, supplier, products);
     
-    console.log('\n🎉 Database seeded successfully with production-ready data!');
+    // Seed the previously missing tables
+    const notifications = await seedNotificationLogs(shopOwner, supplier);
+    const inventoryLogs = await seedInventoryLogs(shopOwner, products, transactions);
+    const orders = await seedOrders(shopOwner, supplier, products);
+    const supplierInventories = await seedSupplierInventories(supplier, products);
+    const supplierInventoryLogs = await seedSupplierInventoryLogs(supplier, products, orders);
+    
+    console.log('\n🎉 Database seeded successfully with Nepali mart data!');
     console.log('='.repeat(60));
     console.log('🔑 LOGIN CREDENTIALS:');
     console.log('='.repeat(60));
     console.log('👑 ADMIN ACCESS:');
-    console.log('Email: admin@smartpos.com');
-    console.log('Password: admin123');
+    console.log('Username: admin | Password: admin123');
     console.log('');
-    console.log('🏪 SHOP OWNER ACCESS:');
-    console.log('Email: rajesh.shrestha@smartpos.com');
-    console.log('Password: shop123');
+    console.log('🏪 SHOP OWNER ACCESS (Nepali Small Marts):');
+    console.log('1. Username: ram_kirana | Password: ram123 | Shop: Ram Kirana Pasal');
+    console.log('2. Username: sita_general | Password: sita123 | Shop: Sita General Store');
+    console.log('3. Username: hari_grocery | Password: hari123 | Shop: Hari Grocery Corner');
+    console.log('4. Username: krishna_mart | Password: krishna123 | Shop: Krishna Mini Mart');
+    console.log('5. Username: laxmi_departmental | Password: laxmi123 | Shop: Laxmi Departmental Store');
     console.log('');
-    console.log('📦 SUPPLIER ACCESS (Approved):');
-    console.log('Email: krishna@wholesale.com.np');
-    console.log('Password: supplier123');
-    console.log('');
-    console.log('📦 SUPPLIER PENDING APPROVAL:');
-    console.log('Email: sita@freshproduce.com.np');
-    console.log('Password: supplier123');
+    console.log('📦 SUPPLIER ACCESS:');
+    console.log('1. Username: ramesh_wholesale | Password: ramesh123 | Company: Adhikari Wholesale Suppliers');
+    console.log('2. Username: gopal_distributor | Password: gopal123 | Company: Karki Distribution Network');
+    console.log('3. Username: bhim_local | Password: bhim123 | Company: Bahadur Local Suppliers');
     console.log('='.repeat(60));
     console.log('📊 DATA CREATED:');
-    console.log(`- 4 Users (1 admin, 1 shopowner, 2 suppliers)`);
+    console.log(`- ${savedUsers.length} Users (1 admin, 5 shopowners, 3 suppliers)`);
     console.log(`- ${categories.length} Product Categories`);
-    console.log(`- ${customers.length} Customers with purchase history`);
-    console.log(`- ${products.length} Products with realistic pricing`);
+    console.log(`- ${customers.length} Customers with Nepali names`);
+    console.log(`- ${products.length} Daily use products (Rice, Daal, Noodles, Soap, etc.)`);
     console.log(`- ${transactions.length} Sales Transactions`);
-    console.log(`- ${expenses.length} Business Expenses`);
-    console.log(`- ${inventoryLogs.length} Inventory Movement Logs`);
-    console.log(`- ${orders.length} Supplier Orders`);
-    console.log(`- 1 Complete Settings Configuration`);
+    console.log(`- ${autoOrders.length} Auto Orders for low stock`);
+    console.log(`- ${notifications.length} Notification logs`);
+    console.log(`- ${inventoryLogs.length} Inventory logs`);
+    console.log(`- ${orders.length} Orders to suppliers`);
+    console.log(`- ${supplierInventories.length} Supplier inventory items`);
+    console.log(`- ${supplierInventoryLogs.length} Supplier inventory logs`);
     console.log('='.repeat(60));
-    console.log('🌐 ACCESS POINTS:');
-    console.log('Admin Dashboard: http://localhost:8080/pages/admin-dashboard.html');
-    console.log('POS System: http://localhost:8080');
-    console.log('Supplier Portal: http://localhost:8080/supplier-landing.html');
-    console.log('='.repeat(60));
-    console.log('✅ Your Smart POS System is now ready for production use!');
+    console.log('✅ Your Smart POS System is ready for Nepali small marts!');
     
     process.exit(0);
   } catch (err) {

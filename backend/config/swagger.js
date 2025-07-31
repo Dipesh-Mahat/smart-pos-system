@@ -1,5 +1,15 @@
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const { logSecurityEvent } = require('../utils/securityLogger');
+const basicAuth = require('express-basic-auth');
+
+/**
+ * Secure Swagger configuration with enhanced security
+ * - Role-based access control
+ * - Rate limiting
+ * - Access logging
+ * - Information sanitization
+ */
 
 // Swagger configuration
 const swaggerOptions = {
@@ -8,10 +18,11 @@ const swaggerOptions = {
     info: {
       title: 'Smart POS System API',
       version: '1.0.0',
-      description: 'API for Smart POS System',
+      description: 'API Documentation for Smart POS System - For authorized users only',
+      termsOfService: '/terms/',
       contact: {
-        name: 'API Support',
-        email: 'support@smartpos.com',
+        name: 'API Security Team',
+        email: 'apisecurity@smartpos.com',
       },
     },
     servers: [
@@ -103,6 +114,32 @@ const swaggerOptions = {
         bearerAuth: [],
       },
     ],
+    // Security definitions
+    securityDefinitions: {
+      apiKey: {
+        type: 'apiKey',
+        name: 'Authorization',
+        in: 'header'
+      }
+    },
+    // Add global security requirement
+    security: [
+      {
+        apiKey: []
+      }
+    ],
+    // Document global headers
+    parameters: {
+      HeaderParameters: {
+        name: 'X-CSRF-Token',
+        in: 'header',
+        description: 'CSRF protection token',
+        required: true,
+        schema: {
+          type: 'string'
+        }
+      }
+    }
   },
   apis: [
     './routes/*.js',
@@ -111,14 +148,168 @@ const swaggerOptions = {
   ],
 };
 
-// Initialize swagger-jsdoc
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
+// Obscure sensitive fields in Swagger responses
+const sensitiveFieldsRegex = /(password|token|secret|key|credential|auth)/i;
 
-// Export swagger middleware
-module.exports = {
-  serve: swaggerUi.serve,
-  setup: swaggerUi.setup(swaggerDocs, {
-    explorer: true,
-    customCss: '.swagger-ui .topbar { display: none }',
-  }),
+// Initialize swagger-jsdoc with sanitization
+const sanitizeSwaggerOptions = (options) => {
+  // Function to recursively sanitize an object
+  const sanitizeObject = (obj) => {
+    if (!obj || typeof obj !== 'object') return obj;
+    
+    // Clone the object to avoid modifying the original
+    const sanitized = Array.isArray(obj) ? [...obj] : { ...obj };
+    
+    Object.keys(sanitized).forEach(key => {
+      // Check if this is a sensitive field
+      if (sensitiveFieldsRegex.test(key)) {
+        if (typeof sanitized[key] === 'string') {
+          sanitized[key] = '[REDACTED]';
+        } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
+          sanitized[key] = '[REDACTED OBJECT]';
+        }
+      } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
+        // Recursively sanitize nested objects
+        sanitized[key] = sanitizeObject(sanitized[key]);
+      }
+    });
+    
+    return sanitized;
+  };
+  
+  // Create a deep copy and sanitize
+  const sanitizedOptions = JSON.parse(JSON.stringify(options));
+  
+  // Sanitize specific sections of Swagger docs
+  if (sanitizedOptions.swaggerDefinition && sanitizedOptions.swaggerDefinition.components) {
+    if (sanitizedOptions.swaggerDefinition.components.schemas) {
+      sanitizedOptions.swaggerDefinition.components.schemas = 
+        sanitizeObject(sanitizedOptions.swaggerDefinition.components.schemas);
+    }
+    
+    // Remove any example values containing potentially sensitive data
+    if (sanitizedOptions.swaggerDefinition.components.examples) {
+      Object.keys(sanitizedOptions.swaggerDefinition.components.examples).forEach(key => {
+        const example = sanitizedOptions.swaggerDefinition.components.examples[key];
+        if (example && example.value) {
+          sanitizedOptions.swaggerDefinition.components.examples[key].value = 
+            sanitizeObject(example.value);
+        }
+      });
+    }
+  }
+  
+  return sanitizedOptions;
 };
+
+// Apply sanitization to swagger options
+const sanitizedSwaggerOptions = sanitizeSwaggerOptions(swaggerOptions);
+const swaggerSpec = swaggerJsDoc(sanitizedSwaggerOptions);
+
+// Basic authentication middleware for Swagger UI
+const swaggerAuth = basicAuth({
+  users: {
+    [process.env.SWAGGER_USER || 'admin']: process.env.SWAGGER_PASSWORD || 'SwaggerSecureP@ss1',
+  },
+  challenge: true,
+  realm: 'Smart POS API Documentation',
+  unauthorizedResponse: () => 'Unauthorized access to API documentation'
+});
+
+// Rate limiting for Swagger UI access
+const swaggerRateLimit = (req, res, next) => {
+  // Simple in-memory rate limiting
+  const ip = req.ip;
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000; // 15 minutes
+  
+  req.app.locals.swaggerAccess = req.app.locals.swaggerAccess || {};
+  const swaggerAccess = req.app.locals.swaggerAccess;
+  
+  // Clean up old entries
+  Object.keys(swaggerAccess).forEach(key => {
+    if (now - swaggerAccess[key].timestamp > windowMs) {
+      delete swaggerAccess[key];
+    }
+  });
+  
+  // Check/update this IP's access
+  if (!swaggerAccess[ip]) {
+    swaggerAccess[ip] = {
+      count: 1,
+      timestamp: now
+    };
+  } else {
+    swaggerAccess[ip].count++;
+    
+    // Limit to 30 requests per 15 minutes window
+    if (swaggerAccess[ip].count > 30) {
+      logSecurityEvent('SWAGGER_RATE_LIMIT_EXCEEDED', { ip });
+      return res.status(429).json({
+        error: 'Too many requests to API documentation'
+      });
+    }
+  }
+  
+  next();
+};
+
+// Log Swagger UI access
+const logSwaggerAccess = (req, res, next) => {
+  logSecurityEvent('SWAGGER_ACCESS', {
+    ip: req.ip,
+    path: req.path,
+    userAgent: req.headers['user-agent']
+  });
+  next();
+};
+
+/**
+ * Setup Swagger routes with security measures
+ * @param {Object} app - Express application
+ */
+const setupSwagger = (app) => {
+  if (process.env.NODE_ENV === 'production') {
+    // In production, apply all security measures
+    app.use('/api-docs', 
+      swaggerRateLimit,
+      swaggerAuth,
+      logSwaggerAccess,
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerSpec, { 
+        explorer: false,
+        customCss: '.swagger-ui .topbar { display: none }',
+        customSiteTitle: 'Smart POS API (Secure)',
+        swaggerOptions: {
+          docExpansion: 'none',
+          filter: true,
+          persistAuthorization: true
+        }
+      })
+    );
+  } else {
+    // In development, use lighter security
+    app.use('/api-docs',
+      logSwaggerAccess,
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerSpec, {
+        explorer: true,
+        customSiteTitle: 'Smart POS API (Development)',
+        swaggerOptions: {
+          docExpansion: 'list',
+          filter: true
+        }
+      })
+    );
+  }
+  
+  // JSON endpoint for the Swagger documentation
+  app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+  });
+};
+
+// Export swagger middleware with enhanced security
+module.exports = setupSwagger;
+

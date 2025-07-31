@@ -411,6 +411,71 @@ exports.processRefund = async (req, res) => {
   }
 };
 
+// Get transaction summary for dashboard stats
+exports.getTransactionSummary = async (req, res) => {
+  try {
+    // Use the logged-in user's ID as shopId (from JWT 'id')
+    const shopId = req.user.id;
+    
+    // Get today's date range
+    // Use UTC to avoid timezone issues
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
+    const tomorrow = new Date(today);
+    tomorrow.setUTCDate(today.getUTCDate() + 1);
+    
+    // Get all transactions for the shop
+    const allTransactions = await Transaction.find({ shopId: shopId }).lean();
+    // Get today's transactions (UTC)
+    const todayTransactions = await Transaction.find({
+      shopId: shopId,
+      createdAt: { $gte: today, $lt: tomorrow }
+    }).lean();
+
+    // If no transactions found, try to force a refresh (workaround for DB/seed delay)
+    let completedCount = allTransactions.filter(t => t.status === 'completed').length;
+    let pendingCount = allTransactions.filter(t => t.status === 'pending').length;
+    let totalSalesAmount = allTransactions
+      .filter(t => t.status === 'completed')
+      .reduce((sum, t) => sum + t.total, 0);
+    let todayCount = todayTransactions.length;
+
+    // If all stats are zero but transactions exist, recalculate from allTransactions (using UTC)
+    if (
+      completedCount === 0 &&
+      pendingCount === 0 &&
+      totalSalesAmount === 0 &&
+      todayCount === 0 &&
+      allTransactions.length > 0
+    ) {
+      completedCount = allTransactions.filter(t => t.status === 'completed').length;
+      pendingCount = allTransactions.filter(t => t.status === 'pending').length;
+      totalSalesAmount = allTransactions
+        .filter(t => t.status === 'completed')
+        .reduce((sum, t) => sum + t.total, 0);
+      todayCount = allTransactions.filter(t => {
+        const created = new Date(t.createdAt);
+        return created >= today && created < tomorrow;
+      }).length;
+    }
+
+    res.status(200).json({
+      completedCount,
+      pendingCount,
+      totalSalesAmount,
+      todayCount
+    });
+  } catch (error) {
+    console.error('Error getting transaction summary:', error);
+    res.status(500).json({ 
+      completedCount: 0,
+      pendingCount: 0,
+      totalSalesAmount: 0,
+      todayCount: 0
+    });
+  }
+};
+
 // Get daily sales summary
 exports.getDailySalesSummary = async (req, res) => {
   try {

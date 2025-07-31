@@ -109,8 +109,8 @@ class SmartPOSNavbar {
                 <div class="profile-dropdown" id="navbarProfileDropdown">
                     <div class="profile-dropdown-header">
                         <div class="profile-info">
-                            <div class="profile-name">Store Manager</div>
-                            <div class="profile-email">admin@smartpos.np</div>
+                            <div class="profile-name" id="navbarProfileName">Loading...</div>
+                            <div class="profile-email" id="navbarProfileEmail">Loading...</div>
                         </div>
                     </div>
                     <div class="profile-dropdown-menu">
@@ -121,10 +121,6 @@ class SmartPOSNavbar {
                         <a href="settings.html" class="profile-menu-item">
                             <i class="fas fa-cog"></i>
                             <span>Settings</span>
-                        </a>
-                        <a href="notifications.html" class="profile-menu-item">
-                            <i class="fas fa-bell"></i>
-                            <span>Notifications</span>
                         </a>
                         <div class="profile-menu-divider"></div>
                         <a href="support.html" class="profile-menu-item">
@@ -675,6 +671,11 @@ class SmartPOSNavbar {
             }
         `;
         document.head.appendChild(styles);    }    attachEventListeners() {
+        // Load user profile data after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            this.loadUserProfile();
+        }, 50);
+        
         // Hamburger menu icon
         const hamburgerMenuIcon = document.getElementById('hamburgerMenuIcon');
         if (hamburgerMenuIcon) {
@@ -752,6 +753,54 @@ class SmartPOSNavbar {
                 this.handleCustomAction(actionId);
             });
         });
+    }
+
+    loadUserProfile() {
+        // Check if auth service is available
+        if (window.authService && window.authService.isLoggedIn()) {
+            const user = window.authService.getUser();
+            if (user) {
+                // Update profile name and email with real user data
+                const profileNameElement = document.getElementById('navbarProfileName');
+                const profileEmailElement = document.getElementById('navbarProfileEmail');
+                
+                if (profileNameElement) {
+                    // Use fullName if available, otherwise construct from firstName and lastName
+                    const displayName = user.fullName || 
+                                       (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName) ||
+                                       user.username || 
+                                       'User';
+                    profileNameElement.textContent = displayName;
+                }
+                
+                if (profileEmailElement) {
+                    profileEmailElement.textContent = user.email || 'No email';
+                }
+                
+                console.log('User profile loaded:', { name: user.fullName || user.username, email: user.email });
+            } else {
+                console.warn('User data not found in auth service');
+                // Set fallback values
+                const profileNameElement = document.getElementById('navbarProfileName');
+                const profileEmailElement = document.getElementById('navbarProfileEmail');
+                
+                if (profileNameElement) profileNameElement.textContent = 'Guest User';
+                if (profileEmailElement) profileEmailElement.textContent = 'Not logged in';
+            }
+        } else {
+            console.warn('Auth service not available or user not logged in');
+            // Set fallback values
+            const profileNameElement = document.getElementById('navbarProfileName');
+            const profileEmailElement = document.getElementById('navbarProfileEmail');
+            
+            if (profileNameElement) profileNameElement.textContent = 'Guest User';
+            if (profileEmailElement) profileEmailElement.textContent = 'Not logged in';
+        }
+    }
+
+    // Public method to refresh user profile (can be called from outside)
+    refreshUserProfile() {
+        this.loadUserProfile();
     }
 
     loadNotifications() {
@@ -890,6 +939,39 @@ class SmartPOSNavbar {
         }
     }
 
+    // Logout function with custom confirmation
+    async logout() {
+        const confirmLogout = await customConfirm({
+            title: 'Logout Confirmation',
+            message: 'Are you sure you want to logout? You will need to sign in again to access your account.',
+            confirmText: 'Logout',
+            cancelText: 'Cancel',
+            type: 'warning'
+        });
+
+        if (confirmLogout) {
+            try {
+                // Use auth service for logout if available
+                if (window.authService && typeof window.authService.logout === 'function') {
+                    window.authService.logout();
+                } else {
+                    // Fallback to basic logout
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    
+                    // Redirect to landing page
+                    window.location.href = '../landing.html';
+                }
+            } catch (error) {
+                console.error('Error during logout:', error);
+                // Still proceed with logout even if there's an error
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '../landing.html';
+            }
+        }
+    }
+
     // Helper function to show/hide notification dot
     showNotificationDot(show = true) {
         const dot = document.getElementById('navbarNotificationDot');
@@ -908,7 +990,7 @@ class SmartPOSNavbar {
     }
 
     handleScanButtonClick() {
-        // Create Smart Scan Dialog
+        // Open scan options dialog
         this.showSmartScanDialog();
     }
 
@@ -923,11 +1005,11 @@ class SmartPOSNavbar {
         const overlay = document.createElement('div');
         overlay.id = 'smartScanDialog';
         overlay.className = 'smart-scan-overlay';
-        
+
         // Create dialog content
         const dialog = document.createElement('div');
         dialog.className = 'smart-scan-dialog';
-        
+
         dialog.innerHTML = `
             <div class="scan-dialog-header">
                 <h3><i class="fas fa-qrcode"></i> Smart Scanner</h3>
@@ -935,10 +1017,8 @@ class SmartPOSNavbar {
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
             <div class="scan-dialog-content">
                 <p>Choose what you want to scan:</p>
-                
                 <div class="scan-options">
                     <div class="scan-option" data-scan-type="barcode">
                         <div class="scan-option-icon">
@@ -952,7 +1032,6 @@ class SmartPOSNavbar {
                             <i class="fas fa-chevron-right"></i>
                         </div>
                     </div>
-                    
                     <div class="scan-option" data-scan-type="bill">
                         <div class="scan-option-icon">
                             <i class="fas fa-receipt"></i>
@@ -966,32 +1045,39 @@ class SmartPOSNavbar {
                         </div>
                     </div>
                 </div>
-                
-                <div class="scan-connection-info">
-                    <div class="connection-status" id="scanConnectionStatus">
-                        <div class="status-dot connecting"></div>
-                        <span>Preparing scanner...</span>
-                    </div>
-                </div>
             </div>
         `;
-        
+
         overlay.appendChild(dialog);
         document.body.appendChild(overlay);
-        
+
         // Add CSS for the dialog
         this.addScanDialogStyles();
-        
+
         // Show with animation
         setTimeout(() => {
             overlay.classList.add('show');
         }, 10);
-        
-        // Setup event listeners
-        this.setupScanDialogEvents(overlay);
-        
-        // Initialize scanner connection
-        this.initializeScannerConnection();
+
+        // Setup event listeners for scan options
+        const closeBtn = overlay.querySelector('#closeScanDialog');
+        closeBtn?.addEventListener('click', () => {
+            overlay.classList.remove('show');
+            setTimeout(() => overlay.remove(), 300);
+        });
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('show');
+                setTimeout(() => overlay.remove(), 300);
+            }
+        });
+        // Scan option clicks: redirect to scanner page with correct mode
+        overlay.querySelectorAll('.scan-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const scanType = option.dataset.scanType;
+                window.location.href = `/frontend/mobile-scanner.html?mode=${scanType}`;
+            });
+        });
     }
 
     addScanDialogStyles() {
@@ -1225,30 +1311,18 @@ class SmartPOSNavbar {
         }, 300);
     }
 
-    initializeScannerConnection() {
-        // Simulate scanner initialization
-        const statusEl = document.getElementById('scanConnectionStatus');
-        if (!statusEl) return;
-        
-        setTimeout(() => {
-            const statusDot = statusEl.querySelector('.status-dot');
-            const statusText = statusEl.querySelector('span');
-            
-            if (statusDot && statusText) {
-                statusDot.className = 'status-dot connected';
-                statusText.textContent = 'Scanner ready - Select scan type above';
-            }
-        }, 1500);
-    }
 
     openMobileScanner(scanType) {
         // Generate room code and token
         const roomCode = 'SC' + Math.floor(100000 + Math.random() * 900000);
         const token = this.generateSecureToken();
         
-        // Create mobile scanner URL
+        // Create mobile scanner URL - ensure we use the correct path relative to the server root
         const baseUrl = window.location.origin;
-        const mobileUrl = `${baseUrl}/mobile-scanner.html?room=${encodeURIComponent(roomCode)}&mode=${scanType}&token=${encodeURIComponent(token)}`;
+        // Get the correct path by removing the current path and adding mobile-scanner.html
+        // This ensures it works regardless of which page we're currently on
+        const returnUrl = encodeURIComponent(window.location.href);
+        const mobileUrl = `${baseUrl}/frontend/mobile-scanner.html?room=${encodeURIComponent(roomCode)}&mode=${scanType}&token=${encodeURIComponent(token)}&returnUrl=${returnUrl}`;
         
         // Check if user is on mobile
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -1257,94 +1331,9 @@ class SmartPOSNavbar {
             // On mobile, redirect to scanner
             window.location.href = mobileUrl;
         } else {
-            // On desktop, open in new tab and show connection instructions
-            window.open(mobileUrl, '_blank');
-            this.showConnectionInstructions(roomCode, mobileUrl, scanType);
+            // On desktop, show QR code for connecting mobile
+            this.showDesktopScannerDialog(roomCode, mobileUrl, scanType, token);
         }
-    }
-
-    showConnectionInstructions(roomCode, mobileUrl, scanType) {
-        // Show a notification about the mobile scanner
-        this.showNotification(`Mobile scanner opened. Room code: ${roomCode}`, 'info');
-        
-        // You could also show a more detailed connection dialog here
-        console.log(`Scanner Type: ${scanType}, Room: ${roomCode}, URL: ${mobileUrl}`);
-    }
-
-    generateSecureToken() {
-        return Math.random().toString(36).substring(2, 15) + 
-               Math.random().toString(36).substring(2, 15);
-    }
-
-    showNotification(message, type = 'info') {
-        // Create a simple notification
-        const notification = document.createElement('div');
-        notification.className = `navbar-notification ${type}`;
-        notification.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            <span>${message}</span>
-        `;
-        
-        // Add notification styles if not present
-        if (!document.getElementById('navbarNotificationStyles')) {
-            const styles = document.createElement('style');
-            styles.id = 'navbarNotificationStyles';
-            styles.textContent = `
-                .navbar-notification {
-                    position: fixed;
-                    top: 100px;
-                    right: 20px;
-                    background: white;
-                    border-radius: 8px;
-                    padding: 16px;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                    z-index: 10001;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    max-width: 400px;
-                    border-left: 4px solid #007bff;
-                    transform: translateX(100%);
-                    transition: transform 0.3s ease;
-                }
-                
-                .navbar-notification.show {
-                    transform: translateX(0);
-                }
-                
-                .navbar-notification.success {
-                    border-left-color: #28a745;
-                }
-                
-                .navbar-notification.error {
-                    border-left-color: #dc3545;
-                }
-                
-                .navbar-notification i {
-                    color: #007bff;
-                }
-                
-                .navbar-notification.success i {
-                    color: #28a745;
-                }
-                
-                .navbar-notification.error i {
-                    color: #dc3545;
-                }
-            `;
-            document.head.appendChild(styles);
-        }
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 100);
-        
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-        }, 4000);
     }
 }
 

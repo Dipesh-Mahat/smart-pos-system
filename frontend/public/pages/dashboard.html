@@ -297,12 +297,90 @@
         }
 
         @media screen and (max-width: 768px) {
+            .main-content {
+                padding: 80px 15px 15px 15px;
+                margin-left: 0;
+            }
+            
             .dashboard-grid {
                 grid-template-columns: 1fr;
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+            
+            .dashboard-card {
+                padding: 20px;
+            }
+            
+            .card-title {
+                font-size: 15px;
+            }
+            
+            .card-value {
+                font-size: 20px;
             }
             
             .quick-actions {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            
+            .action-btn {
+                padding: 12px;
+                font-size: 13px;
+            }
+            
+            .dashboard-sections {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                margin-top: 24px;
+            }
+            
+            .dashboard-section {
+                padding: 20px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .main-content {
+                padding: 70px 10px 10px 10px;
+            }
+            
+            .dashboard-grid {
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .dashboard-card {
+                padding: 16px;
+            }
+            
+            .card-title {
+                font-size: 14px;
+            }
+            
+            .card-value {
+                font-size: 18px;
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .action-btn {
+                padding: 14px;
+                font-size: 14px;
+                min-height: 48px;
+            }
+            
+            .dashboard-sections {
+                gap: 12px;
+                margin-top: 20px;
+            }
+            
+            .dashboard-section {
+                padding: 16px;
             }
         }        /* Dashboard Sections */
         .dashboard-sections {
@@ -551,6 +629,13 @@
                 .then(() => {
                     // Load dashboard data
                     loadDashboardData();
+                    
+                    // Refresh user profile in navbar after a small delay to ensure navbar is ready
+                    setTimeout(() => {
+                        if (window.smartPOSNavbar && typeof window.smartPOSNavbar.refreshUserProfile === 'function') {
+                            window.smartPOSNavbar.refreshUserProfile();
+                        }
+                    }, 100);
                 })
                 .catch(error => {
                     console.error('Error refreshing token:', error);
@@ -929,6 +1014,7 @@
     <!-- Navbar and Menu Scripts -->
     <script src="../js/navbar.js"></script>
     <script src="../js/menu.js"></script>
+    <script src="../js/custom-modals.js"></script>
     <script>
         // Initialize navbar with dashboard-specific options
         document.addEventListener('DOMContentLoaded', function() {
@@ -937,20 +1023,17 @@
                 showNotifications: true,
                 showProfile: true,
                 customActions: [
-                    // Removed refresh button
-                    { id: 'export-report', icon: 'download', title: 'Export Report' },
                     { id: 'quick-sale', icon: 'cash-register', title: 'Quick Sale' }
                 ]
             });
 
+            // Store navbar instance globally so we can update user profile later
+            window.smartPOSNavbar = navbar;
+
             // Handle custom navbar actions
-            window.addEventListener('navbarAction', (event) => {
+            window.addEventListener('navbarAction', async (event) => {
                 const { actionId } = event.detail;
                 switch(actionId) {
-                    // Removed refresh case
-                    case 'export-report':
-                        alert('Export report functionality will be implemented');
-                        break;
                     case 'quick-sale':
                         window.location.href = 'pos.html';
                         break;

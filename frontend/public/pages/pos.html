@@ -10,12 +10,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Socket.IO removed: real-time communication not used -->
     <script src="../js/scanner-mobile.js"></script>
     <script src="../js/scanner-connection.js"></script>
     <script src="../js/scanner-unified.js"></script>
+    <script src="../js/google-auth.js"></script>
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
-    <script src="../js/demo-products.js"></script>    <!-- Preload menu styles to prevent flicker -->
+    <script src="../js/custom-modals.js"></script>
+    <script src="../js/enhanced-scanner.js"></script>
+    <script src="../js/qr-connection-helper.js"></script>
+    <script src="../js/scanner-qr-interface.js"></script>
+    <script src="../js/demo-products.js"></script>
+    <script src="../js/pos-system.js"></script>    <!-- Preload menu styles to prevent flicker -->
     <style>
         /* Comprehensive preload styles to prevent menu flicker */
         .menu-container {
@@ -161,6 +168,8 @@
             background-color: var(--primary-dark) !important;
             box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3) !important;
         }
+        
+        /* Content below is for the scan button in the page content, not navbar */
           body {
             font-family: var(--font-family);
             color: var(--gray-800);
@@ -296,6 +305,11 @@
             box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
         }
         
+        /* Link scan button to product scanner */
+        .scan-btn[data-scan-type="barcode"] {
+            cursor: pointer;
+        }
+        
         .categories-bar {
             display: flex;
             flex-direction: row;
@@ -360,29 +374,6 @@
             height: 100%;
             max-height: 100%;
             border: 1px solid var(--gray-200);
-        }
-        
-        .products-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid var(--gray-200);
-        }
-        
-        .products-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--gray-800);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .products-title::before {
-            content: '🛍️';
-            font-size: 18px;
         }
         
         /* Loading State */
@@ -596,9 +587,12 @@
             flex-direction: column;
             min-width: 350px;
             max-width: 400px;
-            min-height: 0;
-            height: 80vh;
-            max-height: 80vh;
+            min-height: fit-content;
+            height: auto;
+            max-height: calc(100vh - 140px); /* Maximum height limit */
+            position: sticky;
+            top: 24px; /* Matches the pos-main top padding */
+            align-self: flex-start; /* Prevents stretching with flex container */
         }
         
         .cart-header {
@@ -633,8 +627,9 @@
             flex: 1;
             overflow-y: auto;
             padding: 12px 20px;
-            max-height: calc(80vh - 250px);
-            min-height: 300px;
+            min-height: 150px; /* Smaller minimum height */
+            max-height: calc(100vh - 320px); /* Leaves space for header and footer */
+            height: auto; /* Allows content to determine height */
         }
         
         .cart-empty {
@@ -831,83 +826,220 @@
             .pos-content {
                 flex-direction: column;
                 max-height: none;
+                gap: 16px;
             }
             
             .cart-panel {
+                order: -1; /* Move cart above products */
                 min-width: 100%;
-                max-height: 400px;
-                height: 400px;
+                max-height: none;
+                height: auto;
+                min-height: 200px;
+                position: relative;
+                top: 0;
+                margin: 0;
+                margin-bottom: 16px;
+            }
+            
+            .cart-items {
+                max-height: 150px;
+                min-height: 100px;
             }
             
             .products-grid {
-                margin-bottom: 20px;
+                order: 1; /* Products come after cart */
+                margin: 0;
                 height: auto;
-                max-height: 60vh;
+                max-height: none;
+                min-height: 60vh;
             }
             
             .products-list {
-                max-height: calc(60vh - 100px);
+                max-height: none;
+                min-height: 60vh;
+                height: auto;
+            }
+            
+            .pos-main {
+                height: auto;
+                min-height: 100vh;
             }
         }
 
         @media screen and (max-width: 768px) {
-            .search-bar {
+            .main-content {
+                padding: 0;
+                margin-left: 0;
+            }
+            
+            .pos-main {
+                padding: 0;
+                height: auto;
+                min-height: 100vh;
+                display: flex;
                 flex-direction: column;
-                padding: 12px;
+            }
+            
+            .search-bar {
+                order: 1;
+                flex-direction: row;
+                padding: 16px;
+                gap: 12px;
+                background: white;
+                border-bottom: 1px solid var(--gray-200);
             }
             
             .search-input {
-                width: 100%;
+                flex: 1;
+                font-size: 16px;
+                padding: 14px 16px;
             }
             
             .scan-btn {
-                width: 100%;
+                min-width: 50px;
+                padding: 14px;
                 justify-content: center;
+            }
+            
+            .categories-bar {
+                order: 4;
+                padding: 12px 16px;
+                overflow-x: auto;
+                white-space: nowrap;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                background: white;
+                border-bottom: 1px solid var(--gray-200);
+            }
+            
+            .categories-bar::-webkit-scrollbar {
+                display: none;
             }
             
             .quick-actions {
                 display: none;
-            }            .products-list {
+            }
+            
+            .pos-content {
+                order: 2;
+                padding: 0;
+                gap: 0;
+                flex-direction: column;
+                display: flex;
+            }
+            
+            .cart-panel {
+                order: 1;
+                margin-bottom: 0;
+                padding: 16px;
+                border-radius: 0;
+                background: white;
+                border-bottom: 1px solid var(--gray-200);
+                box-shadow: none;
+            }
+            
+            .cart-items {
+                max-height: 200px;
+                min-height: 120px;
+            }
+            
+            .products-grid {
+                order: 2;
+                padding: 16px;
+                padding-top: 0;
+                height: auto;
+                max-height: none;
+                min-height: 70vh;
+                background: white;
+            }
+            
+            .products-list {
                 grid-template-columns: repeat(auto-fill, minmax(140px, 180px));
                 justify-content: start;
-                max-height: calc(50vh - 80px);
+                max-height: none;
+                height: auto;
+                min-height: 70vh;
+                gap: 12px;
+                overflow-y: auto;
+                padding-bottom: 20px;
             }
             
             .product-card {
                 height: 220px;
                 max-width: 180px;
+                padding: 12px;
             }
             
             .product-img {
                 height: 100px;
             }
             
-            .cart-panel {
-                max-height: 400px;
+            .product-name {
+                font-size: 14px;
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
             }
             
-            .pos-main {
-                padding: 15px;
-            }
-            
-            .products-grid {
-                height: auto;
-                max-height: 50vh;
+            .product-price {
+                font-size: 15px;
             }
         }
         
         @media screen and (max-width: 576px) {
             .pos-main {
-                padding: 10px;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .search-bar {
+                order: 1;
+                padding: 12px;
+                background: white;
+                border-bottom: 1px solid var(--gray-200);
+            }
+            
+            .categories-bar {
+                order: 4;
+                padding: 12px;
+                background: white;
+                border-bottom: 1px solid var(--gray-200);
+            }
+            
+            .pos-content {
+                order: 2;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .cart-panel {
+                order: 1;
+                padding: 12px;
+                background: white;
+                border-bottom: 1px solid var(--gray-200);
+                border-radius: 0;
+                box-shadow: none;
+            }
+            
+            .products-grid {
+                order: 2;
+                padding: 12px;
+                padding-top: 0;
+                background: white;
             }
             
             .products-list {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 10px;
+                min-height: 80vh;
+                overflow-y: auto;
+                padding-bottom: 20px;
             }
             
             .product-card {
                 padding: 10px;
+                height: 200px;
             }
             
             .product-img {
@@ -924,6 +1056,17 @@
             
             .cart-item {
                 flex-wrap: wrap;
+                padding: 8px 0;
+            }
+            
+            .cart-item-left {
+                flex: 1;
+                min-width: 100%;
+                margin-bottom: 8px;
+            }
+            
+            .item-price {
+                margin-left: auto;
             }
             
             .top-bar {
@@ -931,8 +1074,9 @@
                 margin-bottom: 15px;
             }
             
-            .categories-bar {
-                margin-bottom: 15px;
+            .checkout-btn {
+                padding: 14px;
+                font-size: 15px;
             }
         }
         
@@ -1076,6 +1220,56 @@
             margin: 0;
             color: var(--gray-600);
             font-size: 14px;
+        }
+        
+        /* Connection Status Styles */
+        .connection-status {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--gray-50);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--gray-700);
+            font-size: 14px;
+        }
+        
+        .status-indicator.success {
+            color: var(--success-color);
+        }
+        
+        .status-indicator.warning {
+            color: var(--warning-color);
+        }
+        
+        .status-indicator.error {
+            color: var(--danger-color);
+        }
+        
+        /* QR Code Display */
+        .qr-code-display {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .qr-code-display img {
+            max-width: 200px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .qr-code-display p {
+            margin-top: 10px;
+            color: var(--gray-600);
+            font-size: 13px;
         }
         
         /* Camera Modal Styles */
@@ -1296,154 +1490,9 @@
             visibility: visible;
         }
         
-        /* Smart Scan Dialog Styles */
-        .smart-scan-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .smart-scan-dialog {
-            background: white;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.3s ease;
-        }
-
-        .scan-dialog-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 24px;
-            border-bottom: 1px solid #e9ecef;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 12px 12px 0 0;
-        }
-
-        .scan-dialog-header h3 {
-            margin: 0;
-            font-size: 1.2rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .close-scan-dialog {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: background-color 0.2s ease;
-        }
-
-        .close-scan-dialog:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .scan-dialog-content {
-            padding: 24px;
-        }
-
-        .scan-dialog-content p {
-            margin: 0 0 20px 0;
-            color: #666;
-            line-height: 1.5;
-        }
-
-        .scan-connection-info {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-            color: #495057;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        .status-dot.connected {
-            background-color: #28a745;
-            animation: none;
-        }
-
-        .status-dot.connecting {
-            background-color: #ffc107;
-        }
-
-        .status-dot.disconnected {
-            background-color: #dc3545;
-            animation: none;
-        }
-
-        .scan-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .scan-action-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 14px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-
-        .scan-action-btn.primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .scan-action-btn.primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .scan-action-btn.secondary {
-            background: #e9ecef;
-            color: #495057;
-            border: 1px solid #dee2e6;
-        }
-
-        .scan-action-btn.secondary:hover {
-            background: #dee2e6;
-            transform: translateY(-1px);
-        }
+        /* The smart scan dialog styles are now provided by navbar.js */
+        
+        /* The scan dialog styles are now provided by navbar.js */
 
         /* Scan notification */
         .scan-notification {
@@ -1502,7 +1551,7 @@
             background-color: white;
             border-radius: var(--border-radius);
             width: 90%;
-            max-width: 500px;
+            max-width: 550px;
             padding: 24px;
             box-shadow: var(--box-shadow-md);
             transform: translateY(20px);
@@ -1513,6 +1562,132 @@
         .mobile-scanner-modal.active .mobile-scanner-content {
             transform: translateY(0);
             opacity: 1;
+        }
+        
+        /* Connection steps styles */
+        .connection-steps {
+            padding: 0 10px;
+        }
+        
+        .step {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        
+        .step.active {
+            opacity: 1;
+        }
+        
+        .step-number {
+            width: 36px;
+            height: 36px;
+            background: #e9ecef;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .step.active .step-number {
+            background: #007bff;
+            color: white;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-content h4 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+        }
+        
+        .step-content p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .qr-container {
+            margin: 20px auto;
+            width: 200px;
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e9ecef;
+        }
+        
+        .qr-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: #6c757d;
+        }
+        
+        .qr-loading i {
+            font-size: 24px;
+        }
+        
+        .connection-info {
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .scanner-url {
+            display: flex;
+            margin: 10px auto;
+            max-width: 400px;
+        }
+        
+        .scanner-url input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-right: none;
+            border-radius: 4px 0 0 4px;
+            font-size: 14px;
+        }
+        
+        .scanner-url button {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            background: #f8f9fa;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        
+        .scanner-url button:hover {
+            background: #e9ecef;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .status-spinner {
+            animation: spin 2s infinite linear;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         .scanner-header {
@@ -1767,8 +1942,8 @@
                     <!-- 1. Search bar and scan button at the very top -->
                     <div class="search-bar">
                         <input type="text" class="search-input" id="searchInput" placeholder="Search products or scan barcode...">
-                        <button class="scan-btn" id="scanBtn">
-                            <i class="fas fa-qrcode"></i> Scan
+                        <button class="scan-btn" id="scanBtn" data-scan-type="barcode">
+                            <i class="fas fa-barcode"></i> Scan Product
                         </button>
                     </div>
                     <!-- 2. Categories bar below search bar -->
@@ -1784,10 +1959,6 @@
                     <!-- 3. Products and Cart below categories -->
                     <div class="pos-content">
                         <div class="products-grid">
-                            <div class="products-header">
-                                <div class="products-title">Products</div>
-                            </div>
-                            
                             <!-- Loading State -->
                             <div class="products-loading" id="productsLoading" style="display: none;">
                                 <div class="loading-spinner">
@@ -1966,50 +2137,38 @@
     <div class="scanner-modal" id="scannerModal">
         <div class="scanner-modal-content">
             <div class="scanner-modal-header">
-                <h3><i class="fas fa-qrcode"></i> Barcode Scanner Options</h3>
+                <h3><i class="fas fa-qrcode"></i> Choose Scan Type</h3>
                 <button class="close-modal" id="closeScannerModal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="scanner-options">
-                <div class="scanner-option" id="directScanOption">
+                <div class="scanner-option" id="productScanOption">
                     <div class="option-icon">
-                        <i class="fas fa-camera"></i>
+                        <i class="fas fa-barcode"></i>
                     </div>
                     <div class="option-content">
-                        <h4>Direct Camera Scan</h4>
-                        <p>Use this device's camera to scan barcodes</p>
+                        <h4>Product Scanning</h4>
+                        <p>Scan product barcodes to add items to cart</p>
                     </div>
                 </div>
                 
-                <div class="scanner-option" id="wifiScanOption">
+                <div class="scanner-option" id="billScanOption">
                     <div class="option-icon">
-                        <i class="fas fa-wifi"></i>
+                        <i class="fas fa-receipt"></i>
                     </div>
                     <div class="option-content">
-                        <h4>Connect via WiFi</h4>
-                        <p>Connect your mobile device via WiFi hotspot</p>
+                        <h4>Bill Scanning</h4>
+                        <p>Scan receipts and bills with OCR technology</p>
                     </div>
                 </div>
-                
-                <div class="scanner-option" id="bluetoothScanOption">
-                    <div class="option-icon">
-                        <i class="fab fa-bluetooth"></i>
-                    </div>
-                    <div class="option-content">
-                        <h4>Connect via Bluetooth</h4>
-                        <p>Pair your mobile device via Bluetooth</p>
-                    </div>
-                </div>
-                
-                <div class="scanner-option" id="mobileScanOption">
-                    <div class="option-icon">
-                        <i class="fas fa-mobile-alt"></i>
-                    </div>
-                    <div class="option-content">
-                        <h4>Mobile Web Scanner</h4>
-                        <p>Open scanner in mobile browser</p>
-                    </div>
+            </div>
+            
+            <!-- Connection Status -->
+            <div class="connection-status" id="connectionStatus">
+                <div class="status-indicator">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Checking device connectivity...</span>
                 </div>
             </div>
         </div>
@@ -2047,6 +2206,9 @@
     </div>
     </div>
 
+    <!-- Mobile Scanner Connection Modal -->
+
+
     <div class="bill-modal" id="billModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:3000; justify-content:center; align-items:center;">
   <div style="background:#fff; border-radius:12px; max-width:400px; width:95%; padding:24px; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
     <h2 style="margin-top:0; text-align:center;">Bill Summary</h2>
@@ -2075,15 +2237,23 @@
         document.addEventListener('DOMContentLoaded', function() {
             posSystem = new SmartPOSSystem();
             
-            // Initialize unified scanner connection
-            window.unifiedScannerConnection = new UnifiedScannerConnection();
+            // Device detection function
+            function isMobileDevice() {
+                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                       window.innerWidth <= 768 || 
+                       ('ontouchstart' in window) || 
+                       (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+            }
             
             // Set up event listeners
             const scanBtn = document.getElementById('scanBtn');
             if (scanBtn) {
                 scanBtn.addEventListener('click', function() {
-                    // Use the same smart scan dialog as navbar, but for product scanning only
-                    showProductScanDialog();
+                    // Always open camera scanner directly (no connection logic)
+                    document.getElementById('cameraModal').classList.add('active');
+                    if (posSystem && posSystem.startDirectScan) {
+                        posSystem.startDirectScan();
+                    }
                 });
             }
             
@@ -2094,12 +2264,19 @@
                 });
             }
             
-            const directScanOption = document.getElementById('directScanOption');
-            if (directScanOption) {
-                directScanOption.addEventListener('click', function() {
-                    document.getElementById('scannerModal').classList.remove('active');
-                    document.getElementById('cameraModal').classList.add('active');
-                    posSystem.startDirectScan();
+            // Product scanning option
+            const productScanOption = document.getElementById('productScanOption');
+            if (productScanOption) {
+                productScanOption.addEventListener('click', function() {
+                    startScanning('product');
+                });
+            }
+            
+            // Bill scanning option
+            const billScanOption = document.getElementById('billScanOption');
+            if (billScanOption) {
+                billScanOption.addEventListener('click', function() {
+                    startScanning('bill');
                 });
             }
             
@@ -2127,11 +2304,11 @@
             
             const checkoutBtn = document.getElementById('checkoutBtn');
             if (checkoutBtn) {
-                checkoutBtn.addEventListener('click', function() {
+                checkoutBtn.addEventListener('click', async function() {
                     // Always use posSystem.cart if available, else fallback to window.cart
                     let currentCart = (posSystem && Array.isArray(posSystem.cart)) ? posSystem.cart : (window.cart || []);
                     if (!currentCart || currentCart.length === 0) {
-                        alert('Cart is empty!');
+                        await customAlert('Cart Empty', 'Please add items to your cart before checking out.', 'warning');
                         return;
                     }
                     showBillModal(currentCart);
@@ -2139,29 +2316,7 @@
             }
             
             // Connection options
-            const wifiScanOption = document.getElementById('wifiScanOption');
-            if (wifiScanOption) {
-                wifiScanOption.addEventListener('click', function() {
-                    document.getElementById('scannerModal').classList.remove('active');
-                    posSystem.connectMobile('wifi');
-                });
-            }
-            
-            const bluetoothScanOption = document.getElementById('bluetoothScanOption');
-            if (bluetoothScanOption) {
-                bluetoothScanOption.addEventListener('click', function() {
-                    document.getElementById('scannerModal').classList.remove('active');
-                    posSystem.connectMobile('bluetooth');
-                });
-            }
-            
-            const mobileScanOption = document.getElementById('mobileScanOption');
-            if (mobileScanOption) {
-                mobileScanOption.addEventListener('click', function() {
-                    document.getElementById('scannerModal').classList.remove('active');
-                    posSystem.openMobileScanner();
-                });
-            }
+
         });
         
         // Product scan dialog specifically for POS page
@@ -2176,140 +2331,73 @@
             const overlay = document.createElement('div');
             overlay.id = 'productScanDialog';
             overlay.className = 'smart-scan-overlay';
-            
+
             // Create dialog content
             const dialog = document.createElement('div');
             dialog.className = 'smart-scan-dialog';
-            
+
             dialog.innerHTML = `
                 <div class="scan-dialog-header">
-                    <h3><i class="fas fa-barcode"></i> Product Scanner</h3>
+                    <h3><i class="fas fa-qrcode"></i> Smart Scanner</h3>
                     <button class="close-scan-dialog" id="closeProductScanDialog">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                
                 <div class="scan-dialog-content">
                     <p>Ready to scan product barcodes for quick checkout and inventory.</p>
-                    
-                    <div class="scan-connection-info">
-                        <div class="connection-status" id="productScanConnectionStatus">
-                            <div class="status-dot ${window.unifiedScannerConnection && window.unifiedScannerConnection.isConnected ? 'connected' : 'connecting'}"></div>
-                            <span>${window.unifiedScannerConnection && window.unifiedScannerConnection.isConnected ? 'Mobile scanner connected' : 'Connecting to mobile scanner...'}</span>
+                    <div class="scan-options">
+                        <div class="scan-option" id="startProductScan">
+                            <div class="scan-option-icon">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            <div class="scan-option-content">
+                                <h4>Start Product Scanning</h4>
+                                <p>Scan product barcodes using camera</p>
+                            </div>
+                            <div class="scan-option-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="scan-actions">
-                        <button class="scan-action-btn primary" id="startProductScan">
-                            <i class="fas fa-camera"></i>
-                            Start Product Scanning
-                        </button>
-                        <button class="scan-action-btn secondary" id="manualBarcodeEntry">
-                            <i class="fas fa-keyboard"></i>
-                            Manual Entry
-                        </button>
+                        <div class="scan-option" id="manualBarcodeEntry">
+                            <div class="scan-option-icon">
+                                <i class="fas fa-keyboard"></i>
+                            </div>
+                            <div class="scan-option-content">
+                                <h4>Manual Entry</h4>
+                                <p>Enter product barcode manually</p>
+                            </div>
+                            <div class="scan-option-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
-            
+
             overlay.appendChild(dialog);
             document.body.appendChild(overlay);
-            
+
             // Add event listeners
             document.getElementById('closeProductScanDialog').addEventListener('click', () => {
                 overlay.remove();
             });
-            
+
             document.getElementById('startProductScan').addEventListener('click', () => {
-                if (window.unifiedScannerConnection) {
-                    // Check if already connected
-                    if (window.unifiedScannerConnection.isConnected) {
-                        // Already connected, close dialog and show scanning feedback
-                        overlay.remove();
-                        showScanningFeedback('Product');
-                    } else {
-                        // Connect specifically for barcode scanning
-                        window.unifiedScannerConnection.connectBarcode()
-                            .then(() => {
-                                overlay.remove();
-                                showScanningFeedback('Product');
-                            })
-                            .catch(error => {
-                                console.error('Failed to connect:', error);
-                                alert('Failed to connect to mobile scanner. Please try again.');
-                            });
-                    }
-                } else {
-                    // Fallback to direct scanning
-                    overlay.remove();
-                    document.getElementById('scannerModal').classList.add('active');
-                }
+                overlay.remove();
+                document.getElementById('scannerModal').classList.add('active');
             });
-            
+
             document.getElementById('manualBarcodeEntry').addEventListener('click', () => {
                 overlay.remove();
                 showManualBarcodeEntry();
             });
-            
+
             // Close on overlay click
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) {
                     overlay.remove();
                 }
             });
-            
-            // If unified scanner is available, listen for scan results
-            if (window.unifiedScannerConnection) {
-                window.unifiedScannerConnection.on('scan', (data) => {
-                    // Process the scanned barcode regardless of scan type for POS
-                    if (data.content || data.barcode) {
-                        const barcode = data.content || data.barcode;
-                        posSystem.processBarcode(barcode);
-                        overlay.remove();
-                    }
-                });
-                
-                // Update connection status
-                const statusElement = document.getElementById('productScanConnectionStatus');
-                if (statusElement) {
-                    window.unifiedScannerConnection.on('statusChange', (data) => {
-                        const dot = statusElement.querySelector('.status-dot');
-                        const text = statusElement.querySelector('span');
-                        
-                        if (data.status === 'connected') {
-                            dot.className = 'status-dot connected';
-                            text.textContent = 'Mobile scanner connected';
-                        } else if (data.status === 'connecting') {
-                            dot.className = 'status-dot connecting';
-                            text.textContent = 'Connecting to mobile scanner...';
-                        } else {
-                            dot.className = 'status-dot disconnected';
-                            text.textContent = 'Not connected';
-                        }
-                    });
-                }
-            }
-        }
-        
-        // Show scanning feedback
-        function showScanningFeedback(type) {
-            const notification = document.createElement('div');
-            notification.className = 'scan-notification';
-            notification.innerHTML = `
-                <div class="scan-notification-content">
-                    <i class="fas fa-camera"></i>
-                    <span>Ready to scan ${type.toLowerCase()}s. Point your mobile camera at a barcode.</span>
-                </div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // Auto remove after 3 seconds
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
-                }
-            }, 3000);
         }
         
         // Manual barcode entry
@@ -2320,10 +2408,8 @@
             }
         }
     </script>
-      <!-- Navbar and Menu Scripts -->
     <script src="../js/navbar.js"></script>
     <script src="../js/menu.js"></script>
-    <script src="../js/pos-system.js"></script>
     
     <script>
         // Initialize navbar with POS action buttons
@@ -2331,8 +2417,7 @@
             const navbar = new SmartPOSNavbar({
                 title: 'Point of Sale',
                 customActions: [
-                    { id: 'clearPos', icon: 'redo', title: 'Clear' },
-                    { id: 'newSale', icon: 'receipt', title: 'New Sale' }
+                    { id: 'clearPos', icon: 'redo', title: 'Clear' }
                 ]
             });
             
@@ -2360,33 +2445,29 @@
             });
             
             // Add event listeners for the custom action buttons
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', async function(e) {
                 if (e.target.closest('[data-action="clearPos"]') || e.target.closest('[data-action="clearPos"] *')) {
                     // Clear POS functionality
-                    if (confirm('Are you sure you want to clear all items?')) {
-                        cart = [];
+                    const confirmClear = await customConfirm(
+                        'Clear Cart',
+                        'Are you sure you want to clear all items from the cart?',
+                        'warning'
+                    );
+                    if (confirmClear) {
+                        if (posSystem && Array.isArray(posSystem.cart)) posSystem.cart = [];
+                        if (window.cart) window.cart = [];
                         posSystem.updateCartDisplay();
-                    }
-                } else if (e.target.closest('[data-action="newSale"]') || e.target.closest('[data-action="newSale"] *')) {
-                    // New sale functionality
-                    if (cart.length > 0) {
-                        if (confirm('Start a new sale? Current items will be cleared.')) {
-                            cart = [];
-                            posSystem.updateCartDisplay();
-                        }
-                    } else {
-                        alert('New sale started');
                     }
                 }
             });
         });
         const checkoutBtn = document.getElementById('checkoutBtn');
 if (checkoutBtn) {
-    checkoutBtn.addEventListener('click', function() {
+    checkoutBtn.addEventListener('click', async function() {
         // Always use posSystem.cart if available, else fallback to window.cart
         let currentCart = (posSystem && Array.isArray(posSystem.cart)) ? posSystem.cart : (window.cart || []);
         if (!currentCart || currentCart.length === 0) {
-            alert('Cart is empty!');
+            await customAlert('Cart Empty', 'Please add items to your cart before checking out.', 'warning');
             return;
         }
         showBillModal(currentCart);
@@ -2413,9 +2494,9 @@ function showBillModal(cartArr) {
     billModal.style.display = 'flex';
 
     // Confirm and Cancel handlers
-    document.getElementById('confirmPaymentBtn').onclick = function() {
+    document.getElementById('confirmPaymentBtn').onclick = async function() {
         billModal.style.display = 'none';
-        alert('Payment processed successfully!');
+        await customAlert('Payment Successful', 'Payment processed successfully!', 'success');
         if (posSystem && Array.isArray(posSystem.cart)) posSystem.cart = [];
         if (window.cart) window.cart = [];
         posSystem.updateCartDisplay();
@@ -2467,5 +2548,3 @@ function showBillModal(cartArr) {
             }
         }
    </style>
-</body>
-</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart POS Bill Generator Test</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-12">
+                <h1>Smart POS Bill Generator Test</h1>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Bill Generator</h5>
+                        <p class="card-text">Click the button below to generate a sample bill.</p>
+                        <button id="generateBill" class="btn btn-primary">Generate Sample Bill</button>
+                        <div id="billContainer" class="mt-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/bill-generator.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sample data for bill generation
+            const sampleBillData = {
+                supplier: {
+                    name: "ABC Wholesale Supplies",
+                    contact: "+977 9812345678",
+                    email: "abc@example.com",
+                    address: "Kathmandu, Nepal"
+                },
+                customer: {
+                    name: "XYZ Retail Store",
+                    contact: "+977 9876543210",
+                    email: "xyz@example.com",
+                    address: "Lalitpur, Nepal"
+                },
+                items: [
+                    {
+                        name: "Coca Cola 500ml",
+                        quantity: 50,
+                        unit: "bottles",
+                        barcode: "8901234567890",
+                        cost: 45.00,
+                        sell: 60.00
+                    },
+                    {
+                        name: "Lays Classic Chips 100g",
+                        quantity: 30,
+                        unit: "packs",
+                        barcode: "8907654321098",
+                        cost: 35.00,
+                        sell: 50.00
+                    },
+                    {
+                        name: "Dairy Milk Chocolate 50g",
+                        quantity: 40,
+                        unit: "bars",
+                        barcode: "8904567890123",
+                        cost: 40.00,
+                        sell: 55.00
+                    }
+                ],
+                discount: 5,
+                discountType: 'percentage',
+                tax: 13,
+                taxType: 'percentage',
+                paymentInfo: {
+                    terms: "Net 30",
+                    method: "Bank Transfer"
+                },
+                gstInfo: {
+                    registration: "GST123456789",
+                    pan: "PAN987654321"
+                },
+                notes: "Please keep products in a cool, dry place. Returns accepted within 7 days of delivery for damaged goods only."
+            };
+
+            // Generate bill when button is clicked
+            document.getElementById('generateBill').addEventListener('click', function() {
+                // Enable PDF functionality for the bill generator by updating the script
+                const billGenerator = new SmartPOSBillGenerator({
+                    companyName: "Smart POS Demo Store",
+                    currency: "NPR",
+                    enablePDF: true
+                });
+                
+                // Create bill
+                billGenerator.createBill(sampleBillData);
+                
+                // Show bill preview
+                billGenerator.showPreview(document.getElementById('billContainer'));
+            });
+        });
+    </script>
+</body>
+</html>

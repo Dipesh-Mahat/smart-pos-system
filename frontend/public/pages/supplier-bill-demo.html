@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart POS Supplier Bill Integration</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+    
+    <!-- Required libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Smart POS</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Supplier Bills</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1>Supplier Orders & Bills</h1>
+                    <button id="createDemoOrder" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Create Demo Order
+                    </button>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Order #ORD-2025-001</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Supplier Information</h5>
+                                <p><strong>Name:</strong> ABC Wholesale Supplies</p>
+                                <p><strong>Contact:</strong> +977 9812345678</p>
+                                <p><strong>Email:</strong> abc@example.com</p>
+                                <p><strong>Address:</strong> Kathmandu, Nepal</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Order Details</h5>
+                                <p><strong>Order Date:</strong> 2025-07-22</p>
+                                <p><strong>Status:</strong> <span class="badge bg-warning">Pending</span></p>
+                                <p><strong>Total Amount:</strong> NPR 10,920.00</p>
+                                <!-- Removed Payment Method as per requirements -->
+                            </div>
+                        </div>
+                        
+                        <h5 class="mt-4">Order Items</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Coca Cola 500ml</td>
+                                        <td>50 bottles</td>
+                                        <td>NPR 60.00</td>
+                                        <td>NPR 3,000.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Lays Classic Chips 100g</td>
+                                        <td>30 packs</td>
+                                        <td>NPR 50.00</td>
+                                        <td>NPR 1,500.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Dairy Milk Chocolate 50g</td>
+                                        <td>40 bars</td>
+                                        <td>NPR 55.00</td>
+                                        <td>NPR 2,200.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5>Order Summary</h5>
+                            <div class="row">
+                                <div class="col-md-6 offset-md-6">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Subtotal:</span>
+                                        <span>NPR 9,660.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Tax (13%):</span>
+                                        <span>NPR 1,260.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Shipping:</span>
+                                        <span>NPR 0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between fw-bold">
+                                        <span>Grand Total:</span>
+                                        <span>NPR 10,920.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="bill-container-1" class="mt-4">
+                            <button id="generateBill1" class="btn btn-primary">
+                                <i class="fas fa-file-invoice"></i> Generate Bill
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">Order #ORD-2025-002</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Supplier Information</h5>
+                                <p><strong>Name:</strong> XYZ Distributors</p>
+                                <p><strong>Contact:</strong> +977 9854321098</p>
+                                <p><strong>Email:</strong> xyz@example.com</p>
+                                <p><strong>Address:</strong> Pokhara, Nepal</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Order Details</h5>
+                                <p><strong>Order Date:</strong> 2025-07-21</p>
+                                <p><strong>Status:</strong> <span class="badge bg-success">Delivered</span></p>
+                                <p><strong>Total Amount:</strong> NPR 8,475.00</p>
+                                <!-- Removed Payment Method as per requirements -->
+                            </div>
+                        </div>
+                        
+                        <h5 class="mt-4">Order Items</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Fresh Milk 1L</td>
+                                        <td>25 bottles</td>
+                                        <td>NPR 85.00</td>
+                                        <td>NPR 2,125.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Brown Bread</td>
+                                        <td>30 loaves</td>
+                                        <td>NPR 75.00</td>
+                                        <td>NPR 2,250.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Butter 200g</td>
+                                        <td>20 packs</td>
+                                        <td>NPR 150.00</td>
+                                        <td>NPR 3,000.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5>Order Summary</h5>
+                            <div class="row">
+                                <div class="col-md-6 offset-md-6">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Subtotal:</span>
+                                        <span>NPR 7,375.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Tax (13%):</span>
+                                        <span>NPR 959.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Shipping:</span>
+                                        <span>NPR 200.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Discount (5%):</span>
+                                        <span>-NPR 59.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between fw-bold">
+                                        <span>Grand Total:</span>
+                                        <span>NPR 8,475.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="bill-container-2" class="mt-4">
+                            <button id="generateBill2" class="btn btn-primary">
+                                <i class="fas fa-file-invoice"></i> Generate Bill
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/bill-generator.js"></script>
+    <script src="../js/supplier-bill-integration.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // First order data
+            const order1 = {
+                orderNumber: 'ORD-2025-001',
+                orderDate: '2025-07-22',
+                expectedDeliveryDate: '2025-07-26',
+                status: 'pending',
+                
+                supplierDetails: {
+                    name: 'ABC Wholesale Supplies',
+                    contact: '+977 9812345678',
+                    email: 'abc@example.com',
+                    address: 'Kathmandu, Nepal'
+                    // Removed gstInfo and panInfo as per requirements
+                },
+                
+                shopDetails: {
+                    name: 'My Retail Store',
+                    contact: '+977 9876543210',
+                    email: 'mystore@example.com',
+                    address: 'Lalitpur, Nepal'
+                },
+                
+                items: [
+                    {
+                        name: 'Coca Cola 500ml',
+                        quantity: 50,
+                        unit: 'bottles',
+                        sku: '8901234567890',
+                        unitPrice: 60,
+                        totalPrice: 3000
+                    },
+                    {
+                        name: 'Lays Classic Chips 100g',
+                        quantity: 30,
+                        unit: 'packs',
+                        sku: '8907654321098',
+                        unitPrice: 50,
+                        totalPrice: 1500
+                    },
+                    {
+                        name: 'Dairy Milk Chocolate 50g',
+                        quantity: 40,
+                        unit: 'bars',
+                        sku: '8904567890123',
+                        unitPrice: 55,
+                        totalPrice: 2200
+                    }
+                ],
+                
+                subtotal: 6700,
+                tax: 871,
+                shippingCost: 0,
+                discount: 0,
+                total: 7571
+                // Removed notes as per requirements
+            };
+            
+            // Second order data
+            const order2 = {
+                orderNumber: 'ORD-2025-002',
+                orderDate: '2025-07-21',
+                expectedDeliveryDate: '2025-07-23',
+                actualDeliveryDate: '2025-07-23',
+                status: 'delivered',
+                
+                supplierDetails: {
+                    name: 'XYZ Distributors',
+                    contact: '+977 9854321098',
+                    email: 'xyz@example.com',
+                    address: 'Pokhara, Nepal'
+                    // Removed gstInfo and panInfo as per requirements
+                },
+                
+                shopDetails: {
+                    name: 'My Retail Store',
+                    contact: '+977 9876543210',
+                    email: 'mystore@example.com',
+                    address: 'Lalitpur, Nepal'
+                },
+                
+                items: [
+                    {
+                        name: 'Fresh Milk 1L',
+                        quantity: 25,
+                        unit: 'bottles',
+                        sku: '8901234567891',
+                        unitPrice: 85,
+                        totalPrice: 2125
+                    },
+                    {
+                        name: 'Brown Bread',
+                        quantity: 30,
+                        unit: 'loaves',
+                        sku: '8907654321099',
+                        unitPrice: 75,
+                        totalPrice: 2250
+                    },
+                    {
+                        name: 'Butter 200g',
+                        quantity: 20,
+                        unit: 'packs',
+                        sku: '8904567890124',
+                        unitPrice: 150,
+                        totalPrice: 3000
+                    }
+                ],
+                
+                subtotal: 7375,
+                tax: 959,
+                shippingCost: 200,
+                discount: 59,
+                total: 8475
+                // Removed notes as per requirements
+            };
+            
+            // Initialize bill integration
+            const billIntegration = new SupplierBillIntegration();
+            
+            // Handle generate bill button for first order
+            document.getElementById('generateBill1').addEventListener('click', function() {
+                billIntegration.generateBillFromOrder(order1, document.getElementById('bill-container-1'));
+            });
+            
+            // Handle generate bill button for second order
+            document.getElementById('generateBill2').addEventListener('click', function() {
+                billIntegration.generateBillFromOrder(order2, document.getElementById('bill-container-2'));
+            });
+            
+            // Demo order creation
+            document.getElementById('createDemoOrder').addEventListener('click', function() {
+                // Create a new demo order element
+                const demoOrderContainer = document.createElement('div');
+                demoOrderContainer.className = 'card mb-4';
+                demoOrderContainer.innerHTML = `
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">Order #ORD-2025-003 (New)</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Supplier Information</h5>
+                                <p><strong>Name:</strong> New Supplier Ltd</p>
+                                <p><strong>Contact:</strong> +977 9898989898</p>
+                                <p><strong>Email:</strong> newsupplier@example.com</p>
+                                <p><strong>Address:</strong> Bhaktapur, Nepal</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Order Details</h5>
+                                <p><strong>Order Date:</strong> ${new Date().toISOString().split('T')[0]}</p>
+                                <p><strong>Status:</strong> <span class="badge bg-info">Processing</span></p>
+                                <p><strong>Total Amount:</strong> NPR 15,300.00</p>
+                                <!-- Removed Payment Method as per requirements -->
+                            </div>
+                        </div>
+                        
+                        <div id="bill-container-new" class="mt-4">
+                            <button class="btn btn-primary generate-new-bill">
+                                <i class="fas fa-file-invoice"></i> Generate Bill
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Add to page
+                document.querySelector('.container .row .col-12').prepend(demoOrderContainer);
+                
+                // New order data
+                const newOrder = {
+                    orderNumber: 'ORD-2025-003',
+                    orderDate: new Date().toISOString(),
+                    expectedDeliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+                    status: 'processing',
+                    
+                    supplierDetails: {
+                        name: 'New Supplier Ltd',
+                        contact: '+977 9898989898',
+                        email: 'newsupplier@example.com',
+                        address: 'Bhaktapur, Nepal'
+                        // Removed gstInfo and panInfo as per requirements
+                    },
+                    
+                    shopDetails: {
+                        name: 'My Retail Store',
+                        contact: '+977 9876543210',
+                        email: 'mystore@example.com',
+                        address: 'Lalitpur, Nepal'
+                    },
+                    
+                    items: [
+                        {
+                            name: 'Rice Premium 5kg',
+                            quantity: 10,
+                            unit: 'bags',
+                            sku: '8909090909090',
+                            unitPrice: 550,
+                            totalPrice: 5500
+                        },
+                        {
+                            name: 'Cooking Oil 1L',
+                            quantity: 20,
+                            unit: 'bottles',
+                            sku: '8908080808080',
+                            unitPrice: 250,
+                            totalPrice: 5000
+                        },
+                        {
+                            name: 'Sugar 1kg',
+                            quantity: 15,
+                            unit: 'packs',
+                            sku: '8907070707070',
+                            unitPrice: 120,
+                            totalPrice: 1800
+                        }
+                    ],
+                    
+                    subtotal: 12300,
+                    tax: 1599,
+                    shippingCost: 150,
+                    discount: 0,
+                    total: 14049
+                    // Removed notes as per requirements
+                };
+                
+                // Handle generate bill button
+                demoOrderContainer.querySelector('.generate-new-bill').addEventListener('click', function() {
+                    billIntegration.generateBillFromOrder(newOrder, document.getElementById('bill-container-new'));
+                });
+            });
+        });
+    </script>
+</body>
+</html>

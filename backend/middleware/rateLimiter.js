@@ -1,5 +1,81 @@
 const rateLimit = require('express-rate-limit');
 const { v4: uuidv4 } = require('uuid');
+const { logSecurityEvent } = require('./securityLogger');
+
+let useRedis = false;
+let redisStore = null;
+
+// Try to use Redis if available, fallback to memory store
+try {
+    if (process.env.NODE_ENV === 'production' || process.env.USE_REDIS === 'true') {
+        const { default: RedisStore } = require('rate-limit-redis');
+        const Redis = require('ioredis');
+        
+        const redisClient = new Redis(process.env.REDIS_URL || {
+            host: process.env.REDIS_HOST || 'localhost',
+            port: process.env.REDIS_PORT || 6379,
+            password: process.env.REDIS_PASSWORD
+        });
+        
+        redisStore = () => RedisStore({
+            sendCommand: (...args) => redisClient.call(...args)
+        });
+        useRedis = true;
+        console.log('Using Redis for rate limiting');
+    } else {
+        console.log('Using memory store for rate limiting (development mode)');
+    }
+} catch (error) {
+    console.warn('Redis rate limiter setup failed, using memory store:', error.message);
+}
+
+/**
+ * Dynamic rate limiting based on user role and endpoint
+ * @param {Object} options - Rate limiting options
+ * @returns {Function} Rate limiting middleware
+ */
+const createDynamicRateLimiter = (options = {}) => {
+    return rateLimit({
+        store: useRedis ? redisStore() : new rateLimit.MemoryStore(),
+        windowMs: options.windowMs || 15 * 60 * 1000, // 15 minutes default
+        max: (req) => {
+            // Define limits based on user role and endpoint
+            const limits = {
+                admin: 1000,
+                manager: 500,
+                staff: 200,
+                user: 100,
+                default: 50
+            };
+            
+            // Adjust limits for specific endpoints
+            const apiEndpointLimits = {
+                '/api/auth/login': 5,  // Stricter limit for login attempts
+                '/api/products': 300,   // Higher limit for product listings
+                '/api/orders': 150      // Moderate limit for orders
+            };
+
+            // Get endpoint-specific limit or role-based limit
+            const endpointLimit = apiEndpointLimits[req.path];
+            if (endpointLimit) return endpointLimit;
+
+            // Get role-based limit or default
+            return limits[req.user?.role] || limits.default;
+        },
+        handler: (req, res) => {
+            logSecurityEvent('RATE_LIMIT_EXCEEDED', {
+                ip: req.ip,
+                path: req.path,
+                userRole: req.user?.role || 'anonymous'
+            });
+            
+            res.status(429).json({
+                success: false,
+                message: 'Too many requests, please try again later.'
+            });
+        }
+    });
+};
 
 /**
  * Device identification middleware
@@ -92,6 +168,7 @@ const adminLimiter = rateLimit({
 
 module.exports = {
   identifyDevice,
+  createDynamicRateLimiter,
   apiLimiter,
   authLimiter,
   registerLimiter,

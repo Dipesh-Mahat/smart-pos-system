@@ -20,34 +20,37 @@ class SmartPOSSystem {
         this.updateCartDisplay();
         this.initializeBarcodeScanner();
         console.log('Smart POS System initialized');
-    }    // Load products from API or use demo products
-    loadProducts() {
+    }    // Load products from API
+    async loadProducts() {
         const loadingElement = document.getElementById('productsLoading');
         const productsListElement = document.getElementById('productsList');
         // Show loading state
         if (loadingElement) loadingElement.style.display = 'flex';
         if (productsListElement) productsListElement.style.display = 'none';
 
-        fetch('/products')
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.success && Array.isArray(data.products) && data.products.length > 0) {
-                    this.products = data.products;
-                    this.displayAllProducts();
-                } else {
-                    this.products = getDemoProducts();
-                    this.displayAllProducts();
-                }
-            })
-            .catch(error => {
-                console.error('Error loading products:', error);
+        try {
+            // Use the API service to fetch real products from the database
+            const data = await window.apiService.request('/shop/products');
+            
+            if (data && data.success && Array.isArray(data.products)) {
+                this.products = data.products;
+                console.log('Loaded products from database:', this.products.length);
+            } else {
+                console.warn('Failed to load products from API, using demo data as fallback');
+                // Use demo products as a fallback only if API fails
                 this.products = getDemoProducts();
-                this.displayAllProducts();
-            })
-            .finally(() => {
-                if (loadingElement) loadingElement.style.display = 'none';
-                if (productsListElement) productsListElement.style.display = 'grid';
-            });
+            }
+        } catch (error) {
+            console.error('Error loading products:', error);
+            // Use demo products as a fallback only if API fails
+            this.products = getDemoProducts();
+        }
+        
+        this.displayAllProducts();
+        
+        // Complete loading state
+        if (loadingElement) loadingElement.style.display = 'none';
+        if (productsListElement) productsListElement.style.display = 'grid';
     }
 
     // Initialize product database with barcodes
@@ -633,10 +636,337 @@ class SmartPOSSystem {
         document.body.appendChild(modal);
     }
 
+    // Method to open the mobile scanner connection modal
+    // Method to open the scanner modal (called by navbar scan button)
+    openScannerModal() {
+        // Use the product scan dialog from pos.html
+        if (typeof showProductScanDialog === 'function') {
+            showProductScanDialog();
+        } else {
+            console.error('Product scan dialog function not found');
+            // Fallback to mobile scanner if product scan dialog not available
+            this.openMobileScanner();
+        }
+    }
+    
     openMobileScanner() {
-        const roomCode = this.generateRoomCode();
-        const url = `mobile-scanner.html?room=${roomCode}`;
+        // Create the modal element if it doesn't exist
+        let modal = document.getElementById('mobileScannerModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'mobileScannerModal';
+            modal.className = 'mobile-scanner-modal';
+            
+            modal.innerHTML = `
+                <div class="mobile-scanner-content">
+                    <div class="mobile-scanner-header">
+                        <h3><i class="fas fa-mobile-alt"></i> Mobile Scanner Connection</h3>
+                        <button class="close-modal" id="closeMobileScannerModal">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="connection-steps">
+                        <div class="step active" id="step1">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Connect your mobile device</h4>
+                                <p>Make sure your mobile device is connected to the same WiFi network as this computer.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step" id="step2">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Scan this QR code</h4>
+                                <p>Use your mobile camera to scan this QR code</p>
+                                <div class="qr-container" id="qrCodeContainer">
+                                    <div class="qr-loading">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <span>Generating QR code...</span>
+                                    </div>
+                                </div>
+                                <div class="connection-info">
+                                    <p>Room code: <strong id="roomCodeDisplay">------</strong></p>
+                                    <p>Or open this URL on your mobile device:</p>
+                                    <div class="scanner-url">
+                                        <input type="text" id="scannerUrlInput" readonly>
+                                        <button id="copyUrlButton" title="Copy URL">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step" id="step3">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>Waiting for connection...</h4>
+                                <p>The scanner will automatically start when your device connects</p>
+                                <div class="connection-status">
+                                    <div class="status-spinner">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </div>
+                                    <span id="connectionStatus">Waiting for mobile device...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
         
-        window.open(url, '_blank');
+        // Show the modal
+        modal.classList.add('active');
+        
+        // Set step 1 as active
+        this.setActiveStep(1);
+        
+        // Generate a room code
+        const roomCode = this.generateRoomCode();
+        document.getElementById('roomCodeDisplay').textContent = roomCode;
+        
+        // Create connection URL
+        const baseUrl = window.location.origin;
+        const scannerUrl = `${baseUrl}/mobile-scanner.html?room=${roomCode}`;
+        document.getElementById('scannerUrlInput').value = scannerUrl;
+        
+        // Generate QR code
+        this.generateQRCode(scannerUrl);
+        
+        // Setup copy URL button
+        document.getElementById('copyUrlButton').addEventListener('click', () => {
+            const urlInput = document.getElementById('scannerUrlInput');
+            urlInput.select();
+            document.execCommand('copy');
+            
+            // Show copy success message
+            const copyBtn = document.getElementById('copyUrlButton');
+            const originalHtml = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => {
+                copyBtn.innerHTML = originalHtml;
+            }, 2000);
+        });
+        
+        // Setup close button
+        document.getElementById('closeMobileScannerModal').addEventListener('click', () => {
+            modal.classList.remove('active');
+            this.disconnectMobileScanner();
+        });
+        
+        // Move to step 2 after a brief delay
+        setTimeout(() => {
+            this.setActiveStep(2);
+            
+            // Initialize connection after QR code is displayed
+            this.initializeMobileConnection(roomCode);
+        }, 1000);
+    }
+    
+    // Generate a room code for mobile connection
+    generateRoomCode() {
+        return Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+    
+    // Set the active step in the connection process
+    setActiveStep(stepNumber) {
+        // Remove active class from all steps
+        const steps = document.querySelectorAll('.step');
+        steps.forEach(step => step.classList.remove('active'));
+        
+        // Add active class to current step
+        document.getElementById(`step${stepNumber}`).classList.add('active');
+    }
+    
+    // Generate QR code for mobile connection
+    generateQRCode(url) {
+        const qrContainer = document.getElementById('qrCodeContainer');
+        
+        // Clear existing content
+        qrContainer.innerHTML = '';
+        
+        // Use a placeholder image for now
+        // In a real implementation, use a QR code library like qrcode.js
+        const qrImage = document.createElement('img');
+        qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+        qrImage.alt = 'Scan this QR code with your mobile device';
+        qrImage.style.width = '100%';
+        qrImage.style.height = '100%';
+        
+        qrContainer.appendChild(qrImage);
+    }
+    
+    // Initialize mobile connection
+    initializeMobileConnection(roomCode) {
+        // Move to step 3
+        this.setActiveStep(3);
+        document.getElementById('connectionStatus').textContent = 'Waiting for mobile device...';
+        
+        // In a real implementation, this would use WebSockets or a similar technology
+        // For demonstration purposes, we'll simulate a connection after a delay
+        setTimeout(() => {
+            document.getElementById('connectionStatus').textContent = 'Mobile device connected! Scanner ready.';
+            document.getElementById('connectionStatus').style.color = '#28a745';
+            
+            // Start listening for scans
+            this.startListeningForScans(roomCode);
+        }, 3000);
+    }
+    
+    // Start listening for scans from mobile device
+    startListeningForScans(roomCode) {
+        console.log(`Listening for scans from room: ${roomCode}`);
+        
+        // In a real implementation, this would use WebSockets or a similar technology
+        // For demonstration purposes, we'll simulate a scan after a delay
+        setTimeout(() => {
+            // Simulate a barcode scan
+            const barcode = '9843201234567';
+            this.handleMobileScan(barcode);
+        }, 5000);
+    }
+    
+    // Handle a barcode scan from mobile device
+    handleMobileScan(barcode) {
+        console.log(`Received barcode scan: ${barcode}`);
+        
+        // Close the mobile scanner modal
+        document.getElementById('mobileScannerModal').classList.remove('active');
+        
+        // Find the product by barcode
+        const product = this.findProductByBarcode(barcode);
+        
+        if (product) {
+            // Show the product scan dialog
+            this.showProductScanDialog(product);
+        } else {
+            console.error(`Product not found for barcode: ${barcode}`);
+            // Show error notification
+            this.showNotification('Product not found', 'error');
+        }
+    }
+    
+    // Show product scan dialog
+    showProductScanDialog(product) {
+        // Create dialog overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'smart-scan-overlay';
+        
+        // Create dialog content
+        overlay.innerHTML = `
+            <div class="smart-scan-dialog">
+                <div class="scan-dialog-header">
+                    <h3><i class="fas fa-check-circle"></i> Product Scanned</h3>
+                    <button class="close-scan-dialog" id="closeScanDialog">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="scan-dialog-content">
+                    <div class="scanned-product">
+                        <div class="scanned-product-image">
+                            <img src="${product.image || '../images/product-placeholder.jpg'}" alt="${product.name}">
+                        </div>
+                        <div class="scanned-product-details">
+                            <h4>${product.name}</h4>
+                            <p class="product-price">NPR ${product.price.toFixed(2)}</p>
+                            <p class="product-barcode">Barcode: ${product.barcode}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="quantity-selector">
+                        <label for="productQuantity">Quantity:</label>
+                        <div class="quantity-controls">
+                            <button class="qty-btn" id="decreaseQty">-</button>
+                            <input type="number" id="productQuantity" value="1" min="1" max="${product.stock || 99}">
+                            <button class="qty-btn" id="increaseQty">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="scan-actions">
+                        <button class="scan-action-btn primary" id="addToCartBtn">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                        <button class="scan-action-btn secondary" id="scanMoreBtn">
+                            <i class="fas fa-qrcode"></i> Scan More Items
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add to body
+        document.body.appendChild(overlay);
+        
+        // Setup close button
+        document.getElementById('closeScanDialog').addEventListener('click', () => {
+            overlay.remove();
+        });
+        
+        // Setup quantity controls
+        const quantityInput = document.getElementById('productQuantity');
+        document.getElementById('decreaseQty').addEventListener('click', () => {
+            if (quantityInput.value > 1) {
+                quantityInput.value = parseInt(quantityInput.value) - 1;
+            }
+        });
+        
+        document.getElementById('increaseQty').addEventListener('click', () => {
+            if (parseInt(quantityInput.value) < (product.stock || 99)) {
+                quantityInput.value = parseInt(quantityInput.value) + 1;
+            }
+        });
+        
+        // Setup add to cart button
+        document.getElementById('addToCartBtn').addEventListener('click', () => {
+            const quantity = parseInt(quantityInput.value);
+            this.addToCart(product.id, quantity);
+            overlay.remove();
+            
+            // Show success notification
+            this.showNotification(`${product.name} added to cart`);
+        });
+        
+        // Setup scan more button
+        document.getElementById('scanMoreBtn').addEventListener('click', () => {
+            overlay.remove();
+            this.openMobileScanner();
+        });
+    }
+    
+    // Find product by barcode
+    findProductByBarcode(barcode) {
+        return this.products.find(p => p.barcode === barcode);
+    }
+    
+    // Show notification
+    showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `scan-notification ${type}`;
+        
+        notification.innerHTML = `
+            <div class="scan-notification-content">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Remove after a few seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+    
+    // Disconnect mobile scanner
+    disconnectMobileScanner() {
+        console.log('Disconnecting mobile scanner');
+        // In a real implementation, this would close WebSocket connections
     }
 }

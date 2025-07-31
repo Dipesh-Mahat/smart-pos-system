@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart POS - Suppliers</title>
-    <link rel="stylesheet" href="/frontend/public/css/styles.css">
-    <link rel="stylesheet" href="/frontend/public/css/menu.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/menu.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Global error handler -->
     <script>
@@ -188,19 +188,21 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }        .status-active {
+        }
+        .status-active {
             background: #d4edda;
             color: #28a745;
+            border: 1px solid #28a745;
         }
-
         .status-inactive {
             background: #f8d7da;
             color: #dc3545;
+            border: 1px solid #dc3545;
         }
-
         .status-pending {
             background: #fff3cd;
             color: #ffc107;
+            border: 1px solid #ffc107;
         }
 
         .supplier-details {
@@ -347,6 +349,68 @@
             max-width: 400px;
             margin: 0 auto 20px;
         }
+
+        /* Skeleton Loading Animation */
+        .skeleton-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .skeleton-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            margin-bottom: 15px;
+        }
+
+        .skeleton-title {
+            height: 20px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            width: 80%;
+        }
+
+        .skeleton-text {
+            height: 14px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: pulse 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-text.short {
+            width: 60%;
+        }
+
+        .skeleton-text.medium {
+            width: 75%;
+        }
+
+        .skeleton-text.long {
+            width: 90%;
+        }
+
+        @keyframes pulse {
+            0% { background-position: 0% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Order History Button Styles */
+        .header-actions .btn:hover {
+            background: #c0392b !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
     </style>
 </head>
 <body>    <div class="main-content">
@@ -356,16 +420,11 @@
                 <i class="fas fa-truck"></i>
                 Suppliers
             </div>
-            <div class="header-actions">
-                <button class="btn btn-primary" onclick="addSupplier()">
-                    <i class="fas fa-plus"></i> Add Supplier
-                </button>
-                <button class="btn btn-secondary" onclick="exportSuppliers()">
-                    <i class="fas fa-download"></i> Export
-                </button>
-                <button class="btn btn-secondary" onclick="alert('Import suppliers functionality will be implemented')">
-                    <i class="fas fa-upload"></i> Import
-                </button>
+            <div class="header-actions" style="display: flex; gap: 15px; align-items: center;">
+                <a href="order-history.html" class="btn btn-secondary" style="background: #e74c3c; color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.3s; border: none;">
+                    <i class="fas fa-history"></i>
+                    View Order History
+                </a>
             </div>
         </div>
 
@@ -407,8 +466,6 @@
             <button class="filter-btn" data-filter="active">Active</button>
             <button class="filter-btn" data-filter="pending">Pending</button>
             <button class="filter-btn" data-filter="inactive">Inactive</button>
-            <button class="filter-btn" data-filter="local">Local</button>
-            <button class="filter-btn" data-filter="international">International</button>
         </div>
 
         <!-- Suppliers Grid -->
@@ -438,13 +495,15 @@
                     ? 'http://localhost:5000/api' 
                     : 'https://smart-pos-system.onrender.com/api';
                 
-                const fetchResponse = await fetch(`${API_BASE_URL}/shop/orders/suppliers`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include'
-                });
+            const token = localStorage.getItem('token');
+            const fetchResponse = await fetch(`${API_BASE_URL}/shop/orders/suppliers`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                credentials: 'include'
+            });
                 
                 if (!fetchResponse.ok) {
                     throw new Error(`HTTP error! status: ${fetchResponse.status}`);
@@ -455,9 +514,7 @@
                 if (response.success) {
                     allSuppliers = response.suppliers || [];
                     displaySuppliers(allSuppliers);
-                    updateStatistics();
-                    displaySuppliers(allSuppliers);
-                    updateStatistics();
+                    updateStatistics(allSuppliers);
                 } else {
                     showError(`Failed to load suppliers: ${response.error || response.message || 'Unknown error'}`);
                 }
@@ -536,10 +593,6 @@
                         </div>
                     </div>
                     <div class="supplier-actions">
-                        <button class="btn btn-success" onclick="event.stopPropagation(); createOrder('${supplier._id}')">
-                            <i class="fas fa-plus"></i>
-                            New Order
-                        </button>
                         <button class="btn btn-secondary" onclick="event.stopPropagation(); viewSupplierProducts('${supplier._id}')">
                             <i class="fas fa-boxes"></i>
                             View Products
@@ -552,9 +605,9 @@
         // Update statistics based on suppliers data
         function updateStatistics(suppliers) {
             const totalCount = suppliers.length;
-            const activeCount = suppliers.filter(s => s.status === 'approved').length;
-            const pendingCount = suppliers.filter(s => s.status === 'pending').length;
-            const inactiveCount = suppliers.filter(s => s.status === 'rejected').length;
+            const activeCount = suppliers.filter(s => s.status && (s.status.toLowerCase() === 'approved' || s.status.toLowerCase() === 'active')).length;
+            const pendingCount = suppliers.filter(s => s.status && s.status.toLowerCase() === 'pending').length;
+            const inactiveCount = suppliers.filter(s => s.status && (s.status.toLowerCase() === 'rejected' || s.status.toLowerCase() === 'inactive')).length;
 
             document.querySelector('.stat-card:nth-child(1) .stat-value').textContent = totalCount;
             document.querySelector('.stat-card:nth-child(2) .stat-value').textContent = activeCount;
@@ -568,10 +621,13 @@
         }
 
         function getStatusClass(status) {
-            switch(status) {
+            if (!status) return 'status-inactive';
+            switch (status.toLowerCase()) {
                 case 'approved': return 'status-active';
+                case 'active': return 'status-active';
                 case 'pending': return 'status-pending';
                 case 'rejected': return 'status-inactive';
+                case 'inactive': return 'status-inactive';
                 default: return 'status-inactive';
             }
         }
@@ -597,13 +653,20 @@
         function showLoading(show) {
             const grid = document.getElementById('suppliersGrid');
             if (show) {
-                grid.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <h3>Loading Suppliers...</h3>
-                        <p>Please wait while we fetch the supplier data.</p>
-                    </div>
-                `;
+                // Create skeleton cards
+                let skeletonHTML = '';
+                for (let i = 0; i < 6; i++) {
+                    skeletonHTML += `
+                        <div class="skeleton-card">
+                            <div class="skeleton-avatar"></div>
+                            <div class="skeleton-title"></div>
+                            <div class="skeleton-text short"></div>
+                            <div class="skeleton-text medium"></div>
+                            <div class="skeleton-text long"></div>
+                        </div>
+                    `;
+                }
+                grid.innerHTML = skeletonHTML;
             }
         }
 
@@ -638,28 +701,25 @@
 
         function filterSuppliers(filter) {
             let filteredSuppliers = [...allSuppliers];
-            
             // Apply status filter
             if (filter !== 'all') {
                 filteredSuppliers = filteredSuppliers.filter(supplier => {
+                    if (!supplier.status) return false;
+                    const status = supplier.status.toLowerCase();
                     switch(filter) {
                         case 'active':
-                            return supplier.status === 'approved';
+                            return status === 'approved' || status === 'active';
                         case 'pending':
-                            return supplier.status === 'pending';
+                            return status === 'pending';
                         case 'inactive':
-                            return supplier.status === 'rejected';
-                        case 'local':
-                            return supplier.address && supplier.address.country === 'Nepal';
-                        case 'international':
-                            return supplier.address && supplier.address.country !== 'Nepal';
+                            return status === 'rejected' || status === 'inactive';
                         default:
                             return true;
                     }
                 });
             }
-            
             displaySuppliers(filteredSuppliers);
+            updateStatistics(filteredSuppliers);
         }
 
         function viewSupplier(supplierId) {
@@ -672,32 +732,13 @@
             window.location.href = `supplier-products-shopowner.html?supplierId=${supplierId}`;
         }
 
-        function addSupplier() {
-            alert('Adding new suppliers is handled through the registration system. New suppliers can register on the platform and await admin approval.');
-        }
+
 
         function createOrder(supplierId) {
             // Redirect to order creation page
             window.location.href = `create-order.html?supplierId=${supplierId}`;
         }
 
-        function exportSuppliers() {
-            try {
-                const dataStr = JSON.stringify(allSuppliers, null, 2);
-                const dataBlob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(dataBlob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `suppliers_${new Date().toISOString().split('T')[0]}.json`;
-                link.click();
-                URL.revokeObjectURL(url);
-                
-                showToast('Suppliers data exported successfully!', 'success');
-            } catch (error) {
-                console.error('Export error:', error);
-                showToast('Failed to export suppliers data', 'error');
-            }
-        }
 
         function showToast(message, type = 'info') {
             const toast = document.createElement('div');
@@ -737,33 +778,15 @@
     </script>
 
     <!-- Navbar and Menu Scripts -->
-    <script src="/frontend/public/js/navbar.js"></script>
-    <script src="/frontend/public/js/menu.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script src="../js/menu.js"></script>
+    <script src="../js/custom-modals.js"></script>
     <script>
         // Initialize navbar with custom actions
         document.addEventListener('DOMContentLoaded', function() {
             const navbar = new SmartPOSNavbar({
                 title: 'Suppliers - Smart POS',
-                customActions: [
-                    { id: 'add-supplier', title: 'Add Supplier', icon: 'plus' },
-                    { id: 'export-suppliers', title: 'Export', icon: 'download' },
-                    { id: 'import-suppliers', title: 'Import', icon: 'upload' }
-                ]
-            });
-            // Handle navbar action clicks
-            window.addEventListener('navbarAction', function(e) {
-                switch(e.detail.actionId) {
-                    case 'add-supplier':
-                        addSupplier();
-                        break;
-                    case 'export-suppliers':
-                        exportSuppliers();
-                        break;
-                    case 'import-suppliers':
-                        console.log('Importing suppliers...');
-                        alert('Import suppliers functionality will be implemented');
-                        break;
-                }
+                customActions: []
             });
         });
     </script>

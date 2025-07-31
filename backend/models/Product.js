@@ -19,6 +19,11 @@ const ProductSchema = new Schema({
     trim: true,
     maxlength: [500, 'Description cannot exceed 500 characters']
   },
+  isDemo: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
   category: {
     type: String,
     required: [true, 'Category is required'],

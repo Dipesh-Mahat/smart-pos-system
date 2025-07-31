@@ -168,6 +168,24 @@ exports.getDashboardSummary = async (req, res) => {
       }
     ]);
     
+    // Calculate total items sold
+    const totalItemsSold = await Transaction.aggregate([
+      {
+        $match: {
+          shopId: new mongoose.Types.ObjectId(shopId),
+          createdAt: { $gte: startDate, $lte: endDate },
+          status: { $in: ['completed', 'partially_refunded'] }
+        }
+      },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: null,
+          totalQuantity: { $sum: '$items.quantity' }
+        }
+      }
+    ]);
+
     // Prepare response object in the format expected by frontend
     const salesData = salesSummary.length > 0 ? salesSummary[0] : {
       totalSales: 0,
@@ -175,8 +193,20 @@ exports.getDashboardSummary = async (req, res) => {
       averageTicket: 0
     };
 
+    const itemsSoldData = totalItemsSold.length > 0 ? totalItemsSold[0] : { totalQuantity: 0 };
+
     const response = {
       success: true,
+      // Simplified response for reports page
+      totalSales: salesData.totalSales,
+      transactionCount: salesData.transactionCount,
+      totalItemsSold: itemsSoldData.totalQuantity,
+      averageTicket: salesData.averageTicket,
+      lowStockCount: lowStockCount,
+      recentTransactions: recentTransactions,
+      salesOverTime: salesOverTime,
+      paymentMethodBreakdown: paymentMethodBreakdown,
+      period: period,
       data: {
         todaySales: {
           amount: salesData.totalSales,

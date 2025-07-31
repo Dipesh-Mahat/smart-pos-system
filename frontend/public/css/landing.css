@@ -1017,6 +1017,25 @@ section {
     display: none;
 }
 
+.success-alert {
+    padding: 10px 15px;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    color: #155724;
+    margin-bottom: 20px;
+    display: none;
+    position: relative;
+}
+
+.success-alert::before {
+    content: "✓";
+    display: inline-block;
+    margin-right: 8px;
+    font-weight: bold;
+    color: #28a745;
+}
+
 .loading-popup {
     display: none;
     text-align: center;

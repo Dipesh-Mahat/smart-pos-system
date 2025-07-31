@@ -2,7 +2,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { logSecurityEvent } = require('../utils/securityLogger');
-const axios = require('axios'); // Add this dependency to your package.json
+const { initializeSession } = require('../middleware/sessionSecurity');
+const { resetLoginAttempts } = require('../middleware/bruteForceProtection');
+const axios = require('axios');
 
 // Basic input validation
 const validateLoginInput = (email, password) => {
@@ -29,8 +31,8 @@ const validateLoginInput = (email, password) => {
 // Login function with improved security
 const login = async (req, res) => {
   try {
-    console.log('Login attempt received:', { email: req.body.email });
-    const { email, password } = req.body;
+    console.log('Login attempt received:', { email: req.body.email, role: req.body.role });
+    const { email, password, role } = req.body;
     
     // Validate input
     const { errors, isValid } = validateLoginInput(email, password);
@@ -44,7 +46,20 @@ const login = async (req, res) => {
 
     // Check if user exists - use normalized email for lookup
     const normalizedEmail = email.trim().toLowerCase();
-    const user = await User.findOne({ email: normalizedEmail });
+    
+    // Query to find the user by email
+    let query = { email: normalizedEmail };
+    
+    // First try to find the user with email and role if role is specified
+    let user = null;
+    if (role) {
+      user = await User.findOne({ email: normalizedEmail, role: role });
+    }
+    
+    // If no user found with email and role, find any user with this email (for admin fallback)
+    if (!user) {
+      user = await User.findOne({ email: normalizedEmail });
+    }
     
     // Check if account is locked
     if (user && user.lockUntil && user.lockUntil > Date.now()) {
@@ -56,12 +71,35 @@ const login = async (req, res) => {
     }
 
     // Use constant-time comparison to prevent timing attacks
-    // Don't reveal whether the email exists or password is wrong
-    if (!user || !await bcrypt.compare(password, user.password)) {
-      if (user) {
-        await user.incrementLoginAttempts();
-        logSecurityEvent('LOGIN_FAILED', { email: normalizedEmail });
+    if (!user) {
+      // User not found with this email
+      logSecurityEvent('LOGIN_FAILED', { email: normalizedEmail, reason: 'user_not_found' });
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid credentials'
+      });
+    }
+    
+    // Role logic: allow admin to log in regardless of selected role, but enforce correct role for shopowner/supplier
+    if (role && user.role !== role) {
+      if (user.role === 'admin') {
+        // Allow admin to log in with any role selected
+          // Optionally log a warning or info event
+          logSecurityEvent('LOGIN_ROLE_OVERRIDE', { email: normalizedEmail, requested: role, actual: user.role });
+      } else {
+        // For shopowner/supplier, enforce correct role
+        logSecurityEvent('LOGIN_FAILED', { email: normalizedEmail, reason: 'wrong_role', requested: role, actual: user.role });
+        return res.status(401).json({ 
+          success: false, 
+          message: `Account exists but not as ${role}. Please select the correct user type.`
+        });
       }
+    }
+    
+    // Check password
+    if (!await bcrypt.compare(password, user.password)) {
+      await user.incrementLoginAttempts();
+      logSecurityEvent('LOGIN_FAILED', { email: normalizedEmail, reason: 'wrong_password' });
       return res.status(401).json({ 
         success: false, 
         message: 'Invalid credentials' 
@@ -83,6 +121,12 @@ const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
+    // Initialize secure session
+    initializeSession(req, user);
+
+    // Reset brute force protection attempts on successful login
+    await resetLoginAttempts(req, res, () => {});
+
     logSecurityEvent('LOGIN_SUCCESS', { userId: user._id });
 
     // Return minimal user info to reduce exposure
@@ -93,9 +137,11 @@ const login = async (req, res) => {
       refreshToken, // Return the refresh token for clients without cookie support
       user: {
         id: user._id,
+        email: user.email, // Include email for frontend display
         role: user.role,
         firstName: user.firstName,
         lastName: user.lastName,
+        username: user.username, // Include username for frontend display
         shopName: user.shopName
       }
     });
@@ -184,7 +230,21 @@ const register = async (req, res) => {
       // Use User.create() which is more atomic and handles validation/saving in one step
       const newUser = await User.create(userData);
       console.log('User registered successfully:', newUser.email);
-      
+
+      // Seed demo products for new shopowner
+      if (newUser.role === 'shopowner') {
+        try {
+          const Product = require('../models/Product');
+          const demoProducts = require('../utils/demoProducts');
+          // Attach shopId to each demo product
+          const demoProductsToInsert = demoProducts.map(p => ({ ...p, shopId: newUser._id }));
+          await Product.insertMany(demoProductsToInsert);
+          console.log('Demo products seeded for shop:', newUser._id);
+        } catch (seedErr) {
+          console.error('Error seeding demo products:', seedErr);
+        }
+      }
+
       // Return user ID for debugging purposes
       return res.status(201).json({ 
         success: true,
