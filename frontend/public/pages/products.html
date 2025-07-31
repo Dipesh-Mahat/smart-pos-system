@@ -738,7 +738,13 @@
                 });
             }
 
-            loadProducts() {
+            async loadProducts() {
+                // Initialize products as empty array if not already initialized
+                if (!Array.isArray(this.products)) {
+                    this.products = [];
+                    this.filteredProducts = [];
+                }
+
                 // Show loading state
                 this.showLoading();
 
@@ -749,55 +755,74 @@
                 console.log('User logged in:', window.authService?.isLoggedIn());
                 console.log('Current user:', window.authService?.getCurrentUser());
 
-                // Load real products from backend
-                window.apiService.get('/shop/products')
-                    .then(response => {
-                        console.log('Products API response:', response);
-                        if (response.success !== false && (response.products || response.data)) {
-                            // Handle both response formats
-                            const products = response.products || response.data || response;
-                            
-                            // Process the products data
-                            const productsWithStatus = Array.isArray(products) ? products.map(product => ({
-                                ...product,
-                                id: product._id, // Use MongoDB _id as id
-                                listed: product.status === 'active', // Convert status to listed
-                                icon: this.getProductIcon(product.category),
-                                minStock: product.minStockLevel || 5, // Use minStockLevel or default
-                                price: parseFloat(product.price || 0),
-                                cost: parseFloat(product.cost || 0),
-                                stock: parseInt(product.stock || 0)
-                            })) : [];
+                try {
+                    // Check if auth service is available and user is logged in
+                    if (!window.authService || !window.authService.isLoggedIn()) {
+                        throw new Error('Authentication required. Please log in.');
+                    }
 
-                            this.products = productsWithStatus;
-                            this.filteredProducts = [...this.products];
-                            this.renderProducts();
-                            this.updateStats();
-                            
-                            console.log(`Loaded ${this.products.length} products successfully`);
-                        } else {
-                            console.error('Failed to load products:', response);
-                            this.showEmptyWithError(`Failed to load products: ${response.error || response.message || 'Unknown error'}`);
-                        }
-                        this.hideLoading();
-                    })
-                    .catch(error => {
-                        console.error('Error loading products:', error);
-                        let errorMessage = 'Error loading products. ';
+                    // Check if API service is available
+                    if (!window.apiService) {
+                        throw new Error('API service not available. Please refresh the page.');
+                    }
+
+                    // Load real products from backend
+                    const response = await window.apiService.request('/shop/products');
+                    console.log('Products API response:', response);
+                    
+                    // Handle different response formats
+                    let products = [];
+                    
+                    if (response && (response.products || response.data)) {
+                        products = response.products || response.data || [];
+                    } else if (Array.isArray(response)) {
+                        products = response;
+                    }
+                    
+                    console.log('Extracted products:', products);
+                    
+                    // Check if we have products
+                    if (Array.isArray(products)) {
+                        // Process the products data
+                        const productsWithStatus = products.map(product => ({
+                            ...product,
+                            id: product._id || product.id, // Use MongoDB _id as id, fallback to id
+                            listed: product.status === 'active', // Convert status to listed
+                            icon: this.getProductIcon(product.category),
+                            minStock: product.minStockLevel || 5, // Use minStockLevel or default
+                            price: parseFloat(product.price || 0),
+                            cost: parseFloat(product.cost || 0),
+                            stock: parseInt(product.stock || 0)
+                        }));
+
+                        this.products = productsWithStatus || [];
+                        this.filteredProducts = [...this.products];
+                        this.renderProducts();
+                        this.updateStats();
                         
-                        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                            errorMessage += 'Cannot connect to server. Please ensure the backend server is running.';
-                        } else if (error.status === 401) {
-                            errorMessage += 'Authentication failed. Please log in again.';
-                        } else if (error.status === 403) {
-                            errorMessage += 'Access denied. Please check your permissions.';
-                        } else {
-                            errorMessage += 'Please check your connection and try again.';
-                        }
-                        
-                        this.showEmptyWithError(errorMessage);
-                        this.hideLoading();
-                    });
+                        console.log(`Loaded ${this.products.length} products successfully`);
+                    } else {
+                        console.error('Failed to extract products array:', response);
+                        this.showEmptyWithError(`Failed to load products: ${response.error || response.message || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error loading products:', error);
+                    let errorMessage = 'Error loading products. ';
+                    
+                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                        errorMessage += 'Cannot connect to server. Please ensure the backend server is running.';
+                    } else if (error.status === 401) {
+                        errorMessage += 'Authentication failed. Please log in again.';
+                    } else if (error.status === 403) {
+                        errorMessage += 'Access denied. Please check your permissions.';
+                    } else {
+                        errorMessage += 'Please check your connection and try again.';
+                    }
+                    
+                    this.showEmptyWithError(errorMessage);
+                } finally {
+                    this.hideLoading();
+                }
             }
 
             getProductIcon(category) {
@@ -813,79 +838,126 @@
             }
 
             showLoading() {
-                // Show loading state
-                document.getElementById('loadingState').style.display = 'flex';
-                document.getElementById('emptyState').style.display = 'none';
-                
-                // Show skeleton grid
-                const productsGrid = document.getElementById('productsGrid');
-                productsGrid.style.display = 'grid';
-                productsGrid.innerHTML = '';
-                
-                // Create skeleton cards
-                for (let i = 0; i < 8; i++) {
-                    const skeletonCard = document.createElement('div');
-                    skeletonCard.className = 'skeleton-card';
-                    skeletonCard.innerHTML = `
-                        <div class="skeleton-image"></div>
-                        <div class="skeleton-title"></div>
-                        <div class="skeleton-text short"></div>
-                        <div class="skeleton-text medium"></div>
-                        <div class="skeleton-price"></div>
-                    `;
-                    productsGrid.appendChild(skeletonCard);
+                try {
+                    // Show loading state if element exists
+                    const loadingState = document.getElementById('loadingState');
+                    if (loadingState) {
+                        loadingState.style.display = 'flex';
+                    }
+                    
+                    const emptyState = document.getElementById('emptyState');
+                    if (emptyState) {
+                        emptyState.style.display = 'none';
+                    }
+                    
+                    // Show skeleton grid
+                    const productsGrid = document.getElementById('productsGrid');
+                    if (productsGrid) {
+                        productsGrid.style.display = 'grid';
+                        productsGrid.innerHTML = '';
+                        
+                        // Create skeleton cards
+                        for (let i = 0; i < 8; i++) {
+                            const skeletonCard = document.createElement('div');
+                            skeletonCard.className = 'skeleton-card';
+                            skeletonCard.innerHTML = `
+                                <div class="skeleton-image"></div>
+                                <div class="skeleton-title"></div>
+                                <div class="skeleton-text short"></div>
+                                <div class="skeleton-text medium"></div>
+                                <div class="skeleton-price"></div>
+                            `;
+                            productsGrid.appendChild(skeletonCard);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error showing loading state:', error);
                 }
             }
 
             hideLoading() {
-                document.getElementById('loadingState').style.display = 'none';
-                const productsGrid = document.getElementById('productsGrid');
-                productsGrid.style.display = 'grid';
-                
-                // Remove skeleton cards when loading is complete
-                const skeletonCards = productsGrid.querySelectorAll('.skeleton-card');
-                if (skeletonCards.length > 0) {
-                    skeletonCards.forEach(card => card.remove());
+                try {
+                    const loadingState = document.getElementById('loadingState');
+                    if (loadingState) {
+                        loadingState.style.display = 'none';
+                    }
+                    
+                    const productsGrid = document.getElementById('productsGrid');
+                    if (productsGrid) {
+                        productsGrid.style.display = 'grid';
+                        
+                        // Remove skeleton cards when loading is complete
+                        const skeletonCards = productsGrid.querySelectorAll('.skeleton-card');
+                        if (skeletonCards.length > 0) {
+                            skeletonCards.forEach(card => card.remove());
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error hiding loading state:', error);
                 }
             }
 
             showEmpty() {
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('productsGrid').style.display = 'none';
-                document.getElementById('emptyState').style.display = 'block';
-                
-                // Reset to default empty state message
-                const emptyState = document.getElementById('emptyState');
-                emptyState.innerHTML = `
-                    <i class="fas fa-box-open"></i>
-                    <h3>No Products Found</h3>
-                    <p>Start by adding your first product using the "Add Product" button in the Products Management section above.</p>
-                `;
+                try {
+                    const loadingState = document.getElementById('loadingState');
+                    if (loadingState) {
+                        loadingState.style.display = 'none';
+                    }
+                    
+                    const productsGrid = document.getElementById('productsGrid');
+                    if (productsGrid) {
+                        productsGrid.style.display = 'none';
+                    }
+                    
+                    const emptyState = document.getElementById('emptyState');
+                    if (emptyState) {
+                        emptyState.style.display = 'block';
+                        
+                        // Reset to default empty state message
+                        emptyState.innerHTML = `
+                            <i class="fas fa-box-open"></i>
+                            <h3>No Products Found</h3>
+                            <p>Start by adding your first product using the "Add Product" button in the Products Management section above.</p>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Error showing empty state:', error);
+                }
             }
 
             showEmptyWithError(message) {
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('productsGrid').style.display = 'none';
-                document.getElementById('emptyState').style.display = 'block';
-                
-                // Show error message
-                const emptyState = document.getElementById('emptyState');
-                emptyState.innerHTML = `
-                    <i class="fas fa-exclamation-triangle" style="color: #ef476f; font-size: 64px; margin-bottom: 20px;"></i>
-                    <h3 style="color: #495057; font-size: 24px; margin-bottom: 10px;">Error Loading Products</h3>
-                    <p style="color: #6c757d; font-size: 16px; margin-bottom: 30px;">${message}</p>
-                    <button class="retry-btn" onclick="window.productsManager.loadProducts()" style="
-                        background: linear-gradient(135deg, #007bff, #0056b3);
-                        color: white;
-                        padding: 12px 24px;
-                        border: none;
-                        border-radius: 8px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 8px;
+                try {
+                    const loadingState = document.getElementById('loadingState');
+                    if (loadingState) {
+                        loadingState.style.display = 'none';
+                    }
+                    
+                    const productsGrid = document.getElementById('productsGrid');
+                    if (productsGrid) {
+                        productsGrid.style.display = 'none';
+                    }
+                    
+                    const emptyState = document.getElementById('emptyState');
+                    if (emptyState) {
+                        emptyState.style.display = 'block';
+                        
+                        // Show error message
+                        emptyState.innerHTML = `
+                            <i class="fas fa-exclamation-triangle" style="color: #ef476f; font-size: 64px; margin-bottom: 20px;"></i>
+                            <h3 style="color: #495057; font-size: 24px; margin-bottom: 10px;">Error Loading Products</h3>
+                            <p style="color: #6c757d; font-size: 16px; margin-bottom: 30px;">${message}</p>
+                            <button class="retry-btn" onclick="window.productsManager.loadProducts()" style="
+                                background: linear-gradient(135deg, #007bff, #0056b3);
+                                color: white;
+                                padding: 12px 24px;
+                                border: none;
+                                border-radius: 8px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 8px;
                         font-size: 16px;
                         box-shadow: 0 4px 15px rgba(0, 123, 255, 0.25);
                         text-decoration: none;
@@ -913,64 +985,110 @@
             renderProducts() {
                 const grid = document.getElementById('productsGrid');
                 
-                if (this.filteredProducts.length === 0) {
+                if (!grid) {
+                    console.error('Product grid element not found');
+                    return;
+                }
+                
+                // Check for valid filtered products array
+                if (!Array.isArray(this.filteredProducts) || this.filteredProducts.length === 0) {
                     this.showEmpty();
                     return;
                 }
 
-                grid.innerHTML = this.filteredProducts.map(product => `
-                    <div class="product-card ${!product.listed ? 'unlisted' : ''}" data-id="${product.id}" data-category="${product.category}">
-                        ${product.stock <= product.minStock ? '<div class="low-stock-warning">⚠️ Low Stock</div>' : ''}
+                try {
+                    grid.innerHTML = this.filteredProducts.map(product => {
+                        // Ensure product has all required fields
+                        const safeProduct = {
+                            id: product.id || product._id || 'unknown',
+                            name: product.name || 'Unnamed Product',
+                            category: product.category || 'Uncategorized',
+                            price: parseFloat(product.price || 0),
+                            stock: parseInt(product.stock || 0),
+                            minStock: parseInt(product.minStock || 5),
+                            unit: product.unit || 'units',
+                            barcode: product.barcode || 'N/A',
+                            imageUrl: product.imageUrl || '',
+                            icon: product.icon || 'fas fa-box',
+                            listed: Boolean(product.listed)
+                        };
                         
-                        <div class="product-image">
-                            ${product.imageUrl ? 
-                                `<img src="${product.imageUrl}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">` :
-                                `<i class="${product.icon}"></i>`
-                            }
-                        </div>
-                        
-                        <div class="product-category">${product.category}</div>
-                        <div class="product-name">${product.name}</div>
-                        
-                        <div class="product-details">
-                            <div class="product-price">NPR ${product.price.toLocaleString()}</div>
-                            <div class="product-stock ${product.stock <= product.minStock ? 'low' : ''} ${product.stock === 0 ? 'out' : ''}">
-                                Stock: ${product.stock} ${product.unit || 'units'}
-                                ${product.stock <= product.minStock && product.stock > 0 ? ' (Low)' : ''}
-                                ${product.stock === 0 ? ' (Out of Stock)' : ''}
+                        return `
+                        <div class="product-card ${!safeProduct.listed ? 'unlisted' : ''}" data-id="${safeProduct.id}" data-category="${safeProduct.category}">
+                            ${safeProduct.stock <= safeProduct.minStock ? '<div class="low-stock-warning">⚠️ Low Stock</div>' : ''}
+                            
+                            <div class="product-image">
+                                ${safeProduct.imageUrl ? 
+                                    `<img src="${safeProduct.imageUrl}" alt="${safeProduct.name}" style="width: 100%; height: 100%; object-fit: cover;">` :
+                                    `<i class="${safeProduct.icon}"></i>`
+                                }
                             </div>
-                            <div class="product-sku">SKU: ${product.barcode || 'N/A'}</div>
+                            
+                            <div class="product-category">${safeProduct.category}</div>
+                            <div class="product-name">${safeProduct.name}</div>
+                            
+                            <div class="product-details">
+                                <div class="product-price">NPR ${safeProduct.price.toLocaleString()}</div>
+                                <div class="product-stock ${safeProduct.stock <= safeProduct.minStock ? 'low' : ''} ${safeProduct.stock === 0 ? 'out' : ''}">
+                                    Stock: ${safeProduct.stock} ${safeProduct.unit}
+                                    ${safeProduct.stock <= safeProduct.minStock && safeProduct.stock > 0 ? ' (Low)' : ''}
+                                    ${safeProduct.stock === 0 ? ' (Out of Stock)' : ''}
+                                </div>
+                                <div class="product-sku">SKU: ${safeProduct.barcode}</div>
+                            </div>
+                            
+                            <div class="product-actions">
+                                <button class="action-btn toggle-btn ${safeProduct.listed ? 'listed' : 'unlisted'}" 
+                                        onclick="productsManager.toggleListing('${safeProduct.id}')" 
+                                        title="${safeProduct.listed ? 'Unlist Product' : 'List Product'}">
+                                    <i class="fas fa-eye${safeProduct.listed ? '' : '-slash'}"></i>
+                                </button>
+                                <button class="action-btn edit-btn" onclick="productsManager.editProduct('${safeProduct.id}')" title="Edit Product">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" onclick="productsManager.deleteProduct('${safeProduct.id}')" title="Delete Product">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
-                        
-                        <div class="product-actions">
-                            <button class="action-btn toggle-btn ${product.listed ? 'listed' : 'unlisted'}" 
-                                    onclick="productsManager.toggleListing('${product.id}')" 
-                                    title="${product.listed ? 'Unlist Product' : 'List Product'}">
-                                <i class="fas fa-eye${product.listed ? '' : '-slash'}"></i>
-                            </button>
-                            <button class="action-btn edit-btn" onclick="productsManager.editProduct('${product.id}')" title="Edit Product">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="action-btn delete-btn" onclick="productsManager.deleteProduct('${product.id}')" title="Delete Product">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
+                        `;
+                    }).join('');
+                } catch (error) {
+                    console.error('Error rendering products:', error);
+                    grid.innerHTML = '<div class="error-message">Error rendering products. Please refresh the page.</div>';
+                }
 
                 this.hideLoading();
             }
 
             updateStats() {
+                // Make sure we have products array
+                if (!Array.isArray(this.products)) {
+                    console.error('Products array is not properly initialized');
+                    return;
+                }
+
                 const total = this.products.length;
                 const active = this.products.filter(p => p.listed).length;
                 const lowStock = this.products.filter(p => p.stock <= p.minStock).length;
                 const unlisted = this.products.filter(p => !p.listed).length;
 
-                document.getElementById('totalProducts').textContent = total;
-                document.getElementById('activeProducts').textContent = active;
-                document.getElementById('lowStockProducts').textContent = lowStock;
-                document.getElementById('unlistedProducts').textContent = unlisted;
+                // Safely update stats elements with error handling
+                const updateElement = (id, value) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = value;
+                    } else {
+                        console.warn(`Element with id '${id}' not found for stats update`);
+                    }
+                };
+
+                updateElement('totalProducts', total);
+                updateElement('activeProducts', active);
+                updateElement('lowStockProducts', lowStock);
+                updateElement('unlistedProducts', unlisted);
+                
+                console.log('Stats updated:', { total, active, lowStock, unlisted });
             }
 
             applyFilters() {

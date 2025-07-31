@@ -28,6 +28,27 @@
         }
     </style>
 </head>
+    <style>
+    /* Custom style for User Type select */
+    .user-type-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1.5px solid #007bff;
+        border-radius: 6px;
+        background: #f8f9fa;
+        color: #333;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: border-color 0.2s;
+        margin-top: 4px;
+        margin-bottom: 8px;
+    }
+    .user-type-select:focus {
+        border-color: #0056b3;
+        outline: none;
+        background: #fff;
+    }
+    </style>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
@@ -454,10 +475,9 @@
                 <form class="popup-form" id="loginForm">
                     <div class="form-group">
                         <label for="loginUserType">User Type</label>
-                        <select id="loginUserType" name="userType" required>
+                        <select id="loginUserType" name="userType" class="user-type-select" required>
                             <option value="shopowner" selected>Shop Owner</option>
                             <option value="supplier">Supplier</option>
-                            <option value="admin">Admin</option>
                         </select>
                     </div>
                     <div class="form-group">

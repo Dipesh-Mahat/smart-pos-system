@@ -249,6 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Redirect based on user role
                 if (data.user && data.user.role) {
+                    console.log('Login successful as:', data.user.role);
                     switch (data.user.role) {
                         case 'admin':
                             window.location.href = 'pages/admin-dashboard.html';
@@ -263,6 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 } else {
                     // Default redirect if no role information
+                    console.log('No role information, using default redirect');
                     window.location.href = 'pages/dashboard.html';
                 }
             } else {
@@ -270,9 +272,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 loginForm.style.display = 'block';
                 loginLoading.style.display = 'none';
                 const errorAlert = document.getElementById('loginErrorAlert');
-                errorAlert.textContent = data.message || 'Login failed';
+                
+                // Provide more specific error message for role mismatch
+                let errorMessage = data.message || 'Login failed';
+                if (data.message === 'Invalid credentials' && userType !== 'admin') {
+                    errorMessage = `Invalid credentials or this email is not registered as a ${userType}. Please check your user type selection.`;
+                }
+                
+                errorAlert.textContent = errorMessage;
                 errorAlert.className = 'error-alert';  // Reset to error styling
                 errorAlert.style.display = 'block';
+                
+                // Log the error for debugging
+                console.error('Login failed:', data);
             }
         } catch (error) {
             console.error('Login error:', error);
