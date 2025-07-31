@@ -5,9 +5,20 @@
 
 class ApiService {
     constructor() {
-        // Use full URL for API to work with both local development and production
-        this.baseUrl = 'http://localhost:5000/api';
+        // Automatically determine if we're using local or production API
+        this.baseUrl = this.determineApiBaseUrl();
         this.authService = window.authService;
+        console.log('API Service initialized with base URL:', this.baseUrl);
+    }
+    
+    determineApiBaseUrl() {
+        // Check if running on Vercel deployment
+        if (window.location.hostname === 'smart-pos-system-lime.vercel.app') {
+            return 'https://smart-pos-system.onrender.com/api';
+        }
+        
+        // For local development
+        return 'http://localhost:5000/api';
     }
 
     /**

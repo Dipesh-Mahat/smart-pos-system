@@ -20,16 +20,32 @@ class SmartPOSSystem {
         this.updateCartDisplay();
         this.initializeBarcodeScanner();
         console.log('Smart POS System initialized');
-    }    // Load products from API or use demo products
-    loadProducts() {
+    }    // Load products from API
+    async loadProducts() {
         const loadingElement = document.getElementById('productsLoading');
         const productsListElement = document.getElementById('productsList');
         // Show loading state
         if (loadingElement) loadingElement.style.display = 'flex';
         if (productsListElement) productsListElement.style.display = 'none';
 
-        // Directly use demo products to avoid API calls during development
-        this.products = getDemoProducts();
+        try {
+            // Use the API service to fetch real products from the database
+            const data = await window.apiService.request('/shop/products');
+            
+            if (data && data.success && Array.isArray(data.products)) {
+                this.products = data.products;
+                console.log('Loaded products from database:', this.products.length);
+            } else {
+                console.warn('Failed to load products from API, using demo data as fallback');
+                // Use demo products as a fallback only if API fails
+                this.products = getDemoProducts();
+            }
+        } catch (error) {
+            console.error('Error loading products:', error);
+            // Use demo products as a fallback only if API fails
+            this.products = getDemoProducts();
+        }
+        
         this.displayAllProducts();
         
         // Complete loading state

@@ -421,6 +421,52 @@
             background: #545b62;
             transform: translateY(-2px);
         }
+        
+        /* Toast notification styles */
+        .toast-message {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: white;
+            color: #333;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .toast-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .toast-message.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .toast-message.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        
+        .toast-message.info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+        }
+        
+        .toast-message i {
+            font-size: 18px;
+        }
 
         .modal {
             position: fixed;
@@ -816,21 +862,11 @@
                 <div class="stat-value" id="totalSalesAmount">NPR 0.00</div>
                 <div class="stat-label">Total Sales</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-calendar-day"></i>
-                </div>
-                <div class="stat-value" id="todayCount">0</div>
-                <div class="stat-label">Today</div>
-            </div>
+
         </div>
 
         <!-- Filter Buttons -->
-        <div class="filter-buttons">
-            <button class="filter-btn" data-filter="today">Today</button>
-            <button class="filter-btn" data-filter="week">This Week</button>
-            <button class="filter-btn" data-filter="month">This Month</button>
-        </div>
+        <!-- Filter buttons removed as requested -->
 
         <!-- Transactions Grid -->
         <div class="transactions-grid" id="transactionsGrid">
@@ -1006,17 +1042,17 @@
     <script>
         // Transaction Management System
         class TransactionManager {
+
             constructor() {
                 this.transactions = [];
                 this.filteredTransactions = [];
-                this.currentFilter = 'today';
                 this.searchTerm = '';
                 this.init();
             }
 
             init() {
                 this.loadTransactionData();
-                this.setupEventListeners();
+                // No filter event listeners needed
             }
 
             async loadTransactionData() {
@@ -1039,33 +1075,29 @@
 
             async fetchTransactionSummary() {
                 try {
-                    const response = await fetch('/api/shop/transaction-summary', {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
+                    // Use the API service for proper authentication and base URL
+                    const data = await window.apiService.request('/shop/transaction-summary');
 
-                    if (response.ok) {
-                        const data = await response.json();
+                    // The API should return the summary stats directly
+                    if (data) {
                         this.updateStatsDisplay(data);
                     } else {
-                        console.error('Failed to fetch transaction summary');
+                        console.error('Failed to fetch transaction summary:', 'No data received');
                         this.updateStatsDisplay({
                             completedCount: 0,
                             pendingCount: 0,
-                            totalSalesAmount: 0,
-                            todayCount: 0
+                            totalSalesAmount: 0
                         });
+                        
+                        // Show error message to user
+                        this.showToast('Failed to load transaction summary data. Please try again later.', 'error');
                     }
                 } catch (error) {
                     console.error('Error fetching transaction summary:', error);
                     this.updateStatsDisplay({
                         completedCount: 0,
                         pendingCount: 0,
-                        totalSalesAmount: 0,
-                        todayCount: 0
+                        totalSalesAmount: 0
                     });
                 }
             }
@@ -1074,32 +1106,33 @@
                 document.getElementById('completedCount').textContent = data.completedCount || 0;
                 document.getElementById('pendingCount').textContent = data.pendingCount || 0;
                 document.getElementById('totalSalesAmount').textContent = `NPR ${(data.totalSalesAmount || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-                document.getElementById('todayCount').textContent = data.todayCount || 0;
             }
 
             async fetchTransactions() {
                 try {
-                    const response = await fetch('/api/shop/transactions', {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
+                    // Use the API service for proper authentication and base URL
+                    const data = await window.apiService.request('/shop/transactions');
 
-                    if (response.ok) {
-                        const data = await response.json();
+                    // The API returns transactions directly in the response object
+                    if (data && data.transactions) {
                         this.transactions = data.transactions || [];
                         this.filteredTransactions = [...this.transactions];
+                        this.renderTransactions();
                     } else {
-                        console.error('Failed to fetch transactions');
+                        console.error('Failed to fetch transactions:', data?.error || 'Unknown error');
                         this.transactions = [];
                         this.filteredTransactions = [];
+                        
+                        // Show error message to user
+                        this.showToast('Failed to load transaction data. Please try again later.', 'error');
                     }
                 } catch (error) {
                     console.error('Error fetching transactions:', error);
                     this.transactions = [];
                     this.filteredTransactions = [];
+                    
+                    // Show error message to user
+                    this.showToast('Error connecting to server. Please check your connection.', 'error');
                 }
             }
 
@@ -1122,23 +1155,12 @@
             }
 
             setupEventListeners() {
-                // Filter buttons
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        this.setActiveFilter(e.target);
-                        this.currentFilter = e.target.getAttribute('data-filter');
-                        this.applyFilters();
-                    });
-                });
-
-                // Modal close events
+                // Only modal close events needed
                 const modal = document.getElementById('transactionModal');
                 const closeBtn = document.getElementById('closeTransactionModal');
-                
                 if (closeBtn) {
                     closeBtn.addEventListener('click', () => this.closeModal());
                 }
-                
                 if (modal) {
                     modal.addEventListener('click', (e) => {
                         if (e.target === modal) {
@@ -1148,49 +1170,9 @@
                 }
             }
 
-            setActiveFilter(activeBtn) {
-                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-                activeBtn.classList.add('active');
-            }
+            // setActiveFilter removed (no filters)
 
-            applyFilters() {
-                let filtered = [...this.transactions];
-
-                // Apply status filter
-                if (this.currentFilter !== 'all') {
-                    if (this.currentFilter === 'today') {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        filtered = filtered.filter(t => new Date(t.date) >= today);
-                    } else if (this.currentFilter === 'week') {
-                        const week = new Date();
-                        week.setDate(week.getDate() - 7);
-                        filtered = filtered.filter(t => new Date(t.date) >= week);
-                    } else if (this.currentFilter === 'month') {
-                        const month = new Date();
-                        month.setMonth(month.getMonth() - 1);
-                        filtered = filtered.filter(t => new Date(t.date) >= month);
-                    } else {
-                        filtered = filtered.filter(t => t.status === this.currentFilter);
-                    }
-                }
-
-                // Apply search filter
-                if (this.searchTerm) {
-                    const term = this.searchTerm.toLowerCase();
-                    filtered = filtered.filter(t => 
-                        t.id.toLowerCase().includes(term) ||
-                        t.receiptNumber.toLowerCase().includes(term) ||
-                        t.total.toString().includes(term) ||
-                        t.customerName.toLowerCase().includes(term) ||
-                        t.items.some(item => item.name.toLowerCase().includes(term))
-                    );
-                }
-
-                this.filteredTransactions = filtered;
-                this.renderTransactions();
-                this.updateStats();
-            }
+            // applyFilters removed (no filters)
 
             renderTransactions() {
                 const grid = document.getElementById('transactionsGrid');
@@ -1240,18 +1222,7 @@
                 `).join('');
             }
 
-            updateStats() {
-                // Stats are now updated via API call in fetchTransactionSummary()
-                // This function is kept for filtering operations
-                const completed = this.filteredTransactions.filter(t => t.status === 'completed').length;
-                const pending = this.filteredTransactions.filter(t => t.status === 'pending').length;
-                
-                // Only update if we're filtering, otherwise use API data
-                if (this.currentFilter !== 'all' || this.searchTerm) {
-                    document.getElementById('completedCount').textContent = completed;
-                    document.getElementById('pendingCount').textContent = pending;
-                }
-            }
+            // updateStats removed (no filters)
 
             showTransactionDetails(transactionId) {
                 const transaction = this.transactions.find(t => t.id === transactionId);
@@ -1379,17 +1350,43 @@
             capitalizeFirst(str) {
                 return str.charAt(0).toUpperCase() + str.slice(1);
             }
+            
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = 'toast-message ' + type;
+                
+                const icon = document.createElement('i');
+                
+                // Set icon based on type
+                if (type === 'error') {
+                    icon.className = 'fas fa-exclamation-circle';
+                } else if (type === 'success') {
+                    icon.className = 'fas fa-check-circle';
+                } else {
+                    icon.className = 'fas fa-info-circle';
+                }
+                
+                toast.appendChild(icon);
+                
+                const textSpan = document.createElement('span');
+                textSpan.textContent = message;
+                toast.appendChild(textSpan);
+                
+                document.body.appendChild(toast);
+                
+                // Add show class for animation
+                setTimeout(() => toast.classList.add('show'), 10);
+                
+                // Remove toast after 3 seconds
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
         }
 
         // Global functions
-        function filterTransactions(filter) {
-            if (window.transactionManager) {
-                const btn = event.target;
-                window.transactionManager.setActiveFilter(btn);
-                window.transactionManager.currentFilter = filter;
-                window.transactionManager.applyFilters();
-            }
-        }
+        // filterTransactions removed (no filters)
 
         function exportTransactions() {
             console.log('Exporting transactions...');
