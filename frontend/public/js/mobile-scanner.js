@@ -8,21 +8,32 @@ class MobileScanner {
         this.scanMode = 'barcode'; // 'barcode' or 'bill'
         this.stream = null;
         this.isFlashOn = false;
-        this.roomCode = null;
         this.scannedItems = [];
         this.barcodeScanner = null;
         this.billScanner = null;
         this.isMobile = this.isMobileDevice();
-        this.deviceId = null;
         this.init();
     }
 
-    init() {
-        this.extractRoomCode();
+    async init() {
+        this.extractScanMode();
         this.setupUI();
-        this.updateConnectionStatus();
-        this.requestCamera();
-        this.setupQRCodeHandling();
+        // Try to request camera access immediately
+        await this.tryAutoRequestCamera();
+    }
+
+    async tryAutoRequestCamera() {
+        // Hide any camera access message if present
+        const cameraMsg = document.getElementById('cameraAccessMsg');
+        if (cameraMsg) cameraMsg.style.display = 'none';
+        try {
+            await this.requestCamera();
+        } catch (err) {
+            // If permission denied, show message
+            if (cameraMsg) {
+                cameraMsg.style.display = 'block';
+            }
+        }
     }
 
     isMobileDevice() {
@@ -30,11 +41,9 @@ class MobileScanner {
                ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0);
     }
 
-    extractRoomCode() {
+    extractScanMode() {
         const urlParams = new URLSearchParams(window.location.search);
-        this.roomCode = urlParams.get('room') || 'MOBILE';
         this.scanMode = urlParams.get('mode') || 'barcode'; // Get scan mode from URL
-        document.getElementById('roomCode').textContent = `Room: ${this.roomCode}`;
         this.updateScanModeUI();
     }
 
@@ -97,132 +106,37 @@ class MobileScanner {
         }
     }
 
-    async updateConnectionStatus() {
-        const statusDot = document.getElementById('statusDot');
-        const connectionStatus = document.getElementById('connectionStatus');
+    // Removed updateConnectionStatus: all connection logic deleted for direct scan mode
 
-        // First attempt to connect
-        statusDot.classList.add('connecting');
-        connectionStatus.textContent = 'Connecting to POS Terminal...';
-
-        // Simulate connection process
-        setTimeout(() => {
-            this.showNotification('Finding POS terminal...', 'info');
-        }, 500);
-
-        setTimeout(() => {
-            this.showNotification(`Authenticating with room code: ${this.roomCode}`, 'info');
-        }, 1200);
-
-        setTimeout(async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('token');
-
-            // Connect to room using the connection module
-            if (typeof mobileScannerConnection !== 'undefined') {
-                this.deviceId = mobileScannerConnection.connectDevice(
-                    this.roomCode, 
-                    {
-                        type: 'mobile',
-                        scanMode: this.scanMode,
-                        browser: navigator.userAgent,
-                        os: navigator.platform,
-                        capabilities: {
-                            camera: !!navigator.mediaDevices,
-                            vibration: 'vibrate' in navigator,
-                            barcode: true,
-                            ocr: true
-                        }
-                    },
-                    token
-                );
-                this.setupReconnectionHandling();
-            }
-
-            // Connection established
-            if (this.deviceId) {
-                statusDot.classList.remove('connecting');
-                statusDot.classList.add('connected');
-                connectionStatus.textContent = 'Connected to POS Terminal';
-                this.showNotification('Connected to POS Terminal', 'success');
-
-                if ('vibrate' in navigator) {
-                    navigator.vibrate([200, 100, 200]);
-                }
-
-                // Auto-start camera and scanning UI
-                await this.requestCamera();
-            } else {
-                statusDot.classList.remove('connecting');
-                statusDot.className = 'status-dot';
-                connectionStatus.textContent = 'Connection failed';
-                this.showNotification('Failed to connect. Invalid room code or authentication token.', 'error');
-            }
-        }, 2000);
-    }
-
-    setupReconnectionHandling() {
-        if (typeof mobileScannerConnection !== 'undefined') {
-            mobileScannerConnection.on('message_to_device', (data) => {
-                if (data.deviceId === this.deviceId || data.deviceId === 'all') {
-                    if (data.messageType === 'barcode_processed') {
-                        const success = data.messageData.success;
-                        if (success) {
-                            this.showNotification(`Product added: ${data.messageData.product.name}`, 'success');
-                        } else {
-                            this.showNotification(`Error: ${data.messageData.error}`, 'error');
-                        }
-                    } else if (data.messageType === 'bill_processed') {
-                        const success = data.messageData.success;
-                        if (success) {
-                            this.showNotification(`Bill processed: ${data.messageData.items.length} items found`, 'success');
-                        } else {
-                            this.showNotification(`Bill error: ${data.messageData.error}`, 'error');
-                        }
-                    }
-                }
-            });
-        }
-    }
+    // Removed setupReconnectionHandling: all connection logic deleted for direct scan mode
 
     async requestCamera() {
-        try {
-            // Initialize the barcode scanner
-            this.barcodeScanner = new BarcodeScanner({
-                videoConstraints: {
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                },
-                scanInterval: 150
-            });
-            
-            const initialized = await this.barcodeScanner.initialize();
-            if (!initialized) {
-                throw new Error('Failed to initialize barcode scanner');
-            }
-            
-            const video = document.getElementById('mobileVideo');
-            this.stream = await this.barcodeScanner.startVideo(video);
-            
-            if (!this.stream) {
-                throw new Error('Failed to start video stream');
-            }
-            
-            // Show video and overlay
-            document.getElementById('noCamera').style.display = 'none';
-            video.style.display = 'block';
-            document.querySelector('.scan-overlay').style.display = 'block';
-            
-            // Enable buttons
-            document.getElementById('scanButton').disabled = false;
-            document.getElementById('flashButton').disabled = false;
-            
-            this.showNotification('Camera ready for scanning', 'success');
-        } catch (error) {
-            console.error('Camera access denied:', error);
-            this.showNotification('Camera access denied: ' + error.message, 'error');
+        // Initialize the barcode scanner
+        this.barcodeScanner = new BarcodeScanner({
+            videoConstraints: {
+                facingMode: 'environment',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
+            scanInterval: 150
+        });
+        const initialized = await this.barcodeScanner.initialize();
+        if (!initialized) {
+            throw new Error('Failed to initialize barcode scanner');
         }
+        const video = document.getElementById('mobileVideo');
+        this.stream = await this.barcodeScanner.startVideo(video);
+        if (!this.stream) {
+            throw new Error('Failed to start video stream');
+        }
+        // Show video and overlay
+        document.getElementById('noCamera').style.display = 'none';
+        video.style.display = 'block';
+        document.querySelector('.scan-overlay').style.display = 'block';
+        // Enable buttons
+        document.getElementById('scanButton').disabled = false;
+        document.getElementById('flashButton').disabled = false;
+        this.showNotification('Camera ready for scanning', 'success');
     }
 
     captureBarcode() {
@@ -523,46 +437,7 @@ class MobileScanner {
         }).join('');
     }
 
-    sendToPOS(type, data) {
-        const statusDot = document.getElementById('statusDot');
-        const connectionStatus = document.getElementById('connectionStatus');
-        
-        if (statusDot && connectionStatus) {
-            const originalClass = statusDot.className;
-            const originalText = connectionStatus.textContent;
-            
-            statusDot.className = 'status-dot sending';
-            connectionStatus.textContent = 'Sending data to POS...';
-            
-            setTimeout(() => {
-                statusDot.className = 'status-dot connected';
-                connectionStatus.textContent = 'Connected to POS Terminal';
-            }, 1000);
-        }
-        
-        // Send to POS terminal
-        if (typeof mobileScannerConnection !== 'undefined' && this.deviceId) {
-            const success = mobileScannerConnection.processScanFromMobile(
-                this.roomCode, 
-                this.deviceId, 
-                {
-                    type,
-                    data,
-                    timestamp: Date.now(),
-                    scanMode: this.scanMode
-                }
-            );
-            
-            if (success) {
-                this.showNotification(`${type === 'barcode' ? 'Product' : 'Bill'} sent to POS terminal`, 'success');
-                if ('vibrate' in navigator) {
-                    navigator.vibrate(200);
-                }
-            } else {
-                this.showNotification('Failed to send to POS terminal', 'error');
-            }
-        }
-    }
+    // Removed sendToPOS: all connection logic deleted for direct scan mode
 
     addManualBarcode() {
         const barcodeInput = document.getElementById('manualBarcode');
