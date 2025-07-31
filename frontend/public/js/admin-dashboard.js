@@ -118,7 +118,7 @@ class AdminDashboard {
         });
     }
 
-    // Handle admin login - BYPASS MODE (No server authentication)
+    // Handle admin login with real authentication
     async handleAdminLogin(form, modal) {
         const email = form.querySelector('#adminEmail').value.trim();
         const password = form.querySelector('#adminPassword').value;
@@ -134,34 +134,33 @@ class AdminDashboard {
             return;
         }
 
-        // Show loading state briefly for UX
+        // Show loading state
         btnText.style.display = 'none';
         btnLoading.style.display = 'flex';
         submitBtn.disabled = true;
         errorDiv.style.display = 'none';
 
-        // Simulate loading for better UX
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
         try {
-            // BYPASS: Grant access to anyone with any credentials
-            // This bypasses all server authentication
-            const mockUser = {
-                id: 'admin-001',
-                email: email,
-                firstName: 'System',
-                lastName: 'Administrator',
-                role: 'admin',
-                username: 'admin'
-            };
+            // Make a real authentication request to the backend
+            const response = await fetch('/api/auth/admin-login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
 
-            const mockToken = 'bypass-admin-token-' + Date.now();
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Authentication failed');
+            }
 
-            // Store admin token and user info (bypass mode)
-            localStorage.setItem('adminToken', mockToken);
-            localStorage.setItem('authToken', mockToken);
+            // Store admin token and user info
+            localStorage.setItem('adminToken', data.token);
+            localStorage.setItem('authToken', data.token);
             localStorage.setItem('userRole', 'admin');
-            localStorage.setItem('adminUser', JSON.stringify(mockUser));
+            localStorage.setItem('adminUser', JSON.stringify(data.user));
 
             // Remove blur and modal
             const container = document.querySelector('.container');
@@ -171,7 +170,7 @@ class AdminDashboard {
             }
             modal.remove();
             
-            this.showMessage('Welcome back, Admin! (Bypass Mode)', 'success');
+            this.showMessage(`Welcome back, ${data.user.firstName || 'Admin'}!`, 'success');
             
             // Re-initialize dashboard with proper auth
             window.location.reload();
@@ -179,7 +178,7 @@ class AdminDashboard {
 
         } catch (error) {
             console.error('Admin login error:', error);
-            errorDiv.textContent = 'Login failed. Please try again.';
+            errorDiv.textContent = error.message || 'Login failed. Please try again.';
             errorDiv.style.display = 'block';
         } finally {
             // Reset button state
@@ -654,33 +653,44 @@ class AdminDashboard {
     }
 
     getUserActionButtons(user) {
+        // Common buttons for all users
+        let commonButtons = `
+            <button class="action-btn view" onclick="adminDashboard.viewUserDetails('${user.id}')">
+                <i class="fas fa-eye"></i>
+            </button>
+            <button class="action-btn edit" onclick="adminDashboard.editUser('${user.id}')">
+                <i class="fas fa-edit"></i>
+            </button>
+        `;
+        
+        // Status-specific buttons
         switch (user.status) {
             case 'active':
-                return `
-                    <button class="action-btn suspend" onclick="adminDashboard.showActionModal(${user.id}, 'suspend')">
-                        Suspend
+                return commonButtons + `
+                    <button class="action-btn suspend" onclick="adminDashboard.showActionModal('${user.id}', 'suspend')">
+                        <i class="fas fa-pause"></i>
                     </button>
-                    <button class="action-btn ban" onclick="adminDashboard.showActionModal(${user.id}, 'ban')">
-                        Ban
+                    <button class="action-btn ban" onclick="adminDashboard.showActionModal('${user.id}', 'ban')">
+                        <i class="fas fa-ban"></i>
                     </button>
                 `;
             case 'suspended':
-                return `
-                    <button class="action-btn activate" onclick="adminDashboard.showActionModal(${user.id}, 'activate')">
-                        Activate
+                return commonButtons + `
+                    <button class="action-btn activate" onclick="adminDashboard.showActionModal('${user.id}', 'activate')">
+                        <i class="fas fa-play"></i>
                     </button>
-                    <button class="action-btn ban" onclick="adminDashboard.showActionModal(${user.id}, 'ban')">
-                        Ban
+                    <button class="action-btn ban" onclick="adminDashboard.showActionModal('${user.id}', 'ban')">
+                        <i class="fas fa-ban"></i>
                     </button>
                 `;
             case 'banned':
-                return `
-                    <button class="action-btn activate" onclick="adminDashboard.showActionModal(${user.id}, 'activate')">
-                        Activate
+                return commonButtons + `
+                    <button class="action-btn activate" onclick="adminDashboard.showActionModal('${user.id}', 'activate')">
+                        <i class="fas fa-play"></i>
                     </button>
                 `;
             default:
-                return '';
+                return commonButtons;
         }
     }
 
@@ -734,25 +744,30 @@ class AdminDashboard {
 
         const userId = modal.dataset.userId;
         const action = modal.dataset.action;
-        const user = this.users.find(u => u.id == userId);
+        const user = this.users.find(u => u.id === userId);
         if (!user) return;
 
         try {
             // Show loading state
             const confirmBtn = document.getElementById('confirmAction');
-            confirmBtn.innerHTML = '<span class="loading"></span> Processing...';
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
             confirmBtn.disabled = true;
 
             // Real API call to backend
-            const response = await fetch('/api/users/admin/bulk-action', {
+            const response = await fetch('/api/admin/users/action', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                 },
-                body: JSON.stringify({ userIds: [user.id], action })
+                body: JSON.stringify({ userId: user.id, action })
             });
-            if (!response.ok) throw new Error('Failed to execute action');
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to execute action');
+            }
 
             // Update user status locally
             switch (action) {
@@ -765,20 +780,249 @@ class AdminDashboard {
                 case 'activate':
                     user.status = 'active';
                     break;
+                case 'delete':
+                    // Remove user from the list
+                    this.users = this.users.filter(u => u.id !== userId);
+                    this.filteredUsers = this.filteredUsers.filter(u => u.id !== userId);
+                    break;
             }
 
             this.renderUserTable();
             this.updateStatistics();
             this.hideModal();
-            this.showMessage(`User ${action}d successfully`, 'success');
-            this.logActivity('user-action', `${action}d user: ${user.name}`, 'now');
+            
+            const actionText = action === 'activate' ? 'activated' : 
+                               action === 'suspend' ? 'suspended' : 
+                               action === 'ban' ? 'banned' : 
+                               action === 'delete' ? 'deleted' : action + 'ed';
+            
+            this.showMessage(`User ${actionText} successfully`, 'success');
+            this.logActivity('user-action', `${actionText} user: ${user.name}`, 'now');
+            
         } catch (error) {
             console.error('Failed to execute user action:', error);
-            this.showMessage('Failed to execute action', 'error');
+            this.showMessage(error.message || 'Failed to execute action', 'error');
         } finally {
             const confirmBtn = document.getElementById('confirmAction');
             confirmBtn.innerHTML = 'Confirm';
             confirmBtn.disabled = false;
+        }
+    }
+    
+    // View user details
+    viewUserDetails(userId) {
+        const user = this.users.find(u => u.id === userId);
+        if (!user) return;
+        
+        const modalHTML = `
+            <div class="admin-modal" id="userDetailsModal">
+                <div class="modal-backdrop"></div>
+                <div class="modal-overlay">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>User Details</h3>
+                            <button class="modal-close" onclick="document.getElementById('userDetailsModal').remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="user-details-container">
+                            <div class="user-avatar-large">
+                                <img src="${user.avatar}" alt="${user.name}" 
+                                     onerror="this.src='../images/avatars/user-avatar.png'">
+                            </div>
+                            <div class="user-info-grid">
+                                <div class="info-row">
+                                    <div class="info-label">Name</div>
+                                    <div class="info-value">${user.name}</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">Email</div>
+                                    <div class="info-value">${user.email}</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">Role</div>
+                                    <div class="info-value">
+                                        <span class="user-type ${user.type}">${user.type === 'shop-owner' ? 'Shop Owner' : 'Supplier'}</span>
+                                    </div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">Status</div>
+                                    <div class="info-value">
+                                        <span class="user-status ${user.status}">${user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span>
+                                    </div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">Joined</div>
+                                    <div class="info-value">${this.formatDate(user.joinDate)}</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">Last Active</div>
+                                    <div class="info-value">${this.formatDate(user.lastActive)}</div>
+                                </div>
+                                ${user.phone ? `
+                                <div class="info-row">
+                                    <div class="info-label">Phone</div>
+                                    <div class="info-value">${user.phone}</div>
+                                </div>` : ''}
+                                ${user.shopName ? `
+                                <div class="info-row">
+                                    <div class="info-label">Shop Name</div>
+                                    <div class="info-value">${user.shopName}</div>
+                                </div>` : ''}
+                                ${user.businessName ? `
+                                <div class="info-row">
+                                    <div class="info-label">Business Name</div>
+                                    <div class="info-value">${user.businessName}</div>
+                                </div>` : ''}
+                            </div>
+                            <div class="modal-actions">
+                                <button class="btn-secondary" onclick="document.getElementById('userDetailsModal').remove()">Close</button>
+                                <button class="btn-primary" onclick="adminDashboard.editUser('${userId}'); document.getElementById('userDetailsModal').remove()">Edit User</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+    
+    // Edit user
+    editUser(userId) {
+        const user = this.users.find(u => u.id === userId);
+        if (!user) return;
+        
+        const modalHTML = `
+            <div class="admin-modal" id="editUserModal">
+                <div class="modal-backdrop"></div>
+                <div class="modal-overlay">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Edit User</h3>
+                            <button class="modal-close" onclick="document.getElementById('editUserModal').remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <form id="editUserForm" class="edit-user-form">
+                            <input type="hidden" id="userId" value="${user.id}">
+                            <div class="form-group">
+                                <label for="editFirstName">First Name</label>
+                                <input type="text" id="editFirstName" value="${user.name.split(' ')[0]}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editLastName">Last Name</label>
+                                <input type="text" id="editLastName" value="${user.name.split(' ').slice(1).join(' ')}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editEmail">Email</label>
+                                <input type="email" id="editEmail" value="${user.email}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editRole">Role</label>
+                                <select id="editRole" required>
+                                    <option value="shopowner" ${user.type === 'shop-owner' ? 'selected' : ''}>Shop Owner</option>
+                                    <option value="supplier" ${user.type === 'supplier' ? 'selected' : ''}>Supplier</option>
+                                    <option value="admin" ${user.type === 'admin' ? 'selected' : ''}>Admin</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="editStatus">Status</label>
+                                <select id="editStatus" required>
+                                    <option value="active" ${user.status === 'active' ? 'selected' : ''}>Active</option>
+                                    <option value="suspended" ${user.status === 'suspended' ? 'selected' : ''}>Suspended</option>
+                                    <option value="banned" ${user.status === 'banned' ? 'selected' : ''}>Banned</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="editPassword">New Password (leave empty to keep current)</label>
+                                <input type="password" id="editPassword">
+                            </div>
+                            <div class="modal-actions">
+                                <button type="button" class="btn-danger" onclick="adminDashboard.showActionModal('${user.id}', 'delete')">
+                                    Delete User
+                                </button>
+                                <div>
+                                    <button type="button" class="btn-secondary" onclick="document.getElementById('editUserModal').remove()">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="btn-primary">
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Add form submit handler
+        const form = document.getElementById('editUserForm');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleEditUser(form);
+        });
+    }
+    
+    // Handle edit user submission
+    async handleEditUser(form) {
+        try {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            submitBtn.disabled = true;
+            
+            const userId = form.querySelector('#userId').value;
+            const userData = {
+                firstName: form.querySelector('#editFirstName').value,
+                lastName: form.querySelector('#editLastName').value,
+                email: form.querySelector('#editEmail').value,
+                role: form.querySelector('#editRole').value,
+                status: form.querySelector('#editStatus').value,
+                password: form.querySelector('#editPassword').value || undefined
+            };
+            
+            // If password is empty, remove it from request
+            if (!userData.password) {
+                delete userData.password;
+            }
+            
+            // Send user data to backend API
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch(`/api/admin/users/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(userData)
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to update user');
+            }
+            
+            this.showMessage('User updated successfully!', 'success');
+            document.getElementById('editUserModal').remove();
+            
+            // Log activity
+            this.logActivity('user-action', `Updated user: ${userData.firstName} ${userData.lastName}`, 'now');
+            
+            // Reload users list
+            await this.loadUsers();
+            
+        } catch (error) {
+            console.error('Edit user error:', error);
+            this.showMessage(error.message || 'Failed to update user', 'error');
+        } finally {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = 'Save Changes';
+            submitBtn.disabled = false;
         }
     }
 
@@ -1136,30 +1380,28 @@ class AdminDashboard {
     }
 
     startRealTimeUpdates() {
-        // Update statistics every 30 seconds
-        setInterval(() => {
-            this.updateStatistics();
-        }, 30000);
-
-        // Simulate real-time activity updates
-        setInterval(() => {
-            if (Math.random() < 0.3) { // 30% chance every minute
-                this.simulateRandomActivity();
-            }
-        }, 60000);
+        // Clear any existing intervals
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+        }
+        
+        // Set up interval to refresh data periodically
+        this.updateInterval = setInterval(() => {
+            this.refreshDashboardData();
+        }, 60000); // Refresh every minute
     }
-
-    simulateRandomActivity() {
-        const activities = [
-            'New user registration detected',
-            'Payment processed successfully',
-            'System health check completed',
-            'User logged in from new device',
-            'Inventory update synchronized'
-        ];
-
-        const randomActivity = activities[Math.floor(Math.random() * activities.length)];
-        this.logActivity('system-action', randomActivity, 'just now');
+    
+    // Refresh all dashboard data
+    async refreshDashboardData() {
+        try {
+            await Promise.all([
+                this.loadDashboardStats(),
+                this.loadTransactionStats(),
+                this.updateSystemHealth()
+            ]);
+        } catch (error) {
+            console.error('Failed to refresh dashboard data:', error);
+        }
     }
 
     showMessage(message, type = 'info') {
@@ -1369,20 +1611,672 @@ class AdminDashboard {
 
     // System Settings functionality
     openSystemSettings() {
-        this.showMessage('Opening system settings...', 'info');
-        // In a real app, this would open settings panel or navigate to settings page
-        setTimeout(() => {
-            this.showMessage('System settings panel will be implemented in next version', 'info');
-        }, 1000);
+        const modalHTML = `
+            <div class="admin-modal" id="systemSettingsModal">
+                <div class="modal-backdrop"></div>
+                <div class="modal-overlay">
+                    <div class="modal-content settings-modal">
+                        <div class="modal-header">
+                            <h3>System Settings</h3>
+                            <button class="modal-close" onclick="document.getElementById('systemSettingsModal').remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="settings-tabs">
+                            <button class="tab-btn active" data-tab="general">General</button>
+                            <button class="tab-btn" data-tab="security">Security</button>
+                            <button class="tab-btn" data-tab="notifications">Notifications</button>
+                            <button class="tab-btn" data-tab="backup">Backup & Restore</button>
+                        </div>
+                        <div class="settings-content">
+                            <!-- General Settings Tab -->
+                            <div class="tab-content active" id="general-tab">
+                                <h4>General System Settings</h4>
+                                <form id="generalSettingsForm">
+                                    <div class="form-group">
+                                        <label for="systemName">System Name</label>
+                                        <input type="text" id="systemName" value="Smart POS System">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="maintenanceMode">Maintenance Mode</label>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="maintenanceMode">
+                                            <label for="maintenanceMode"></label>
+                                        </div>
+                                        <span class="setting-hint">When enabled, only admins can access the system</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sessionTimeout">Session Timeout (minutes)</label>
+                                        <input type="number" id="sessionTimeout" value="30" min="5" max="240">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="defaultCurrency">Default Currency</label>
+                                        <select id="defaultCurrency">
+                                            <option value="USD">USD ($)</option>
+                                            <option value="EUR">EUR (€)</option>
+                                            <option value="GBP">GBP (£)</option>
+                                            <option value="INR" selected>INR (₹)</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn-primary">Save Changes</button>
+                                </form>
+                            </div>
+                            
+                            <!-- Security Settings Tab -->
+                            <div class="tab-content" id="security-tab">
+                                <h4>Security Settings</h4>
+                                <form id="securitySettingsForm">
+                                    <div class="form-group">
+                                        <label for="twoFactorAuth">Two-Factor Authentication</label>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="twoFactorAuth" checked>
+                                            <label for="twoFactorAuth"></label>
+                                        </div>
+                                        <span class="setting-hint">Require 2FA for all admin users</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="passwordPolicy">Password Policy</label>
+                                        <select id="passwordPolicy">
+                                            <option value="standard">Standard (8+ chars)</option>
+                                            <option value="strong" selected>Strong (8+ chars with numbers and symbols)</option>
+                                            <option value="very-strong">Very Strong (12+ chars with numbers, symbols and mixed case)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="passwordExpiry">Password Expiry (days)</label>
+                                        <input type="number" id="passwordExpiry" value="90" min="0" max="365">
+                                        <span class="setting-hint">0 = never expires</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="loginAttempts">Max Login Attempts</label>
+                                        <input type="number" id="loginAttempts" value="5" min="3" max="10">
+                                    </div>
+                                    <button type="submit" class="btn-primary">Save Changes</button>
+                                </form>
+                            </div>
+                            
+                            <!-- Notifications Tab -->
+                            <div class="tab-content" id="notifications-tab">
+                                <h4>Notification Settings</h4>
+                                <form id="notificationSettingsForm">
+                                    <div class="form-group">
+                                        <label for="emailNotifications">Email Notifications</label>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="emailNotifications" checked>
+                                            <label for="emailNotifications"></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="securityAlerts">Security Alerts</label>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="securityAlerts" checked>
+                                            <label for="securityAlerts"></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="userRegistrations">New User Registrations</label>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="userRegistrations" checked>
+                                            <label for="userRegistrations"></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="systemUpdates">System Updates</label>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="systemUpdates" checked>
+                                            <label for="systemUpdates"></label>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn-primary">Save Changes</button>
+                                </form>
+                            </div>
+                            
+                            <!-- Backup Tab -->
+                            <div class="tab-content" id="backup-tab">
+                                <h4>Backup & Restore</h4>
+                                <div class="backup-actions">
+                                    <div class="backup-card">
+                                        <h5>Create Backup</h5>
+                                        <p>Create a complete backup of all system data</p>
+                                        <button id="createBackupBtn" class="btn-primary">Create Backup</button>
+                                    </div>
+                                    <div class="backup-card">
+                                        <h5>Restore From Backup</h5>
+                                        <p>Restore system from a previous backup</p>
+                                        <input type="file" id="backupFile" accept=".zip,.json" style="display:none">
+                                        <button id="selectBackupBtn" class="btn-secondary" onclick="document.getElementById('backupFile').click()">Select Backup File</button>
+                                    </div>
+                                </div>
+                                <div class="backup-history">
+                                    <h5>Backup History</h5>
+                                    <table class="backup-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Size</th>
+                                                <th>Type</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="backupHistoryTable">
+                                            <tr>
+                                                <td>2025-07-30 09:15 AM</td>
+                                                <td>24.2 MB</td>
+                                                <td>Full Backup</td>
+                                                <td>
+                                                    <button class="action-btn download"><i class="fas fa-download"></i></button>
+                                                    <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>2025-07-25 11:30 PM</td>
+                                                <td>23.8 MB</td>
+                                                <td>Full Backup</td>
+                                                <td>
+                                                    <button class="action-btn download"><i class="fas fa-download"></i></button>
+                                                    <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Add tab switching functionality
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons and contents
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to current button and content
+                btn.classList.add('active');
+                document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+        
+        // Handle form submissions
+        const forms = document.querySelectorAll('.settings-modal form');
+        forms.forEach(form => {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveSettings(form);
+            });
+        });
+        
+        // Handle backup creation
+        const createBackupBtn = document.getElementById('createBackupBtn');
+        if (createBackupBtn) {
+            createBackupBtn.addEventListener('click', () => {
+                this.createBackup();
+            });
+        }
+        
+        // Load settings from server
+        this.loadSettings();
+    }
+    
+    // Load settings from server
+    async loadSettings() {
+        try {
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch('/api/admin/settings', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load settings');
+            }
+            
+            const data = await response.json();
+            
+            // Populate form fields with loaded settings
+            if (data.settings) {
+                const { general, security, notifications } = data.settings;
+                
+                // General settings
+                if (general) {
+                    document.getElementById('systemName').value = general.systemName || 'Smart POS System';
+                    document.getElementById('maintenanceMode').checked = general.maintenanceMode || false;
+                    document.getElementById('sessionTimeout').value = general.sessionTimeout || 30;
+                    document.getElementById('defaultCurrency').value = general.defaultCurrency || 'INR';
+                }
+                
+                // Security settings
+                if (security) {
+                    document.getElementById('twoFactorAuth').checked = security.twoFactorAuth || true;
+                    document.getElementById('passwordPolicy').value = security.passwordPolicy || 'strong';
+                    document.getElementById('passwordExpiry').value = security.passwordExpiry || 90;
+                    document.getElementById('loginAttempts').value = security.loginAttempts || 5;
+                }
+                
+                // Notification settings
+                if (notifications) {
+                    document.getElementById('emailNotifications').checked = notifications.email || true;
+                    document.getElementById('securityAlerts').checked = notifications.securityAlerts || true;
+                    document.getElementById('userRegistrations').checked = notifications.userRegistrations || true;
+                    document.getElementById('systemUpdates').checked = notifications.systemUpdates || true;
+                }
+            }
+            
+        } catch (error) {
+            console.error('Failed to load settings:', error);
+            this.showMessage('Failed to load settings', 'error');
+        }
+    }
+    
+    // Save settings to server
+    async saveSettings(form) {
+        try {
+            const formId = form.id;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            submitBtn.disabled = true;
+            
+            let settingsData = {};
+            
+            // Collect form data based on form ID
+            switch (formId) {
+                case 'generalSettingsForm':
+                    settingsData = {
+                        category: 'general',
+                        settings: {
+                            systemName: document.getElementById('systemName').value,
+                            maintenanceMode: document.getElementById('maintenanceMode').checked,
+                            sessionTimeout: parseInt(document.getElementById('sessionTimeout').value),
+                            defaultCurrency: document.getElementById('defaultCurrency').value
+                        }
+                    };
+                    break;
+                    
+                case 'securitySettingsForm':
+                    settingsData = {
+                        category: 'security',
+                        settings: {
+                            twoFactorAuth: document.getElementById('twoFactorAuth').checked,
+                            passwordPolicy: document.getElementById('passwordPolicy').value,
+                            passwordExpiry: parseInt(document.getElementById('passwordExpiry').value),
+                            loginAttempts: parseInt(document.getElementById('loginAttempts').value)
+                        }
+                    };
+                    break;
+                    
+                case 'notificationSettingsForm':
+                    settingsData = {
+                        category: 'notifications',
+                        settings: {
+                            email: document.getElementById('emailNotifications').checked,
+                            securityAlerts: document.getElementById('securityAlerts').checked,
+                            userRegistrations: document.getElementById('userRegistrations').checked,
+                            systemUpdates: document.getElementById('systemUpdates').checked
+                        }
+                    };
+                    break;
+            }
+            
+            // Send settings to server
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch('/api/admin/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(settingsData)
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to save settings');
+            }
+            
+            this.showMessage('Settings saved successfully', 'success');
+            
+        } catch (error) {
+            console.error('Failed to save settings:', error);
+            this.showMessage(error.message || 'Failed to save settings', 'error');
+        } finally {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.textContent = 'Save Changes';
+            submitBtn.disabled = false;
+        }
+    }
+    
+    // Create system backup
+    async createBackup() {
+        try {
+            const backupBtn = document.getElementById('createBackupBtn');
+            const originalText = backupBtn.textContent;
+            
+            backupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            backupBtn.disabled = true;
+            
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch('/api/admin/backup', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to create backup');
+            }
+            
+            const data = await response.json();
+            
+            // Add new backup to the history table
+            const backupHistoryTable = document.getElementById('backupHistoryTable');
+            const currentDate = new Date().toLocaleString();
+            
+            if (backupHistoryTable) {
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${currentDate}</td>
+                    <td>${data.size || 'Unknown'}</td>
+                    <td>Full Backup</td>
+                    <td>
+                        <button class="action-btn download" onclick="adminDashboard.downloadBackup('${data.id}')">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="action-btn delete" onclick="adminDashboard.deleteBackup('${data.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                backupHistoryTable.prepend(newRow);
+            }
+            
+            this.showMessage('Backup created successfully', 'success');
+            
+        } catch (error) {
+            console.error('Backup creation failed:', error);
+            this.showMessage(error.message || 'Failed to create backup', 'error');
+        } finally {
+            const backupBtn = document.getElementById('createBackupBtn');
+            backupBtn.textContent = 'Create Backup';
+            backupBtn.disabled = false;
+        }
     }
 
     // Security Logs functionality
     viewSecurityLogs() {
-        this.showMessage('Loading security logs...', 'info');
-        // In a real app, this would show security audit logs
-        setTimeout(() => {
-            this.showMessage('Security logs viewer will be implemented in next version', 'info');
-        }, 1000);
+        const modalHTML = `
+            <div class="admin-modal" id="securityLogsModal">
+                <div class="modal-backdrop"></div>
+                <div class="modal-overlay">
+                    <div class="modal-content logs-modal">
+                        <div class="modal-header">
+                            <h3>Security Logs</h3>
+                            <button class="modal-close" onclick="document.getElementById('securityLogsModal').remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="logs-controls">
+                            <div class="search-filter">
+                                <input type="text" id="logSearch" placeholder="Search logs...">
+                                <select id="logTypeFilter">
+                                    <option value="all">All Types</option>
+                                    <option value="login">Login Attempts</option>
+                                    <option value="action">User Actions</option>
+                                    <option value="system">System Events</option>
+                                    <option value="security">Security Alerts</option>
+                                </select>
+                                <select id="logSeverityFilter">
+                                    <option value="all">All Severities</option>
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="critical">Critical</option>
+                                </select>
+                                <button id="searchLogsBtn" class="btn-primary">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                            <div class="date-filter">
+                                <label>From:</label>
+                                <input type="date" id="logStartDate" value="${this.getFormattedDate(-7)}">
+                                <label>To:</label>
+                                <input type="date" id="logEndDate" value="${this.getFormattedDate(0)}">
+                            </div>
+                            <button id="exportLogsBtn" class="btn-secondary">
+                                <i class="fas fa-download"></i> Export Logs
+                            </button>
+                        </div>
+                        <div class="logs-container">
+                            <table class="logs-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>User</th>
+                                        <th>IP Address</th>
+                                        <th>Event Type</th>
+                                        <th>Description</th>
+                                        <th>Severity</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="securityLogsTableBody">
+                                    <tr>
+                                        <td colspan="6" class="text-center">Loading logs...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="logs-pagination">
+                            <button id="prevLogsPageBtn" disabled>
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </button>
+                            <span id="logsPageInfo">Page 1 of 1</span>
+                            <button id="nextLogsPageBtn" disabled>
+                                Next <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Setup event listeners
+        document.getElementById('searchLogsBtn').addEventListener('click', () => {
+            this.loadSecurityLogs();
+        });
+        
+        document.getElementById('exportLogsBtn').addEventListener('click', () => {
+            this.exportSecurityLogs();
+        });
+        
+        document.getElementById('prevLogsPageBtn').addEventListener('click', () => {
+            this.securityLogsPage--;
+            this.loadSecurityLogs();
+        });
+        
+        document.getElementById('nextLogsPageBtn').addEventListener('click', () => {
+            this.securityLogsPage++;
+            this.loadSecurityLogs();
+        });
+        
+        // Initialize security logs page counter
+        this.securityLogsPage = 1;
+        this.securityLogsLimit = 20;
+        
+        // Load security logs
+        this.loadSecurityLogs();
+    }
+    
+    // Get formatted date for input fields
+    getFormattedDate(daysOffset = 0) {
+        const date = new Date();
+        date.setDate(date.getDate() + daysOffset);
+        return date.toISOString().split('T')[0];
+    }
+    
+    // Load security logs from server
+    async loadSecurityLogs() {
+        try {
+            const logsTableBody = document.getElementById('securityLogsTableBody');
+            logsTableBody.innerHTML = `<tr><td colspan="6" class="text-center">Loading logs...</td></tr>`;
+            
+            // Get filter values
+            const searchQuery = document.getElementById('logSearch').value;
+            const logType = document.getElementById('logTypeFilter').value;
+            const severity = document.getElementById('logSeverityFilter').value;
+            const startDate = document.getElementById('logStartDate').value;
+            const endDate = document.getElementById('logEndDate').value;
+            
+            // Build query params
+            const params = new URLSearchParams({
+                page: this.securityLogsPage,
+                limit: this.securityLogsLimit,
+                startDate,
+                endDate
+            });
+            
+            if (searchQuery) params.append('search', searchQuery);
+            if (logType !== 'all') params.append('type', logType);
+            if (severity !== 'all') params.append('severity', severity);
+            
+            // Fetch logs from API
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch(`/api/admin/security-logs?${params.toString()}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load security logs');
+            }
+            
+            const data = await response.json();
+            
+            // Clear and populate logs table
+            logsTableBody.innerHTML = '';
+            
+            if (data.logs && data.logs.length > 0) {
+                data.logs.forEach(log => {
+                    const row = document.createElement('tr');
+                    row.className = `severity-${log.severity}`;
+                    
+                    // Format date
+                    const logDate = new Date(log.timestamp).toLocaleString();
+                    
+                    // Create row HTML
+                    row.innerHTML = `
+                        <td>${logDate}</td>
+                        <td>${log.user || 'System'}</td>
+                        <td>${log.ipAddress || 'N/A'}</td>
+                        <td>${log.type}</td>
+                        <td>${log.description}</td>
+                        <td>
+                            <span class="severity-badge ${log.severity}">${log.severity}</span>
+                        </td>
+                    `;
+                    
+                    logsTableBody.appendChild(row);
+                });
+                
+                // Update pagination
+                document.getElementById('logsPageInfo').textContent = `Page ${data.page} of ${data.totalPages}`;
+                document.getElementById('prevLogsPageBtn').disabled = data.page <= 1;
+                document.getElementById('nextLogsPageBtn').disabled = data.page >= data.totalPages;
+                
+            } else {
+                logsTableBody.innerHTML = `<tr><td colspan="6" class="text-center">No logs found matching your filters</td></tr>`;
+            }
+            
+        } catch (error) {
+            console.error('Failed to load security logs:', error);
+            document.getElementById('securityLogsTableBody').innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center error">
+                        <i class="fas fa-exclamation-circle"></i> 
+                        Failed to load logs: ${error.message}
+                        <br>
+                        <button onclick="adminDashboard.loadSecurityLogs()" class="btn-retry">
+                            <i class="fas fa-refresh"></i> Retry
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+    
+    // Export security logs
+    async exportSecurityLogs() {
+        try {
+            const exportBtn = document.getElementById('exportLogsBtn');
+            const originalText = exportBtn.innerHTML;
+            
+            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+            exportBtn.disabled = true;
+            
+            // Get filter values
+            const searchQuery = document.getElementById('logSearch').value;
+            const logType = document.getElementById('logTypeFilter').value;
+            const severity = document.getElementById('logSeverityFilter').value;
+            const startDate = document.getElementById('logStartDate').value;
+            const endDate = document.getElementById('logEndDate').value;
+            
+            // Build query params
+            const params = new URLSearchParams({
+                export: 'true',
+                startDate,
+                endDate
+            });
+            
+            if (searchQuery) params.append('search', searchQuery);
+            if (logType !== 'all') params.append('type', logType);
+            if (severity !== 'all') params.append('severity', severity);
+            
+            // Request export from API
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch(`/api/admin/security-logs/export?${params.toString()}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to export logs');
+            }
+            
+            // Create a download link for the exported file
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `security-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+            
+            this.showMessage('Logs exported successfully', 'success');
+            
+        } catch (error) {
+            console.error('Failed to export logs:', error);
+            this.showMessage(error.message || 'Failed to export logs', 'error');
+        } finally {
+            const exportBtn = document.getElementById('exportLogsBtn');
+            exportBtn.innerHTML = '<i class="fas fa-download"></i> Export Logs';
+            exportBtn.disabled = false;
+        }
     }
 
     // Add User Modal functionality
@@ -1450,28 +2344,52 @@ class AdminDashboard {
 
     async handleAddUser(form) {
         try {
-            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            submitBtn.disabled = true;
+            
             const userData = {
-                firstName: formData.get('firstName'),
-                lastName: formData.get('lastName'),
-                email: formData.get('email'),
-                role: formData.get('role'),
-                password: formData.get('password')
+                firstName: form.querySelector('#firstName').value,
+                lastName: form.querySelector('#lastName').value,
+                email: form.querySelector('#email').value,
+                role: form.querySelector('#role').value,
+                password: form.querySelector('#password').value
             };
 
-            this.showMessage('Creating user...', 'info');
+            // Send user data to backend API
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch('/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(userData)
+            });
+
+            const data = await response.json();
             
-            // In a real app, this would send to backend
-            // For now, just simulate success
-            setTimeout(() => {
-                this.showMessage('User created successfully!', 'success');
-                document.getElementById('addUserModal').remove();
-                this.loadUsers(); // Reload users
-            }, 1500);
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to create user');
+            }
+            
+            this.showMessage('User created successfully!', 'success');
+            document.getElementById('addUserModal').remove();
+            
+            // Log activity
+            this.logActivity('user-action', `Created new user: ${userData.firstName} ${userData.lastName}`, 'now');
+            
+            // Reload users list
+            await this.loadUsers();
 
         } catch (error) {
             console.error('Add user error:', error);
-            this.showMessage('Failed to create user', 'error');
+            this.showMessage(error.message || 'Failed to create user', 'error');
+        } finally {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = 'Add User';
+            submitBtn.disabled = false;
         }
     }
 
