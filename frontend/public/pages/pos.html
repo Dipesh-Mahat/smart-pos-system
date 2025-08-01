@@ -11,15 +11,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Socket.IO removed: real-time communication not used -->
-    <script src="../js/scanner-mobile.js"></script>
-    <script src="../js/scanner-connection.js"></script>
-    <script src="../js/scanner-unified.js"></script>
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
     <script src="../js/custom-modals.js"></script>
     <script src="../js/enhanced-scanner.js"></script>
-    <script src="../js/qr-connection-helper.js"></script>
-    <script src="../js/scanner-qr-interface.js"></script>
     <script src="../js/demo-products.js"></script>
     <script src="../js/pos-system.js"></script>    <!-- Preload menu styles to prevent flicker -->
     <style>
@@ -2411,14 +2406,23 @@
     <script src="../js/menu.js"></script>
     
     <script>
+        // Prevent auto-initialization since we'll do it manually
+        window.navbarManualInit = true;
+        
         // Initialize navbar with POS action buttons
         document.addEventListener('DOMContentLoaded', function() {
-            const navbar = new SmartPOSNavbar({
-                title: 'Point of Sale',
-                customActions: [
-                    { id: 'clearPos', icon: 'redo', title: 'Clear' }
-                ]
-            });
+            // Only initialize if not already done
+            if (!window.smartPOSNavbar) {
+                const navbar = new SmartPOSNavbar({
+                    title: 'Point of Sale',
+                    customActions: [
+                        { id: 'clearPos', icon: 'redo', title: 'Clear' }
+                    ]
+                });
+                
+                // Store navbar instance globally
+                window.smartPOSNavbar = navbar;
+            }
             
             // Handle menu state changes for responsive layout
             const observer = new MutationObserver(function(mutations) {

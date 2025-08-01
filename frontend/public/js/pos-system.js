@@ -32,9 +32,14 @@ class SmartPOSSystem {
             // Use the API service to fetch real products from the database
             const data = await window.apiService.request('/shop/products');
             
-            if (data && data.success && Array.isArray(data.products)) {
+            // Handle the correct API response format: {products: [...], pagination: {...}}
+            if (data && data.products && Array.isArray(data.products)) {
                 this.products = data.products;
                 console.log('Loaded products from database:', this.products.length);
+            } else if (data && data.success && Array.isArray(data.products)) {
+                // Legacy format support
+                this.products = data.products;
+                console.log('Loaded products from database (legacy format):', this.products.length);
             } else {
                 console.warn('Failed to load products from API, using demo data as fallback');
                 // Use demo products as a fallback only if API fails
