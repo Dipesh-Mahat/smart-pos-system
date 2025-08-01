@@ -102,12 +102,6 @@ class SupplierMenu {
                         '</div>' +
                         '<div class="menu-text">Profile</div>' +
                     '</a>' +
-                    '<a href="supplier-settings.html" class="menu-item" data-page="supplier-settings">' +
-                        '<div class="menu-icon-folder">' +
-                            '<i class="fas fa-cog"></i>' +
-                        '</div>' +
-                        '<div class="menu-text">Settings</div>' +
-                    '</a>' +
                     '<a href="#" class="menu-item" data-page="logout" onclick="supplierMenu.logout(); return false;">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-sign-out-alt"></i>' +
