@@ -1,21 +1,18 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "frontend/public",
   "routes": [
     {
-      "src": "/(css|js|images)/(.*)",
-      "dest": "/public/$1/$2"
-    },
-    {
-      "src": "/pages/(.*)",
-      "dest": "/public/pages/$1"
-    },
-    {
-      "src": "/auth/google/callback",
-      "dest": "/index.html"
+      "src": "/mobile-scanner",
+      "dest": "/mobile-scanner.html"
     },
     {
       "src": "/api/(.*)",
       "dest": "https://smart-pos-system.onrender.com/api/$1"
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",

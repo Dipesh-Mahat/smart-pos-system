@@ -11,7 +11,8 @@
     "install-deps": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "lint": "cd backend && npx eslint .",
     "seed": "cd backend && npm run seed",
-    "prebuild": "npm audit fix"
+    "prebuild": "npm audit fix",
+    "build": "node scripts/build.js"
   },
   "dependencies": {
     "concurrently": "^9.1.0",

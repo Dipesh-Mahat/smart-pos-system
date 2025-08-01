@@ -612,6 +612,7 @@
     </style>
 </head>
 <body>
+    <!-- Scanner Container -->
     <div class="scanner-container">
         <!-- Header -->
         <div class="scanner-header">
@@ -619,7 +620,11 @@
                 <i class="fas fa-qrcode"></i>
                 Smart Scanner
             </h1>
-        <!-- Connection status removed: direct scan only -->
+            <!-- Add back the connection status section -->
+            <div class="connection-status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="connectionStatus">Disconnected</span>
+            </div>
         </div>
 
         <!-- Camera Section -->
@@ -632,11 +637,11 @@
 
         <!-- No Camera Fallback -->
         <div class="no-camera" id="noCamera">
-            <i class="fas fa-camera-slash"></i>
+            <i class="fas fa-camera-slash" style="font-size: 48px; margin-bottom: 15px; color: #ef4444;"></i>
             <h3>Camera Access Required</h3>
-            <p>Please allow camera access to scan barcodes and images</p>
-            <button id="enableCameraBtn">
-                <i class="fas fa-camera"></i> Enable Camera
+            <p>Please enable camera access in your browser settings to scan barcodes</p>
+            <button id="enableCameraBtn" style="background: #4f46e5; color: white; border: none; padding: 10px 15px; border-radius: 5px; margin-top: 15px; cursor: pointer;">
+                <i class="fas fa-redo"></i> Try Again
             </button>
         </div>
 
@@ -835,11 +840,11 @@
                     
                     // Initialize socket if connection is successful
                     if (connectionSuccess) {
-                        this.initializeSocket();
+                        // Socket initialization removed - direct scan only
                         
                         // Connect to session if sessionId is provided
                         if (this.sessionId) {
-                            this.connectToSession();
+                            // Session connection removed - direct scan only
                         }
                     } else {
                         // Continue in offline mode
@@ -877,23 +882,16 @@
                 // Control buttons
                 document.getElementById('scanButton').addEventListener('click', () => this.startBarcodeScan());
                 document.getElementById('ocrButton').addEventListener('click', () => this.toggleOCRMode());
-                document.getElementById('qrButton').addEventListener('click', () => this.generateQRCode());
+                // QR button event listener removed as the button doesn't exist anymore
                 document.getElementById('flashButton').addEventListener('click', () => this.toggleFlash());
                 document.getElementById('backButton').addEventListener('click', () => this.showScanHistory());
                 document.getElementById('enableCameraBtn').addEventListener('click', () => this.requestCamera());
                 
                 // QR Code modal
-                document.getElementById('closeQrModal').addEventListener('click', () => {
-                    document.getElementById('qrCodeModal').classList.remove('active');
-                });
+                // Event listeners for QR code modal removed as it doesn't exist anymore
                 
                 // Copy URL button
-                document.getElementById('copyUrlBtn').addEventListener('click', () => {
-                    const urlText = document.getElementById('qrCodeUrl').textContent;
-                    navigator.clipboard.writeText(urlText)
-                        .then(() => this.showNotification('URL copied to clipboard', 'success'))
-                        .catch(() => this.showNotification('Failed to copy URL', 'error'));
-                });
+                // Event listener for copy URL button removed as it doesn't exist anymore
 
                 // Scan type buttons
                 document.querySelectorAll('.scan-type-btn').forEach(btn => {
@@ -901,7 +899,7 @@
                         document.querySelectorAll('.scan-type-btn').forEach(b => b.classList.remove('active'));
                         e.target.classList.add('active');
                         this.currentScanType = e.target.dataset.type;
-                        this.generateQRCode();
+                        // QR code generation removed
                     });
                 });
 
@@ -1538,41 +1536,9 @@
                 this.cameraPermission = 'denied';
                 this.saveApplicationState();
                 
-                // Show a prominent message
-                const cameraErrorMessage = document.createElement('div');
-                cameraErrorMessage.className = 'camera-permission-error';
-                cameraErrorMessage.innerHTML = `
-                    <div class="permission-error-content">
-                        <i class="fas fa-exclamation-triangle" style="font-size:48px;color:#ef4444;margin-bottom:15px;"></i>
-                        <h3>Camera Access Required</h3>
-                        <p>This application needs camera access to scan codes. Please check your browser permissions and try again.</p>
-                        <button id="retryCameraBtn" class="btn-retry-camera">
-                            <i class="fas fa-camera"></i> Request Camera Access
-                        </button>
-                    </div>
-                `;
-                
-                cameraErrorMessage.style.position = 'fixed';
-                cameraErrorMessage.style.top = '0';
-                cameraErrorMessage.style.left = '0';
-                cameraErrorMessage.style.width = '100%';
-                cameraErrorMessage.style.height = '100%';
-                cameraErrorMessage.style.backgroundColor = 'rgba(0,0,0,0.9)';
-                cameraErrorMessage.style.zIndex = '1000';
-                cameraErrorMessage.style.display = 'flex';
-                cameraErrorMessage.style.alignItems = 'center';
-                cameraErrorMessage.style.justifyContent = 'center';
-                cameraErrorMessage.style.textAlign = 'center';
-                cameraErrorMessage.style.padding = '20px';
-                cameraErrorMessage.style.color = '#fff';
-                
-                document.body.appendChild(cameraErrorMessage);
-                
-                // Add retry button listener
-                document.getElementById('retryCameraBtn').addEventListener('click', () => {
-                    document.body.removeChild(cameraErrorMessage);
-                    this.requestCamera();
-                });
+                // Use default browser UI for camera access
+                document.getElementById('noCamera').style.display = 'flex';
+                this.showNotification('Camera access required. Please allow in your browser settings and refresh the page.', 'warning');
             }
             
             saveOfflineScan(scanRecord) {
