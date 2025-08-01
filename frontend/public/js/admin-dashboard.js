@@ -4,7 +4,6 @@ class AdminDashboard {
         // Initialize class properties
         this.users = [];
         this.filteredUsers = [];
-        this.charts = {};
         this.currentFilter = 'all';
         this.currentStatus = 'all';
         this.searchQuery = '';
@@ -75,7 +74,6 @@ class AdminDashboard {
     initialize() {
         this.users = [];
         this.filteredUsers = [];
-        this.charts = {};
         this.currentFilter = 'all';
         this.currentStatus = 'all';
         this.searchQuery = '';
@@ -168,7 +166,6 @@ class AdminDashboard {
             await this.loadDashboardStats(); // Load real stats from database
             await this.loadTransactionStats(); // Load transaction stats
             this.setupEventListeners();
-            this.initializeCharts();
             this.updateStatistics();
             this.loadRecentActivity();
             this.startRealTimeUpdates();
@@ -1292,180 +1289,6 @@ class AdminDashboard {
         if (element) {
             element.textContent = value;
         }
-    }    initializeCharts() {
-        // Check if Chart.js is loaded
-        if (typeof Chart === 'undefined') {
-            console.error('Chart.js is not loaded');
-            return;
-        }
-        
-        try {
-            this.initUserGrowthChart();
-            this.initRevenueChart();
-            this.initUserDistributionChart();
-        } catch (error) {
-            console.error('Error initializing charts:', error);
-        }
-    }
-    
-    async initUserGrowthChart() {
-        const ctx = document.getElementById('userGrowthChart');
-        if (!ctx) {
-            console.warn('User growth chart canvas not found');
-            return;
-        }
-        try {
-            // Fetch real user growth data from backend
-            const res = await fetch(`${this.getApiBaseUrl()}/users/admin/user-growth`, {
-                headers: { 'Authorization': `Bearer ${window.localStorage.getItem('token')}` }
-            });
-            if (!res.ok) throw new Error('Failed to fetch user growth data');
-            const data = await res.json();
-            this.charts.userGrowth = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [
-                        {
-                            label: 'Total Users',
-                            data: data.datasets[0].data,
-                            borderColor: '#3498db',
-                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Shop Owners',
-                            data: data.datasets[1].data,
-                            borderColor: '#2ecc71',
-                            backgroundColor: 'rgba(46, 204, 113, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Suppliers',
-                            data: data.datasets[2].data,
-                            borderColor: '#9b59b6',
-                            backgroundColor: 'rgba(155, 89, 182, 0.1)',
-                            tension: 0.4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    aspectRatio: 2,
-                    plugins: {
-                        legend: { position: 'top' },
-                        title: { display: true, text: 'User Growth Over Time' }
-                    },
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
-        } catch (error) {
-            console.error('Error creating user growth chart:', error);
-        }
-    }
-
-    async initRevenueChart() {
-        const ctx = document.getElementById('revenueChart');
-        if (!ctx) return;
-        try {
-            // Fetch real monthly revenue data from backend
-            const res = await fetch(`${this.getApiBaseUrl()}/users/admin/monthly-revenue`, {
-                headers: { 'Authorization': `Bearer ${window.localStorage.getItem('token')}` }
-            });
-            if (!res.ok) throw new Error('Failed to fetch monthly revenue data');
-            const data = await res.json();
-            this.charts.revenue = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: 'Revenue ($)',
-                        data: data.data,
-                        backgroundColor: [
-                            'rgba(52, 152, 219, 0.8)',
-                            'rgba(46, 204, 113, 0.8)',
-                            'rgba(155, 89, 182, 0.8)',
-                            'rgba(241, 196, 15, 0.8)',
-                            'rgba(230, 126, 34, 0.8)',
-                            'rgba(231, 76, 60, 0.8)'
-                        ],
-                        borderColor: [
-                            '#3498db',
-                            '#2ecc71',
-                            '#9b59b6',
-                            '#f1c40f',
-                            '#e67e22',
-                            '#e74c3c'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    aspectRatio: 2,
-                    plugins: {
-                        legend: { display: false },
-                        title: { display: true, text: 'Monthly Revenue' }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + value.toLocaleString();
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        } catch (error) {
-            console.error('Error creating revenue chart:', error);
-        }
-    }
-
-    async initUserDistributionChart() {
-        const ctx = document.getElementById('userDistributionChart');
-        if (!ctx) return;
-        try {
-            // Fetch real user distribution data from backend
-            const res = await fetch(`${this.getApiBaseUrl()}/users/admin/user-distribution`, {
-                headers: { 'Authorization': `Bearer ${window.localStorage.getItem('token')}` }
-            });
-            if (!res.ok) throw new Error('Failed to fetch user distribution data');
-            const data = await res.json();
-            this.charts.userDistribution = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        data: data.data,
-                        backgroundColor: [
-                            '#3498db',
-                            '#9b59b6'
-                        ],
-                        borderColor: [
-                            '#2980b9',
-                            '#8e44ad'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    aspectRatio: 1.5,
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        title: { display: true, text: 'User Distribution' }
-                    }
-                }
-            });
-        } catch (error) {
-            console.error('Error creating user distribution chart:', error);
-        }
     }
 
     // Fetch and display audit logs
@@ -1484,19 +1307,7 @@ class AdminDashboard {
     }
 
     // Fetch and display system health
-    async updateSystemHealth() {
-        try {
-            const response = await fetch(`${this.getApiBaseUrl()}/users/admin/system-health`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-            });
-            if (!response.ok) throw new Error('Failed to fetch system health');
-            const data = await response.json();
-            // Render health in the UI (implement renderSystemHealth)
-            this.renderSystemHealth(data.health);
-        } catch (error) {
-            this.showMessage('Failed to load system health', 'error');
-        }
-    }
+    // System health functionality moved to line 1662
 
     // Fetch and display activity logs from the server
     async loadRecentActivity() {
@@ -1661,8 +1472,11 @@ class AdminDashboard {
 
     async updateSystemHealth() {
         try {
-            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-            const response = await fetch('/admin/system-health', {
+            const token = this.getAuthToken();
+            if (!token) {
+                throw new Error('Authentication token not found');
+            }
+            const response = await fetch(`${this.getApiBaseUrl()}/api/admin/system-health`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -2635,7 +2449,7 @@ class AdminDashboard {
             activityList.innerHTML = '<div class="loading-indicator"><i class="fas fa-spinner fa-spin"></i> Loading activity...</div>';
             
             // Fetch real activity data from API
-            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+            const token = this.getAuthToken();
             fetch(`${this.getApiBaseUrl()}/admin/recent-activity`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -2927,13 +2741,6 @@ class AdminDashboard {
                 transition: all 0.3s ease;
             }
             
-            /* Charts responsiveness */
-            .chart-container {
-                width: 100%;
-                min-height: 300px;
-                position: relative;
-            }
-            
             /* Tables responsiveness */
             @media (max-width: 768px) {
                 .table-responsive {
@@ -2960,10 +2767,6 @@ class AdminDashboard {
                 
                 .stat-card {
                     padding: 0.75rem;
-                }
-                
-                .chart-container {
-                    min-height: 200px;
                 }
             }
             
@@ -3092,14 +2895,14 @@ class AdminDashboard {
             targetEl.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Loading supplier applications...</div>';
             
             // Get auth token
-            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken') || this.getAuthToken();
+            const token = this.getAuthToken();
             if (!token) {
                 throw new Error('Authentication token not found');
             }
             
-            // First try the admin endpoint
+            // Use the correct endpoint directly
             let response;
-            let endpoint = `${this.getApiBaseUrl()}/admin/supplier-applications`;
+            let endpoint = `${this.getApiBaseUrl()}/users/suppliers/pending`;
             
             try {
                 response = await fetch(endpoint, {
@@ -3109,18 +2912,6 @@ class AdminDashboard {
                         'Content-Type': 'application/json'
                     }
                 });
-                
-                // If first endpoint fails, try the alternative endpoint
-                if (!response.ok) {
-                    endpoint = `${this.getApiBaseUrl()}/users/suppliers/pending`;
-                    response = await fetch(endpoint, {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                }
             } catch (error) {
                 // If first endpoint fails with an exception, try the alternative endpoint
                 endpoint = `${this.getApiBaseUrl()}/users/suppliers/pending`;
@@ -3342,18 +3133,23 @@ class AdminDashboard {
     };
 
     // Handle supplier approval and credential creation
-    handleSupplierApproval(applicationId, credentials) {;
-        return fetch(`${this.getApiBaseUrl()}/admin/supplier-applications/${applicationId}/approve`, {
+    async handleSupplierApproval(applicationId, credentials) {
+        const token = this.getAuthToken();
+        if (!token) {
+            throw new Error('Authentication token not found');
+        }
+
+        const response = await fetch(`${this.getApiBaseUrl()}/users/suppliers/${applicationId}/approve`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('authToken')}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(credentials)
         });
 
         if (!response.ok) {
-            const data = response.json();
+            const data = await response.json();
             throw new Error(data.message || 'Failed to approve supplier');
         }
 
@@ -3611,8 +3407,12 @@ class AdminDashboard {
                     
                     try {
                         // Call API to reject supplier
-                        const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-                        const response = await fetch(`${this.getApiBaseUrl()}/admin/supplier-applications/${applicationId}/reject`, {
+                        const token = this.getAuthToken();
+                        if (!token) {
+                            throw new Error('Authentication token not found');
+                        }
+                        
+                        const response = await fetch(`${this.getApiBaseUrl()}/users/suppliers/${applicationId}/reject`, {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${token}`,
