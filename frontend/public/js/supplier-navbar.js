@@ -107,7 +107,7 @@ class SupplierNavbar {
                 <i class="fas fa-bell"></i>
                 <span class="supplier-notification-badge" id="supplierNotificationBadge">${this.notificationCount}</span>
             </div>` : '';        const profile = this.options.showProfile ? 
-            `<div class="supplier-profile-icon" id="supplierProfileIcon">
+            `<div class="supplier-profile-icon" id="supplierProfileIcon" onclick="window.location.href='supplier-profile.html'">
                 <img src="../images/avatars/user-avatar.png" alt="Profile" id="supplierProfileImage" onerror="this.src='../images/avatars/user-avatar.png'">
                 <div class="supplier-profile-dropdown" id="supplierProfileDropdown">
                     <div class="profile-dropdown-header">
@@ -117,23 +117,6 @@ class SupplierNavbar {
                         </div>
                     </div>
                     <div class="profile-dropdown-menu">
-                        <a href="supplier-profile.html" class="profile-menu-item">
-                            <i class="fas fa-user"></i>
-                            <span>My Profile</span>
-                        </a>
-                        <a href="supplier-settings.html" class="profile-menu-item">
-                            <i class="fas fa-cog"></i>
-                            <span>Settings</span>
-                        </a>
-                        <a href="supplier-analytics.html" class="profile-menu-item">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Analytics</span>
-                        </a>
-                        <div class="profile-menu-divider"></div>
-                        <a href="#" class="profile-menu-item">
-                            <i class="fas fa-life-ring"></i>
-                            <span>Help & Support</span>
-                        </a>
                         <a href="#" class="profile-menu-item" onclick="supplierNavbar.logout()">
                             <i class="fas fa-sign-out-alt"></i>
                             <span>Logout</span>
@@ -665,20 +648,11 @@ class SupplierNavbar {
             });
         }
 
-        // Profile dropdown
+        // Profile click redirects to profile page
         const profileIcon = document.getElementById('supplierProfileIcon');
-        const profileDropdown = document.getElementById('supplierProfileDropdown');
-
-        if (profileIcon && profileDropdown) {
-            profileIcon.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.toggleProfileDropdown();
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!profileIcon.contains(e.target)) {
-                    this.closeProfileDropdown();
-                }
+        if (profileIcon) {
+            profileIcon.addEventListener('click', () => {
+                window.location.href = 'supplier-profile.html';
             });
         }
 
