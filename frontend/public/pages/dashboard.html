@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/menu.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* DEBUG: Make hamburger menu super visible */        /* Professional Dashboard Styles */        .main-content {
+        .main-content {
             padding: 24px;
             background-color: #f8f9fa;
             min-height: auto;
@@ -631,8 +631,10 @@
                     loadDashboardData();
                     
                     // Refresh user profile in navbar after a small delay to ensure navbar is ready
+                    // Only call this once and check if navbar exists
                     setTimeout(() => {
-                        if (window.smartPOSNavbar && typeof window.smartPOSNavbar.refreshUserProfile === 'function') {
+                        if (window.smartPOSNavbar && typeof window.smartPOSNavbar.refreshUserProfile === 'function' && !window.navbarProfileRefreshed) {
+                            window.navbarProfileRefreshed = true; // Prevent multiple calls
                             window.smartPOSNavbar.refreshUserProfile();
                         }
                     }, 100);
@@ -667,27 +669,37 @@
                 // Fetch low stock items
                 apiService.request('/products?lowStock=true&limit=5')
                     .then(response => {
-                        if (response.success) {
+                        // Check if response has products array directly or in data.products
+                        if (response && response.products && Array.isArray(response.products)) {
+                            updateLowStockItems(response.products);
+                        } else if (response && response.success && response.data && response.data.products) {
                             updateLowStockItems(response.data.products);
                         } else {
-                            console.error('Failed to load low stock items:', response.message);
+                            console.error('Failed to load low stock items:', response?.message || 'Invalid response format');
+                            updateLowStockItems([]); // Show empty state
                         }
                     })
                     .catch(error => {
                         console.error('Error loading low stock items:', error);
+                        updateLowStockItems([]); // Show empty state
                     });
                 
                 // Fetch recent transactions
                 apiService.request('/transactions?limit=5')
                     .then(response => {
-                        if (response.success) {
+                        // Check if response has transactions array directly or in data.transactions
+                        if (response && response.transactions && Array.isArray(response.transactions)) {
+                            updateRecentTransactions(response.transactions);
+                        } else if (response && response.success && response.data && response.data.transactions) {
                             updateRecentTransactions(response.data.transactions);
                         } else {
-                            console.error('Failed to load recent transactions:', response.message);
+                            console.error('Failed to load recent transactions:', response?.message || 'Invalid response format');
+                            updateRecentTransactions([]); // Show empty state
                         }
                     })
                     .catch(error => {
                         console.error('Error loading recent transactions:', error);
+                        updateRecentTransactions([]); // Show empty state
                     });
             } else {
                 // If no API service, show demo data
@@ -1016,19 +1028,25 @@
     <script src="../js/menu.js"></script>
     <script src="../js/custom-modals.js"></script>
     <script>
+        // Prevent auto-initialization since we'll do it manually
+        window.navbarManualInit = true;
+        
         // Initialize navbar with dashboard-specific options
         document.addEventListener('DOMContentLoaded', function() {
-            const navbar = new SmartPOSNavbar({
-                title: 'Smart POS - Dashboard',
-                showNotifications: true,
-                showProfile: true,
-                customActions: [
-                    { id: 'quick-sale', icon: 'cash-register', title: 'Quick Sale' }
-                ]
-            });
+            // Only initialize if not already done
+            if (!window.smartPOSNavbar) {
+                const navbar = new SmartPOSNavbar({
+                    title: 'Dashboard',
+                    showNotifications: true,
+                    showProfile: true,
+                    customActions: [
+                        { id: 'quick-sale', icon: 'cash-register', title: 'Quick Sale' }
+                    ]
+                });
 
-            // Store navbar instance globally so we can update user profile later
-            window.smartPOSNavbar = navbar;
+                // Store navbar instance globally so we can update user profile later
+                window.smartPOSNavbar = navbar;
+            }
 
             // Handle custom navbar actions
             window.addEventListener('navbarAction', async (event) => {

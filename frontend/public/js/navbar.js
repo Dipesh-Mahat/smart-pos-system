@@ -756,6 +756,12 @@ class SmartPOSNavbar {
     }
 
     loadUserProfile() {
+        // Prevent multiple simultaneous profile loads
+        if (this.profileLoading) {
+            return;
+        }
+        this.profileLoading = true;
+        
         // Check if auth service is available
         if (window.authService && window.authService.isLoggedIn()) {
             const user = window.authService.getUser();
@@ -796,6 +802,9 @@ class SmartPOSNavbar {
             if (profileNameElement) profileNameElement.textContent = 'Guest User';
             if (profileEmailElement) profileEmailElement.textContent = 'Not logged in';
         }
+        
+        // Reset loading flag
+        this.profileLoading = false;
     }
 
     // Public method to refresh user profile (can be called from outside)
@@ -1354,6 +1363,12 @@ class LegacyCompatibleSmartPOSNavbar extends SmartPOSNavbar {
 let smartPOSNavbar = null;
 
 function initSmartPOSNavbar(optionsOrTitle = {}, legacyActions = null) {
+    // Prevent multiple initializations - check if already exists
+    if (smartPOSNavbar && window.smartPOSNavbar) {
+        console.log('Navbar already initialized, skipping...');
+        return smartPOSNavbar;
+    }
+    
     // Destroy existing instance if any
     if (smartPOSNavbar) {
         smartPOSNavbar.destroy();
@@ -1398,7 +1413,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!smartPOSNavbar && !window.navbarManualInit) {
         // Auto-detect page and set appropriate title
         const pageTitle = document.title.replace('Smart POS - ', '') || 'Dashboard';
+        console.log('Auto-initializing navbar with title:', pageTitle);
         initSmartPOSNavbar({ title: pageTitle });
+    } else if (smartPOSNavbar) {
+        console.log('Navbar already exists, skipping auto-initialization');
     }
 });
 
