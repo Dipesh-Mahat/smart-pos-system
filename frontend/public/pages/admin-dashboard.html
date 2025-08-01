@@ -142,7 +142,7 @@
                                     <span class="status-indicator online" id="dbStatusIndicator"></span>
                                     <span class="status-text" id="dbStatusText">Online</span>
                                 </div>
-                                <p class="health-details">Queries: <span id="dbQueriesPerMin">150</span>/min</p>
+                                <p class="health-details">Queries: <span id="dbQueriesPerMin">1.5k</span>/min</p>
                             </div>
                         </div>
                         <div class="health-card">
@@ -155,7 +155,7 @@
                                     <span class="status-indicator warning" id="memoryStatusIndicator"></span>
                                     <span class="status-text" id="memoryStatusText">Warning</span>
                                 </div>
-                                <p class="health-details"><span id="memoryUsage">45</span>% utilized</p>
+                                <p class="health-details"><span id="memoryUsage">76</span>% utilized</p>
                             </div>
                         </div>
                         <div class="health-card">
@@ -166,9 +166,9 @@
                                 <h4>System Performance</h4>
                                 <div class="health-status">
                                     <span class="status-indicator online" id="performanceStatusIndicator"></span>
-                                    <span class="status-text" id="performanceStatusText">Good</span>
+                                    <span class="status-text" id="performanceStatusText">Online</span>
                                 </div>
-                                <p class="health-details">Load avg: <span id="systemLoad">0.25</span></p>
+                                <p class="health-details"><span id="performanceUsage">48</span>% utilized • Load avg: <span id="systemLoad">0.25</span></p>
                             </div>
                         </div>
                     </div>
@@ -222,7 +222,6 @@
                                     <th>Type</th>
                                     <th>Status</th>
                                     <th>Join Date</th>
-                                    <th>Last Active</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -294,5 +293,6 @@
     </div>    <!-- Admin Scripts -->
     <script src="../js/admin-navbar.js"></script>
     <script src="../js/admin-dashboard.js"></script>
+    <script src="../js/system-health-fix.js"></script>
 </body>
 </html>
