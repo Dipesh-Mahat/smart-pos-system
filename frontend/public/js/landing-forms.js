@@ -324,16 +324,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Get form values with proper element checking
-        const userTypeInput = document.getElementById('registerUserType');
+        // User type removed - registration is only for shop owners
         const shopNameInput = document.getElementById('shopName');
-        const companyNameInput = document.getElementById('companyName');
         const regEmailInput = document.getElementById('email');
         const passwordInput = document.getElementById('registerPassword');
         const confirmPasswordInput = document.getElementById('confirmPassword');
         
-        const userType = userTypeInput ? userTypeInput.value : 'shopowner';
+        const userType = 'shopowner'; // Fixed as shop owner only
         const shopName = shopNameInput ? shopNameInput.value.trim() : '';
-        const companyName = companyNameInput ? companyNameInput.value.trim() : '';
         const email = regEmailInput ? regEmailInput.value.trim() : '';
         const password = passwordInput ? passwordInput.value : '';
         const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : '';
@@ -341,17 +339,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Validate inputs
         let hasError = false;
         
-        // Name validation based on user type
-        if (userType === 'shopowner') {
-            if (!shopName || shopName === '') {
-                showError('shopNameError', 'Shop name is required');
-                hasError = true;
-            }
-        } else if (userType === 'supplier') {
-            if (!companyName || companyName === '') {
-                showError('companyNameError', 'Company name is required');
-                hasError = true;
-            }
+        // Shop name validation (only for shop owners)
+        if (!shopName || shopName === '') {
+            showError('shopNameError', 'Shop name is required');
+            hasError = true;
         }
         
         // Email validation
@@ -393,15 +384,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 email,
                 password,
                 confirmPassword,
-                role: userType
+                role: userType,
+                shopName: shopName // Always shop name since registration is only for shop owners
             };
-            
-            // Add the appropriate name field based on user type
-            if (userType === 'shopowner') {
-                requestData.shopName = shopName;
-            } else if (userType === 'supplier') {
-                requestData.companyName = companyName;
-            }
             
             const response = await fetch(`${apiBaseUrl}/auth/register`, {
                 method: 'POST',
