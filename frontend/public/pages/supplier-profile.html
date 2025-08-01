@@ -3,745 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="" id="csrf-token">
     <title>Supplier Profile - Smart POS Supplier</title>
     <link rel="stylesheet" href="../css/supplier-dashboard.css">
     <link rel="stylesheet" href="../css/supplier-profile.css">
     <link rel="stylesheet" href="../css/menu.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>    <div class="container">
-        <main class="main-content">
-            <!-- Profile Overview -->
-            <div class="content-card">
+<body>
+    <div class="container">
+        <!-- Menu will be injected here by supplier-menu.js -->
+        <div id="supplier-menu"></div>
+        
+        <main class="main-content profile-main-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>Supplier Profile</h1>
+                <p>View and manage your profile information</p>
+            </div>
+            
+            <!-- Profile Card -->
+            <div class="content-card profile-card" id="profile-summary">
                 <div class="profile-header">
                     <div class="profile-avatar">
-                        <img src="../images/avatars/user-avatar.png" alt="Profile Picture" id="profileImage" onerror="this.src='../images/avatars/user-avatar.png'">
+                        <img src="../images/avatars/user-avatar.png" alt="Profile Picture" id="profileImage">
                         <div class="avatar-upload">
-                            <input type="file" id="profilePicture" accept="image/*" style="display: none;">
-                            <button class="avatar-upload-btn" onclick="document.getElementById('profilePicture').click()">
+                            <input type="file" id="profilePicture" accept="image/*">
+                            <label for="profilePicture" class="avatar-upload-btn">
                                 <i class="fas fa-camera"></i>
-                            </button>
+                            </label>
                         </div>
                     </div>
                     <div class="profile-info">
-                        <h2 id="profileBusinessName">TechWorld Electronics</h2>
-                        <div class="profile-details">
-                            <p><i class="fas fa-user"></i> <span id="profileContactPerson">John Smith</span></p>
-                            <p><i class="fas fa-envelope"></i> <span id="profileEmail">john.smith@techworld.com</span></p>
-                            <p><i class="fas fa-phone"></i> <span id="profilePhone">+1 (555) 123-4567</span></p>
-                        </div>
-                        <div class="verification-status">
-                            <div class="verification-item">
-                                <span id="emailVerification" class="verification-badge verified">
-                                    <i class="fas fa-check-circle"></i> Email Verified
-                                </span>
-                            </div>
-                            <div class="verification-item">
-                                <span id="phoneVerification" class="verification-badge verified">
-                                    <i class="fas fa-check-circle"></i> Phone Verified
-                                </span>
-                            </div>
-                            <div class="verification-item">
-                                <span id="businessVerification" class="verification-badge verified">
-                                    <i class="fas fa-check-circle"></i> Business Verified
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="profile-stats">
-                        <div class="stat-item">
-                            <div class="stat-value" id="totalSales">$567,892</div>
-                            <div class="stat-label">Total Sales</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="totalOrders">1,234</div>
-                            <div class="stat-label">Total Orders</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">
-                                <span id="averageRating">4.8</span>
-                                <div class="rating-stars" id="ratingStars"></div>
-                            </div>
-                            <div class="stat-label">Rating</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="completionRate">98.5%</div>
-                            <div class="stat-label">Completion Rate</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="profile-summary">
-                    <div class="summary-item">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Member since <strong id="memberSince">January 15, 2023</strong></span>
-                    </div>
-                    <div class="summary-item">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>Verified Supplier with <strong>Premium</strong> status</span>
-                    </div>
-                    <div class="summary-item">
-                        <i class="fas fa-award"></i>
-                        <span>Top rated supplier in <strong>Electronics</strong> category</span>
+                        <h2 id="businessName">Loading...</h2>
+                        <p id="ownerName"><i class="fas fa-user"></i> <span>Loading...</span></p>
+                        <p id="email"><i class="fas fa-envelope"></i> <span>Loading...</span></p>
+                        <p id="phone"><i class="fas fa-phone"></i> <span>Loading...</span></p>
                     </div>
                 </div>
             </div>
-
-            <!-- Profile Tabs -->
-            <div class="content-card">
+            
+            <!-- Profile Forms -->
+            <div class="content-card" id="profile-forms">
                 <div class="tab-navigation">
-                    <button class="tab-btn active" data-tab="profile">
-                        <i class="fas fa-user"></i> Profile Information
-                    </button>
-                    <button class="tab-btn" data-tab="business">
-                        <i class="fas fa-building"></i> Business Details
-                    </button>
-                    <button class="tab-btn" data-tab="banking">
-                        <i class="fas fa-university"></i> Banking Info
-                    </button>
-                    <button class="tab-btn" data-tab="preferences">
-                        <i class="fas fa-cog"></i> Preferences
-                    </button>
-                    <button class="tab-btn" data-tab="security">
-                        <i class="fas fa-shield-alt"></i> Security
-                    </button>
-                    <button class="tab-btn" onclick="switchTab('notifications')" data-tab="notifications">
-                        <i class="fas fa-bell"></i> Notifications
-                    </button>
+                    <button class="tab-btn active" data-tab="business">Business Information</button>
+                    <button class="tab-btn" data-tab="contact">Contact Details</button>
+                    <button class="tab-btn" data-tab="password">Change Password</button>
                 </div>
-
-                <!-- Company Information Tab -->
-                <div class="tab-content active" id="companyTab">
-                    <h3>Company Information</h3>
-                    <form id="companyForm" class="profile-form">
+                
+                <!-- Business Information Form -->
+                <div class="tab-content active" id="businessTab">
+                    <form id="businessForm" class="profile-form">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="businessName">Business Name *</label>
-                                <input type="text" id="businessName" name="businessName" value="TechWorld Supplies" required>
+                                <label for="businessNameInput">Business Name</label>
+                                <input type="text" id="businessNameInput" name="businessName" required>
                             </div>
                             <div class="form-group">
                                 <label for="businessType">Business Type</label>
                                 <select id="businessType" name="businessType">
                                     <option value="manufacturer">Manufacturer</option>
-                                    <option value="wholesaler" selected>Wholesaler</option>
+                                    <option value="wholesaler">Wholesaler</option>
                                     <option value="distributor">Distributor</option>
                                     <option value="retailer">Retailer</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="businessRegistration">Business Registration Number</label>
-                                <input type="text" id="businessRegistration" name="businessRegistration" value="BR123456789">
-                            </div>
-                            <div class="form-group">
-                                <label for="taxId">Tax ID / VAT Number</label>
-                                <input type="text" id="taxId" name="taxId" value="TAX987654321">
-                            </div>
-                        </div>
                         <div class="form-group">
-                            <label for="companyDesc">Company Description</label>
-                            <textarea id="companyDesc" name="companyDesc" rows="4">Leading supplier of electronic accessories and components with over 10 years of experience in the industry. We provide high-quality products to retailers and businesses across the region.</textarea>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="website">Website</label>
-                                <input type="url" id="website" name="website" value="https://techworld-supplies.com">
-                            </div>
-                            <div class="form-group">
-                                <label for="establishedYear">Year Established</label>
-                                <input type="number" id="establishedYear" name="establishedYear" value="2014" min="1900" max="2024">
-                            </div>
+                            <label for="businessDescription">Business Description</label>
+                            <textarea id="businessDescription" name="businessDescription" rows="3"></textarea>
                         </div>
                         <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" onclick="resetForm('companyForm')">Reset</button>
-                            <button type="submit" class="btn btn-primary">Update Information</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
                         </div>
                     </form>
                 </div>
-
-                <!-- Contact Details Tab -->
+                
+                <!-- Contact Details Form -->
                 <div class="tab-content" id="contactTab">
-                    <h3>Contact Details</h3>
                     <form id="contactForm" class="profile-form">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="primaryContact">Primary Contact Person *</label>
-                                <input type="text" id="primaryContact" name="primaryContact" value="John Smith" required>
+                                <label for="contactName">Contact Name</label>
+                                <input type="text" id="contactName" name="contactName" required>
                             </div>
                             <div class="form-group">
-                                <label for="contactTitle">Title/Position</label>
-                                <input type="text" id="contactTitle" name="contactTitle" value="Sales Manager">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="primaryEmail">Primary Email *</label>
-                                <input type="email" id="primaryEmail" name="primaryEmail" value="john@techworld-supplies.com" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="secondaryEmail">Secondary Email</label>
-                                <input type="email" id="secondaryEmail" name="secondaryEmail" value="support@techworld-supplies.com">
+                                <label for="position">Position</label>
+                                <input type="text" id="position" name="position">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="primaryPhone">Primary Phone *</label>
-                                <input type="tel" id="primaryPhone" name="primaryPhone" value="+1 (555) 123-4567" required>
+                                <label for="contactEmail">Email</label>
+                                <input type="email" id="contactEmail" name="contactEmail" required>
                             </div>
                             <div class="form-group">
-                                <label for="secondaryPhone">Secondary Phone</label>
-                                <input type="tel" id="secondaryPhone" name="secondaryPhone" value="+1 (555) 765-4321">
+                                <label for="contactPhone">Phone</label>
+                                <input type="tel" id="contactPhone" name="contactPhone">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="businessAddress">Business Address *</label>
-                            <textarea id="businessAddress" name="businessAddress" rows="3" required>123 Tech Street
-Suite 456
-Technology City, TC 12345
-United States</textarea>
+                            <label for="address">Business Address</label>
+                            <textarea id="address" name="address" rows="3"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Password Form -->
+                <div class="tab-content" id="passwordTab">
+                    <form id="passwordForm" class="profile-form">
+                        <div class="form-group">
+                            <label for="currentPassword">Current Password</label>
+                            <input type="password" id="currentPassword" name="currentPassword" required>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="billingAddress">Billing Address</label>
-                                <textarea id="billingAddress" name="billingAddress" rows="3" placeholder="Same as business address if empty">456 Finance Avenue
-Business District, BD 67890
-United States</textarea>
+                                <label for="newPassword">New Password</label>
+                                <input type="password" id="newPassword" name="newPassword" required>
                             </div>
                             <div class="form-group">
-                                <label for="shippingAddress">Shipping Address</label>
-                                <textarea id="shippingAddress" name="shippingAddress" rows="3" placeholder="Same as business address if empty">789 Warehouse Road
-Industrial Zone, IZ 54321
-United States</textarea>
+                                <label for="confirmPassword">Confirm New Password</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" required>
                             </div>
                         </div>
                         <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" onclick="resetForm('contactForm')">Reset</button>
-                            <button type="submit" class="btn btn-primary">Update Contact Details</button>
+                            <button type="submit" class="btn btn-primary">Change Password</button>
                         </div>
                     </form>
                 </div>
-
-                <!-- Business Settings Tab -->
-                <div class="tab-content" id="businessTab">
-                    <h3>Business Settings</h3>
-                    <form id="businessForm" class="profile-form">
-                        <div class="form-section">
-                            <h4>Payment Terms</h4>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="defaultPaymentTerms">Default Payment Terms</label>
-                                    <select id="defaultPaymentTerms" name="defaultPaymentTerms">
-                                        <option value="cod">Cash on Delivery</option>
-                                        <option value="net15">Net 15 Days</option>
-                                        <option value="net30" selected>Net 30 Days</option>
-                                        <option value="net60">Net 60 Days</option>
-                                        <option value="prepaid">Prepaid</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="currency">Default Currency</label>
-                                    <select id="currency" name="currency">
-                                        <option value="USD" selected>USD - US Dollar</option>
-                                        <option value="EUR">EUR - Euro</option>
-                                        <option value="GBP">GBP - British Pound</option>
-                                        <option value="CAD">CAD - Canadian Dollar</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h4>Shipping Settings</h4>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="shippingMethod">Default Shipping Method</label>
-                                    <select id="shippingMethod" name="shippingMethod">
-                                        <option value="standard" selected>Standard Shipping</option>
-                                        <option value="express">Express Shipping</option>
-                                        <option value="overnight">Overnight Delivery</option>
-                                        <option value="pickup">Customer Pickup</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="freeShippingThreshold">Free Shipping Threshold</label>
-                                    <input type="number" id="freeShippingThreshold" name="freeShippingThreshold" value="500" step="0.01">
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="leadTime">Standard Lead Time (Days)</label>
-                                    <input type="number" id="leadTime" name="leadTime" value="3" min="1">
-                                </div>
-                                <div class="form-group">
-                                    <label for="maxOrderQuantity">Maximum Order Quantity</label>
-                                    <input type="number" id="maxOrderQuantity" name="maxOrderQuantity" value="1000" min="1">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h4>Business Hours</h4>
-                            <div class="business-hours">
-                                <div class="day-hours">
-                                    <label>Monday</label>
-                                    <input type="time" value="09:00"> to <input type="time" value="17:00">
-                                    <label><input type="checkbox" checked> Open</label>
-                                </div>
-                                <div class="day-hours">
-                                    <label>Tuesday</label>
-                                    <input type="time" value="09:00"> to <input type="time" value="17:00">
-                                    <label><input type="checkbox" checked> Open</label>
-                                </div>
-                                <div class="day-hours">
-                                    <label>Wednesday</label>
-                                    <input type="time" value="09:00"> to <input type="time" value="17:00">
-                                    <label><input type="checkbox" checked> Open</label>
-                                </div>
-                                <div class="day-hours">
-                                    <label>Thursday</label>
-                                    <input type="time" value="09:00"> to <input type="time" value="17:00">
-                                    <label><input type="checkbox" checked> Open</label>
-                                </div>
-                                <div class="day-hours">
-                                    <label>Friday</label>
-                                    <input type="time" value="09:00"> to <input type="time" value="17:00">
-                                    <label><input type="checkbox" checked> Open</label>
-                                </div>
-                                <div class="day-hours">
-                                    <label>Saturday</label>
-                                    <input type="time" value="10:00"> to <input type="time" value="15:00">
-                                    <label><input type="checkbox" checked> Open</label>
-                                </div>
-                                <div class="day-hours">
-                                    <label>Sunday</label>
-                                    <input type="time" value="10:00"> to <input type="time" value="15:00">
-                                    <label><input type="checkbox"> Open</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" onclick="resetForm('businessForm')">Reset</button>
-                            <button type="submit" class="btn btn-primary">Update Business Settings</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Security Tab -->
-                <div class="tab-content" id="securityTab">
-                    <h3>Security Settings</h3>
-                    
-                    <div class="security-section">
-                        <h4>Change Password</h4>
-                        <form id="passwordForm" class="profile-form">
-                            <div class="form-group">
-                                <label for="currentPassword">Current Password *</label>
-                                <input type="password" id="currentPassword" name="currentPassword" required>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="newPassword">New Password *</label>
-                                    <input type="password" id="newPassword" name="newPassword" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="confirmPassword">Confirm New Password *</label>
-                                    <input type="password" id="confirmPassword" name="confirmPassword" required>
-                                </div>
-                            </div>
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary">Change Password</button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="security-section">
-                        <h4>Two-Factor Authentication</h4>
-                        <div class="security-option">
-                            <div class="option-info">
-                                <h5>Enable Two-Factor Authentication</h5>
-                                <p>Add an extra layer of security to your account</p>
-                            </div>
-                            <div class="option-toggle">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="twoFactorAuth">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="security-section">
-                        <h4>Login Sessions</h4>
-                        <div class="sessions-list">
-                            <div class="session-item">
-                                <div class="session-info">
-                                    <h5>Current Session</h5>
-                                    <p>Chrome on Windows • Last active: Now</p>
-                                    <span class="session-location">Location: New York, USA</span>
-                                </div>
-                                <span class="session-status current">Current</span>
-                            </div>
-                            <div class="session-item">
-                                <div class="session-info">
-                                    <h5>Mobile App</h5>
-                                    <p>iPhone App • Last active: 2 hours ago</p>
-                                    <span class="session-location">Location: New York, USA</span>
-                                </div>
-                                <button class="btn btn-secondary btn-small" onclick="terminateSession('mobile')">Terminate</button>
-                            </div>
-                        </div>
-                        <button class="btn btn-danger" onclick="terminateAllSessions()">Terminate All Other Sessions</button>
-                    </div>
-                </div>
-
-                <!-- Notifications Tab -->
-                <div class="tab-content" id="notificationsTab">
-                    <h3>Notification Preferences</h3>
-                    
-                    <div class="notification-section">
-                        <h4>Email Notifications</h4>
-                        <div class="notification-options">
-                            <div class="notification-option">
-                                <div class="option-info">
-                                    <h5>New Orders</h5>
-                                    <p>Receive email when new orders are placed</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            <div class="notification-option">
-                                <div class="option-info">
-                                    <h5>Low Stock Alerts</h5>
-                                    <p>Email alerts when inventory is running low</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            <div class="notification-option">
-                                <div class="option-info">
-                                    <h5>Payment Updates</h5>
-                                    <p>Notifications about payment status changes</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            <div class="notification-option">
-                                <div class="option-info">
-                                    <h5>Weekly Reports</h5>
-                                    <p>Weekly summary of sales and performance</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="notification-section">
-                        <h4>SMS Notifications</h4>
-                        <div class="notification-options">
-                            <div class="notification-option">
-                                <div class="option-info">
-                                    <h5>Urgent Alerts</h5>
-                                    <p>SMS for urgent notifications only</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            <div class="notification-option">
-                                <div class="option-info">
-                                    <h5>Order Updates</h5>
-                                    <p>SMS updates for order status changes</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="notification-section">
-                        <h4>In-App Notifications</h4>
-                        <div class="notification-options">
-                            <div class="notification-option">
-                                <div class="option-info">
-                                    <h5>Real-time Updates</h5>
-                                    <p>Show notifications in the dashboard</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            <div class="notification-option">
-                                <div class="option-info">
-                                    <h5>Sound Alerts</h5>
-                                    <p>Play sound for new notifications</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button class="btn btn-primary">Save Notification Preferences</button>
-                    </div>
-                </div>
             </div>
+        </main>
+    </div>
 
-            <!-- Key Insights Section -->
-            <div class="content-card" style="margin-bottom: 32px;">
-                <div class="card-header">
-                    <h2>Key Insights</h2>
-                </div>
-                <div class="insights-grid">
-                    <div class="insight-item">
-                        <div class="insight-icon success">
-                            <i class="fas fa-trophy"></i>
-                        </div>
-                        <div class="insight-content">
-                            <h3>Top Category</h3>
-                            <p>Electronics</p>
-                            <span>Highest sales volume</span>
-                        </div>
-                    </div>
-                    <div class="insight-item">
-                        <div class="insight-icon info">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <div class="insight-content">
-                            <h3>Avg. Rating</h3>
-                            <p>4.8/5</p>
-                            <span>Based on 1,200 reviews</span>
-                        </div>
-                    </div>
-                    <div class="insight-item">
-                        <div class="insight-icon primary">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="insight-content">
-                            <h3>Repeat Customers</h3>
-                            <p>68%</p>
-                            <span>Up 5% this year</span>
-                        </div>
-                    </div>
-                    <div class="insight-item">
-                        <div class="insight-icon warning">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="insight-content">
-                            <h3>Avg. Fulfillment Time</h3>
-                            <p>1d 6h</p>
-                            <span>Best in category</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Actions Section -->
-            <div class="quick-actions-section" style="margin-bottom: 32px;">
-                <h2>Quick Actions</h2>
-                <div class="actions-grid">
-                    <a href="#" class="action-card" onclick="downloadAccountData()">
-                        <i class="fas fa-download"></i>
-                        <span>Download Data</span>
-                    </a>
-                    <a href="#" class="action-card" onclick="window.location.href='auto-orders.html?supplierId='+getSupplierIdFromQuery()">
-                        <i class="fas fa-sync-alt"></i>
-                        <span>Set Up Auto-Order</span>
-                    </a>
-                    <a href="#" class="action-card" onclick="window.location.href='supplier-support.html'">
-                        <i class="fas fa-headset"></i>
-                        <span>Contact Support</span>
-                    </a>
-                    <a href="#" class="action-card" onclick="deactivateAccount()">
-                        <i class="fas fa-pause"></i>
-                        <span>Deactivate Account</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Account Actions -->
-            <div class="content-card">
-                <div class="card-header">
-                    <h2>Account Actions</h2>
-                </div>
-                <div class="account-actions">
-                    <div class="action-item">
-                        <div class="action-info">
-                            <h4>Download Account Data</h4>
-                            <p>Export all your account data and information</p>
-                        </div>
-                        <button class="btn btn-secondary" onclick="downloadAccountData()">
-                            <i class="fas fa-download"></i> Download
-                        </button>
-                    </div>
-                    <div class="action-item">
-                        <div class="action-info">
-                            <h4>Deactivate Account</h4>
-                            <p>Temporarily disable your supplier account</p>
-                        </div>
-                        <button class="btn btn-warning" onclick="deactivateAccount()">
-                            <i class="fas fa-pause"></i> Deactivate
-                        </button>
-                    </div>
-                    <div class="action-item danger">
-                        <div class="action-info">
-                            <h4>Delete Account</h4>
-                            <p>Permanently delete your account and all data</p>
-                        </div>
-                        <button class="btn btn-danger" onclick="deleteAccount()">
-                            <i class="fas fa-trash"></i> Delete Account
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="profile-actions" style="margin-top:24px;">
-                <button class="btn btn-primary" onclick="window.location.href='auto-orders.html?supplierId='+getSupplierIdFromQuery()">Set Up Auto-Order</button>
-            </div>
-        </main>    </div>
-
-    <!-- Include JavaScript files -->
-    <script src="../js/supplier-profile.js"></script>
-    <script>
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            setupFormHandlers();
-        });
-
-        function setupFormHandlers() {
-            // Company form
-            document.getElementById('companyForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                showNotification('Company information updated successfully', 'success');
-            });
-
-            // Contact form
-            document.getElementById('contactForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                showNotification('Contact details updated successfully', 'success');
-            });
-
-            // Business form
-            document.getElementById('businessForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                showNotification('Business settings updated successfully', 'success');
-            });
-
-            // Password form
-            document.getElementById('passwordForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const newPassword = document.getElementById('newPassword').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                
-                if (newPassword !== confirmPassword) {
-                    showNotification('Passwords do not match', 'error');
-                    return;
-                }
-                
-                showNotification('Password changed successfully', 'success');
-                this.reset();
-            });
-        }
-
-        function switchTab(tabName) {
-            // Remove active class from all tabs and contents
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            // Add active class to selected tab and content
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-            document.getElementById(`${tabName}Tab`).classList.add('active');
-        }
-
-        function resetForm(formId) {
-            document.getElementById(formId).reset();
-            showNotification('Form reset to original values', 'info');
-        }
-
-        function handleAvatarUpload(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const profileImage = document.getElementById('profileImage');
-                    const placeholder = document.querySelector('.avatar-placeholder');
-                    
-                    profileImage.src = e.target.result;
-                    profileImage.style.display = 'block';
-                    placeholder.style.display = 'none';
-                    
-                    showNotification('Profile image updated successfully', 'success');
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        function terminateSession(sessionType) {
-            showNotification(`${sessionType} session terminated successfully`, 'success');
-        }
-
-        function terminateAllSessions() {
-            if (confirm('Are you sure you want to terminate all other sessions? You will need to log in again on other devices.')) {
-                showNotification('All other sessions terminated successfully', 'success');
-            }
-        }
-
-        function downloadAccountData() {
-            showNotification('Account data download initiated. You will receive an email with the download link.', 'info');
-        }
-
-        function deactivateAccount() {
-            if (confirm('Are you sure you want to deactivate your account? You can reactivate it later by logging in.')) {
-                showNotification('Account deactivation request submitted', 'warning');
-            }
-        }
-
-        function deleteAccount() {
-            const confirmation = prompt('This action cannot be undone. Type "DELETE" to confirm account deletion:');
-            if (confirmation === 'DELETE') {
-                showNotification('Account deletion request submitted. You will receive a confirmation email.', 'error');
-            } else if (confirmation !== null) {
-                showNotification('Account deletion cancelled', 'info');
-            }
-        }
-
-        // Two-factor authentication toggle
-        document.getElementById('twoFactorAuth').addEventListener('change', function() {
-            if (this.checked) {
-                showNotification('Two-factor authentication setup initiated. Check your email for instructions.', 'info');
-            } else {
-                if (confirm('Are you sure you want to disable two-factor authentication?')) {
-                    showNotification('Two-factor authentication disabled', 'warning');
-                } else {
-                    this.checked = true;
-                }
-            }
-        });
-
-        function getSupplierIdFromQuery() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('id') || '';
-        }
-    </script>
-    
     <!-- Include JavaScript files -->
     <script src="../js/supplier-navbar.js"></script>
     <script src="../js/supplier-menu.js"></script>
+    <script src="../js/supplier-profile.js"></script>
     
     <script>
         // Initialize with custom title
