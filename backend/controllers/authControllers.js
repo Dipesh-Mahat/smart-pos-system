@@ -82,12 +82,14 @@ const login = async (req, res) => {
     
     // Role logic: allow admin to log in regardless of selected role, but enforce correct role for shopowner/supplier
     if (role && user.role !== role) {
+      // Check if this user is an admin - admins can login regardless of selected role
       if (user.role === 'admin') {
         // Allow admin to log in with any role selected
-          // Optionally log a warning or info event
-          logSecurityEvent('LOGIN_ROLE_OVERRIDE', { email: normalizedEmail, requested: role, actual: user.role });
+        // Log the role override for monitoring purposes
+        logSecurityEvent('LOGIN_ROLE_OVERRIDE', { email: normalizedEmail, requested: role, actual: user.role });
+        // Continue with admin login - we'll use the actual admin role
       } else {
-        // For shopowner/supplier, enforce correct role
+        // For non-admin users (shopowner/supplier), enforce correct role matching
         logSecurityEvent('LOGIN_FAILED', { email: normalizedEmail, reason: 'wrong_role', requested: role, actual: user.role });
         return res.status(401).json({ 
           success: false, 
@@ -128,6 +130,9 @@ const login = async (req, res) => {
     await resetLoginAttempts(req, res, () => {});
 
     logSecurityEvent('LOGIN_SUCCESS', { userId: user._id });
+
+    // Debug log - print user object for troubleshooting
+    console.log('User logging in successfully with role:', user.role);
 
     // Return minimal user info to reduce exposure
     res.status(200).json({

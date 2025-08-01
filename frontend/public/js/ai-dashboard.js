@@ -68,8 +68,6 @@ class AIDashboard {
 
     async loadAIData() {
         try {
-            console.log('Loading AI dashboard data...');
-            
             // Get AI dashboard data from backend
             const response = await fetch('/api/ai-intelligence/dashboard', {
                 headers: {
@@ -83,7 +81,6 @@ class AIDashboard {
             }
 
             const data = await response.json();
-            console.log('AI Dashboard Data:', data);
 
             if (data.success) {
                 this.aiData = data.data;
@@ -485,8 +482,6 @@ class AIDashboard {
     }
 
     showFallbackMode() {
-        console.log('Showing fallback mode for AI dashboard');
-        
         // Update status to show fallback mode
         const statusTitle = document.getElementById('aiProviderStatus');
         const statusDetails = document.getElementById('aiProviderDetails');
@@ -821,7 +816,6 @@ class AIDashboard {
 
 // Initialize AI Dashboard when page loads
 function initializeAIDashboard() {
-    console.log('Initializing AI Dashboard...');
     window.aiDashboard = new AIDashboard();
 }
 

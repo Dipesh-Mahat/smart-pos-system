@@ -8,7 +8,6 @@ class ApiService {
         // Automatically determine if we're using local or production API
         this.baseUrl = this.determineApiBaseUrl();
         this.authService = window.authService;
-        console.log('API Service initialized with base URL:', this.baseUrl);
     }
     
     determineApiBaseUrl() {

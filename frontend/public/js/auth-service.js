@@ -13,7 +13,6 @@ class AuthService {
                          'http://localhost:5000/api' : 
                          'https://smart-pos-system.onrender.com/api';
                          
-        console.log('Auth service initialized with API base URL:', this.apiBaseUrl);
         this.tokenKey = 'neopos_auth_token';
         this.userKey = 'neopos_user';
         this.refreshTokenKey = 'neopos_refresh_token';
@@ -61,8 +60,6 @@ class AuthService {
         // Save and start the timer
         const timerId = setTimeout(() => this.refreshToken(), refreshDelay);
         localStorage.setItem(this.refreshTimerKey, timerId);
-        
-        console.log(`Token refresh scheduled in ${Math.floor(refreshDelay / 1000 / 60)} minutes`);
     }
 
     /**
@@ -102,6 +99,17 @@ class AuthService {
      * @param {string} explicitExpiry - Optional explicit expiry time in ISO format
      */
     saveTokenData(token, refreshToken, user, explicitExpiry) {
+        // Debug log for troubleshooting
+        console.log('Auth service saving user data:', {
+            token: token ? 'present' : 'missing',
+            refreshToken: refreshToken ? 'present' : 'missing',
+            user: user ? {
+                role: user.role,
+                email: user.email,
+                id: user.id
+            } : 'missing'
+        });
+        
         // Save the tokens and user data
         localStorage.setItem(this.tokenKey, token);
         if (refreshToken) {
@@ -193,6 +201,22 @@ class AuthService {
      */
     isLoggedIn() {
         return !!this.getToken();
+    }
+    
+    /**
+     * Checks if user has admin privileges
+     * @returns {boolean} True if user is admin
+     */
+    isAdmin() {
+        const user = this.getUser();
+        // Debug log
+        console.log('Auth service checking if user is admin:', user ? {
+            role: user.role,
+            email: user.email,
+            result: user.role === 'admin'
+        } : 'No user found');
+        
+        return user && user.role === 'admin';
     }    /**
      * Refreshes the authentication token
      * @returns {Promise<boolean>} Promise resolving to true if refresh succeeded
@@ -220,7 +244,6 @@ class AuthService {
                 
                 // Save new token and set up new refresh timer
                 this.saveTokenData(data.token, newRefreshToken, this.getUser(), data.expiresAt);
-                console.log('Token refreshed successfully');
                 return true;
             } else {
                 console.error('Token refresh failed:', data.message);
@@ -348,7 +371,6 @@ class AuthService {
      */
     async register(userData) {
         try {
-            console.log('Auth service sending registration data:', userData);
             const response = await fetch(`${this.apiBaseUrl}/auth/register`, {
                 method: 'POST',
                 headers: {
@@ -358,7 +380,6 @@ class AuthService {
             });
 
             const data = await response.json();
-            console.log('Registration response:', data);
             
             return { 
                 success: response.ok && data.success, 
@@ -446,10 +467,6 @@ authService.createFetchInterceptor();
 
 // Make it globally available
 window.authService = authService;
-
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_BASE_URL = isLocal ? 'http://localhost:5000/api' : 'https://smart-pos-system.onrender.com/api';
-console.log('Auth service initialized with API base URL:', API_BASE_URL);
 // Add retry logic for failed fetches if needed
 async function requestWithRetry(url, options, retries = 3) {
     for (let i = 0; i < retries; i++) {

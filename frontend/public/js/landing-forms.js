@@ -244,23 +244,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Store user data using auth service if available
                 if (window.authService) {
                     const refreshToken = data.refreshToken || getCookieValue('refresh_token');
+                    
+                    // Debug log for troubleshooting
+                    console.log('User data received from server:', {
+                        role: data.user?.role,
+                        email: data.user?.email,
+                        id: data.user?.id
+                    });
+                    
                     window.authService.saveTokenData(data.token, refreshToken, data.user);
+                    
+                    // Also store for backward compatibility
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    localStorage.setItem('accessToken', data.token);
                 }
                 
                 // Redirect based on user role
                 if (data.user && data.user.role) {
                     console.log('Login successful as:', data.user.role);
-                    switch (data.user.role) {
-                        case 'admin':
-                            window.location.href = 'pages/admin-dashboard.html';
-                            break;
-                        case 'supplier':
-                            window.location.href = 'pages/supplier-dashboard.html';
-                            break;
-                        case 'shopowner':
-                        default:
-                            window.location.href = 'pages/dashboard.html';
-                            break;
+                    // Admin users should always go to admin dashboard, regardless of selected role
+                    if (data.user.role === 'admin') {
+                        window.location.href = 'pages/admin-dashboard.html';
+                    } else {
+                        // For non-admin users, redirect based on their role
+                        switch (data.user.role) {
+                            case 'supplier':
+                                window.location.href = 'pages/supplier-dashboard.html';
+                                break;
+                            case 'shopowner':
+                            default:
+                                window.location.href = 'pages/dashboard.html';
+                                break;
+                        }
                     }
                 } else {
                     // Default redirect if no role information

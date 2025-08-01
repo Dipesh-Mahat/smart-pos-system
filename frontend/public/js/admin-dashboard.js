@@ -24,14 +24,74 @@ class AdminDashboard {
             storage: { status: 'online', details: '48% utilized' }
         };
         
-        this.checkAuthentication();
-        this.init();
+        // Only initialize if authenticated
+        if (this.checkAuthentication()) {
+            this.init();
+        }
     }
 
     // Check if user is authenticated as admin
     checkAuthentication() {
-        // No-op: allow access like normal users
-        return true;
+        // Try to get user from auth service first
+        let user = null;
+        
+        if (window.authService && typeof window.authService.getUser === 'function') {
+            user = window.authService.getUser();
+            console.log('Admin dashboard got user from auth service:', user ? {
+                role: user.role,
+                email: user.email
+            } : 'No user found in auth service');
+        }
+        
+        // Fallback to direct localStorage access
+        if (!user) {
+            // First try the auth service's key
+            const userFromLS = localStorage.getItem('neopos_user');
+            if (userFromLS) {
+                try {
+                    user = JSON.parse(userFromLS);
+                    console.log('Admin dashboard got user from neopos_user:', {
+                        role: user.role,
+                        email: user.email
+                    });
+                } catch (e) {
+                    console.error('Error parsing user from neopos_user:', e);
+                }
+            }
+            
+            // Then try the regular 'user' key
+            if (!user) {
+                const regularUser = localStorage.getItem('user');
+                if (regularUser) {
+                    try {
+                        user = JSON.parse(regularUser);
+                        console.log('Admin dashboard got user from user key:', {
+                            role: user.role,
+                            email: user.email
+                        });
+                    } catch (e) {
+                        console.error('Error parsing user from user key:', e);
+                    }
+                }
+            }
+        }
+        
+        // Show debug information about what we found
+        console.log('Admin dashboard authentication check result:', {
+            userFound: !!user,
+            role: user?.role,
+            isAdmin: user?.role === 'admin'
+        });
+        
+        // Only allow users with the actual 'admin' role - regardless of how they logged in
+        if (user && user.role === 'admin') {
+            return true;
+        }
+        
+        // Redirect to login if not authenticated as admin
+        alert('Unauthorized access. Please login with admin credentials.');
+        window.location.href = '../landing.html';
+        return false;
     }
 
     async init() {
@@ -62,7 +122,19 @@ class AdminDashboard {
             }
 
             // Fetch real user data from backend API
-            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+            let token = null;
+            
+            // Try to get token from auth service first
+            if (window.authService && typeof window.authService.getToken === 'function') {
+                token = window.authService.getToken();
+            }
+            
+            // Fallback to direct localStorage access if needed
+            if (!token) {
+                token = localStorage.getItem('neopos_auth_token') || 
+                        localStorage.getItem('accessToken');
+            }
+            
             const response = await fetch(`${this.getApiBaseUrl()}/users`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -103,6 +175,14 @@ class AdminDashboard {
 
         } catch (error) {
             console.error('Failed to load users:', error);
+            
+            // Check if it's an authorization issue
+            if (error.message && error.message.includes('401')) {
+                alert('Unauthorized access. Please login again.');
+                window.location.href = '../landing.html';
+                return;
+            }
+            
             this.showMessage(error.message || 'Failed to load users', 'error');
             
             // Show error in table
@@ -145,7 +225,16 @@ class AdminDashboard {
     // Load real statistics from database
     async loadDashboardStats() {
         try {
-            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+            // Get token from auth service or fallback to localStorage
+            let token = null;
+            if (window.authService && typeof window.authService.getToken === 'function') {
+                token = window.authService.getToken();
+            }
+            if (!token) {
+                token = localStorage.getItem('neopos_auth_token') || 
+                        localStorage.getItem('accessToken');
+            }
+            
             const response = await fetch(`${this.getApiBaseUrl()}/admin/dashboard-stats`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -173,6 +262,14 @@ class AdminDashboard {
             }
         } catch (error) {
             console.error('Failed to load dashboard stats:', error);
+            
+            // Handle unauthorized access
+            if (error.message && error.message.includes('401')) {
+                alert('Unauthorized access. Please login again.');
+                window.location.href = '../landing.html';
+                return;
+            }
+            
             // Fallback to calculating from users data
             this.updateStatistics();
         }
@@ -181,7 +278,16 @@ class AdminDashboard {
     // Load real transactions data
     async loadTransactionStats() {
         try {
-            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+            // Get token from auth service or fallback to localStorage
+            let token = null;
+            if (window.authService && typeof window.authService.getToken === 'function') {
+                token = window.authService.getToken();
+            }
+            if (!token) {
+                token = localStorage.getItem('neopos_auth_token') || 
+                        localStorage.getItem('accessToken');
+            }
+            
             const response = await fetch(`${this.getApiBaseUrl()}/admin/transaction-stats`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,

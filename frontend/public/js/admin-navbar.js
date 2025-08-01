@@ -188,7 +188,6 @@ class AdminNavbar {
         if (query.length < 2) return;
         
         // Implement search functionality
-        console.log('Searching for:', query);
         // This would typically make an API call to search users/transactions
     }
 

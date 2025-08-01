@@ -8,8 +8,10 @@ const googleClientId = '489848070288-0he2h9ti3a9aqljpagoigmt5h9tmt38k.apps.googl
 
 let googleAuth;
 
-// Set API base URL to Render backend only (no local testing)
-const apiBaseUrl = 'https://smart-pos-system.onrender.com/api';
+// Set up API base URL based on environment
+const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                  ? 'http://localhost:5000/api'
+                  : 'https://smart-pos-system.onrender.com/api';
 
 /**
  * Initialize Google OAuth client
@@ -18,9 +20,6 @@ function initializeGoogleAuth() {
     if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
         // Get the current origin for better compatibility across environments
         const currentOrigin = window.location.origin;
-        
-        // Log the current origin for debugging
-        console.log('Current origin for OAuth redirect:', currentOrigin);
         
         // Configure the redirect URI based on the environment
         let redirectUri = `${currentOrigin}/auth/google/callback`;
@@ -33,8 +32,6 @@ function initializeGoogleAuth() {
             // Match redirect URI exactly as registered in Google Console
             redirect_uri: redirectUri
         });
-        
-        console.log('Google OAuth initialized with redirect URI:', redirectUri);
     } else {
         console.error('Google OAuth libraries not loaded');
     }
@@ -77,8 +74,6 @@ function handleGoogleOAuthResponse(response) {
         return response.json();
     })
     .then(data => {
-        console.log('Google user info retrieved successfully');
-        
         // Get information about which popup is active (login or register)
         const isLoginPopup = document.getElementById('loginPopup')?.style.display === 'flex';
         const isRegisterPopup = document.getElementById('registerPopup')?.style.display === 'flex';
@@ -101,10 +96,8 @@ function handleGoogleOAuthResponse(response) {
                 }
             });
         }
-        
-        console.log('Auth mode detected as:', authMode);
+      
       // Send the Google user info to your backend
-    console.log('Sending request to backend API:', `${apiBaseUrl}/auth/google`);
     
     fetch(`${apiBaseUrl}/auth/google`, {
         method: 'POST',
@@ -154,9 +147,6 @@ function handleGoogleOAuthResponse(response) {
                 localStorage.setItem('accessToken', result.accessToken);
                 localStorage.setItem('refreshToken', result.refreshToken);
                 localStorage.setItem('user', JSON.stringify(result.user));
-                
-                // Show role-specific message in console for debugging
-                console.log(`Logged in as ${result.user.role} (${result.user.email})`);
                 
                 // Redirect to dashboard after a brief delay
                 setTimeout(() => {
