@@ -1,14 +1,15 @@
-// Supplier Products JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Supplier Products page DOM loaded, initializing...');
-    initializeProductsPage();
-});
-
-// Initialize with empty products array
-let productsData = [];
-let filteredProducts = [];
+// Global variables
 let currentPage = 1;
-let itemsPerPage = 10;
+const itemsPerPage = 10;
+let totalProducts = 0;
+let products = [];
+
+document.addEventListener('DOMContentLoaded', async function() {
+    // Initialize the page
+    setupEventListeners();
+    updateStatistics();
+    await loadProducts();
+});
 
 function initializeProductsPage() {
     try {
@@ -33,64 +34,61 @@ function initializeProductsPage() {
     }
 }
 
-// Load products from API or use demo products
-function loadProducts() {
+async function loadProducts() {
     try {
-        console.log('Loading products...');
-        const apiService = window.apiService || null;
-        
-        if (apiService) {
-            // Show loading state
-            const tableBody = document.getElementById('productsTableBody');
-            if (tableBody) {
-                tableBody.innerHTML = '<tr><td colspan="8" class="text-center">Loading products...</td></tr>';
+        const response = await fetch('http://localhost:3000/api/supplier/products', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
             }
-            
-            // Try to fetch products from API
-            apiService.request('/supplier/products')
-                .then(response => {
-                    if (response.success && response.data.products && response.data.products.length > 0) {
-                        // Use real products from API
-                        productsData = response.data.products;
-                        
-                        // Also update statistics from API response
-                        if (response.data.statistics) {
-                            updateStatistics(response.data.statistics);
-                        }
-                    } else {
-                        // Fall back to demo products if no real products exist
-                        productsData = getDemoProducts();
-                    }
-                    
-                    filteredProducts = [...productsData];
-                    loadProductsTable();
-                    console.log('Products loaded from API successfully');
-                })
-                .catch(error => {
-                    console.error('Error loading products:', error);
-                    // Fall back to demo products on error
-                    productsData = getDemoProducts();
-                    filteredProducts = [...productsData];
-                    loadProductsTable();
-                    updateStatistics();
-                    console.log('Products loaded from demo data after API error');
-                });
-        } else {
-            // Use demo products if no API service available
-            console.log('No API service, using demo products');
-            productsData = getDemoProducts();
-            filteredProducts = [...productsData];
-            loadProductsTable();
-            updateStatistics();
-            console.log('Demo products loaded successfully');
-        }
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch products');
+        
+        const data = await response.json();
+        products = data.products || [];
+        totalProducts = data.total || 0;
+        
+        renderProducts();
+        updatePagination();
+        await updateStatistics();
+        
     } catch (error) {
-        console.error('Error in loadProducts function:', error);
-        // Fallback to demo products
-        productsData = getDemoProducts();
-        filteredProducts = [...productsData];
-        loadProductsTable();
-        updateStatistics();
+        console.error('Error loading products:', error);
+        showNotification('Failed to load products', 'error');
+        document.getElementById('productsTableBody').innerHTML = 
+            '<tr><td colspan="8" class="text-center">Error loading products</td></tr>';
+    }
+}
+
+async function updateStatistics() {
+    try {
+        const response = await fetch('http://localhost:3000/api/supplier/products/stats', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch product statistics');
+
+        const stats = await response.json();
+        
+        // Update the statistics in the UI
+        const totalElement = document.getElementById('totalProducts');
+        const activeElement = document.getElementById('activeProducts');
+        const lowStockElement = document.getElementById('lowStockProducts');
+        const topElement = document.getElementById('topProducts');
+        
+        if (totalElement) totalElement.textContent = stats.total || 0;
+        if (activeElement) activeElement.textContent = stats.active || 0;
+        if (lowStockElement) lowStockElement.textContent = stats.lowStock || 0;
+        if (topElement) topElement.textContent = stats.wellStocked || 0;
+
+    } catch (error) {
+        console.error('Error updating statistics:', error);
+        showNotification('Failed to load product statistics', 'error');
     }
 }
 
@@ -149,40 +147,48 @@ function setupEventListeners() {
     }
 }
 
-function loadProductsTable() {
-    try {
-        const tableBody = document.getElementById('productsTableBody');
-        if (!tableBody) {
-            console.error('Products table body not found');
-            return;
-        }
-        
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const pageProducts = filteredProducts.slice(startIndex, endIndex);
-        
-        tableBody.innerHTML = '';
-        
-        if (pageProducts.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No products found</td></tr>';
-        } else {
-            pageProducts.forEach(product => {
-                const row = createProductRow(product);
-                if (row) {
-                    tableBody.appendChild(row);
-                }
-            });
-        }
-        
-        updatePaginationInfo();
-        console.log(`Loaded ${pageProducts.length} products for page ${currentPage}`);
-    } catch (error) {
-        console.error('Error loading products table:', error);
-        const tableBody = document.getElementById('productsTableBody');
-        if (tableBody) {
-            tableBody.innerHTML = '<tr><td colspan="8" class="text-center">Error loading products</td></tr>';
-        }
-    }
+function renderProducts() {
+    const tbody = document.getElementById('productsTableBody');
+    tbody.innerHTML = products.map(product => `
+        <tr>
+            <td><input type="checkbox" class="product-select" value="${product._id}"></td>
+            <td>
+                <div class="product-info">
+                    ${product.image ? `<img src="${product.image}" alt="${product.name}" class="product-image">` : ''}
+                    <div>
+                        <strong>${escapeHtml(product.name)}</strong>
+                        <small>${escapeHtml(product.brand || '')}</small>
+                    </div>
+                </div>
+            </td>
+            <td>${escapeHtml(product.sku)}</td>
+            <td>${escapeHtml(product.category)}</td>
+            <td>₹${product.price.toFixed(2)}</td>
+            <td>
+                <span class="stock-badge ${getStockStatusClass(product)}">
+                    ${product.stock}
+                </span>
+            </td>
+            <td>
+                <span class="status-badge ${product.status}">
+                    ${formatStatus(product.status)}
+                </span>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-icon" onclick="editProduct('${product._id}')" title="Edit Product">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-icon" onclick="toggleProductStatus('${product._id}')" title="Toggle Status">
+                        <i class="fas fa-toggle-${product.status === 'active' ? 'on' : 'off'}"></i>
+                    </button>
+                    <button class="btn-icon" onclick="deleteProduct('${product._id}')" title="Delete Product">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
 }
 
 function createProductRow(product) {
@@ -194,7 +200,7 @@ function createProductRow(product) {
     
     row.innerHTML = `
         <td>
-            <input type="checkbox" class="row-checkbox" data-product-id="${product.id}">
+            <input type="checkbox" class="row-checkbox" data-product-id="${product._id}">
         </td>        <td>
             <div class="product-info">
                 <div class="product-image">
@@ -230,13 +236,13 @@ function createProductRow(product) {
         </td>
         <td>
             <div class="action-buttons">
-                <button class="btn-icon btn-edit" onclick="editProduct(${product.id})" title="Edit">
+                <button class="btn-icon btn-edit" onclick="editProduct('${product._id}')" title="Edit">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="btn-icon btn-view" onclick="viewProduct(${product.id})" title="View">
+                <button class="btn-icon btn-view" onclick="viewProduct('${product._id}')" title="View">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="btn-icon btn-delete" onclick="deleteProduct(${product.id})" title="Delete">
+                <button class="btn-icon btn-delete" onclick="deleteProduct('${product._id}')" title="Delete">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -265,13 +271,12 @@ function updateStatistics(stats) {
         }
         
         // Otherwise calculate from local data
-        const totalProducts = productsData.length;
-        const activeProducts = productsData.filter(p => p.isActive !== false && p.status !== 'inactive').length;
-        const lowStockProducts = productsData.filter(p => {
+        const activeProducts = products.filter(p => p.isActive !== false && p.status !== 'inactive').length;
+        const lowStockProducts = products.filter(p => {
             const minLevel = p.minStockLevel || p.minStock || 5;
             return p.stock <= minLevel;
         }).length;
-        const highStockProducts = productsData.filter(p => {
+        const highStockProducts = products.filter(p => {
             const minLevel = p.minStockLevel || p.minStock || 5;
             return p.stock > minLevel * 3;
         }).length;
@@ -308,33 +313,32 @@ function setupPagination() {
     });
 }
 
-function updatePaginationControls() {
-    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+function updatePagination() {
+    const totalPages = Math.ceil(totalProducts / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, filteredProducts.length);
+    const endIndex = Math.min(currentPage * itemsPerPage, totalProducts);
     
-    document.getElementById('showingStart').textContent = startIndex + 1;
+    // Update showing text
+    document.getElementById('showingStart').textContent = totalProducts > 0 ? startIndex + 1 : 0;
     document.getElementById('showingEnd').textContent = endIndex;
-    document.getElementById('totalRows').textContent = filteredProducts.length;
+    document.getElementById('totalRows').textContent = totalProducts;
     
+    // Update pagination buttons
     document.getElementById('prevPage').disabled = currentPage === 1;
     document.getElementById('nextPage').disabled = currentPage === totalPages;
     
     // Generate page numbers
     const paginationNumbers = document.getElementById('paginationNumbers');
-    paginationNumbers.innerHTML = '';
+    let numbersHtml = '';
     
-    for (let i = 1; i <= Math.min(totalPages, 5); i++) {
-        const pageBtn = document.createElement('button');
-        pageBtn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
-        pageBtn.textContent = i;
-        pageBtn.addEventListener('click', () => {
-            currentPage = i;
-            loadProductsTable();
-            updatePaginationControls();
-        });
-        paginationNumbers.appendChild(pageBtn);
+    for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+        numbersHtml += `
+            <button class="pagination-number ${i === currentPage ? 'active' : ''}" 
+                    onclick="changePage(${i})">${i}</button>
+        `;
     }
+    
+    paginationNumbers.innerHTML = numbersHtml;
 }
 
 function updatePaginationInfo() {
@@ -393,63 +397,36 @@ function handleAddProduct(e) {
         return;
     }
     
-    // Check for duplicate SKU in existing products
-    if (productsData.filter(p => !p.id.toString().startsWith('demo')).some(p => p.sku === newProduct.sku)) {
-        showNotification('SKU already exists. Please use a unique SKU.', 'error');
-        return;
-    }
+    // Add product through API
+    showNotification('Adding product...', 'info');
     
-    const apiService = window.apiService;
-    if (apiService) {
-        // Show loading state
-        showNotification('Adding product...', 'info');
-        
-        // Add product through API
-        const formData = new FormData();
-        Object.keys(newProduct).forEach(key => {
-            formData.append(key, newProduct[key]);
-        });
-        
-        apiService.request('/supplier/products', 'POST', formData, true)
-            .then(response => {
-                if (response.success) {
-                    // Hide demo products when adding first real product
-                    hideDemoProducts();
-                    
-                    // Reload products from API
-                    loadProducts();
-                    closeAddProductModal();
-                    showNotification('Product added successfully!', 'success');
-                } else {
-                    showNotification('Failed to add product: ' + (response.message || 'Unknown error'), 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error adding product:', error);
-                showNotification('Failed to add product. Please try again.', 'error');
-            });
-    } else {
-        // Fallback for demo mode
-        newProduct.id = Date.now(); // Use timestamp as ID
-        
-        // Hide demo products when adding first real product
-        hideDemoProducts();
-        
-        // Add the new product to the array
-        productsData = productsData.filter(p => !p.id.toString().startsWith('demo'));
-        productsData.push(newProduct);
-        filteredProducts = [...productsData];
-        
-        loadProductsTable();
-        updateStatistics();
-        closeAddProductModal();
-        
-        showNotification('Product added successfully!', 'success');
-    }
+    // Add product through API
+    fetch('http://localhost:3000/api/supplier/products', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newProduct)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadProducts();
+            closeAddProductModal();
+            showNotification('Product added successfully!', 'success');
+        } else {
+            showNotification('Failed to add product: ' + (data.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding product:', error);
+        showNotification('Failed to add product. Please try again.', 'error');
+    });
 }
 
 function editProduct(productId) {
-    const product = productsData.find(p => p.id === productId);
+    const product = products.find(p => p._id === productId);
     if (!product) return;
     
     // Populate edit form with product data
@@ -459,58 +436,183 @@ function editProduct(productId) {
 }
 
 function viewProduct(productId) {
-    const product = productsData.find(p => p.id === productId);
+    const product = products.find(p => p._id === productId);
     if (!product) return;
     
-    // You can implement a view modal here
-    showNotification(`Viewing product: ${product.name}`, 'info');
+    // Display product details in a modal
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h2>Product Details</h2>
+            <div class="product-details-grid">
+                <div class="detail-group">
+                    <label>Product Name</label>
+                    <p>${escapeHtml(product.name)}</p>
+                </div>
+                <div class="detail-group">
+                    <label>SKU</label>
+                    <p>${escapeHtml(product.sku)}</p>
+                </div>
+                <div class="detail-group">
+                    <label>Category</label>
+                    <p>${capitalizeFirst(escapeHtml(product.category))}</p>
+                </div>
+                <div class="detail-group">
+                    <label>Brand</label>
+                    <p>${escapeHtml(product.brand || 'No Brand')}</p>
+                </div>
+                <div class="detail-group">
+                    <label>Price</label>
+                    <p>₹${product.price.toLocaleString()}</p>
+                </div>
+                <div class="detail-group">
+                    <label>Cost</label>
+                    <p>₹${product.cost.toLocaleString()}</p>
+                </div>
+                <div class="detail-group">
+                    <label>Stock</label>
+                    <p class="${getStockStatusClass(product)}">${product.stock}</p>
+                </div>
+                <div class="detail-group">
+                    <label>Minimum Stock</label>
+                    <p>${product.minStock || 'Not Set'}</p>
+                </div>
+                <div class="detail-group">
+                    <label>Status</label>
+                    <p class="${product.status}">${capitalizeFirst(product.status)}</p>
+                </div>
+                ${product.description ? `
+                <div class="detail-group full-width">
+                    <label>Description</label>
+                    <p>${escapeHtml(product.description)}</p>
+                </div>` : ''}
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeAllModals()">Close</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    
+    // Animate in
+    setTimeout(() => modal.classList.add('active'), 100);
+}
+
+function toggleProductStatus(productId) {
+    const product = products.find(p => p._id === productId);
+    if (!product) return;
+    
+    const newStatus = product.status === 'active' ? 'inactive' : 'active';
+    
+    fetch(`http://localhost:3000/api/supplier/products/${productId}/status`, {
+        method: 'PATCH',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadProducts();
+            showNotification(`Product status changed to ${capitalizeFirst(newStatus)}`, 'success');
+        } else {
+            showNotification('Failed to update product status: ' + (data.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating product status:', error);
+        showNotification('Failed to update product status. Please try again.', 'error');
+    });
 }
 
 function deleteProduct(productId) {
     if (confirm('Are you sure you want to delete this product?')) {
-        // Check if in demo mode
-        if (productId.toString().startsWith('demo')) {
-            productsData = productsData.filter(p => p.id !== productId);
-            filteredProducts = filteredProducts.filter(p => p.id !== productId);
-            loadProductsTable();
-            updateStatistics();
-            showNotification('Product deleted successfully!', 'success');
-            return;
-        }
-        
-        // Use API to delete product
-        apiService.request(`/supplier/products/${productId}`, 'DELETE')
-            .then(response => {
-                if (response.success) {
-                    // Delete was successful, reload products
-                    loadProducts();
-                    showNotification('Product deleted successfully!', 'success');
-                } else {
-                    showNotification('Failed to delete product: ' + (response.message || 'Unknown error'), 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error deleting product:', error);
-                showNotification('Failed to delete product. Please try again.', 'error');
-            });
+        fetch(`http://localhost:3000/api/supplier/products/${productId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadProducts();
+                showNotification('Product deleted successfully!', 'success');
+            } else {
+                showNotification('Failed to delete product: ' + (data.message || 'Unknown error'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting product:', error);
+            showNotification('Failed to delete product. Please try again.', 'error');
+        });
     }
 }
 
-// Placeholder functions for missing handlers to prevent errors
 function handleSearch() {
-    console.log('Search functionality not implemented yet');
+    const searchTerm = document.getElementById('productSearch').value.toLowerCase();
+    currentPage = 1;
+    
+    fetch(`http://localhost:3000/api/supplier/products?search=${encodeURIComponent(searchTerm)}`, {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        products = data.products || [];
+        totalProducts = data.total || 0;
+        renderProducts();
+        updatePagination();
+    })
+    .catch(error => {
+        console.error('Error searching products:', error);
+        showNotification('Error searching products', 'error');
+    });
 }
 
 function handleFilter() {
-    console.log('Filter functionality not implemented yet');
+    applyFilters();
 }
 
 function applyFilters() {
-    console.log('Apply filters functionality not implemented yet');
+    const category = document.getElementById('categoryFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    currentPage = 1;
+    
+    let url = 'http://localhost:3000/api/supplier/products?';
+    if (category) url += `category=${encodeURIComponent(category)}&`;
+    if (status) url += `status=${encodeURIComponent(status)}&`;
+    
+    fetch(url, {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        products = data.products || [];
+        totalProducts = data.total || 0;
+        renderProducts();
+        updatePagination();
+    })
+    .catch(error => {
+        console.error('Error filtering products:', error);
+        showNotification('Error applying filters', 'error');
+    });
 }
 
 function handleSelectAll() {
-    console.log('Select all functionality not implemented yet');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.product-select');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
 }
 
 function populateEditForm(product) {
@@ -587,7 +689,7 @@ function populateEditForm(product) {
 }
 
 function updateProduct(productId) {
-    const product = productsData.find(p => p.id === productId || p._id === productId);
+    const product = products.find(p => p._id === productId);
     if (!product) return;
     
     // Get form data
@@ -603,39 +705,31 @@ function updateProduct(productId) {
         description: document.getElementById('editProductDescription').value
     };
     
-    // Check if in demo mode
-    if (product.id && product.id.toString().startsWith('demo')) {
-        // Update the product in memory for demo mode
-        Object.assign(product, updatedProduct);
-        filteredProducts = [...productsData];
-        loadProductsTable();
-        updateStatistics();
-        closeEditProductModal();
-        showNotification('Product updated successfully!', 'success');
-        return;
-    }
+    // Update product through API
     
-    // Use API to update product
-    const formData = new FormData();
-    Object.keys(updatedProduct).forEach(key => {
-        formData.append(key, updatedProduct[key]);
+    // Update product through API
+    fetch(`http://localhost:3000/api/supplier/products/${product._id}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedProduct)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadProducts();
+            closeEditProductModal();
+            showNotification('Product updated successfully!', 'success');
+        } else {
+            showNotification('Failed to update product: ' + (data.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating product:', error);
+        showNotification('Failed to update product. Please try again.', 'error');
     });
-    
-    apiService.request(`/supplier/products/${product._id}`, 'PUT', formData, true)
-        .then(response => {
-            if (response.success) {
-                // Update was successful, reload products
-                loadProducts();
-                closeEditProductModal();
-                showNotification('Product updated successfully!', 'success');
-            } else {
-                showNotification('Failed to update product: ' + (response.message || 'Unknown error'), 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error updating product:', error);
-            showNotification('Failed to update product. Please try again.', 'error');
-        });
 }
 
 function showNotification(message, type) {
@@ -665,176 +759,25 @@ function capitalizeFirst(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-// Demo products module - Wholesale/Mart products for suppliers
-function getDemoProducts() {
-    return [
-        {
-            id: 1,
-            name: "Basmati Rice 5kg (Bag of 10)",
-            sku: "RICE-BASMATI-5KG-10",
-            category: "groceries",
-            brand: "Himalayan Gold",
-            price: 8500,
-            cost: 7000,
-            stock: 45,
-            minStock: 10,
-            status: "active",
-            image: "../images/products/basmati-rice-bag.jpg",
-            description: "Wholesale bag of 10 premium Basmati rice 5kg packs for retail stores"
-        },
-        {
-            id: 2,
-            name: "Nepali Tea 250g (Box of 20)",
-            sku: "TEA-NEPALI-250G-20",
-            category: "beverages",
-            brand: "Ilam Tea",
-            price: 3600,
-            cost: 2400,
-            stock: 25,
-            minStock: 5,
-            status: "active",
-            image: "../images/products/nepali-tea-box.jpg",
-            description: "Wholesale box of 20 Nepali black tea 250g packets from Ilam"
-        },
-        {
-            id: 3,
-            name: "Wai Wai Noodles (Carton of 48)",
-            sku: "NOODLES-WAIWAI-48",
-            category: "snacks",
-            brand: "Wai Wai",
-            price: 1440,
-            cost: 1056,
-            stock: 35,
-            minStock: 8,
-            status: "active",
-            image: "../images/products/waiwai-carton.jpg",
-            description: "Wholesale carton of 48 Wai Wai instant noodles for retail stores"
-        },
-        {
-            id: 4,
-            name: "DDC Milk 1L (Crate of 12)",
-            sku: "MILK-DDC-1L-12",
-            category: "dairy",
-            brand: "DDC",
-            price: 1020,
-            cost: 840,
-            stock: 80,
-            minStock: 20,
-            status: "active",
-            image: "../images/products/ddc-milk-crate.jpg",
-            description: "Wholesale crate of 12 DDC fresh pasteurized milk 1L bottles"
-        },
-        {
-            id: 5,
-            name: "Lux Soap 100g (Box of 48)",
-            sku: "SOAP-LUX-100G-48",
-            category: "personal-care",
-            brand: "Lux",
-            price: 2160,
-            cost: 1680,
-            stock: 15,
-            minStock: 5,
-            status: "active",
-            image: "../images/products/lux-soap-box.jpg",
-            description: "Wholesale box of 48 Lux beauty soap bars with rose fragrance"
-        },
-        {
-            id: 6,
-            name: "Teer Detergent 1kg (Case of 12)",
-            sku: "DETERGENT-TEER-1KG-12",
-            category: "household",
-            brand: "Teer",
-            price: 3360,
-            cost: 2640,
-            stock: 60,
-            minStock: 15,
-            status: "active",
-            image: "../images/products/teer-detergent-case.jpg",
-            description: "Wholesale case of 12 Teer washing powder 1kg packs"
-        },
-        {
-            id: 7,
-            name: "Masala Dal 1kg (Bag of 20)",
-            sku: "DAL-MASALA-1KG-20",
-            category: "groceries",
-            brand: "Local Producer",
-            price: 3200,
-            cost: 2600,
-            stock: 40,
-            minStock: 10,
-            status: "active",
-            image: "../images/products/masala-dal-bag.jpg",
-            description: "Wholesale bag of 20 mixed lentils with traditional Nepali spices"
-        },
-        {
-            id: 8,
-            name: "Khukri Rum 375ml (Case of 12)",
-            sku: "RUM-KHUKRI-375ML-12",
-            category: "beverages",
-            brand: "Khukri",
-            price: 11760,
-            cost: 9600,
-            stock: 30,
-            minStock: 8,
-            status: "active",
-            image: "../images/products/khukri-rum-case.jpg",
-            description: "Wholesale case of 12 Khukri premium aged rum 375ml bottles"
-        },
-        {
-            id: 9,
-            name: "Everest Spices Mixed (Box of 24)",
-            sku: "SPICE-EVEREST-MIX-24",
-            category: "groceries",
-            brand: "Everest",
-            price: 2880,
-            cost: 2280,
-            stock: 20,
-            minStock: 6,
-            status: "active",
-            image: "../images/products/everest-spices-box.jpg",
-            description: "Wholesale box of 24 assorted Everest spice packets"
-        },
-        {
-            id: 10,
-            name: "Golmaal Biscuits (Carton of 60)",
-            sku: "BISCUIT-GOLMAAL-60",
-            category: "snacks",
-            brand: "Shivam",
-            price: 1800,
-            cost: 1500,
-            stock: 50,
-            minStock: 12,
-            status: "active",
-            image: "../images/products/golmaal-biscuits-carton.jpg",
-            description: "Wholesale carton of 60 popular Golmaal biscuit packets"
-        },
-        {
-            id: 11,
-            name: "Mustard Oil 1L (Case of 15)",
-            sku: "OIL-MUSTARD-1L-15",
-            category: "cooking-oil",
-            brand: "Dhara",
-            price: 2250,
-            cost: 1950,
-            stock: 25,
-            minStock: 5,
-            status: "active",
-            image: "../images/products/mustard-oil-case.jpg",
-            description: "Wholesale case of 15 pure mustard oil 1L bottles for cooking"
-        },
-        {
-            id: 12,
-            name: "CG Salt 1kg (Bag of 25)",
-            sku: "SALT-CG-1KG-25",
-            category: "groceries",
-            brand: "CG",
-            price: 1375,
-            cost: 1125,
-            stock: 2,
-            minStock: 8,
-            status: "active",
-            image: "../images/products/cg-salt-bag.jpg",
-            description: "Wholesale bag of 25 CG iodized salt 1kg packets - Low Stock!"
-        }
-    ];
+// Helper functions
+function getStockStatusClass(product) {
+    if (!product || typeof product.stock !== 'number') return '';
+    if (product.stock <= 0) return 'out-of-stock';
+    if (product.stock <= (product.minStock || 5)) return 'low-stock';
+    return 'in-stock';
+}
+
+function formatStatus(status) {
+    if (!status) return '';
+    return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
