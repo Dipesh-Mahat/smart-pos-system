@@ -10,15 +10,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Socket.IO removed: real-time communication not used -->
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
     <script src="../js/custom-modals.js"></script>
     <script src="../js/enhanced-scanner.js"></script>
     <script src="../js/demo-products.js"></script>
-    <script src="../js/pos-system.js"></script>    <!-- Preload menu styles to prevent flicker -->
+    <script src="../js/pos-system.js"></script>
     <style>
-        /* Comprehensive preload styles to prevent menu flicker */
         .menu-container {
             opacity: 1 !important;
             visibility: visible !important;
@@ -587,11 +585,16 @@
             position: sticky;
             top: 24px; /* Matches the pos-main top padding */
             align-self: flex-start; /* Prevents stretching with flex container */
+            overflow: hidden; /* Prevent content from overflowing */
+            border: 1px solid var(--gray-200); /* Add border for better containment */
         }
         
         .cart-header {
             padding: 16px 20px;
             border-bottom: 1px solid var(--gray-200);
+            flex-shrink: 0; /* Prevent header from shrinking */
+            background: white;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
         }
 
         .cart-title {
@@ -601,6 +604,10 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            margin: 0;
+            white-space: nowrap; /* Prevent title from wrapping */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis for long text */
         }
         
         .cart-title i {
@@ -620,10 +627,31 @@
         .cart-items {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden; /* Prevent horizontal overflow */
             padding: 12px 20px;
             min-height: 150px; /* Smaller minimum height */
             max-height: calc(100vh - 320px); /* Leaves space for header and footer */
             height: auto; /* Allows content to determine height */
+            box-sizing: border-box; /* Include padding in height calculation */
+        }
+        
+        /* Custom scrollbar for cart items */
+        .cart-items::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .cart-items::-webkit-scrollbar-track {
+            background: var(--gray-200);
+            border-radius: 3px;
+        }
+        
+        .cart-items::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 3px;
+        }
+        
+        .cart-items::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
         }
         
         .cart-empty {
@@ -647,6 +675,9 @@
             align-items: center;
             padding: 12px 0;
             border-bottom: 1px solid var(--gray-200);
+            max-width: 100%; /* Ensure items don't exceed container width */
+            overflow: hidden; /* Prevent content overflow */
+            box-sizing: border-box;
         }
         
         .cart-item-left {
@@ -654,6 +685,8 @@
             gap: 12px;
             align-items: center;
             flex: 1;
+            min-width: 0; /* Allow flex item to shrink below content size */
+            overflow: hidden; /* Prevent overflow */
         }
         
         .cart-item-img {
@@ -665,6 +698,7 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            flex-shrink: 0; /* Prevent image container from shrinking */
         }
         
         .cart-item-img i {
@@ -674,12 +708,18 @@
 
         .item-details {
             flex: 1;
+            min-width: 0; /* Allow flex item to shrink below content size */
+            overflow: hidden; /* Prevent text overflow */
         }
 
         .item-name {
             font-weight: 600;
             color: var(--gray-800);
             margin-bottom: 4px;
+            white-space: nowrap; /* Prevent name from wrapping */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis for long text */
+            max-width: 100%; /* Ensure it doesn't exceed container */
         }
 
         .item-quantity {
@@ -688,12 +728,15 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-wrap: nowrap; /* Prevent wrapping */
+            white-space: nowrap; /* Prevent text wrapping */
         }
         
         .quantity-controls {
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-shrink: 0; /* Prevent controls from shrinking */
         }
         
         .qty-btn {
@@ -726,6 +769,9 @@
         .item-price {
             font-weight: 600;
             color: var(--success-color);
+            white-space: nowrap; /* Prevent price from wrapping */
+            flex-shrink: 0; /* Prevent price from shrinking */
+            margin-left: 8px; /* Add some space from other elements */
         }
         
         .remove-item {
@@ -742,6 +788,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
+            flex-shrink: 0; /* Prevent remove button from shrinking */
         }
         
         .remove-item:hover {
@@ -752,10 +799,15 @@
         .cart-footer {
             border-top: 1px solid var(--gray-200);
             padding: 12px 20px;
+            flex-shrink: 0; /* Prevent footer from shrinking */
+            background: white;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            box-sizing: border-box; /* Include padding in calculations */
         }
 
         .cart-total {
             margin-bottom: 12px;
+            overflow: hidden; /* Prevent total content from overflowing */
         }
 
         .total-row {
@@ -764,6 +816,8 @@
             margin-bottom: 8px;
             font-size: 14px;
             color: var(--gray-700);
+            align-items: center;
+            flex-wrap: nowrap; /* Prevent wrapping */
         }
 
         .total-final {
@@ -790,6 +844,8 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            box-sizing: border-box; /* Include padding in width calculation */
+            white-space: nowrap; /* Prevent text wrapping */
         }
 
         .checkout-btn:hover {
@@ -872,6 +928,7 @@
                 min-height: 100vh;
                 display: flex;
                 flex-direction: column;
+                background-color: var(--gray-100);
             }
             
             .search-bar {
@@ -880,7 +937,8 @@
                 padding: 16px;
                 gap: 12px;
                 background: white;
-                border-bottom: 1px solid var(--gray-200);
+                border-bottom: 2px solid var(--gray-200);
+                margin-bottom: 0;
             }
             
             .search-input {
@@ -896,14 +954,15 @@
             }
             
             .categories-bar {
-                order: 4;
+                order: 2;
                 padding: 12px 16px;
                 overflow-x: auto;
                 white-space: nowrap;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
                 background: white;
-                border-bottom: 1px solid var(--gray-200);
+                border-bottom: 2px solid var(--gray-200);
+                margin-bottom: 12px;
             }
             
             .categories-bar::-webkit-scrollbar {
@@ -915,36 +974,59 @@
             }
             
             .pos-content {
-                order: 2;
+                order: 3;
                 padding: 0;
-                gap: 0;
+                gap: 12px;
                 flex-direction: column;
                 display: flex;
+                background-color: var(--gray-100);
             }
             
             .cart-panel {
                 order: 1;
+                margin: 12px;
                 margin-bottom: 0;
-                padding: 16px;
-                border-radius: 0;
+                padding: 0; /* Remove padding to prevent overflow */
+                border-radius: var(--border-radius);
                 background: white;
-                border-bottom: 1px solid var(--gray-200);
-                box-shadow: none;
+                border: 1px solid var(--gray-300);
+                box-shadow: var(--box-shadow-sm);
+                overflow: hidden; /* Prevent mobile cart overflow */
+                max-width: calc(100vw - 24px); /* Ensure it fits screen */
+                box-sizing: border-box;
+            }
+            
+            .cart-header {
+                padding: 12px 16px; /* Add horizontal padding back */
+                border-bottom: 2px solid var(--primary-color);
+                margin-bottom: 0; /* Remove margin to prevent spacing issues */
+                background: white;
+                border-radius: var(--border-radius) var(--border-radius) 0 0;
             }
             
             .cart-items {
                 max-height: 200px;
                 min-height: 120px;
+                border-radius: 8px;
+                background-color: var(--gray-50);
+                padding: 12px 16px; /* Add horizontal padding */
+                margin: 12px 16px; /* Add margin for proper spacing */
+                overflow-x: hidden; /* Prevent horizontal overflow */
+                overflow-y: auto; /* Allow vertical scrolling */
+                box-sizing: border-box;
             }
             
             .products-grid {
                 order: 2;
+                margin: 0 12px 12px 12px;
                 padding: 16px;
-                padding-top: 0;
                 height: auto;
                 max-height: none;
                 min-height: 70vh;
                 background: white;
+                border-radius: var(--border-radius);
+                border: 1px solid var(--gray-300);
+                box-shadow: var(--box-shadow-sm);
             }
             
             .products-list {
@@ -984,43 +1066,76 @@
                 padding: 0;
                 display: flex;
                 flex-direction: column;
+                background-color: var(--gray-100);
             }
             
             .search-bar {
                 order: 1;
                 padding: 12px;
                 background: white;
-                border-bottom: 1px solid var(--gray-200);
+                border-bottom: 2px solid var(--gray-200);
+                margin-bottom: 0;
             }
             
             .categories-bar {
-                order: 4;
+                order: 2;
                 padding: 12px;
                 background: white;
-                border-bottom: 1px solid var(--gray-200);
+                border-bottom: 2px solid var(--gray-200);
+                margin-bottom: 8px;
             }
             
             .pos-content {
-                order: 2;
+                order: 3;
                 padding: 0;
                 display: flex;
                 flex-direction: column;
+                gap: 8px;
+                background-color: var(--gray-100);
             }
             
             .cart-panel {
                 order: 1;
-                padding: 12px;
+                margin: 8px;
+                margin-bottom: 0;
+                padding: 0; /* Remove padding to prevent overflow */
                 background: white;
-                border-bottom: 1px solid var(--gray-200);
-                border-radius: 0;
-                box-shadow: none;
+                border: 1px solid var(--gray-300);
+                border-radius: var(--border-radius);
+                box-shadow: var(--box-shadow-sm);
+                overflow: hidden; /* Prevent overflow */
+                max-width: calc(100vw - 16px); /* Ensure it fits screen */
+                box-sizing: border-box;
+            }
+            
+            .cart-header {
+                padding: 8px 12px; /* Add horizontal padding */
+                border-bottom: 2px solid var(--primary-color);
+                margin-bottom: 0; /* Remove margin */
+                background: white;
+                border-radius: var(--border-radius) var(--border-radius) 0 0;
+            }
+            
+            .cart-items {
+                max-height: 180px;
+                min-height: 100px;
+                border-radius: 8px;
+                background-color: var(--gray-50);
+                padding: 8px 12px; /* Add horizontal padding */
+                margin: 8px 12px; /* Add margin for proper spacing */
+                overflow-x: hidden; /* Prevent horizontal overflow */
+                overflow-y: auto; /* Allow vertical scrolling */
+                box-sizing: border-box;
             }
             
             .products-grid {
                 order: 2;
+                margin: 0 8px 8px 8px;
                 padding: 12px;
-                padding-top: 0;
                 background: white;
+                border-radius: var(--border-radius);
+                border: 1px solid var(--gray-300);
+                box-shadow: var(--box-shadow-sm);
             }
             
             .products-list {
@@ -1937,7 +2052,7 @@
                     <div class="search-bar">
                         <input type="text" class="search-input" id="searchInput" placeholder="Search products or scan barcode...">
                         <button class="scan-btn" id="scanBtn" data-scan-type="barcode">
-                            <i class="fas fa-barcode"></i> Scan Product
+                            <i class="fas fa-barcode"></i> Scan
                         </button>
                     </div>
                     <!-- 2. Categories bar below search bar -->
@@ -1962,126 +2077,7 @@
                             </div>
                             
                             <div class="products-list" id="productsList">
-                                <div class="product-card" onclick="posSystem.addToCart(1)">
-                                    <div class="product-img">
-                                        <i class="fas fa-wheat"></i>
-                                    </div>
-                                    <div class="product-category">Groceries</div>
-                                    <div class="product-name">Basmati Rice 5kg</div>
-                                    <div class="product-stock">In stock: 45</div>
-                                    <div class="product-footer">
-                                        <div class="product-price">NPR 850</div>
-                                        <button class="add-to-cart">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="product-card" onclick="posSystem.addToCart(2)">
-                                    <div class="product-img">
-                                        <i class="fas fa-leaf"></i>
-                                    </div>
-                                    <div class="product-category">Beverages</div>
-                                    <div class="product-name">Nepali Tea 250g</div>
-                                    <div class="product-stock">In stock: 75</div>
-                                    <div class="product-footer">
-                                        <div class="product-price">NPR 180</div>
-                                        <button class="add-to-cart">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="product-card" onclick="posSystem.addToCart(3)">
-                                    <div class="product-img">
-                                        <i class="fas fa-bowl-food"></i>
-                                    </div>
-                                    <div class="product-category">Snacks</div>
-                                    <div class="product-name">Wai Wai Noodles</div>
-                                    <div class="product-stock">In stock: 200</div>
-                                    <div class="product-footer">
-                                        <div class="product-price">NPR 30</div>
-                                        <button class="add-to-cart">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="product-card" onclick="posSystem.addToCart(4)">
-                                    <div class="product-img">
-                                        <i class="fas fa-bottle-droplet"></i>
-                                    </div>
-                                    <div class="product-category">Dairy Products</div>
-                                    <div class="product-name">DDC Milk 1 Liter</div>
-                                    <div class="product-stock">In stock: 40</div>
-                                    <div class="product-footer">
-                                        <div class="product-price">NPR 85</div>
-                                        <button class="add-to-cart">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="product-card" onclick="posSystem.addToCart(5)">
-                                    <div class="product-img">
-                                        <i class="fas fa-soap"></i>
-                                    </div>
-                                    <div class="product-category">Personal Care</div>
-                                    <div class="product-name">Lux Soap 100g</div>
-                                    <div class="product-stock">In stock: 80</div>
-                                    <div class="product-footer">
-                                        <div class="product-price">NPR 45</div>
-                                        <button class="add-to-cart">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="product-card" onclick="posSystem.addToCart(6)">
-                                    <div class="product-img">
-                                        <i class="fas fa-spray-can"></i>
-                                    </div>
-                                    <div class="product-category">Household Items</div>
-                                    <div class="product-name">Teer Detergent 1kg</div>
-                                    <div class="product-stock">In stock: 60</div>
-                                    <div class="product-footer">
-                                        <div class="product-price">NPR 280</div>
-                                        <button class="add-to-cart">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="product-card" onclick="posSystem.addToCart(7)">
-                                    <div class="product-img">
-                                        <i class="fas fa-seedling"></i>
-                                    </div>
-                                    <div class="product-category">Groceries</div>
-                                    <div class="product-name">Masala Dal 1kg</div>
-                                    <div class="product-stock">In stock: 90</div>
-                                    <div class="product-footer">
-                                        <div class="product-price">NPR 160</div>
-                                        <button class="add-to-cart">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="product-card low-stock" onclick="posSystem.addToCart(8)">
-                                    <div class="stock-warning">⚠️ Low Stock</div>
-                                    <div class="product-img">
-                                        <i class="fas fa-wine-glass"></i>
-                                    </div>
-                                    <div class="product-category">Beverages</div>
-                                    <div class="product-name">Khukri Rum 375ml</div>
-                                    <div class="product-stock low">In stock: 5</div>
-                                    <div class="product-footer">
-                                        <div class="product-price">NPR 980</div>
-                                        <button class="add-to-cart">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
+                                <!-- Products will be loaded dynamically from the database -->
                             </div>
                         </div>
 

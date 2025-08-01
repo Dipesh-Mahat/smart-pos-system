@@ -34,11 +34,18 @@ class SmartPOSSystem {
             
             // Handle the correct API response format: {products: [...], pagination: {...}}
             if (data && data.products && Array.isArray(data.products)) {
-                this.products = data.products;
+                // Normalize the product data - convert _id to id for consistency
+                this.products = data.products.map(product => ({
+                    ...product,
+                    id: product._id // Add id field using _id value
+                }));
                 console.log('Loaded products from database:', this.products.length);
             } else if (data && data.success && Array.isArray(data.products)) {
                 // Legacy format support
-                this.products = data.products;
+                this.products = data.products.map(product => ({
+                    ...product,
+                    id: product._id || product.id // Handle both _id and id
+                }));
                 console.log('Loaded products from database (legacy format):', this.products.length);
             } else {
                 console.warn('Failed to load products from API, using demo data as fallback');
