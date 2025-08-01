@@ -1,130 +1,339 @@
 /**
  * Supplier Order Management
  * Smart POS System - Supplier Portal
+ * @class
  */
-
 class OrderManager {
     constructor() {
+        // Order data
         this.orders = [];
-        this.filteredOrders = [];
-        this.currentPage = 1;
-        this.itemsPerPage = 10;
-        this.totalPages = 1;
-        this.totalItems = 0;
-        this.filters = {};
         this.selectedOrders = new Set();
-        this.apiService = window.apiService || {};
         
+        // Pagination
+        this.currentPage = 1;
+        this.pageSize = 10;
+        this.totalPages = 1;
+        
+        // UI state
+        this.searchDebounceTimer = null;
+        this.dateRangeModal = null;
+        this.loadingState = false;
+        
+        // Bind methods
+        this.handleSearch = this.handleSearch.bind(this);
+        this.handleOrderAction = this.handleOrderAction.bind(this);
+        this.handleOrderSelection = this.handleOrderSelection.bind(this);
+        this.changePage = this.changePage.bind(this);
+        
+        // Bind methods to preserve this context
+        this.handleSearch = this.handleSearch.bind(this);
+        this.handleOrderAction = this.handleOrderAction.bind(this);
+        this.handleOrderSelection = this.handleOrderSelection.bind(this);
+        this.changePage = this.changePage.bind(this);
+        
+        // Initialize the manager
         this.init();
     }
 
     async init() {
-        try {
-            await this.loadOrders();
-            await this.loadOrderStats();
-            await this.loadOrderInsights();
-            this.setupEventListeners();
-        } catch (error) {
-            console.error("Error initializing order manager:", error);
-            this.showNotification("Failed to load order data", "error");
-        }
-    }
-
-    async loadOrders(page = 1, filters = {}) {
-        try {
-            this.showLoader();
-            
-            // Build query parameters for API request
-            const queryParams = new URLSearchParams();
-            queryParams.append('page', page);
-            queryParams.append('limit', this.itemsPerPage);
-            
-            // Add filters if provided
-            if (filters.search) queryParams.append('search', filters.search);
-            if (filters.status) queryParams.append('status', filters.status);
-            if (filters.startDate) queryParams.append('startDate', filters.startDate);
-            if (filters.endDate) queryParams.append('endDate', filters.endDate);
-            
-            // Make API request to get order data
-            const response = await this.apiService.request(`/supplier/orders?${queryParams.toString()}`);
-            
-            if (!response.success) {
-                throw new Error(response.message || 'Failed to load order data');
-            }
-            
-            this.orders = response.data.orders;
-            this.filteredOrders = this.orders;
-            this.currentPage = page;
-            this.totalPages = response.data.pagination.pages;
-            this.totalItems = response.data.pagination.total;
-            this.filters = filters;
-            
-            this.renderOrdersTable();
-            this.renderPagination();
-            
-            // Update order counts in statistics
-            const stats = response.data.stats;
-            if (stats) {
-                this.updateOrderStatistics(stats);
-            }
-        } catch (error) {
-            console.error("Error loading orders:", error);
-            this.showNotification("Failed to load orders", "error");
-        } finally {
-            this.hideLoader();
-        }
-    }
-    
-    async loadOrderStats() {
-        try {
-            const response = await this.apiService.request('/supplier/orders/stats');
-            
-            if (!response.success) {
-                throw new Error(response.message || 'Failed to load order statistics');
-            }
-            
-            this.updateOrderStatistics(response.data.stats);
-        } catch (error) {
-            console.error("Error loading order statistics:", error);
-        }
-    }
-    
-    async loadOrderInsights() {
-        try {
-            // Load insights data
-            this.updateOrderStatistics();
-            this.setupEventListeners();
-        } catch (error) {
-            console.error("Error loading order insights:", error);
-        }
+        this.setupEventListeners();
+        await this.loadOrderStats();
+        await this.loadOrders();
     }
 
     setupEventListeners() {
-        // Search and filters
-        const orderSearch = document.getElementById('orderSearch');
-        const statusFilter = document.getElementById('statusFilter');
-        const dateFilter = document.getElementById('dateFilter');
-        const filterBtn = document.getElementById('filterBtn');
+        // Search input handling
+        const searchInput = document.getElementById('orderSearch');
+        searchInput?.addEventListener('input', (e) => {
+            clearTimeout(this.searchDebounceTimer);
+            this.searchDebounceTimer = setTimeout(() => {
+                this.handleSearch(e.target.value);
+            }, 500);
+        });
+
+        // Filter handling
+        document.getElementById('statusFilter')?.addEventListener('change', () => this.applyFilters());
+        document.getElementById('dateFilter')?.addEventListener('change', (e) => {
+            if (e.target.value === 'custom') {
+                this.showDateRangePicker();
+            } else {
+                this.applyFilters();
+            }
+        });
+
+        // Pagination handling
+        document.getElementById('prevPage')?.addEventListener('click', () => this.changePage(this.currentPage - 1));
+        document.getElementById('nextPage')?.addEventListener('click', () => this.changePage(this.currentPage + 1));
+        document.getElementById('pageSize')?.addEventListener('change', (e) => {
+            this.pageSize = parseInt(e.target.value);
+            this.loadOrders();
+        });
+
+        // Bulk selection handling
+        document.getElementById('selectAllOrders')?.addEventListener('change', (e) => {
+            const checkboxes = document.querySelectorAll('table input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                if (checkbox !== e.target) {
+                    checkbox.checked = e.target.checked;
+                    this.handleOrderSelection(checkbox);
+                }
+            });
+        });
+
+        // Filter button
+        document.getElementById('filterBtn')?.addEventListener('click', () => this.applyFilters());
+    }
+
+    async loadOrderStats() {
+        try {
+            const response = await fetch('/api/supplier/orders/stats', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) throw new Error('Failed to load order stats');
+
+            const stats = await response.json();
+            
+            // Update stats in the UI
+            document.getElementById('pendingOrders').textContent = stats.pending || '0';
+            document.getElementById('processingOrders').textContent = stats.processing || '0';
+            document.getElementById('shippedOrders').textContent = stats.shipped || '0';
+            document.getElementById('completedOrders').textContent = stats.completed || '0';
+        } catch (error) {
+            console.error('Error loading order stats:', error);
+            this.showNotification('Failed to load order statistics', 'error');
+        }
+    }
+
+    async loadOrders() {
+        try {
+            this.showLoadingState(true);
+            
+            // Build query parameters
+            const params = new URLSearchParams({
+                page: this.currentPage.toString(),
+                limit: this.pageSize.toString(),
+                status: document.getElementById('statusFilter').value,
+                dateRange: document.getElementById('dateFilter').value,
+                search: document.getElementById('orderSearch').value
+            });
+
+            const response = await fetch(`/api/supplier/orders?${params}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) throw new Error('Failed to load orders');
+
+            const data = await response.json();
+            this.orders = data.orders;
+            this.totalPages = Math.ceil(data.total / this.pageSize);
+            
+            this.renderOrders();
+            this.updatePagination();
+        } catch (error) {
+            console.error('Error loading orders:', error);
+            this.showNotification('Failed to load orders', 'error');
+        } finally {
+            this.showLoadingState(false);
+        }
+    }
+
+    renderOrders() {
+        const tbody = document.getElementById('ordersTableBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = this.orders.length ? this.orders.map(order => this.createOrderRow(order)).join('') 
+            : '<tr><td colspan="8" class="text-center">No orders found</td></tr>';
+    }
+
+    createOrderRow(order) {
+        return `
+            <tr data-order-id="${order._id}">
+                <td>
+                    <input type="checkbox" class="order-select" value="${order._id}">
+                </td>
+                <td>${order.orderId}</td>
+                <td>
+                    <div class="customer-info">
+                        <div>
+                            <div><strong>${order.customer.name}</strong></div>
+                            <div style="font-size:12px;color:#718096;">${order.customer.email}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>${this.formatProductsList(order.products)}</td>
+                <td>₹${this.formatAmount(order.totalAmount)}</td>
+                <td><span class="status-badge ${order.status.toLowerCase()}">${order.status}</span></td>
+                <td>${this.formatDate(order.orderDate)}</td>
+                <td class="actions-cell">
+                    ${this.getActionButtons(order)}
+                </td>
+            </tr>
+        `;
+    }
+
+    formatProductsList(products) {
+        if (!products?.length) return 'No products';
+        const mainProduct = products[0];
+        const remaining = products.length - 1;
+        return remaining > 0 
+            ? `${mainProduct.name} +${remaining} more item(s)`
+            : `${mainProduct.name}`;
+    }
+
+    formatAmount(amount) {
+        return new Intl.NumberFormat('en-IN').format(amount);
+    }
+
+    formatDate(date) {
+        return new Date(date).toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+
+    getActionButtons(order) {
+        const buttons = [];
+        const status = order.status.toLowerCase();
+
+        if (status === 'pending') {
+            buttons.push(this.createActionButton('processing', 'spinner', 'Mark as Processing'));
+        }
+        if (status === 'processing') {
+            buttons.push(this.createActionButton('shipped', 'shipping-fast', 'Mark as Shipped'));
+        }
+        if (status === 'shipped') {
+            buttons.push(this.createActionButton('delivered', 'check', 'Mark as Delivered'));
+        }
         
-        if (orderSearch) orderSearch.addEventListener('input', () => this.handleOrderSearch());
-        if (statusFilter) statusFilter.addEventListener('change', () => this.handleOrderFilter());
-        if (dateFilter) dateFilter.addEventListener('change', () => this.handleOrderFilter());
-        if (filterBtn) filterBtn.addEventListener('click', () => this.applyOrderFilters());
+        // Common actions for all orders
+        buttons.push(
+            this.createActionButton('invoice', 'file-invoice', 'Generate Invoice'),
+            this.createActionButton('print', 'print', 'Print Label')
+        );
+
+        // Allow cancellation only for non-completed orders
+        if (!['delivered', 'cancelled'].includes(status)) {
+            buttons.push(this.createActionButton('cancel', 'times', 'Cancel Order'));
+        }
+
+        return buttons.join('');
+    }
+
+    createActionButton(action, icon, title) {
+        return `<button onclick="orderManager.handleOrderAction('${action}', this)" title="${title}">
+            <i class="fas fa-${icon}"></i>
+        </button>`;
+    }
+
+    async handleOrderAction(action, button) {
+        const orderId = button.closest('tr').dataset.orderId;
+        if (!orderId) return;
+
+        try {
+            const response = await fetch(`/api/supplier/orders/${orderId}/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) throw new Error(`Failed to ${action} order`);
+
+            await this.loadOrders();
+            await this.loadOrderStats();
+            this.showNotification(`Order ${action} successfully`, 'success');
+        } catch (error) {
+            console.error(`Error ${action} order:`, error);
+            this.showNotification(`Failed to ${action} order`, 'error');
+        }
+    }
+
+    handleOrderSelection(checkbox) {
+        const orderId = checkbox.value;
+        if (checkbox.checked) {
+            this.selectedOrders.add(orderId);
+        } else {
+            this.selectedOrders.delete(orderId);
+        }
         
-        // Action buttons
-        const exportBtn = document.getElementById('exportOrdersBtn');
-        const newOrderBtn = document.getElementById('newOrderBtn');
-        const bulkActionsBtn = document.getElementById('bulkActionsBtn');
-        
-        if (exportBtn) exportBtn.addEventListener('click', () => this.exportOrders());
-        if (newOrderBtn) newOrderBtn.addEventListener('click', () => this.createNewOrder());
-        if (bulkActionsBtn) bulkActionsBtn.addEventListener('click', () => this.showBulkActions());
-        
-        // Select all checkbox
-        const selectAllOrders = document.getElementById('selectAllOrders');
-        if (selectAllOrders) selectAllOrders.addEventListener('change', () => this.handleSelectAllOrders());
+        document.getElementById('bulkActionsBtn').disabled = this.selectedOrders.size === 0;
+    }
+
+    async handleSearch(query) {
+        this.currentPage = 1;
+        await this.loadOrders();
+    }
+
+    async applyFilters() {
+        this.currentPage = 1;
+        await this.loadOrders();
+    }
+
+    showDateRangePicker() {
+        // Implement date range picker functionality
+        console.log('Date range picker to be implemented');
+    }
+
+    showLoadingState(loading) {
+        const tbody = document.getElementById('ordersTableBody');
+        if (!tbody) return;
+
+        if (loading) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center">
+                        <div class="loading-spinner"></div>
+                        <p>Loading orders...</p>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    updatePagination() {
+        document.getElementById('currentPage').textContent = this.currentPage;
+        document.getElementById('totalPages').textContent = this.totalPages;
+        document.getElementById('prevPage').disabled = this.currentPage === 1;
+        document.getElementById('nextPage').disabled = this.currentPage === this.totalPages;
+    }
+
+    async changePage(newPage) {
+        if (newPage < 1 || newPage > this.totalPages) return;
+        this.currentPage = newPage;
+        await this.loadOrders();
+    }
+
+    showNotification(message, type = 'info') {
+        // Implement notification system
+        console.log(`${type.toUpperCase()}: ${message}`);
     }
 }
+
+// Initialize the order manager when the DOM is ready
+// Initialize the order manager when the DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.orderManager = new OrderManager();
+});
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.dropdown')) {
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+            menu.classList.remove('show');
+        });
+    }
+});
 
 // Initialize the order manager when the page loads
 document.addEventListener('DOMContentLoaded', function() {

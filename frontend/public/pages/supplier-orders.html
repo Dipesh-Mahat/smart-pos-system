@@ -104,7 +104,9 @@
                 <div class="section-header">
                     <h2>Recent Orders</h2>
                     <div class="table-actions">
-                        <button class="btn-secondary"><i class="fas fa-tasks"></i> Bulk Actions</button>
+                        <button class="btn-secondary" id="bulkActionsBtn" disabled>
+                            <i class="fas fa-tasks"></i> Bulk Actions
+                        </button>
                     </div>
                 </div>
                 <div class="table-container">
@@ -112,6 +114,9 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
+                                    <th>
+                                        <input type="checkbox" id="selectAllOrders" title="Select all orders">
+                                    </th>
                                     <th>Order ID</th>
                                     <th>Customer</th>
                                     <th>Products</th>
@@ -121,128 +126,37 @@
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>ORD-2024-001</td>
-                                    <td>
-                                        <div class="customer-info">
-                                            <div>
-                                                <div><strong>Maya Tamang</strong></div>
-                                                <div style="font-size:12px;color:#718096;">maya.tamang@example.com</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>Basmati Rice 5kg +1 more 2 item(s)</td>
-                                    <td>₹9,400</td>
-                                    <td><span class="status-badge pending">Pending</span></td>
-                                    <td>8 Jun 2024</td>
-                                    <td class="actions-cell">
-                                        <button title="Mark as Processing"><i class="fas fa-spinner"></i></button>
-                                        <button title="Mark as Shipped"><i class="fas fa-shipping-fast"></i></button>
-                                        <button title="Mark as Delivered"><i class="fas fa-check"></i></button>
-                                        <button title="Generate Invoice"><i class="fas fa-file-invoice"></i></button>
-                                        <button title="Print Label"><i class="fas fa-print"></i></button>
-                                        <button title="Cancel Order"><i class="fas fa-times"></i></button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>ORD-2024-002</td>
-                                    <td>
-                                        <div class="customer-info">
-                                            <div>
-                                                <div><strong>Suresh Rai</strong></div>
-                                                <div style="font-size:12px;color:#718096;">suresh.rai@example.com</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>Wai Wai Noodles Carton 1 item(s)</td>
-                                    <td>₹4,320</td>
-                                    <td><span class="status-badge processing">Processing</span></td>
-                                    <td>7 Jun 2024</td>
-                                    <td class="actions-cell">
-                                        <button title="Mark as Processing"><i class="fas fa-spinner"></i></button>
-                                        <button title="Mark as Shipped"><i class="fas fa-shipping-fast"></i></button>
-                                        <button title="Mark as Delivered"><i class="fas fa-check"></i></button>
-                                        <button title="Generate Invoice"><i class="fas fa-file-invoice"></i></button>
-                                        <button title="Print Label"><i class="fas fa-print"></i></button>
-                                        <button title="Cancel Order"><i class="fas fa-times"></i></button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>ORD-2024-003</td>
-                                    <td>
-                                        <div class="customer-info">
-                                            <div>
-                                                <div><strong>Binita Shrestha</strong></div>
-                                                <div style="font-size:12px;color:#718096;">binita.shrestha@example.com</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>DDC Milk 1L Crate +1 more 2 item(s)</td>
-                                    <td>₹9,420</td>
-                                    <td><span class="status-badge shipped">Shipped</span></td>
-                                    <td>6 Jun 2024</td>
-                                    <td class="actions-cell">
-                                        <button title="Mark as Processing"><i class="fas fa-spinner"></i></button>
-                                        <button title="Mark as Shipped"><i class="fas fa-shipping-fast"></i></button>
-                                        <button title="Mark as Delivered"><i class="fas fa-check"></i></button>
-                                        <button title="Generate Invoice"><i class="fas fa-file-invoice"></i></button>
-                                        <button title="Print Label"><i class="fas fa-print"></i></button>
-                                        <button title="Cancel Order"><i class="fas fa-times"></i></button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>ORD-2024-004</td>
-                                    <td>
-                                        <div class="customer-info">
-                                            <div>
-                                                <div><strong>Dipak Thapa</strong></div>
-                                                <div style="font-size:12px;color:#718096;">dipak.thapa@example.com</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>Teer Detergent Case 1 item(s)</td>
-                                    <td>₹10,080</td>
-                                    <td><span class="status-badge delivered">Delivered</span></td>
-                                    <td>5 Jun 2024</td>
-                                    <td class="actions-cell">
-                                        <button title="Mark as Processing"><i class="fas fa-spinner"></i></button>
-                                        <button title="Mark as Shipped"><i class="fas fa-shipping-fast"></i></button>
-                                        <button title="Mark as Delivered"><i class="fas fa-check"></i></button>
-                                        <button title="Generate Invoice"><i class="fas fa-file-invoice"></i></button>
-                                        <button title="Print Label"><i class="fas fa-print"></i></button>
-                                        <button title="Cancel Order"><i class="fas fa-times"></i></button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>ORD-2024-005</td>
-                                    <td>
-                                        <div class="customer-info">
-                                            <div>
-                                                <div><strong>Anita Gurung</strong></div>
-                                                <div style="font-size:12px;color:#718096;">anita.gurung@example.com</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>Khukri Rum Case 1 item(s)</td>
-                                    <td>₹11,760</td>
-                                    <td><span class="status-badge cancelled">Cancelled</span></td>
-                                    <td>4 Jun 2024</td>
-                                    <td class="actions-cell">
-                                        <button title="Mark as Processing"><i class="fas fa-spinner"></i></button>
-                                        <button title="Mark as Shipped"><i class="fas fa-shipping-fast"></i></button>
-                                        <button title="Mark as Delivered"><i class="fas fa-check"></i></button>
-                                        <button title="Generate Invoice"><i class="fas fa-file-invoice"></i></button>
-                                        <button title="Print Label"><i class="fas fa-print"></i></button>
-                                        <button title="Cancel Order"><i class="fas fa-times"></i></button>
+                            <tbody id="ordersTableBody">
+                                <!-- Orders will be loaded dynamically -->
+                                <tr class="loading-placeholder">
+                                    <td colspan="8" class="text-center">
+                                        <div class="loading-spinner"></div>
+                                        <p>Loading orders...</p>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                     <div class="table-pagination">
-                        <div class="pagination-info">
-                            Showing <span>1</span> to <span>5</span> of <span>5</span> orders
+                        <div class="pagination-controls">
+                            <button id="prevPage" class="pagination-btn" disabled>
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </button>
+                            <span class="pagination-info">
+                                Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+                            </span>
+                            <button id="nextPage" class="pagination-btn" disabled>
+                                Next <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="pagination-size">
+                            <label for="pageSize">Show:</label>
+                            <select id="pageSize" class="form-select">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
                         </div>
                     </div>
                 </div>
