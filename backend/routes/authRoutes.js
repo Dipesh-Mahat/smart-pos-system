@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { login, register, googleAuth, registerSupplier } = require('../controllers/authControllers');
+const { login, register, registerSupplier } = require('../controllers/authControllers');
 const { refreshToken, logout } = require('../controllers/tokenController');
 const { createDynamicRateLimiter } = require('../middleware/rateLimiter');
 const { bruteForceProtection, resetLoginAttempts, monitorSuspiciousActivity } = require('../middleware/bruteForceProtection');
@@ -27,8 +27,5 @@ router.post('/register-supplier',
 );
 router.post('/refresh-token', refreshToken);
 router.post('/logout', authenticateJWT, logout);
-
-// Google OAuth routes
-router.post('/google', googleAuth);
 
 module.exports = router;

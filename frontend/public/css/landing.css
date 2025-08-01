@@ -990,23 +990,6 @@ section {
     margin: 0 auto;
 }
 
-/* Add spacing for Google sign-in buttons */
-#g_id_signin_register,
-#g_id_signin_login {
-    margin-top: 20px;
-}
-
-.google-btn:hover {
-    filter: brightness(0.95);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-.google-btn img {
-    width: 100%;
-    height: 46px;
-}
-
 .error-alert {
     padding: 10px 15px;
     background-color: #f8d7da;

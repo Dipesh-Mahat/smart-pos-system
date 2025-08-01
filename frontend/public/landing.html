@@ -9,11 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">    <!-- Google OAuth Client Library -->    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- Meta tag for Google Sign-In -->
-    <meta name="google-signin-client_id" content="489848070288-0he2h9ti3a9aqljpagoigmt5h9tmt38k.apps.googleusercontent.com">
-    <!-- External Google Auth Script -->
-    <script src="js/google-auth.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* Additional style for error messages */
         .error-message {
@@ -494,16 +490,6 @@
                         <div class="error-message" id="loginPasswordError">Please enter your password</div>                    </div>
                     
                     <button type="submit" class="popup-btn">Login</button>
-                    
-                    <div id="g_id_signin_login"
-                         class="g_id_signin"
-                         data-type="standard"
-                         data-shape="rectangular"
-                         data-theme="outline"
-                         data-text="sign_in_with"
-                         data-size="large"
-                         data-logo_alignment="left">
-                    </div>
                 </form>
                 
                 <div class="popup-footer">
@@ -558,16 +544,6 @@
                         <div class="error-message" id="confirmPasswordError" style="display: none;">Passwords do not match</div>
                     </div>
                     <button type="submit" class="popup-btn">Create Account</button>
-                    
-                    <div id="g_id_signin_register"
-                         class="g_id_signin"
-                         data-type="standard"
-                         data-shape="rectangular"
-                         data-theme="outline"
-                         data-text="sign_up_with"
-                         data-size="large"
-                         data-logo_alignment="left">
-                    </div>
                 </form>
                 
                 <div class="popup-footer">
@@ -610,39 +586,7 @@
         </div>
     </div>
     
-    <script>      window.onload = function() {
-        // Render Google Sign-In button for login
-        if (window.google && document.getElementById('g_id_signin_login')) {
-          google.accounts.id.initialize({
-            client_id: '489848070288-0he2h9ti3a9aqljpagoigmt5h9tmt38k.apps.googleusercontent.com',
-            callback: function(response) {
-              // Handle login response here
-              // You can send response.credential to your backend
-              console.log('Google login credential:', response.credential);
-            }
-          });
-          google.accounts.id.renderButton(
-            document.getElementById('g_id_signin_login'),
-            { theme: 'outline', size: 'large' }
-          );
-        }
-        // Render Google Sign-In button for register
-        if (window.google && document.getElementById('g_id_signin_register')) {
-          google.accounts.id.initialize({
-            client_id: '489848070288-0he2h9ti3a9aqljpagoigmt5h9tmt38k.apps.googleusercontent.com',
-            callback: function(response) {
-              // Handle register response here
-              // You can send response.credential to your backend
-              console.log('Google register credential:', response.credential);
-            }
-          });
-          google.accounts.id.renderButton(
-            document.getElementById('g_id_signin_register'),
-            { theme: 'outline', size: 'large', text: 'signup_with' }
-          );
-        }
-      };
-
+    <script>      
       // Function to toggle password visibility
       function togglePasswordVisibility(inputId, icon) {
         const passwordInput = document.getElementById(inputId);
