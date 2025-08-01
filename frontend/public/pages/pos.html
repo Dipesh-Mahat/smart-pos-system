@@ -1613,7 +1613,7 @@
             padding: 16px 20px;
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(40, 167, 69, 0.3);
-            z-index: 10001;
+            z-index: 9999;
             animation: slideInRight 0.3s ease;
         }
 
@@ -1939,7 +1939,7 @@
             border-radius: var(--border-radius);
             background-color: white;
             box-shadow: var(--box-shadow-md);
-            z-index: 2000;
+            z-index: 9998;
             min-width: 300px;
             max-width: 400px;
             transform: translateX(120%);
@@ -2037,15 +2037,21 @@
             }
         }
         
-        body {
+        /* Remove body overflow-x hidden to allow mobile menu to work */
+        html {
+            overflow-x: hidden;
+        }
+        
+        /* Apply overflow-x hidden only to specific containers that need it */
+        .pos-main, .main-content {
             overflow-x: hidden;
         }
     </style>
 </head>
 <body>
-    <div class="main-content">
-        <div class="container">
-            <!-- Navbar component will be loaded here automatically -->
+    <div class="container">
+        <!-- Navbar component will be loaded here automatically -->
+        <div class="main-content">
             <div class="pos-container">
                 <div class="pos-main">
                     <!-- 1. Search bar and scan button at the very top -->
@@ -2199,7 +2205,7 @@
     <!-- Mobile Scanner Connection Modal -->
 
 
-    <div class="bill-modal" id="billModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:3000; justify-content:center; align-items:center;">
+    <div class="bill-modal" id="billModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:2999; justify-content:center; align-items:center;">
   <div style="background:#fff; border-radius:12px; max-width:400px; width:95%; padding:24px; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
     <h2 style="margin-top:0; text-align:center;">Bill Summary</h2>
     <div id="billItems" style="max-height:220px; overflow-y:auto; margin-bottom:16px;"></div>
@@ -2544,6 +2550,17 @@ function showBillModal(cartArr) {
             .main-content {
                 margin-left: 0 !important;
                 width: 100% !important;
+            }
+            
+            /* Ensure navbar container can be positioned properly on mobile */
+            #navbarContainer {
+                position: relative !important;
+                z-index: 1002 !important;
+            }
+            
+            /* Allow horizontal overflow for mobile menu functionality */
+            html, body {
+                overflow-x: auto !important;
             }
         }
    </style>
