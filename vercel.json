@@ -1,22 +1,41 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "frontend/public",
   "routes": [
-    {
-      "src": "/mobile-scanner",
-      "dest": "/mobile-scanner.html"
-    },
     {
       "src": "/api/(.*)",
       "dest": "https://smart-pos-system.onrender.com/api/$1"
     },
     {
-      "handle": "filesystem"
+      "src": "/css/(.*)",
+      "dest": "/frontend/public/css/$1"
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "/frontend/public/js/$1"
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "/frontend/public/images/$1"
+    },
+    {
+      "src": "/pages/(.*)",
+      "dest": "/frontend/public/pages/$1"
+    },
+    {
+      "src": "/mobile-scanner.html",
+      "dest": "/frontend/mobile-scanner.html"
+    },
+    {
+      "src": "/mobile-scanner",
+      "dest": "/frontend/mobile-scanner.html"
+    },
+    {
+      "src": "/",
+      "dest": "/frontend/public/index.html"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/frontend/public/$1"
     }
   ]
 }
