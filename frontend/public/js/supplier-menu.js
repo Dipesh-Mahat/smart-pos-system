@@ -90,12 +90,6 @@ class SupplierMenu {
                         '</div>' +
                         '<div class="menu-text">Customers</div>' +
                     '</a>' +
-                    '<a href="supplier-inventory.html" class="menu-item" data-page="supplier-inventory">' +
-                        '<div class="menu-icon-folder">' +
-                            '<i class="fas fa-warehouse"></i>' +
-                        '</div>' +
-                        '<div class="menu-text">Inventory</div>' +
-                    '</a>' +
                     '<a href="supplier-analytics.html" class="menu-item" data-page="supplier-analytics">' +
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-chart-bar"></i>' +
