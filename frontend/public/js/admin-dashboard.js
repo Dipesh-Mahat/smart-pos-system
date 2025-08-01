@@ -1,13 +1,78 @@
 // Admin Dashboard Main Controller
 class AdminDashboard {
-    getApiBaseUrl() {
-        if (window.API_BASE_URL) return window.API_BASE_URL;
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            return 'http://localhost:5000/api';
-        }
-        return window.location.origin + '/api';
-    }
     constructor() {
+        // Initialize class properties
+        this.users = [];
+        this.filteredUsers = [];
+        this.charts = {};
+        this.currentFilter = 'all';
+        this.currentStatus = 'all';
+        this.searchQuery = '';
+        this.currentPage = 1;
+        this.usersPerPage = 5;
+        this.totalPages = 1;
+        this.securityLogsPage = 1;
+        this.securityLogsLimit = 20;
+        
+        // Add responsive styles for admin dashboard
+        this.addResponsiveStyles();
+        
+        // Initialize system health
+        this.initializeSystemHealth();
+        
+        // Only initialize if authenticated
+        if (this.checkAuthentication()) {
+            this.init();
+        }
+    }
+
+    initializeSystemHealth() {
+        this.systemHealth = {
+            api: { status: 'online', details: 'Response time: 42ms' },
+            database: { status: 'online', details: 'Queries: 1.5k/min' },
+            memory: { status: 'warning', details: '76% utilized' },
+            storage: { status: 'online', details: '48% utilized' }
+        };
+    }
+
+    getApiBaseUrl() {
+        // First try to get from window.API_BASE_URL
+        if (window.API_BASE_URL) return window.API_BASE_URL;
+        
+        // Then check environment
+        const isProd = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        
+        // Use secure protocol in production
+        const protocol = isProd ? 'https://' : 'http://';
+        const baseUrl = isProd ? window.location.origin : 'localhost:5000';
+        
+        return `${protocol}${baseUrl}/api`;
+    }
+    
+    getAuthToken() {
+        // Try to get token from auth service first
+        if (window.authService && typeof window.authService.getToken === 'function') {
+            const token = window.authService.getToken();
+            if (token) return token;
+        }
+        
+        // Then try various localStorage keys
+        const possibleTokenKeys = [
+            'adminToken',
+            'neopos_auth_token',
+            'authToken',
+            'accessToken'
+        ];
+        
+        for (const key of possibleTokenKeys) {
+            const token = localStorage.getItem(key);
+            if (token) return token;
+        }
+        
+        return null;
+    }
+    
+    initialize() {
         this.users = [];
         this.filteredUsers = [];
         this.charts = {};
@@ -23,6 +88,9 @@ class AdminDashboard {
             memory: { status: 'warning', details: '76% utilized' },
             storage: { status: 'online', details: '48% utilized' }
         };
+        
+        // Add responsive styles for admin dashboard
+        this.addResponsiveStyles();
         
         // Only initialize if authenticated
         if (this.checkAuthentication()) {
@@ -509,7 +577,7 @@ class AdminDashboard {
     }
     
     // Use the real API data instead of mock data
-    loadMoreActivities() {
+    async loadMoreActivities() {
         const activityList = document.getElementById('activityList');
         if (!activityList) return;
         
@@ -523,19 +591,18 @@ class AdminDashboard {
             loadMoreBtn.disabled = true;
         }
         
-        // Fetch more activities from API
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-        fetch(`${this.getApiBaseUrl()}/admin/recent-activity?offset=${currentActivities}&limit=10`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
+        try {
+            // Fetch more activities from API
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+            const response = await fetch(`${this.getApiBaseUrl()}/admin/recent-activity?offset=${currentActivities}&limit=10`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
             if (!response.ok) throw new Error('Failed to fetch more activities');
-            return response.json();
-        })
-        .then(data => {
+            const data = await response.json();
             if (data.success && data.activities && data.activities.length > 0) {
                 // Add more activities to the list
                 const activityHTML = data.activities.map(activity => `
@@ -570,20 +637,202 @@ class AdminDashboard {
                     loadMoreBtn.disabled = true;
                 }
             }
-        })
-        .catch(error => {
+            // Add the new activities to the list
+            if (data.activities && data.activities.length > 0) {
+                data.activities.forEach(activity => {
+                    activityList.appendChild(this.createActivityItem(activity));
+                });
+                
+                // Reset button state
+                if (loadMoreBtn) {
+                    loadMoreBtn.innerHTML = '<i class="fas fa-history"></i> Load More Activities';
+                    loadMoreBtn.disabled = false;
+                    
+                    // If we got fewer activities than requested, there are no more
+                    if (data.activities.length < 10) {
+                        loadMoreBtn.innerHTML = '<i class="fas fa-check"></i> All activities loaded';
+                        loadMoreBtn.disabled = true;
+                    }
+                }
+            } else {
+                // No more activities
+                if (loadMoreBtn) {
+                    loadMoreBtn.innerHTML = '<i class="fas fa-check"></i> No more activities';
+                    loadMoreBtn.disabled = true;
+                }
+            }
+        } catch (error) {
             console.error('Failed to load more activities:', error);
             // Reset button state
             if (loadMoreBtn) {
                 loadMoreBtn.innerHTML = '<i class="fas fa-redo"></i> Try Again';
                 loadMoreBtn.disabled = false;
             }
-        });
+        }
     }
     
     renderUserTable() {
         const tableBody = document.getElementById('userTableBody');
         if (!tableBody) return;
+
+        // Add responsive styles for user table
+        const style = document.createElement('style');
+        style.textContent = `
+            .user-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin: 1rem 0;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            .user-table {
+                width: 100%;
+                min-width: 800px;
+                border-collapse: collapse;
+            }
+            
+            .user-table th,
+            .user-table td {
+                padding: 1rem;
+                text-align: left;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .user-info {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+            
+            .user-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                object-fit: cover;
+            }
+            
+            .user-details h4 {
+                margin: 0;
+                font-size: 1rem;
+                color: #333;
+            }
+            
+            .user-details p {
+                margin: 0;
+                font-size: 0.875rem;
+                color: #666;
+            }
+            
+            .user-type,
+            .user-status {
+                display: inline-block;
+                padding: 0.25rem 0.75rem;
+                border-radius: 12px;
+                font-size: 0.875rem;
+            }
+            
+            .user-type.admin {
+                background: #e3f2fd;
+                color: #1976d2;
+            }
+            
+            .user-type.shop-owner {
+                background: #e8f5e9;
+                color: #2e7d32;
+            }
+            
+            .user-type.supplier {
+                background: #fff3e0;
+                color: #f57c00;
+            }
+            
+            .user-status.active {
+                background: #e8f5e9;
+                color: #2e7d32;
+            }
+            
+            .user-status.suspended {
+                background: #fff3e0;
+                color: #f57c00;
+            }
+            
+            .user-status.banned {
+                background: #ffebee;
+                color: #c62828;
+            }
+            
+            .action-buttons {
+                display: flex;
+                gap: 0.5rem;
+                justify-content: flex-end;
+            }
+            
+            .action-btn {
+                width: 32px;
+                height: 32px;
+                border: none;
+                border-radius: 4px;
+                background: #f5f5f5;
+                color: #666;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .action-btn:hover {
+                background: #e0e0e0;
+            }
+            
+            .action-btn.view:hover {
+                background: #e3f2fd;
+                color: #1976d2;
+            }
+            
+            .action-btn.edit:hover {
+                background: #e8f5e9;
+                color: #2e7d32;
+            }
+            
+            .action-btn.suspend:hover {
+                background: #fff3e0;
+                color: #f57c00;
+            }
+            
+            .action-btn.ban:hover {
+                background: #ffebee;
+                color: #c62828;
+            }
+            
+            @media (max-width: 1024px) {
+                .user-table {
+                    min-width: 700px;
+                }
+                
+                .user-info {
+                    gap: 0.5rem;
+                }
+                
+                .user-avatar {
+                    width: 32px;
+                    height: 32px;
+                }
+            }
+            
+            @media (max-width: 768px) {
+                .user-table {
+                    min-width: 600px;
+                }
+                
+                .action-buttons {
+                    flex-wrap: wrap;
+                }
+            }
+        `;
+        document.head.appendChild(style);
 
         // Clear existing content
         tableBody.innerHTML = '';
@@ -2466,8 +2715,7 @@ class AdminDashboard {
     }
     
     // Load more activities
-    // Load more activities
-    loadMoreActivities() {
+    async loadMoreActivities() {
         const activityList = document.getElementById('activityList');
         if (!activityList) return;
         
@@ -2651,211 +2899,1096 @@ class AdminDashboard {
             this.showMessage('System logs viewer will be implemented in next version', 'info');
         }, 1000);
     }
+    
+    // Add responsive styles for admin dashboard
+    addResponsiveStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+            /* Base responsive grid */
+            .dashboard-grid {
+                display: grid;
+                gap: 1rem;
+                padding: 1rem;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+            
+            /* Stats cards responsiveness */
+            .stats-grid {
+                display: grid;
+                gap: 1rem;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+            
+            .stat-card {
+                padding: 1rem;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                transition: all 0.3s ease;
+            }
+            
+            /* Charts responsiveness */
+            .chart-container {
+                width: 100%;
+                min-height: 300px;
+                position: relative;
+            }
+            
+            /* Tables responsiveness */
+            @media (max-width: 768px) {
+                .table-responsive {
+                    display: block;
+                    width: 100%;
+                    overflow-x: auto;
+                    -webkit-overflow-scrolling: touch;
+                }
+                
+                .table-responsive table {
+                    width: 100%;
+                    min-width: 500px;
+                }
+                
+                .stats-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                }
+                
+                .stat-card {
+                    padding: 0.75rem;
+                }
+                
+                .chart-container {
+                    min-height: 200px;
+                }
+            }
+            
+            /* Modal responsiveness */
+            .admin-modal .modal-content {
+                width: 90%;
+                max-width: 600px;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            
+            @media (max-width: 768px) {
+                .admin-modal .modal-content {
+                    width: 95%;
+                    padding: 1rem;
+                }
+                
+                .form-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+            
+            /* Navigation and filters responsiveness */
+            @media (max-width: 768px) {
+                .filter-controls {
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+                
+                .search-filter {
+                    width: 100%;
+                }
+                
+                .filter-group {
+                    width: 100%;
+                }
+                
+                .action-buttons {
+                    flex-wrap: wrap;
+                    justify-content: stretch;
+                }
+                
+                .action-buttons button {
+                    width: 100%;
+                    margin: 0.25rem 0;
+                }
+            }
+            
+            /* System health cards responsiveness */
+            .health-cards-grid {
+                display: grid;
+                gap: 1rem;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+            
+            @media (max-width: 768px) {
+                .health-cards-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .health-cards-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+            
+            /* Activity feed responsiveness */
+            @media (max-width: 768px) {
+                .activity-item {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    padding: 0.75rem;
+                }
+                
+                .activity-icon {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .activity-content {
+                    width: 100%;
+                }
+            }
+            
+            /* Loading states responsiveness */
+            .loading-indicator {
+                padding: 2rem;
+                text-align: center;
+            }
+            
+            @media (max-width: 768px) {
+                .loading-indicator {
+                    padding: 1rem;
+                }
+            }
+            
+            /* Error states responsiveness */
+            .error-state {
+                padding: 2rem;
+                text-align: center;
+            }
+            
+            @media (max-width: 768px) {
+                .error-state {
+                    padding: 1rem;
+                }
+                
+                .error-state button {
+                    width: 100%;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
 
     // Load pending supplier applications
     async loadPendingSuppliers() {
+        const container = document.querySelector('.supplier-applications');
+        const supplierApplicationsEl = document.getElementById('supplierApplications');
+        
+        // Determine which container to use
+        const targetEl = container || supplierApplicationsEl;
+        if (!targetEl) return;
+        
         try {
-            const supplierApplicationsEl = document.getElementById('supplierApplications');
-            if (!supplierApplicationsEl) return;
+            targetEl.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Loading supplier applications...</div>';
             
-            supplierApplicationsEl.innerHTML = '<div class="loading-indicator"><i class="fas fa-spinner fa-spin"></i> Loading applications...</div>';
+            // Get auth token
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken') || this.getAuthToken();
+            if (!token) {
+                throw new Error('Authentication token not found');
+            }
             
-            // Fetch supplier applications from server
-            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-            const response = await fetch(`${getApiBaseUrl()}/api/users?role=supplier&status=pending`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+            // First try the admin endpoint
+            let response;
+            let endpoint = `${this.getApiBaseUrl()}/admin/supplier-applications`;
+            
+            try {
+                response = await fetch(endpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                // If first endpoint fails, try the alternative endpoint
+                if (!response.ok) {
+                    endpoint = `${this.getApiBaseUrl()}/users/suppliers/pending`;
+                    response = await fetch(endpoint, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
                 }
-            });
+            } catch (error) {
+                // If first endpoint fails with an exception, try the alternative endpoint
+                endpoint = `${this.getApiBaseUrl()}/users/suppliers/pending`;
+                response = await fetch(endpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
             
             if (!response.ok) {
-                throw new Error(`Failed to fetch supplier applications: ${response.status}`);
+                const error = await response.json();
+                throw new Error(error.message || `Failed to fetch supplier applications: ${response.status}`);
             }
             
             const data = await response.json();
             
-            if (data.success && data.users) {
-                const pendingSuppliers = data.users.filter(user => 
-                    user.role === 'supplier' && (user.status === 'pending' || !user.status)
-                );
+            // Handle different response formats from different endpoints
+            let applications = [];
+            if (data.applications && Array.isArray(data.applications)) {
+                applications = data.applications;
+            } else if (data.success && data.applications && Array.isArray(data.applications)) {
+                applications = data.applications;
+            } else {
+                throw new Error('Invalid response format - no applications array found');
+            }
+            
+            if (applications.length === 0) {
+                targetEl.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-check"></i>
+                        <p>No pending supplier applications</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Render the supplier applications
+            // This code handles both potential formats from different endpoints
+            let html = '<div class="applications-grid">';
+            applications.forEach(app => {
+                // Handle different property names from different endpoints
+                const firstName = app.firstName || (app.contactPerson ? app.contactPerson.split(' ')[0] : '');
+                const lastName = app.lastName || (app.contactPerson ? app.contactPerson.split(' ').slice(1).join(' ') : '');
+                const email = app.email || '';
+                const id = app.id || app._id;
+                const businessName = app.businessName || `${firstName} ${lastName}`.trim();
                 
-                if (pendingSuppliers.length === 0) {
-                    supplierApplicationsEl.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-clipboard-check"></i>
-                            <p>No pending supplier applications</p>
-                        </div>
-                    `;
-                    return;
-                }
+                const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
                 
-                // Render supplier applications
-                supplierApplicationsEl.innerHTML = pendingSuppliers.map(supplier => `
-                    <div class="supplier-application-card" data-id="${supplier._id}">
-                        <div class="supplier-header">
-                            <img src="${supplier.avatar || '../images/avatars/user-avatar.png'}" alt="${supplier.businessName || 'Supplier'}" class="supplier-avatar">
-                            <div class="supplier-info">
-                                <h4>${supplier.businessName || 'New Supplier'}</h4>
-                                <p>${supplier.email}</p>
-                                <span class="supplier-join-date">Applied: ${new Date(supplier.createdAt).toLocaleDateString()}</span>
+                html += `
+                    <div class="application-card">
+                        <div class="applicant-info">
+                            <div class="applicant-avatar">${initials}</div>
+                            <div class="applicant-details">
+                                <h4>${businessName}</h4>
+                                <p>${email}</p>
+                                ${app.createdAt ? `<small>Applied: ${new Date(app.createdAt).toLocaleDateString()}</small>` : ''}
                             </div>
                         </div>
-                        <div class="supplier-actions">
-                            <button class="btn-approve" onclick="adminDashboard.approveSupplier('${supplier._id}')">
+                        <div class="application-status status-pending">Pending Review</div>
+                        <div class="application-actions">
+                            <button class="action-btn btn-approve" onclick="adminDashboard.approveApplication('${id}')">
                                 <i class="fas fa-check"></i> Approve
                             </button>
-                            <button class="btn-reject" onclick="adminDashboard.rejectSupplier('${supplier._id}')">
+                            <button class="action-btn btn-reject" onclick="adminDashboard.rejectApplication('${id}')">
                                 <i class="fas fa-times"></i> Reject
-                            </button>
-                            <button class="btn-details" onclick="adminDashboard.viewSupplierDetails('${supplier._id}')">
-                                <i class="fas fa-info-circle"></i> Details
                             </button>
                         </div>
                     </div>
-                `).join('');
-            } else {
-                throw new Error('Invalid response format');
-            }
+                `;
+            });
+            html += '</div>';
+            targetEl.innerHTML = html;
+            
+            console.log(`Successfully loaded ${applications.length} supplier applications from ${endpoint}`);
+            
         } catch (error) {
             console.error('Failed to load supplier applications:', error);
-            const supplierApplicationsEl = document.getElementById('supplierApplications');
-            if (supplierApplicationsEl) {
-                supplierApplicationsEl.innerHTML = `
+            const targetEl = container || supplierApplicationsEl;
+            if (targetEl) {
+                targetEl.innerHTML = `
                     <div class="error-state">
                         <i class="fas fa-exclamation-circle"></i>
-                        <p>Error loading supplier applications</p>
+                        <p>Failed to load supplier applications: ${error.message}</p>
                         <button onclick="adminDashboard.loadPendingSuppliers()" class="btn-retry">Try Again</button>
                     </div>
                 `;
             }
         }
     }
+    // Generate a secure password
+    generatePassword() {
+        const length = 12;
+        const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+        let password = "";
+        for (let i = 0; i < length; i++) {
+            password += charset.charAt(Math.floor(Math.random() * charset.length));
+        }
+        const passwordInput = document.getElementById('password');
+        if (passwordInput) {
+            passwordInput.value = password;
+            // Flash the input to show it was updated
+            passwordInput.style.backgroundColor = '#e8f0fe';
+            setTimeout(() => {
+                passwordInput.style.backgroundColor = '';
+            }, 300);
+        }
+        return password;
+    }
 
-    // Approve supplier application
-    async approveSupplier(supplierId) {
+    // Handle supplier application approval
+    async approveApplication(applicationId) {
+        if (!applicationId) {
+            this.showMessage('Invalid application ID', 'error');
+            return;
+        }
+
         try {
-            this.showMessage('Processing supplier approval...', 'info');
+            this.showMessage('Processing approval...', 'info');
             
-            // Call API to approve supplier
-            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-            const response = await fetch(`${getApiBaseUrl()}/api/admin/users/${supplierId}/status`, {
-                method: 'PUT',
+            // First, get credentials for the supplier
+            const password = this.generateRandomPassword();
+            const credentials = {
+                password: password,
+                applicationId: applicationId
+            };
+            
+            // Send approval request to the server
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken') || this.getAuthToken();
+            if (!token) {
+                throw new Error('Authentication token not found');
+            }
+            
+            const response = await fetch(`${this.getApiBaseUrl()}/admin/supplier-applications/approve`, {
+                method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ status: 'active' })
+                body: JSON.stringify({ id: applicationId, credentials })
             });
             
             if (!response.ok) {
-                throw new Error(`Failed to approve supplier: ${response.status}`);
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to approve supplier application');
             }
             
-            this.showMessage('Supplier approved successfully!', 'success');
-            this.loadPendingSuppliers(); // Refresh the list
-            this.loadUsers(); // Refresh user count
+            const data = await response.json();
             
-            // Add to audit log
-            this.logAdminAction('Approved supplier application');
+            // Show success message with credentials
+            this.showMessage(`Supplier approved successfully! Username: ${data.email}, Password: ${password}`, 'success');
             
-            // Refresh dashboard stats
-            this.loadDashboardStats();
+            // Refresh the supplier applications list
+            this.loadPendingSuppliers();
+            
         } catch (error) {
-            console.error('Failed to approve supplier:', error);
-            this.showMessage('Failed to approve supplier', 'error');
+            console.error('Approval error:', error);
+            this.showMessage(`Failed to approve supplier: ${error.message}`, 'error');
         }
     }
-
-    // Reject supplier application
-    async rejectSupplier(supplierId) {
-        try {
-            this.showMessage('Processing supplier rejection...', 'info');
-            
-            // Call API to reject supplier
-            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-            const response = await fetch(`${getApiBaseUrl()}/api/admin/users/${supplierId}/status`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status: 'rejected' })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`Failed to reject supplier: ${response.status}`);
-            }
-            
-            this.showMessage('Supplier application rejected', 'success');
-            this.loadPendingSuppliers(); // Refresh the list
-            
-            // Add to audit log
-            this.logAdminAction('Rejected supplier application');
-            
-            // Refresh dashboard stats
-            this.loadDashboardStats();
-        } catch (error) {
-            console.error('Failed to reject supplier:', error);
-            this.showMessage('Failed to reject supplier', 'error');
-        }
-    }
-
-    // View supplier details
-    viewSupplierDetails(supplierId) {
-        const supplier = this.users.find(u => u.id === supplierId);
-        if (!supplier) {
-            this.showMessage('Supplier details not found', 'error');
+    
+    // Handle supplier application rejection
+    async rejectApplication(applicationId) {
+        if (!applicationId) {
+            this.showMessage('Invalid application ID', 'error');
             return;
         }
         
-        // Log this action
-        this.logAdminAction('Viewed supplier details', { supplierId });
-        
-        // Create modal for supplier details
-        const modalHTML = `
-            <div class="admin-modal" id="supplierDetailsModal">
-                <div class="modal-backdrop"></div>
-                <div class="modal-overlay">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3>Supplier Details</h3>
-                            <button class="modal-close" onclick="document.getElementById('supplierDetailsModal').remove()">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div class="supplier-details-content">
-                            <div class="supplier-profile">
-                                <img src="${supplier.avatar || '../images/avatars/user-avatar.png'}" alt="${supplier.name}" class="supplier-profile-img">
-                                <h4>${supplier.businessName || supplier.name}</h4>
-                                <p class="supplier-email">${supplier.email}</p>
-                                <p class="supplier-phone">${supplier.phone || 'No phone provided'}</p>
+        try {
+            const confirmReject = confirm('Are you sure you want to reject this application?');
+            if (!confirmReject) return;
+            
+            this.showMessage('Processing rejection...', 'info');
+            
+            // Send rejection request to the server
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken') || this.getAuthToken();
+            if (!token) {
+                throw new Error('Authentication token not found');
+            }
+            
+            const response = await fetch(`${this.getApiBaseUrl()}/admin/supplier-applications/reject`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: applicationId })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to reject supplier application');
+            }
+            
+            // Show success message
+            this.showMessage('Supplier application rejected', 'success');
+            
+            // Refresh the supplier applications list
+            this.loadPendingSuppliers();
+            
+        } catch (error) {
+            console.error('Rejection error:', error);
+            this.showMessage(`Failed to reject supplier: ${error.message}`, 'error');
+        }
+    }
+    
+    // Helper function to generate a random password
+    generateRandomPassword() {
+        const length = 12;
+        const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+        let password = "";
+        for (let i = 0; i < length; i++) {
+            password += charset.charAt(Math.floor(Math.random() * charset.length));
+        }
+        return password;
+    };
+
+    // Handle supplier approval and credential creation
+    handleSupplierApproval(applicationId, credentials) {;
+        return fetch(`${this.getApiBaseUrl()}/admin/supplier-applications/${applicationId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('authToken')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(credentials)
+        });
+
+        if (!response.ok) {
+            const data = response.json();
+            throw new Error(data.message || 'Failed to approve supplier');
+        }
+
+        return response.json();
+    }
+    
+    // Approve supplier application
+    approveSupplier(applicationId) {
+        try {
+            this.showMessage('Processing supplier approval...', 'info');
+            
+            // Show credential creation modal
+            const modalHTML = `
+                <div class="admin-modal" id="supplierCredentialsModal">
+                    <div class="modal-backdrop"></div>
+                    <div class="modal-overlay">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Create Supplier Account</h3>
+                                <button class="modal-close" onclick="document.getElementById('supplierCredentialsModal').remove()">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
-                            <div class="supplier-info-grid">
-                                <div class="info-item">
-                                    <span class="info-label">Status</span>
-                                    <span class="info-value status-${supplier.status}">${supplier.status}</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Join Date</span>
-                                    <span class="info-value">${supplier.joinDate}</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Last Active</span>
-                                    <span class="info-value">${supplier.lastActive}</span>
-                                </div>
-                            </div>
-                            <div class="supplier-actions-footer">
-                                <button class="btn-secondary" onclick="document.getElementById('supplierDetailsModal').remove()">Close</button>
-                                <button class="btn-primary" onclick="adminDashboard.approveSupplier('${supplier.id}'); document.getElementById('supplierDetailsModal').remove();">Approve</button>
+                            <div class="modal-body">
+                                <p class="modal-description">
+                                    Set up login credentials for the supplier. These will be sent to the supplier's email address.
+                                </p>
+                                <form id="supplierCredentialsForm" class="credentials-form">
+                                    <div class="form-group">
+                                        <label for="username">Username</label>
+                                        <input type="text" id="username" required
+                                               placeholder="Enter username for supplier login">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="password">Password</label>
+                                        <div class="password-input-group">
+                                            <input type="text" id="password" required
+                                                   placeholder="Enter password or generate one">
+                                            <button type="button" class="btn-secondary generate-password"
+                                                    onclick="adminDashboard.generatePassword()">
+                                                Generate
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="button" class="btn-secondary" 
+                                                onclick="document.getElementById('supplierCredentialsModal').remove()">
+                                            Cancel
+                                        </button>
+                                        <button type="submit" class="btn-primary">
+                                            Create Account & Approve
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        `;
-        
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Add CSS for the credentials modal
+            const style = document.createElement('style');
+            style.textContent = `
+                .credentials-form {
+                    padding: 1rem;
+                }
+                .form-group {
+                    margin-bottom: 1rem;
+                }
+                .form-group label {
+                    display: block;
+                    margin-bottom: 0.5rem;
+                    font-weight: 500;
+                }
+                .form-group input {
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                }
+                .password-input-group {
+                    display: flex;
+                    gap: 0.5rem;
+                }
+                .password-input-group input {
+                    flex: 1;
+                }
+                .generate-password {
+                    white-space: nowrap;
+                }
+                .modal-description {
+                    color: #666;
+                    margin-bottom: 1.5rem;
+                    padding: 0 1rem;
+                }
+                .form-actions {
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 0.5rem;
+                    margin-top: 1.5rem;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Handle form submission
+            const form = document.getElementById('supplierCredentialsForm');
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                    submitBtn.disabled = true;
+                    
+                    try {
+                        const credentials = {
+                            username: form.querySelector('#username').value,
+                            password: form.querySelector('#password').value
+                        };
+                        
+                        // Call API to approve supplier with credentials
+                        const result = await this.handleSupplierApproval(applicationId, credentials);
+                        
+                        this.showMessage('Supplier approved successfully! Credentials have been sent to their email.', 'success');
+                        document.getElementById('supplierCredentialsModal').remove();
+                        
+                        // Refresh supplier applications list
+                        this.loadPendingSuppliers();
+                        
+                        // Log the activity
+                        this.logActivity('user-action', `Approved supplier application: ${result.supplier.businessName}`, 'now');
+                        
+                        // Refresh dashboard stats
+                        this.loadDashboardStats();
+                        
+                    } catch (error) {
+                        console.error('Failed to approve supplier:', error);
+                        this.showMessage(error.message || 'Failed to approve supplier', 'error');
+                        submitBtn.innerHTML = 'Create Account & Approve';
+                        submitBtn.disabled = false;
+                    }
+                });
+            }
+            
+        } catch (error) {
+            console.error('Failed to process supplier approval:', error);
+            this.showMessage(error.message || 'Failed to process supplier approval', 'error');
+        }
+    }
+
+    // Reject supplier application
+    rejectSupplier(applicationId) {
+        try {
+            // Show rejection reason modal
+            const modalHTML = `
+                <div class="admin-modal" id="rejectReasonModal">
+                    <div class="modal-backdrop"></div>
+                    <div class="modal-overlay">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Reject Supplier Application</h3>
+                                <button class="modal-close" onclick="document.getElementById('rejectReasonModal').remove()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="modal-description">
+                                    Please provide a reason for rejecting this application. 
+                                    This will be included in the email sent to the applicant.
+                                </p>
+                                <form id="rejectReasonForm">
+                                    <div class="form-group">
+                                        <label for="rejectReason">Rejection Reason</label>
+                                        <select id="rejectReason" class="form-control" required>
+                                            <option value="">Select a reason...</option>
+                                            <option value="incomplete">Incomplete Documentation</option>
+                                            <option value="invalid">Invalid Business Information</option>
+                                            <option value="verification">Failed Verification</option>
+                                            <option value="requirements">Does Not Meet Requirements</option>
+                                            <option value="other">Other Reason</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="rejectComment">Additional Comments</label>
+                                        <textarea id="rejectComment" class="form-control" rows="4"
+                                                  placeholder="Provide specific details about the rejection reason..."></textarea>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="button" class="btn-secondary" 
+                                                onclick="document.getElementById('rejectReasonModal').remove()">
+                                            Cancel
+                                        </button>
+                                        <button type="submit" class="btn-danger">
+                                            Confirm Rejection
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Add CSS for the rejection modal
+            const style = document.createElement('style');
+            style.textContent = `
+                .modal-description {
+                    color: #666;
+                    margin-bottom: 1.5rem;
+                }
+                #rejectReasonForm {
+                    padding: 0 1rem 1rem;
+                }
+                #rejectReason {
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    margin-bottom: 1rem;
+                }
+                #rejectComment {
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    resize: vertical;
+                }
+                .form-actions {
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 0.5rem;
+                    margin-top: 1.5rem;
+                }
+                .btn-danger {
+                    background: var(--danger-color);
+                    color: white;
+                }
+                .btn-danger:hover {
+                    background: var(--danger-color-dark);
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Handle form submission
+            const form = document.getElementById('rejectReasonForm');
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                    submitBtn.disabled = true;
+                    
+                    try {
+                        // Call API to reject supplier
+                        const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+                        const response = await fetch(`${this.getApiBaseUrl()}/admin/supplier-applications/${applicationId}/reject`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                reason: form.querySelector('#rejectReason').value,
+                                comment: form.querySelector('#rejectComment').value
+                            })
+                        });
+                        
+                        if (!response.ok) {
+                            const data = await response.json();
+                            throw new Error(data.message || 'Failed to reject supplier');
+                        }
+                        
+                        const data = await response.json();
+                        
+                        this.showMessage('Supplier application rejected. The applicant will be notified.', 'success');
+                        document.getElementById('rejectReasonModal').remove();
+                        
+                        // Refresh supplier applications list
+                        this.loadPendingSuppliers();
+                        
+                        // Log the activity
+                        this.logActivity('user-action', `Rejected supplier application: ${data.application.businessName}`, 'now');
+                        
+                    } catch (error) {
+                        console.error('Failed to reject supplier:', error);
+                        this.showMessage(error.message || 'Failed to reject supplier', 'error');
+                        submitBtn.innerHTML = 'Confirm Rejection';
+                        submitBtn.disabled = false;
+                    }
+                });
+            }
+            
+        } catch (error) {
+            console.error('Failed to process supplier rejection:', error);
+            this.showMessage(error.message || 'Failed to process supplier rejection', 'error');
+        }
+    }
+
+    // View supplier details
+    async viewSupplierDetails(applicationId) {
+        try {
+            this.showMessage('Loading supplier details...', 'info');
+            
+            // Fetch complete supplier application details
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+            const response = await fetch(`${this.getApiBaseUrl()}/admin/supplier-applications/${applicationId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch supplier details');
+            }
+            
+            const data = await response.json();
+            const application = data.application;
+            
+            // Create modal for supplier details
+            const modalHTML = `
+                <div class="admin-modal" id="supplierDetailsModal">
+                    <div class="modal-backdrop"></div>
+                    <div class="modal-overlay">
+                        <div class="modal-content supplier-details-modal">
+                            <div class="modal-header">
+                                <h3>Supplier Application Details</h3>
+                                <button class="modal-close" onclick="document.getElementById('supplierDetailsModal').remove()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="supplier-profile-section">
+                                    <div class="profile-header">
+                                        <img src="${application.logo || '../images/avatars/user-avatar.png'}" 
+                                             alt="${application.businessName}" class="business-logo">
+                                        <div class="profile-info">
+                                            <h2>${application.businessName}</h2>
+                                            <p class="application-date">Applied: ${new Date(application.createdAt).toLocaleDateString()}</p>
+                                            <span class="application-status pending">Pending Review</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="details-section">
+                                    <h4>Business Information</h4>
+                                    <div class="details-grid">
+                                        <div class="info-group">
+                                            <label>Registration Number</label>
+                                            <p>${application.registrationNumber}</p>
+                                        </div>
+                                        <div class="info-group">
+                                            <label>Business Type</label>
+                                            <p>${application.businessType}</p>
+                                        </div>
+                                        <div class="info-group">
+                                            <label>Years in Business</label>
+                                            <p>${application.yearsInBusiness} years</p>
+                                        </div>
+                                        <div class="info-group full-width">
+                                            <label>Business Address</label>
+                                            <p>${application.address}</p>
+                                        </div>
+                                        <div class="info-group full-width">
+                                            <label>Product Categories</label>
+                                            <div class="category-tags">
+                                                ${application.categories.map(cat => `
+                                                    <span class="category-tag">${cat}</span>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <h4>Contact Information</h4>
+                                    <div class="details-grid">
+                                        <div class="info-group">
+                                            <label>Contact Person</label>
+                                            <p>${application.contactPerson}</p>
+                                        </div>
+                                        <div class="info-group">
+                                            <label>Email</label>
+                                            <p>${application.email}</p>
+                                        </div>
+                                        <div class="info-group">
+                                            <label>Phone</label>
+                                            <p>${application.phone}</p>
+                                        </div>
+                                        ${application.website ? `
+                                            <div class="info-group">
+                                                <label>Website</label>
+                                                <p><a href="${application.website}" target="_blank">${application.website}</a></p>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+
+                                    <h4>Documents</h4>
+                                    <div class="documents-grid">
+                                        ${application.documents.map(doc => `
+                                            <div class="document-card">
+                                                <div class="document-icon">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </div>
+                                                <div class="document-info">
+                                                    <h5>${doc.name}</h5>
+                                                    <p>${doc.size}</p>
+                                                </div>
+                                                <a href="${doc.url}" target="_blank" class="btn-view-doc">
+                                                    View
+                                                </a>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+
+                                    ${application.notes ? `
+                                        <h4>Additional Notes</h4>
+                                        <div class="notes-section">
+                                            <p>${application.notes}</p>
+                                        </div>
+                                    ` : ''}
+                                </div>
+
+                                <div class="verification-section">
+                                    <h4>Verification Checklist</h4>
+                                    <div class="checklist">
+                                        <div class="checklist-item">
+                                            <input type="checkbox" id="check_documents">
+                                            <label for="check_documents">All required documents provided</label>
+                                        </div>
+                                        <div class="checklist-item">
+                                            <input type="checkbox" id="check_business">
+                                            <label for="check_business">Business registration verified</label>
+                                        </div>
+                                        <div class="checklist-item">
+                                            <input type="checkbox" id="check_contact">
+                                            <label for="check_contact">Contact information verified</label>
+                                        </div>
+                                        <div class="checklist-item">
+                                            <input type="checkbox" id="check_products">
+                                            <label for="check_products">Product categories reviewed</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="modal-footer">
+                                <div class="admin-notes">
+                                    <textarea id="adminNotes" placeholder="Add notes about this application..."></textarea>
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn-reject" onclick="adminDashboard.rejectSupplier('${applicationId}'); document.getElementById('supplierDetailsModal').remove();">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                    <button class="btn-approve" onclick="adminDashboard.approveSupplier('${applicationId}'); document.getElementById('supplierDetailsModal').remove();">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Add CSS for supplier details modal
+            const style = document.createElement('style');
+            style.textContent = `
+                .supplier-details-modal {
+                    max-width: 800px;
+                    max-height: 90vh;
+                }
+                .supplier-details-modal .modal-body {
+                    padding: 1.5rem;
+                    overflow-y: auto;
+                }
+                .profile-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 1.5rem;
+                    margin-bottom: 2rem;
+                }
+                .business-logo {
+                    width: 100px;
+                    height: 100px;
+                    border-radius: 8px;
+                    object-fit: cover;
+                }
+                .profile-info h2 {
+                    margin: 0;
+                    color: #333;
+                }
+                .application-date {
+                    color: #666;
+                    margin: 0.5rem 0;
+                }
+                .application-status {
+                    display: inline-block;
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 12px;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                }
+                .application-status.pending {
+                    background: #fff3cd;
+                    color: #856404;
+                }
+                .details-section {
+                    margin-top: 2rem;
+                }
+                .details-section h4 {
+                    color: #333;
+                    margin: 1.5rem 0 1rem;
+                    padding-bottom: 0.5rem;
+                    border-bottom: 1px solid #eee;
+                }
+                .details-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 1.5rem;
+                    margin-bottom: 2rem;
+                }
+                .info-group.full-width {
+                    grid-column: 1 / -1;
+                }
+                .info-group label {
+                    display: block;
+                    color: #666;
+                    margin-bottom: 0.25rem;
+                }
+                .info-group p {
+                    margin: 0;
+                    color: #333;
+                }
+                .category-tags {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                }
+                .category-tag {
+                    background: #e9ecef;
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 12px;
+                    font-size: 0.875rem;
+                }
+                .documents-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    gap: 1rem;
+                }
+                .document-card {
+                    display: flex;
+                    align-items: center;
+                    padding: 1rem;
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    gap: 1rem;
+                }
+                .document-icon i {
+                    font-size: 1.5rem;
+                    color: #dc3545;
+                }
+                .document-info {
+                    flex: 1;
+                }
+                .document-info h5 {
+                    margin: 0;
+                    font-size: 0.875rem;
+                }
+                .document-info p {
+                    margin: 0;
+                    font-size: 0.75rem;
+                    color: #666;
+                }
+                .btn-view-doc {
+                    padding: 0.25rem 0.75rem;
+                    background: #fff;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    color: #333;
+                    text-decoration: none;
+                    font-size: 0.875rem;
+                }
+                .btn-view-doc:hover {
+                    background: #f8f9fa;
+                }
+                .verification-section {
+                    margin: 2rem 0;
+                }
+                .checklist {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 1rem;
+                }
+                .checklist-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+                .checklist-item input[type="checkbox"] {
+                    width: 1.2rem;
+                    height: 1.2rem;
+                }
+                .modal-footer {
+                    padding: 1.5rem;
+                    border-top: 1px solid #eee;
+                }
+                .admin-notes {
+                    margin-bottom: 1rem;
+                }
+                .admin-notes textarea {
+                    width: 100%;
+                    height: 80px;
+                    padding: 0.5rem;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    resize: vertical;
+                }
+                .action-buttons {
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 1rem;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Log this view
+            this.logAdminAction('Viewed supplier application details', { applicationId });
+            
+        } catch (error) {
+            console.error('Failed to load supplier details:', error);
+            this.showMessage('Failed to load supplier details', 'error');
+        }
     }
     
     // Log admin action to the server
