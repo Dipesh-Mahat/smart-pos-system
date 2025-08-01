@@ -508,43 +508,77 @@ class AdminDashboard {
         }
     }
     
+    // Use the real API data instead of mock data
     loadMoreActivities() {
         const activityList = document.getElementById('activityList');
         if (!activityList) return;
         
-        // Generate some more mock activities
-        const newActivities = [
-            {
-                type: 'system',
-                icon: 'fa-server',
-                title: 'System Update',
-                description: 'Database optimization completed',
-                time: '10 minutes ago'
-            },
-            {
-                type: 'user-action',
-                icon: 'fa-user-shield',
-                title: 'Admin Action',
-                description: 'System backup initiated by admin',
-                time: '15 minutes ago'
-            },
-            {
-                type: 'alert',
-                icon: 'fa-exclamation-triangle',
-                title: 'Warning Alert',
-                description: 'High memory usage detected',
-                time: '25 minutes ago'
+        // Get current activity count to use as offset
+        const currentActivities = activityList.querySelectorAll('.activity-item').length;
+        
+        // Show loading state in the "Load More" button
+        const loadMoreBtn = document.getElementById('loadMoreActivities');
+        if (loadMoreBtn) {
+            loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            loadMoreBtn.disabled = true;
+        }
+        
+        // Fetch more activities from API
+        const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+        fetch(`${this.getApiBaseUrl()}/admin/recent-activity?offset=${currentActivities}&limit=10`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-        ];
-        
-        // Create HTML for new activities
-        const activitiesHTML = newActivities.map(activity => this.createActivityHTML(activity)).join('');
-        
-        // Append to activity list
-        activityList.innerHTML += activitiesHTML;
-        
-        // Show message
-        this.showMessage('Loaded more activities', 'success');
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to fetch more activities');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.activities && data.activities.length > 0) {
+                // Add more activities to the list
+                const activityHTML = data.activities.map(activity => `
+                    <div class="activity-item">
+                        <div class="activity-icon ${activity.type}">
+                            <i class="${this.getActivityIcon(activity.type)}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p class="activity-text">${activity.text}</p>
+                            <span class="activity-time">${activity.formattedTime}</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                activityList.insertAdjacentHTML('beforeend', activityHTML);
+                
+                // Reset button state
+                if (loadMoreBtn) {
+                    loadMoreBtn.innerHTML = '<i class="fas fa-history"></i> Load More Activities';
+                    loadMoreBtn.disabled = false;
+                    
+                    // If we got fewer activities than requested, there are no more
+                    if (data.activities.length < 10) {
+                        loadMoreBtn.innerHTML = '<i class="fas fa-check"></i> All activities loaded';
+                        loadMoreBtn.disabled = true;
+                    }
+                }
+            } else {
+                // No more activities
+                if (loadMoreBtn) {
+                    loadMoreBtn.innerHTML = '<i class="fas fa-check"></i> No more activities';
+                    loadMoreBtn.disabled = true;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load more activities:', error);
+            // Reset button state
+            if (loadMoreBtn) {
+                loadMoreBtn.innerHTML = '<i class="fas fa-redo"></i> Try Again';
+                loadMoreBtn.disabled = false;
+            }
+        });
     }
     
     renderUserTable() {
@@ -1215,22 +1249,7 @@ class AdminDashboard {
         }
     }
 
-    // Fetch and display activity logs
-    async loadRecentActivity() {
-        try {
-            const response = await fetch(`${this.getApiBaseUrl()}/users/admin/activity-logs`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-            });
-            if (!response.ok) throw new Error('Failed to fetch activity logs');
-            const data = await response.json();
-            // Render activities in the UI (implement renderActivityLogs)
-            this.renderActivityLogs(data.logs);
-        } catch (error) {
-            this.showMessage('Failed to load activity logs', 'error');
-        }
-    }
-
-    // Load recent activity from the server
+    // Fetch and display activity logs from the server
     async loadRecentActivity() {
         try {
             const activityList = document.getElementById('activityList');
@@ -2366,67 +2385,52 @@ class AdminDashboard {
             
             activityList.innerHTML = '<div class="loading-indicator"><i class="fas fa-spinner fa-spin"></i> Loading activity...</div>';
             
-            // Generate mock activities for demonstration
-            const activities = [
-                {
-                    type: 'login',
-                    text: 'System Administrator logged in from 192.168.1.105',
-                    time: '2 minutes ago'
-                },
-                {
-                    type: 'user',
-                    text: 'New shop owner account created: Smart Electronics Shop',
-                    time: '15 minutes ago'
-                },
-                {
-                    type: 'transaction',
-                    text: 'Large transaction processed: Rs. 75,500',
-                    time: '1 hour ago'
-                },
-                {
-                    type: 'security',
-                    text: 'Failed login attempt for admin@smartpos.com',
-                    time: '3 hours ago'
-                },
-                {
-                    type: 'system',
-                    text: 'System backup completed successfully',
-                    time: 'Yesterday, 2:45 PM'
-                },
-                {
-                    type: 'user',
-                    text: 'User status changed: TechSupplier (Approved)',
-                    time: 'Yesterday, 11:30 AM'
-                },
-                {
-                    type: 'security',
-                    text: 'Password reset for user: john.doe@example.com',
-                    time: '2 days ago'
+            // Fetch real activity data from API
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+            fetch(`${this.getApiBaseUrl()}/admin/recent-activity`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
-            ];
-            
-            if (activities.length === 0) {
+            })
+            .then(response => {
+                if (!response.ok) throw new Error(`Failed to fetch activities: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.activities && data.activities.length > 0) {
+                    // Render activities
+                    activityList.innerHTML = data.activities.map(activity => `
+                        <div class="activity-item">
+                            <div class="activity-icon ${activity.type}">
+                                <i class="${this.getActivityIcon(activity.type)}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p class="activity-text">${activity.text}</p>
+                                <span class="activity-time">${activity.formattedTime}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    // No activities found
+                    activityList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-history"></i>
+                            <p>No recent activity</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Failed to load activities:', error);
                 activityList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-history"></i>
-                        <p>No recent activity</p>
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Error loading activities</p>
+                        <button onclick="adminDashboard.loadRecentActivity()" class="btn-retry">Try Again</button>
                     </div>
                 `;
-                return;
-            }
-            
-            // Render activities
-            activityList.innerHTML = activities.map(activity => `
-                <div class="activity-item">
-                    <div class="activity-icon ${activity.type}">
-                        <i class="${this.getActivityIcon(activity.type)}"></i>
-                    </div>
-                    <div class="activity-content">
-                        <p class="activity-text">${activity.text}</p>
-                        <span class="activity-time">${activity.time}</span>
-                    </div>
-                </div>
-            `).join('');
+            });
             
         } catch (error) {
             console.error('Failed to load activities:', error);
@@ -2446,50 +2450,50 @@ class AdminDashboard {
     // Get appropriate icon for activity type
     getActivityIcon(type) {
         const icons = {
-            login: 'fas fa-sign-in-alt',
-            user: 'fas fa-user',
-            transaction: 'fas fa-money-bill-wave',
-            system: 'fas fa-server',
-            security: 'fas fa-shield-alt'
+            'login': 'fas fa-sign-in-alt',
+            'user': 'fas fa-user',
+            'transaction': 'fas fa-money-bill-wave',
+            'system': 'fas fa-server',
+            'security': 'fas fa-shield-alt',
+            'user-action': 'fas fa-user-cog',
+            'system-action': 'fas fa-cogs',
+            'alert': 'fas fa-exclamation-triangle',
+            'backup': 'fas fa-database',
+            'audit': 'fas fa-clipboard-list'
         };
         
         return icons[type] || 'fas fa-info-circle';
     }
     
     // Load more activities
-    // Load more activities from server
-    async loadMoreActivities() {
-        try {
-            const activityList = document.getElementById('activityList');
-            if (!activityList) return;
-            
-            // Get current activity count to use as offset
-            const currentActivities = activityList.querySelectorAll('.activity-item').length;
-            
-            // Show loading indicator at the end of the list
-            const loadingIndicator = document.createElement('div');
-            loadingIndicator.className = 'loading-indicator';
-            loadingIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading more...';
-            activityList.appendChild(loadingIndicator);
-            
-            // Fetch more activities from server with offset
-            const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-            const response = await fetch(`${this.getApiBaseUrl()}/admin/recent-activity?offset=${currentActivities}&limit=10`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            // Remove loading indicator
-            loadingIndicator.remove();
-            
-            if (!response.ok) {
-                throw new Error(`Failed to fetch more activities: ${response.status}`);
+    // Load more activities
+    loadMoreActivities() {
+        const activityList = document.getElementById('activityList');
+        if (!activityList) return;
+        
+        // Get current activity count to use as offset
+        const currentActivities = activityList.querySelectorAll('.activity-item').length;
+        
+        // Show loading state in the "Load More" button
+        const loadMoreBtn = document.getElementById('loadMoreActivities');
+        if (loadMoreBtn) {
+            loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            loadMoreBtn.disabled = true;
+        }
+        
+        // Fetch more activities from API
+        const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+        fetch(`${this.getApiBaseUrl()}/admin/recent-activity?offset=${currentActivities}&limit=10`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-            
-            const data = await response.json();
-            
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to fetch more activities');
+            return response.json();
+        })
+        .then(data => {
             if (data.success && data.activities && data.activities.length > 0) {
                 // Add more activities to the list
                 const activityHTML = data.activities.map(activity => `
@@ -2506,33 +2510,34 @@ class AdminDashboard {
                 
                 activityList.insertAdjacentHTML('beforeend', activityHTML);
                 
-                // If we got fewer activities than requested, there are no more
-                if (data.activities.length < 10) {
-                    const loadMoreBtn = document.getElementById('loadMoreActivities');
-                    if (loadMoreBtn) {
+                // Reset button state
+                if (loadMoreBtn) {
+                    loadMoreBtn.innerHTML = '<i class="fas fa-history"></i> Load More Activities';
+                    loadMoreBtn.disabled = false;
+                    
+                    // If we got fewer activities than requested, there are no more
+                    if (data.activities.length < 10) {
                         loadMoreBtn.innerHTML = '<i class="fas fa-check"></i> All activities loaded';
                         loadMoreBtn.disabled = true;
                     }
                 }
             } else {
                 // No more activities
-                const loadMoreBtn = document.getElementById('loadMoreActivities');
                 if (loadMoreBtn) {
                     loadMoreBtn.innerHTML = '<i class="fas fa-check"></i> No more activities';
                     loadMoreBtn.disabled = true;
                 }
             }
-        } catch (error) {
+        })
+        .catch(error => {
             console.error('Failed to load more activities:', error);
-            this.showMessage('Failed to load more activities', 'error');
-            
             // Reset button state
-            const loadMoreBtn = document.getElementById('loadMoreActivities');
             if (loadMoreBtn) {
-                loadMoreBtn.innerHTML = '<i class="fas fa-redo"></i> Try loading more';
+                loadMoreBtn.innerHTML = '<i class="fas fa-redo"></i> Try Again';
                 loadMoreBtn.disabled = false;
             }
-        }
+            this.showMessage('Failed to load more activities', 'error');
+        });
     }
     
     // Export Users functionality
