@@ -33,9 +33,9 @@
                             <i class="fas fa-users"></i>
                         </div>
                         <div class="stat-details">
-                            <h3 id="totalCustomers">142</h3>
+                            <h3 id="totalCustomers">0</h3>
                             <p>Total Customers</p>
-                            <span class="stat-change positive">+8 this month</span>
+                            <span class="stat-change positive" id="totalCustomersChange">Loading...</span>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -43,9 +43,9 @@
                             <i class="fas fa-user-check"></i>
                         </div>
                         <div class="stat-details">
-                            <h3 id="activeCustomers">128</h3>
+                            <h3 id="activeCustomers">0</h3>
                             <p>Active Customers</p>
-                            <span class="stat-change positive">90% active rate</span>
+                            <span class="stat-change positive" id="activeCustomersChange">Loading...</span>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -53,9 +53,9 @@
                             <i class="fas fa-user-plus"></i>
                         </div>
                         <div class="stat-details">
-                            <h3 id="newCustomers">8</h3>
+                            <h3 id="newCustomers">0</h3>
                             <p>New This Month</p>
-                            <span class="stat-change positive">+3 this week</span>
+                            <span class="stat-change positive" id="newCustomersChange">Loading...</span>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -63,9 +63,47 @@
                             <i class="fas fa-rupee-sign"></i>
                         </div>
                         <div class="stat-details">
-                            <h3 id="avgOrderValue">₹12,450</h3>
+                            <h3 id="avgOrderValue">₹0</h3>
                             <p>Avg Order Value</p>
-                            <span class="stat-change positive">+15% vs last month</span>
+                            <span class="stat-change positive" id="avgOrderValueChange">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search and Filters -->
+                <div class="content-header">
+                    <div class="search-filters">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search customers by name, store, email..." id="customerSearch">
+                        </div>
+                        <div class="filter-controls">
+                            <select id="statusFilter" class="filter-select">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                            <select id="typeFilter" class="filter-select">
+                                <option value="">All Types</option>
+                                <option value="retail">Retail Store</option>
+                                <option value="wholesale">Wholesale</option>
+                                <option value="online">Online Store</option>
+                            </select>
+                            <select id="regionFilter" class="filter-select">
+                                <option value="">All Regions</option>
+                                <option value="north">North</option>
+                                <option value="south">South</option>
+                                <option value="east">East</option>
+                                <option value="west">West</option>
+                            </select>
+                            <button class="btn-secondary" id="filterBtn">
+                                <i class="fas fa-filter"></i>
+                                Filter
+                            </button>
+                            <button class="btn-secondary" id="clearFiltersBtn">
+                                <i class="fas fa-times"></i>
+                                Clear
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -77,8 +115,10 @@
                                     <th>
                                         <input type="checkbox" id="selectAllCustomers">
                                     </th>
-                                    <th>Customer</th>
-                                    <th>Contact Info</th>
+                                    <th>Store Name</th>
+                                    <th>Contact Person</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
                                     <th>Type</th>
                                     <th>Total Orders</th>
                                     <th>Total Spent</th>
@@ -88,24 +128,35 @@
                                 </tr>
                             </thead>
                             <tbody id="customersTableBody">
-                                <!-- Customers will be loaded here via JavaScript -->
+                                <tr class="loading-placeholder">
+                                    <td colspan="11" class="text-center">
+                                        <div class="loading-spinner"></div>
+                                        <p>Loading customers...</p>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                     <div class="table-pagination">
-                        <div class="pagination-info">
-                            Showing <span id="showingStartCustomers">1</span> to <span id="showingEndCustomers">10</span> of <span id="totalCustomerRows">142</span> customers
-                        </div>
                         <div class="pagination-controls">
-                            <button class="pagination-btn" id="prevPageCustomers" disabled>
-                                <i class="fas fa-chevron-left"></i>
+                            <button id="prevPageCustomers" class="pagination-btn" disabled>
+                                <i class="fas fa-chevron-left"></i> Previous
                             </button>
-                            <span class="pagination-numbers" id="paginationNumbersCustomers">
-                                <!-- Page numbers will be generated here -->
+                            <span class="pagination-info">
+                                Page <span id="currentPageCustomers">1</span> of <span id="totalPagesCustomers">1</span>
                             </span>
-                            <button class="pagination-btn" id="nextPageCustomers">
-                                <i class="fas fa-chevron-right"></i>
+                            <button id="nextPageCustomers" class="pagination-btn" disabled>
+                                Next <i class="fas fa-chevron-right"></i>
                             </button>
+                        </div>
+                        <div class="pagination-size">
+                            <label for="pageSizeCustomers">Show:</label>
+                            <select id="pageSizeCustomers" class="form-select">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -211,458 +262,6 @@
             </div>
         </div>
     </div>
-
-    <script src="../js/supplier-dashboard.js"></script>
-    <script>
-        // Sample customer data
-        const customers = [
-            {
-                id: 'CUST-001',
-                storeName: 'Sharma General Store',
-                contactName: 'Ram Bahadur Sharma',
-                email: 'ram.sharma@sharmamarts.com',
-                phone: '+977-984-1234567',
-                type: 'retail',
-                region: 'kathmandu',
-                totalOrders: 24,
-                totalSpent: 128450.00,
-                lastOrder: '2024-01-15',
-                status: 'active',
-                creditLimit: 50000.00,
-                paymentTerms: 'net30'
-            },
-            {
-                id: 'CUST-002',
-                storeName: 'Gurung Mart & Grocery',
-                contactName: 'Sita Gurung',
-                email: 'sita@gurungmart.com',
-                phone: '+977-985-1234567',
-                type: 'wholesale',
-                region: 'pokhara',
-                totalOrders: 18,
-                totalSpent: 87500.00,
-                lastOrder: '2024-01-14',
-                status: 'active',
-                creditLimit: 100000.00,
-                paymentTerms: 'net15'
-            },
-            {
-                id: 'CUST-003',
-                storeName: 'Tamang Community Store',
-                contactName: 'Maya Tamang',
-                email: 'maya@tamangstore.com',
-                phone: '+977-986-1234567',
-                type: 'retail',
-                region: 'lalitpur',
-                totalOrders: 32,
-                totalSpent: 152000.00,
-                lastOrder: '2024-01-13',
-                status: 'active',
-                creditLimit: 75000.00,
-                paymentTerms: 'cash'
-            },
-            {
-                id: 'CUST-004',
-                storeName: 'Shrestha Family Mart',
-                contactName: 'Binita Shrestha',
-                email: 'binita@shresthamart.com',
-                phone: '+977-984-5678901',
-                type: 'retail',
-                region: 'bhaktapur',
-                totalOrders: 12,
-                totalSpent: 59800.00,
-                lastOrder: '2024-01-12',
-                status: 'inactive',
-                creditLimit: 3000.00,
-                paymentTerms: 'net30'
-            },
-            {
-                id: 'CUST-005',
-                storeName: 'Future Tech Store',
-                contactName: 'David Brown',
-                email: 'david@futuretech.com',
-                phone: '+1 (555) 567-8901',
-                type: 'wholesale',
-                region: 'north',
-                totalOrders: 28,
-                totalSpent: 18750.00,
-                lastOrder: '2024-01-11',
-                status: 'active',
-                creditLimit: 15000.00,
-                paymentTerms: 'net60'
-            }
-        ];
-
-        let currentPage = 1;
-        let itemsPerPage = 10;
-        let filteredCustomers = [...customers];
-        let currentView = 'list';
-
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            loadCustomers();
-            setupEventListeners();
-        });
-
-        function setupEventListeners() {
-            document.getElementById('customerSearch').addEventListener('input', filterCustomers);
-            document.getElementById('statusFilter').addEventListener('change', filterCustomers);
-            document.getElementById('typeFilter').addEventListener('change', filterCustomers);
-            document.getElementById('regionFilter').addEventListener('change', filterCustomers);
-        }
-
-        function loadCustomers() {
-            if (currentView === 'list') {
-                loadListView();
-            } else {
-                loadGridView();
-            }
-            updatePagination();
-        }
-
-        function loadListView() {
-            const tbody = document.getElementById('customersTableBody');
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const customersToShow = filteredCustomers.slice(startIndex, endIndex);
-
-            tbody.innerHTML = customersToShow.map(customer => `
-                <tr>
-                    <td>
-                        <div class="customer-info">
-                            <strong>${customer.storeName}</strong>
-                            <br><small>${customer.contactName}</small>
-                        </div>
-                    </td>
-                    <td>
-                        <div>${customer.email}</div>
-                        <div><small>${customer.phone}</small></div>
-                    </td>
-                    <td><span class="type-badge ${customer.type}">${formatType(customer.type)}</span></td>
-                    <td>${customer.totalOrders}</td>
-                    <td>$${customer.totalSpent.toFixed(2)}</td>
-                    <td>${formatDate(customer.lastOrder)}</td>
-                    <td><span class="status-badge ${customer.status}">${formatStatus(customer.status)}</span></td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn-icon" onclick="viewCustomer('${customer.id}')" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn-icon" onclick="editCustomer('${customer.id}')" title="Edit Customer">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-icon" onclick="toggleCustomerStatus('${customer.id}')" title="Toggle Status">
-                                <i class="fas fa-toggle-${customer.status === 'active' ? 'on' : 'off'}"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function loadGridView() {
-            const gridContainer = document.getElementById('gridView');
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const customersToShow = filteredCustomers.slice(startIndex, endIndex);
-
-            gridContainer.innerHTML = customersToShow.map(customer => `
-                <div class="customer-card">
-                    <div class="customer-card-header">
-                        <div class="customer-avatar">
-                            <i class="fas fa-store"></i>
-                        </div>
-                        <div class="customer-status">
-                            <span class="status-badge ${customer.status}">${formatStatus(customer.status)}</span>
-                        </div>
-                    </div>
-                    <div class="customer-card-body">
-                        <h3>${customer.storeName}</h3>
-                        <p class="contact-person">${customer.contactName}</p>
-                        <div class="customer-details">
-                            <div class="detail-item">
-                                <i class="fas fa-envelope"></i>
-                                <span>${customer.email}</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-phone"></i>
-                                <span>${customer.phone}</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-tag"></i>
-                                <span>${formatType(customer.type)}</span>
-                            </div>
-                        </div>
-                        <div class="customer-stats">
-                            <div class="stat">
-                                <span class="stat-value">${customer.totalOrders}</span>
-                                <span class="stat-label">Orders</span>
-                            </div>
-                            <div class="stat">
-                                <span class="stat-value">$${customer.totalSpent.toFixed(0)}</span>
-                                <span class="stat-label">Spent</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="customer-card-footer">
-                        <button class="btn btn-secondary btn-small" onclick="viewCustomer('${customer.id}')">
-                            <i class="fas fa-eye"></i> View
-                        </button>
-                        <button class="btn btn-primary btn-small" onclick="editCustomer('${customer.id}')">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function switchView(view) {
-            currentView = view;
-            
-            // Update view buttons
-            document.getElementById('listViewBtn').classList.toggle('active', view === 'list');
-            document.getElementById('gridViewBtn').classList.toggle('active', view === 'grid');
-            
-            // Show/hide views
-            document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
-            document.getElementById('gridView').style.display = view === 'grid' ? 'grid' : 'none';
-            
-            loadCustomers();
-        }
-
-        function filterCustomers() {
-            const searchTerm = document.getElementById('customerSearch').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-            const typeFilter = document.getElementById('typeFilter').value;
-            const regionFilter = document.getElementById('regionFilter').value;
-
-            filteredCustomers = customers.filter(customer => {
-                const matchesSearch = customer.storeName.toLowerCase().includes(searchTerm) || 
-                                    customer.contactName.toLowerCase().includes(searchTerm) ||
-                                    customer.email.toLowerCase().includes(searchTerm);
-                const matchesStatus = !statusFilter || customer.status === statusFilter;
-                const matchesType = !typeFilter || customer.type === typeFilter;
-                const matchesRegion = !regionFilter || customer.region === regionFilter;
-
-                return matchesSearch && matchesStatus && matchesType && matchesRegion;
-            });
-
-            currentPage = 1;
-            loadCustomers();
-        }
-
-        function viewCustomer(customerId) {
-            const customer = customers.find(c => c.id === customerId);
-            if (!customer) return;
-
-            const content = `
-                <div class="customer-details-view">
-                    <div class="detail-header">
-                        <div class="customer-avatar-large">
-                            <i class="fas fa-store"></i>
-                        </div>
-                        <div class="customer-title">
-                            <h2>${customer.storeName}</h2>
-                            <p>${customer.contactName}</p>
-                            <span class="status-badge ${customer.status}">${formatStatus(customer.status)}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="detail-sections">
-                        <div class="detail-section">
-                            <h3>Contact Information</h3>
-                            <div class="detail-grid">
-                                <div class="detail-item">
-                                    <label>Email:</label>
-                                    <span>${customer.email}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <label>Phone:</label>
-                                    <span>${customer.phone}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <label>Type:</label>
-                                    <span>${formatType(customer.type)}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <label>Region:</label>
-                                    <span>${customer.region ? customer.region.charAt(0).toUpperCase() + customer.region.slice(1) : 'N/A'}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="detail-section">
-                            <h3>Business Information</h3>
-                            <div class="detail-grid">
-                                <div class="detail-item">
-                                    <label>Credit Limit:</label>
-                                    <span>$${customer.creditLimit.toFixed(2)}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <label>Payment Terms:</label>
-                                    <span>${customer.paymentTerms ? customer.paymentTerms.toUpperCase() : 'N/A'}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <label>Total Orders:</label>
-                                    <span>${customer.totalOrders}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <label>Total Spent:</label>
-                                    <span>$${customer.totalSpent.toFixed(2)}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="detail-section">
-                            <h3>Recent Activity</h3>
-                            <div class="detail-grid">
-                                <div class="detail-item">
-                                    <label>Last Order:</label>
-                                    <span>${formatDate(customer.lastOrder)}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <label>Average Order Value:</label>
-                                    <span>$${(customer.totalSpent / customer.totalOrders).toFixed(2)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('customerDetailsContent').innerHTML = content;
-            openModal('customerDetailsModal');
-        }
-
-        function saveCustomer() {
-            const form = document.getElementById('addCustomerForm');
-            const formData = new FormData(form);
-            
-            // Basic validation
-            const required = ['storeName', 'customerType', 'contactName', 'email', 'phone'];
-            for (let field of required) {
-                if (!formData.get(field)) {
-                    showNotification(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
-                    return;
-                }
-            }
-
-            // Add customer to data (in real app, this would be an API call)
-            const newCustomer = {
-                id: `CUST-${String(customers.length + 1).padStart(3, '0')}`,
-                storeName: formData.get('storeName'),
-                contactName: formData.get('contactName'),
-                email: formData.get('email'),
-                phone: formData.get('phone'),
-                type: formData.get('customerType'),
-                region: formData.get('region'),
-                totalOrders: 0,
-                totalSpent: 0.00,
-                lastOrder: null,
-                status: 'active',
-                creditLimit: parseFloat(formData.get('creditLimit')) || 0,
-                paymentTerms: formData.get('paymentTerms')
-            };
-
-            customers.push(newCustomer);
-            filteredCustomers = [...customers];
-            loadCustomers();
-            
-            showNotification('Customer added successfully', 'success');
-            closeModal('addCustomerModal');
-            form.reset();
-        }
-
-        function toggleCustomerStatus(customerId) {
-            const customerIndex = customers.findIndex(c => c.id === customerId);
-            if (customerIndex !== -1) {
-                customers[customerIndex].status = customers[customerIndex].status === 'active' ? 'inactive' : 'active';
-                filterCustomers();
-                showNotification('Customer status updated', 'success');
-            }
-        }
-
-        function updatePagination() {
-            const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
-            const startItem = (currentPage - 1) * itemsPerPage + 1;
-            const endItem = Math.min(currentPage * itemsPerPage, filteredCustomers.length);
-
-            document.getElementById('showingStart').textContent = startItem;
-            document.getElementById('showingEnd').textContent = endItem;
-            document.getElementById('totalCustomers').textContent = filteredCustomers.length;
-
-            // Update pagination buttons
-            document.getElementById('prevBtn').disabled = currentPage === 1;
-            document.getElementById('nextBtn').disabled = currentPage === totalPages;
-
-            // Generate page numbers
-            const paginationNumbers = document.getElementById('paginationNumbers');
-            let numbersHtml = '';
-            
-            for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
-                numbersHtml += `<button class="btn ${i === currentPage ? 'btn-primary' : 'btn-secondary'}" onclick="goToPage(${i})">${i}</button>`;
-            }
-            
-            paginationNumbers.innerHTML = numbersHtml;
-        }
-
-        function previousPage() {
-            if (currentPage > 1) {
-                currentPage--;
-                loadCustomers();
-            }
-        }
-
-        function nextPage() {
-            const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                loadCustomers();
-            }
-        }
-
-        function goToPage(page) {
-            currentPage = page;
-            loadCustomers();
-        }
-
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-        }
-
-        function formatStatus(status) {
-            return status.charAt(0).toUpperCase() + status.slice(1);
-        }
-
-        function formatType(type) {
-            const types = {
-                'retail': 'Retail Store',
-                'wholesale': 'Wholesale',
-                'online': 'Online Store'
-            };
-            return types[type] || type;
-        }
-
-        function exportCustomers() {
-            showNotification('Customers exported successfully', 'success');
-        }
-
-        function applyFilters() {
-            filterCustomers();
-        }
-
-        function clearFilters() {
-            document.getElementById('customerSearch').value = '';
-            document.getElementById('statusFilter').value = '';
-            document.getElementById('typeFilter').value = '';
-            document.getElementById('regionFilter').value = '';        filterCustomers();
-        }    </script>
 
     <!-- Include the supplier navbar and menu -->
     <script src="../js/supplier-navbar.js"></script>
