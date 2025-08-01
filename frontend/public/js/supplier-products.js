@@ -130,13 +130,6 @@ function setupEventListeners() {
         if (statusFilter) statusFilter.addEventListener('change', handleFilter);
         if (filterBtn) filterBtn.addEventListener('click', applyFilters);
         
-        // Export/Import buttons
-        const exportBtn = document.getElementById('exportBtn');
-        const importBtn = document.getElementById('importBtn');
-        
-        if (exportBtn) exportBtn.addEventListener('click', exportProducts);
-        if (importBtn) importBtn.addEventListener('click', importProducts);
-        
         // Select all checkbox
         const selectAll = document.getElementById('selectAll');
         if (selectAll) {
@@ -514,14 +507,6 @@ function handleFilter() {
 
 function applyFilters() {
     console.log('Apply filters functionality not implemented yet');
-}
-
-function exportProducts() {
-    console.log('Export functionality not implemented yet');
-}
-
-function importProducts() {
-    console.log('Import functionality not implemented yet');
 }
 
 function handleSelectAll() {

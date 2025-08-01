@@ -76,7 +76,7 @@ class SupplierMenu {
                         '<div class="menu-icon-folder">' +
                             '<i class="fas fa-box-open"></i>' +
                         '</div>' +
-                        '<div class="menu-text">Product Catalog</div>' +
+                        '<div class="menu-text">Products</div>' +
                     '</a>' +
                     '<a href="supplier-orders.html" class="menu-item" data-page="supplier-orders">' +
                         '<div class="menu-icon-folder">' +

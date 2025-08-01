@@ -17,16 +17,10 @@
             <!-- Dashboard Content -->
             <div class="dashboard-content">
                 <div class="content-header">
-                    <h1>Product Catalog</h1>
+                    <h1>Products</h1>
                     <div class="header-actions">
                         <button class="btn btn-primary" id="addProductBtnHeader">
                             <i class="fas fa-plus"></i> Add Product
-                        </button>
-                        <button class="btn btn-secondary" id="exportBtnHeader">
-                            <i class="fas fa-download"></i> Export
-                        </button>
-                        <button class="btn btn-secondary" id="importBtnHeader">
-                            <i class="fas fa-upload"></i> Import
                         </button>
                     </div>
                 </div>
@@ -72,58 +66,8 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Filters and Search -->
-                <div class="content-header">
-                    <div class="search-filters">
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search products by name, SKU, or category..." id="productSearch">
-                        </div>                        <div class="filter-controls">
-                            <select id="categoryFilter" class="filter-select">
-                                <option value="">All Categories</option>
-                                <option value="beverages">Beverages</option>
-                                <option value="snacks">Snacks</option>
-                                <option value="chocolates">Chocolates</option>
-                                <option value="biscuits">Biscuits</option>
-                                <option value="groceries">Groceries</option>
-                                <option value="dairy">Dairy Products</option>
-                                <option value="household">Household Items</option>
-                                <option value="cooking-oil">Cooking Oil</option>
-                                <option value="instant-food">Instant Food</option>
-                            </select>
-                            <select id="statusFilter" class="filter-select">
-                                <option value="">All Status</option>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                                <option value="low-stock">Low Stock</option>
-                            </select>
-                            <button class="btn-secondary" id="filterBtn">
-                                <i class="fas fa-filter"></i>
-                                Filter
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Products Table -->
-                <div class="table-container">                    <div class="table-header">
-                        <h3>Product Catalog</h3>
-                        <div class="table-actions">
-                            <button class="btn-primary" id="addProductBtn">
-                                <i class="fas fa-plus"></i>
-                                Add Product
-                            </button>
-                            <button class="btn-secondary" id="exportBtn">
-                                <i class="fas fa-download"></i>
-                                Export
-                            </button>
-                            <button class="btn-secondary" id="importBtn">
-                                <i class="fas fa-upload"></i>
-                                Import
-                            </button>
-                        </div>
-                    </div>
+                <div class="table-container"> 
                     <div class="table-responsive">
                         <table class="data-table" id="productsTable">
                             <thead>
@@ -326,7 +270,7 @@
             // Initialize supplier navbar
             if (typeof SupplierNavbar !== 'undefined') {
                 const navbar = new SupplierNavbar({
-                    title: 'Product Catalog',
+                    title: 'Products',
                     showNotifications: true,
                     showProfile: true,
                     userType: 'supplier'
