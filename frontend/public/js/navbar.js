@@ -1415,8 +1415,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const pageTitle = document.title.replace('Smart POS - ', '') || 'Dashboard';
         console.log('Auto-initializing navbar with title:', pageTitle);
         initSmartPOSNavbar({ title: pageTitle });
-    } else if (smartPOSNavbar) {
-        console.log('Navbar already exists, skipping auto-initialization');
     }
 });
 

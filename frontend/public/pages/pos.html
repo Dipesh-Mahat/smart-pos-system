@@ -1957,14 +1957,35 @@
             }
         }
         
-        /* Remove body overflow-x hidden to allow mobile menu to work */
-        html {
-            overflow-x: hidden;
+        /* Mobile menu handling - CRITICAL FOR MOBILE MENU FUNCTIONALITY */
+        @media (max-width: 1023px) {
+            /* Allow horizontal overflow on mobile for menu functionality */
+            html, body {
+                overflow-x: auto !important;
+            }
+            
+            /* Only apply overflow-x hidden to content areas, not body/html */
+            .pos-main {
+                overflow-x: hidden;
+            }
+            
+            .main-content {
+                overflow-x: hidden;
+                /* Ensure main content doesn't interfere with mobile menu */
+                position: relative;
+                z-index: 1;
+            }
         }
         
-        /* Apply overflow-x hidden only to specific containers that need it */
-        .pos-main, .main-content {
-            overflow-x: hidden;
+        /* Desktop - can safely hide horizontal overflow */
+        @media (min-width: 1024px) {
+            html {
+                overflow-x: hidden;
+            }
+            
+            .pos-main, .main-content {
+                overflow-x: hidden;
+            }
         }
     </style>
 </head>
@@ -2472,29 +2493,6 @@
                 window.smartPOSNavbar = navbar;
             }
             
-            // Handle menu state changes for responsive layout
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                        // Force layout recalculation when menu state changes
-                        const mainContent = document.querySelector('.main-content');
-                        if (mainContent) {
-                            // Trigger reflow to ensure proper responsive behavior
-                            mainContent.style.transition = 'margin-left 0.3s ease, width 0.3s ease';
-                            setTimeout(() => {
-                                window.dispatchEvent(new Event('resize'));
-                            }, 100);
-                        }
-                    }
-                });
-            });
-            
-            // Observe body class changes (menu open/closed)
-            observer.observe(document.body, {
-                attributes: true,
-                attributeFilter: ['class']
-            });
-            
             // Add event listeners for the custom action buttons
             document.addEventListener('click', async function(e) {
                 if (e.target.closest('[data-action="clearPos"]') || e.target.closest('[data-action="clearPos"] *')) {
@@ -2671,7 +2669,7 @@ function showAutoFadeSuccessNotification(title, message) {
 
    </script>
    <style>
-        /* Mobile menu handling */
+        /* Mobile menu handling with debugging */
         @media (max-width: 1023px) {
             .main-content {
                 margin-left: 0 !important;
@@ -2684,9 +2682,65 @@ function showAutoFadeSuccessNotification(title, message) {
                 z-index: 1002 !important;
             }
             
-            /* Allow horizontal overflow for mobile menu functionality */
+            /* CRITICAL: Do NOT prevent horizontal overflow on mobile - needed for menu */
             html, body {
                 overflow-x: auto !important;
+            }
+            
+            /* Only prevent horizontal overflow on specific content containers */
+            .pos-main {
+                overflow-x: hidden;
+            }
+            
+            /* Ensure mobile menu is visible when open - CRITICAL FIX */
+            #sideMenu, .side-menu {
+                position: fixed !important;
+                top: 80px !important;
+                left: -280px !important;
+                width: 280px !important;
+                height: calc(100vh - 80px) !important;
+                background: white !important;
+                z-index: 1600 !important;
+                transition: all 0.3s ease !important;
+                box-shadow: 4px 0 16px rgba(0,0,0,0.1) !important;
+                overflow-y: auto !important;
+                opacity: 0 !important;
+                transform: translateX(-20px) !important;
+                visibility: hidden !important;
+            }
+            
+            #sideMenu.open, .side-menu.open {
+                left: 0 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                transform: translateX(0) !important;
+                box-shadow: 8px 0 24px rgba(0,0,0,0.15) !important;
+            }
+            
+            #menuOverlay, .menu-overlay {
+                position: fixed !important;
+                top: 80px !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: calc(100% - 80px) !important;
+                background: rgba(0,0,0,0.5) !important;
+                z-index: 1500 !important;
+                opacity: 0 !important;
+                visibility: hidden !important;
+                transition: all 0.3s ease !important;
+                backdrop-filter: blur(4px) !important;
+            }
+            
+            #menuOverlay.active, .menu-overlay.active {
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+        }
+        
+        /* Desktop handling */
+        @media (min-width: 1024px) {
+            html, body {
+                overflow-x: hidden;
             }
         }
    </style>
