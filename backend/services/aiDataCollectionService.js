@@ -8,7 +8,6 @@ const Order = require('../models/Order');
 const Transaction = require('../models/Transaction');
 const Customer = require('../models/Customer');
 const Category = require('../models/Category');
-const Expense = require('../models/Expense');
 const Settings = require('../models/Settings');
 const User = require('../models/User');
 
@@ -296,24 +295,19 @@ class AIDataCollectionService {
   }
 
   /**
-   * Collect financial data and expense tracking
+   * Collect financial data (expense tracking removed)
    */
   async collectFinancialData(shopId, dateRanges) {
     try {
-      const [expenses, transactions] = await Promise.all([
-        Expense.find({ 
-          shopId, 
-          date: { $gte: dateRanges.shortTerm }
-        }).lean(),
-        Transaction.find({ 
-          shopId, 
-          createdAt: { $gte: dateRanges.shortTerm },
-          status: 'completed'
-        }).lean()
-      ]);
+      const transactions = await Transaction.find({ 
+        shopId, 
+        createdAt: { $gte: dateRanges.shortTerm },
+        status: 'completed'
+      }).lean();
 
-      const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
       const totalRevenue = transactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+      // No expenses since expense tracking was removed
+      const totalExpenses = 0;
       const netProfit = totalRevenue - totalExpenses;
 
       return {
@@ -324,13 +318,13 @@ class AIDataCollectionService {
         },
         expenses: {
           total: totalExpenses,
-          byCategory: this.categorizeExpenses(expenses),
+          byCategory: {}, // No expense categories since expense tracking removed
           daily: totalExpenses / 30
         },
         profitability: {
           netProfit,
           profitMargin: totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0,
-          breakEvenPoint: this.calculateBreakEvenPoint(totalRevenue, totalExpenses)
+          breakEvenPoint: totalRevenue > 0 ? 0 : 0 // No expenses to break even from
         }
       };
     } catch (error) {
@@ -540,22 +534,7 @@ class AIDataCollectionService {
     return 12.5; // percentage
   }
 
-  categorizeExpenses(expenses) {
-    const categories = {};
-    expenses.forEach(expense => {
-      const category = expense.category || 'Other';
-      if (!categories[category]) {
-        categories[category] = 0;
-      }
-      categories[category] += expense.amount || 0;
-    });
-    return categories;
-  }
-
-  calculateBreakEvenPoint(revenue, expenses) {
-    // Implementation for break-even calculation
-    return Math.ceil(expenses / (revenue / 30)); // days to break even
-  }
+  // Expense-related methods removed since expense tracking is no longer supported
 
   analyzeSeasonalTrends(transactions) {
     // Implementation for seasonal trend analysis

@@ -1,9 +1,9 @@
 const Product = require('../models/Product');
 const InventoryLog = require('../models/InventoryLog');
+const Order = require('../models/Order');
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
-const { productImageUpload } = require('../utils/fileUpload');
 
 // Get all products for a shop
 exports.getProducts = async (req, res) => {
@@ -94,69 +94,62 @@ exports.getProduct = async (req, res) => {
 // Create a new product
 exports.createProduct = async (req, res) => {
   try {
-    // Handle product image upload
-    productImageUpload(req, res, async (err) => {
-      if (err) {
-        return res.status(400).json({ success: false, message: 'Image upload failed', error: err.message });
-      }
+    // Process the product data
+    const {
+      name,
+      description,
+      category,
+      price,
+      cost,
+      stock,
+      minStockLevel,
+      barcode,
+      sku,
+      brand,
+      status
+    } = req.body;
 
-      // Process the product data
-      const {
-        name,
-        description,
-        category,
-        price,
-        cost,
-        stock,
-        minStockLevel,
-        barcode,
-        sku,
-        brand,
-        status
-      } = req.body;
+    // Validate required fields
+    if (!name || !price) {
+      return res.status(400).json({ success: false, message: 'Name and price are required' });
+    }
 
-      // Validate required fields
-      if (!name || !price) {
-        return res.status(400).json({ success: false, message: 'Name and price are required' });
-      }
+    // Create the product
+    const product = new Product({
+      shopId: req.user._id,
+      name,
+      description,
+      category,
+      price: parseFloat(price),
+      cost: parseFloat(cost || 0),
+      stock: parseInt(stock || 0),
+      minStockLevel: parseInt(minStockLevel || 0),
+      barcode,
+      sku,
+      brand,
+      status: status || 'active'
+      // Removed image field since image upload is not needed
+    });
 
-      // Create the product
-      const product = new Product({
+    await product.save();
+
+    // Create inventory log for initial stock
+    if (stock && parseInt(stock) > 0) {
+      const inventoryLog = new InventoryLog({
+        productId: product._id,
         shopId: req.user._id,
-        name,
-        description,
-        category,
-        price: parseFloat(price),
-        cost: parseFloat(cost || 0),
-        stock: parseInt(stock || 0),
-        minStockLevel: parseInt(minStockLevel || 0),
-        barcode,
-        sku,
-        brand,
-        status: status || 'active',
-        image: req.file ? `/uploads/products/${req.file.filename}` : null
+        quantity: parseInt(stock),
+        type: 'initial',
+        notes: 'Initial stock entry'
       });
+      await inventoryLog.save();
+    }
 
-      await product.save();
-
-      // Create inventory log for initial stock
-      if (stock && parseInt(stock) > 0) {
-        const inventoryLog = new InventoryLog({
-          productId: product._id,
-          shopId: req.user._id,
-          quantity: parseInt(stock),
-          type: 'initial',
-          notes: 'Initial stock entry'
-        });
-        await inventoryLog.save();
-      }
-
-      // Return the created product
-      res.status(201).json({
-        success: true,
-        message: 'Product created successfully',
-        data: { product }
-      });
+    // Return the created product
+    res.status(201).json({
+      success: true,
+      message: 'Product created successfully',
+      data: { product }
     });
   } catch (error) {
     console.error('Error creating product:', error);
@@ -310,57 +303,6 @@ exports.getProductInventoryLogs = async (req, res) => {
   }
 };
 
-// Upload product image
-exports.uploadProductImage = async (req, res) => {
-  try {
-    // The file is already handled by the productImageUpload middleware
-    if (!req.file) {
-      return res.status(400).json({ error: 'No image file provided' });
-    }
-    
-    // Find product and ensure it belongs to the shop
-    const product = await Product.findOne({
-      _id: req.params.id,
-      shopId: req.user._id
-    });
-    
-    if (!product) {
-      // Delete the uploaded file if product doesn't exist
-      if (req.file.path) {
-        fs.unlinkSync(req.file.path);
-      }
-      return res.status(404).json({ error: 'Product not found' });
-    }
-    
-    // If product already has an image, delete the old one
-    if (product.imageUrl) {
-      const oldImagePath = path.join(__dirname, '..', product.imageUrl.replace(/^\//, ''));
-      if (fs.existsSync(oldImagePath)) {
-        fs.unlinkSync(oldImagePath);
-      }
-    }
-    
-    // Update product with new image URL
-    const imageUrl = `/uploads/products/${path.basename(req.file.path)}`;
-    product.imageUrl = imageUrl;
-    await product.save();
-    
-    res.status(200).json({ 
-      message: 'Product image uploaded successfully',
-      imageUrl: imageUrl
-    });
-  } catch (error) {
-    console.error('Error uploading product image:', error);
-    
-    // Delete the uploaded file if there was an error
-    if (req.file && req.file.path) {
-      fs.unlinkSync(req.file.path);
-    }
-    
-    res.status(500).json({ error: 'Failed to upload product image' });
-  }
-};
-
 // Delete product image
 exports.deleteProductImage = async (req, res) => {
   try {
@@ -374,24 +316,10 @@ exports.deleteProductImage = async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
     
-    // Check if product has an image
-    if (!product.imageUrl) {
-      return res.status(400).json({ error: 'Product does not have an image' });
-    }
-    
-    // Delete the image file
-    const imagePath = path.join(__dirname, '..', product.imageUrl.replace(/^\//, ''));
-    if (fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath);
-    }
-    
-    // Update product to remove image URL
-    product.imageUrl = null;
-    await product.save();
-    
-    res.status(200).json({ message: 'Product image deleted successfully' });
+    // Image functionality has been removed
+    res.status(400).json({ error: 'Image upload functionality is not available' });
   } catch (error) {
-    console.error('Error deleting product image:', error);
+    console.error('Error in deleteProductImage:', error);
     res.status(500).json({ error: 'Failed to delete product image' });
   }
 };
@@ -481,60 +409,46 @@ exports.getSupplierProducts = async (req, res) => {
 // Create a new product as supplier
 exports.createSupplierProduct = async (req, res) => {
   try {
-    // Handle product image upload
-    productImageUpload(req, res, async (err) => {
-      if (err) {
-        return res.status(400).json({ success: false, message: 'Image upload failed', error: err.message });
-      }
+    // Process the product data
+    const {
+      name,
+      description,
+      category,
+      price,
+      cost,
+      stock,
+      minStockLevel,
+      barcode,
+      unit = 'piece',
+      brand
+    } = req.body;
 
-      // Process the product data
-      const {
-        name,
-        description,
-        category,
-        price,
-        cost,
-        stock,
-        minStockLevel,
-        barcode,
-        unit = 'piece',
-        brand
-      } = req.body;
+    // Create product with supplier info
+    const product = new Product({
+      name,
+      description,
+      category,
+      price: parseFloat(price),
+      costPrice: parseFloat(cost) || 0,
+      stock: parseInt(stock) || 0,
+      minStockLevel: parseInt(minStockLevel) || 5,
+      barcode,
+      unit,
+      shopId: null, // No shopId for supplier products
+      supplierInfo: {
+        supplierId: req.user._id,
+        supplierName: req.user.companyName || `${req.user.firstName} ${req.user.lastName}`,
+        supplierCode: req.user.supplierCode
+      },
+      isActive: true
+    });
 
-      // Image path if uploaded
-      let imageUrl = null;
-      if (req.file) {
-        imageUrl = `/uploads/products/${req.file.filename}`;
-      }
+    await product.save();
 
-      // Create product with supplier info
-      const product = new Product({
-        name,
-        description,
-        category,
-        price: parseFloat(price),
-        costPrice: parseFloat(cost) || 0,
-        stock: parseInt(stock) || 0,
-        minStockLevel: parseInt(minStockLevel) || 5,
-        barcode,
-        unit,
-        imageUrl,
-        shopId: null, // No shopId for supplier products
-        supplierInfo: {
-          supplierId: req.user._id,
-          supplierName: req.user.companyName || `${req.user.firstName} ${req.user.lastName}`,
-          supplierCode: req.user.supplierCode
-        },
-        isActive: true
-      });
-
-      await product.save();
-
-      res.status(201).json({
-        success: true,
-        message: 'Product created successfully',
-        data: { product }
-      });
+    res.status(201).json({
+      success: true,
+      message: 'Product created successfully',
+      data: { product }
     });
   } catch (error) {
     console.error('Error creating product:', error);
@@ -562,58 +476,38 @@ exports.updateSupplierProduct = async (req, res) => {
       });
     }
     
-    // Handle product image upload
-    productImageUpload(req, res, async (err) => {
-      if (err) {
-        return res.status(400).json({ success: false, message: 'Image upload failed', error: err.message });
-      }
+    // Update product data
+    const {
+      name,
+      description,
+      category,
+      price,
+      cost,
+      stock,
+      minStockLevel,
+      barcode,
+      unit,
+      isActive
+    } = req.body;
 
-      // Update product data
-      const {
-        name,
-        description,
-        category,
-        price,
-        cost,
-        stock,
-        minStockLevel,
-        barcode,
-        unit,
-        isActive
-      } = req.body;
+    // Update fields if provided
+    if (name) product.name = name;
+    if (description !== undefined) product.description = description;
+    if (category) product.category = category;
+    if (price) product.price = parseFloat(price);
+    if (cost !== undefined) product.costPrice = parseFloat(cost);
+    if (stock !== undefined) product.stock = parseInt(stock);
+    if (minStockLevel) product.minStockLevel = parseInt(minStockLevel);
+    if (barcode !== undefined) product.barcode = barcode;
+    if (unit) product.unit = unit;
+    if (isActive !== undefined) product.isActive = isActive === 'true' || isActive === true;
 
-      // Update fields if provided
-      if (name) product.name = name;
-      if (description !== undefined) product.description = description;
-      if (category) product.category = category;
-      if (price) product.price = parseFloat(price);
-      if (cost !== undefined) product.costPrice = parseFloat(cost);
-      if (stock !== undefined) product.stock = parseInt(stock);
-      if (minStockLevel) product.minStockLevel = parseInt(minStockLevel);
-      if (barcode !== undefined) product.barcode = barcode;
-      if (unit) product.unit = unit;
-      if (isActive !== undefined) product.isActive = isActive === 'true' || isActive === true;
+    await product.save();
 
-      // Update image if new one uploaded
-      if (req.file) {
-        // Remove old image if exists
-        if (product.imageUrl) {
-          const oldImagePath = path.join(__dirname, '..', 'public', product.imageUrl);
-          if (fs.existsSync(oldImagePath)) {
-            fs.unlinkSync(oldImagePath);
-          }
-        }
-        
-        product.imageUrl = `/uploads/products/${req.file.filename}`;
-      }
-
-      await product.save();
-
-      res.status(200).json({
-        success: true,
-        message: 'Product updated successfully',
-        data: { product }
-      });
+    res.status(200).json({
+      success: true,
+      message: 'Product updated successfully',
+      data: { product }
     });
   } catch (error) {
     console.error('Error updating supplier product:', error);
@@ -680,7 +574,7 @@ exports.getSupplierProductStats = async (req, res) => {
     const topProducts = await Order.aggregate([
       { 
         $match: { 
-          supplierId: mongoose.Types.ObjectId(supplierId),
+          supplierId: new mongoose.Types.ObjectId(supplierId),
           status: { $in: ['delivered', 'confirmed', 'shipped'] }
         } 
       },
@@ -699,7 +593,7 @@ exports.getSupplierProductStats = async (req, res) => {
     
     // Get category distribution
     const categoryStats = await Product.aggregate([
-      { $match: { 'supplierInfo.supplierId': mongoose.Types.ObjectId(supplierId) } },
+      { $match: { 'supplierInfo.supplierId': new mongoose.Types.ObjectId(supplierId) } },
       { $group: { _id: '$category', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);

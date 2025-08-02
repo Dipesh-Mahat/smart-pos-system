@@ -53,10 +53,6 @@ const ProductSchema = new Schema({
     default: 'piece',
     enum: ['piece', 'kg', 'liter', 'box', 'pack', 'other']
   },
-  imageUrl: {
-    type: String,
-    trim: true
-  },
   shopId: {
     type: Schema.Types.ObjectId,
     ref: 'User',

@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const authenticateJWT = require('../middleware/authJWT');
 const authorize = require('../middleware/authorize');
-const { productImageUpload } = require('../utils/fileUpload');
 
 // Import controllers
 const dashboardController = require('../controllers/dashboardController');
@@ -336,7 +335,7 @@ router.get('/products/:id/inventory-logs', productController.getProductInventory
  *       500:
  *         description: Server error
  */
-router.post('/products/:id/upload-image', productImageUpload, productController.uploadProductImage);
+// Image upload route removed - not needed
 
 /**
  * @swagger

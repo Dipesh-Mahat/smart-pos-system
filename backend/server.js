@@ -21,7 +21,7 @@ const errorLogger = require('./middleware/errorLogger');
 const { sanitizeRequest, preventSqlInjection } = require('./middleware/sanitizer');
 const { sessionConfig, secureSession, trackSessionActivity } = require('./middleware/sessionSecurity');
 const { apiRequestLogger, logApiError } = require('./middleware/requestLogger');
-const swagger = require('./config/swagger');
+// const swagger = require('./config/swagger'); // Disabled to eliminate YAML warnings
 
 // Create an Express app (This should come first)
 const app = express();
@@ -141,10 +141,10 @@ const geminiProxy = require('./routes/geminiProxy');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // API Documentation with Swagger (only in non-production for security)
-if (process.env.NODE_ENV !== 'production') {
+if (false) { // Temporarily disabled to eliminate YAML warnings
   // Initialize secure Swagger documentation
-  swagger(app);
-  console.log('API documentation available at /api-docs');
+  // swagger(app);
+  console.log('API documentation temporarily disabled');
 }
 
 // Use routes
