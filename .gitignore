@@ -10,6 +10,8 @@ PRESENTATION_CHECKLIST.md
 SECURITY_STATUS_REPORT.md
 SMART_INVENTORY_DOCUMENTATION.md
 SMART_POS_BILL_FORMAT.md
+barcodes.md 
+
 # Ignore temporary test file
 tmp.json
 # Dependencies
