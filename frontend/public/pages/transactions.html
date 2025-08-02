@@ -752,23 +752,8 @@
         }
     </style>
 </head>
-<body>    <div class="main-content">
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <div></div>
-            <div class="action-btns-right">
-                <button class="btn btn-secondary" onclick="exportTransactions()">
-                    <i class="fas fa-download"></i>
-                    Export
-                </button>
-            </div>
-        </div>
-
-        <!-- Statistics Cards removed as requested -->
-
-        <!-- Filter Buttons -->
-        <!-- Filter buttons removed as requested -->
-
+<body>
+    <div class="main-content">
         <!-- Transactions Grid -->
         <div class="transactions-grid" id="transactionsGrid">
             <!-- Transactions will be rendered here by JavaScript -->
@@ -782,7 +767,6 @@
                     <i class="fas fa-receipt"></i>
                     <span id="modalReceiptNumber">Transaction Details</span>
                 </h2>
-                <span class="close-modal" id="closeTransactionModal">&times;</span>
             </div>
             
             <div class="modal-body">
@@ -810,10 +794,6 @@
             </div>
             
             <div class="modal-footer">
-                <button class="modal-btn secondary" onclick="printReceipt()">
-                    <i class="fas fa-print"></i>
-                    Print Receipt
-                </button>
                 <button class="modal-btn primary" onclick="closeModal()">
                     <i class="fas fa-check"></i>
                     Close
@@ -856,21 +836,29 @@
 
             async fetchTransactions() {
                 try {
+                    console.log('Fetching transactions from API...');
                     // Use the API service for proper authentication and base URL
                     const data = await window.apiService.request('/shop/transactions');
+                    console.log('API response received:', data);
 
                     // The API returns transactions directly in the response object
                     if (data && data.transactions) {
+                        console.log('Found transactions:', data.transactions.length);
+                        console.log('First transaction structure:', data.transactions[0]);
                         this.transactions = data.transactions || [];
                         this.filteredTransactions = [...this.transactions];
                         this.renderTransactions();
                     } else {
-                        console.error('Failed to fetch transactions:', data?.error || 'Unknown error');
+                        console.log('No transactions found in response. Response structure:', data);
                         this.transactions = [];
                         this.filteredTransactions = [];
                         
-                        // Show error message to user
-                        this.showToast('Failed to load transaction data. Please try again later.', 'error');
+                        // Show a message instead of error if no transactions exist
+                        if (data && data.success) {
+                            this.renderTransactions(); // Will show empty state
+                        } else {
+                            this.showToast('Failed to load transaction data. Please try again later.', 'error');
+                        }
                     }
                 } catch (error) {
                     console.error('Error fetching transactions:', error);
@@ -897,10 +885,6 @@
             setupEventListeners() {
                 // Only modal close events needed
                 const modal = document.getElementById('transactionModal');
-                const closeBtn = document.getElementById('closeTransactionModal');
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', () => this.closeModal());
-                }
                 if (modal) {
                     modal.addEventListener('click', (e) => {
                         if (e.target === modal) {
@@ -930,22 +914,22 @@
                 }
 
                 grid.innerHTML = this.filteredTransactions.map(transaction => `
-                    <div class="transaction-item" onclick="transactionManager.showTransactionDetails('${transaction.id}')">
+                    <div class="transaction-item" onclick="transactionManager.showTransactionDetails('${transaction._id}')">
                         <div class="transaction-header">
                             <div class="receipt-number">
                                 <i class="fas fa-receipt"></i>
-                                ${transaction.id}
+                                ${transaction.receiptNumber || transaction._id}
                             </div>
-                            <div class="transaction-amount">NPR ${transaction.total.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                            <div class="transaction-amount">NPR ${(transaction.total || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
                         </div>
                         <div class="transaction-details">
                             <div class="detail-item">
                                 <div class="detail-label">Date</div>
-                                <div class="detail-value">${this.formatDate(transaction.date)}</div>
+                                <div class="detail-value">${this.formatDate(transaction.createdAt)}</div>
                             </div>
                             <div class="detail-item">
                                 <div class="detail-label">Time</div>
-                                <div class="detail-value">${this.formatTime(transaction.date)}</div>
+                                <div class="detail-value">${this.formatTime(transaction.createdAt)}</div>
                             </div>
                             <div class="detail-item">
                                 <div class="detail-label">Items</div>
@@ -965,9 +949,10 @@
             // updateStats removed (no filters)
 
             showTransactionDetails(transactionId) {
-                const transaction = this.transactions.find(t => t.id === transactionId);
+                const transaction = this.transactions.find(t => t._id === transactionId);
                 if (!transaction) {
                     console.log('Transaction not found:', transactionId);
+                    console.log('Available transactions:', this.transactions.map(t => t._id));
                     // Show a notification that the transaction wasn't found
                     const notification = document.createElement('div');
                     notification.innerHTML = `
@@ -982,26 +967,22 @@
                 }
 
                 // Update modal content
-                document.getElementById('modalReceiptNumber').textContent = `Receipt ${transaction.receiptNumber}`;
+                document.getElementById('modalReceiptNumber').textContent = `Receipt ${transaction.receiptNumber || transaction._id}`;
                 
                 // Update transaction info
                 const infoGrid = document.getElementById('transactionInfoGrid');
                 infoGrid.innerHTML = `
                     <div class="info-item">
-                        <div class="info-label">Transaction ID</div>
-                        <div class="info-value">${transaction.id}</div>
-                    </div>
-                    <div class="info-item">
                         <div class="info-label">Date & Time</div>
-                        <div class="info-value">${this.formatDate(transaction.date)} ${this.formatTime(transaction.date)}</div>
+                        <div class="info-value">${this.formatDate(transaction.createdAt)} ${this.formatTime(transaction.createdAt)}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Customer</div>
-                        <div class="info-value">${transaction.customerName}</div>
+                        <div class="info-label">Receipt Number</div>
+                        <div class="info-value">${transaction.receiptNumber || 'N/A'}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Payment</div>
-                        <div class="info-value">${transaction.paymentMethod}</div>
+                        <div class="info-label">Items Count</div>
+                        <div class="info-value">${transaction.items.length} items</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Status</div>
@@ -1024,16 +1005,16 @@
                     <li class="item-row">
                         <div class="item-details">
                             <div class="item-icon">
-                                <i class="${item.icon}"></i>
+                                <i class="fas fa-box"></i>
                             </div>
                             <div class="item-info">
                                 <div class="item-name">${item.name}</div>
-                                <div class="item-meta">${item.category} • Qty: ${item.quantity}</div>
+                                <div class="item-meta">Qty: ${item.quantity}</div>
                             </div>
                         </div>
                         <div class="item-pricing">
-                            <div class="item-price">NPR ${item.total.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
-                            <div class="item-quantity">@ NPR ${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})} each</div>
+                            <div class="item-price">NPR ${(item.subtotal || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                            <div class="item-quantity">@ NPR ${(item.price || 0).toLocaleString(undefined, {minimumFractionDigits: 2})} each</div>
                         </div>
                     </li>
                 `).join('');
@@ -1043,11 +1024,11 @@
                 summary.innerHTML = `
                     <div class="summary-row">
                         <span>Subtotal:</span>
-                        <span>NPR ${transaction.subtotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                        <span>NPR ${(transaction.subtotal || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                     </div>
                     <div class="summary-row total">
                         <span>Total:</span>
-                        <span class="summary-value">NPR ${transaction.total.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                        <span class="summary-value">NPR ${(transaction.total || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                     </div>
                 `;
 
@@ -1068,7 +1049,10 @@
             }
 
             formatDate(date) {
-                return new Date(date).toLocaleDateString('en-US', {
+                if (!date) return 'N/A';
+                const d = new Date(date);
+                if (isNaN(d.getTime())) return 'Invalid Date';
+                return d.toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric'
@@ -1076,7 +1060,10 @@
             }
 
             formatTime(date) {
-                return new Date(date).toLocaleTimeString('en-US', {
+                if (!date) return 'N/A';
+                const d = new Date(date);
+                if (isNaN(d.getTime())) return 'Invalid Time';
+                return d.toLocaleTimeString('en-US', {
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: true
@@ -1124,16 +1111,6 @@
         // Global functions
         // filterTransactions removed (no filters)
 
-        function exportTransactions() {
-            console.log('Exporting transactions...');
-            alert('Export functionality will be implemented');
-        }
-
-        function printReceipt() {
-            console.log('Printing receipt...');
-            alert('Print functionality will be implemented');
-        }
-
         function closeModal() {
             if (window.transactionManager) {
                 window.transactionManager.closeModal();
@@ -1171,8 +1148,6 @@
     <!-- Navbar and Menu Scripts -->
     <script src="../js/navbar.js"></script>
     <script src="../js/menu.js"></script>
-    <!-- jsPDF for PDF export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         // Initialize navbar with transactions-specific options
         document.addEventListener('DOMContentLoaded', function() {
@@ -1182,92 +1157,6 @@
             
             console.log('Transactions page initialized');
         });
-
-        // Export functionality
-        function exportTransactions() {
-            if (!window.transactionManager || !window.transactionManager.transactions || window.transactionManager.transactions.length === 0) {
-                alert('No transactions to export.');
-                return;
-            }
-            // Show export option prompt
-            const choice = prompt('Export as PDF or CSV? Type "pdf" or "csv".');
-            if (!choice) return;
-            if (choice.toLowerCase() === 'csv') {
-                exportTransactionsCSV();
-            } else if (choice.toLowerCase() === 'pdf') {
-                exportTransactionsPDF();
-            } else {
-                alert('Invalid option. Please type "pdf" or "csv".');
-            }
-        }
-
-        function exportTransactionsCSV() {
-            const transactions = window.transactionManager.transactions;
-            if (!transactions || transactions.length === 0) {
-                alert('No transactions to export.');
-                return;
-            }
-            const headers = ['Transaction ID', 'Date', 'Time', 'Customer', 'Payment', 'Status', 'Total Amount'];
-            const rows = transactions.map(t => [
-                t.id,
-                new Date(t.date).toLocaleDateString('en-US'),
-                new Date(t.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
-                t.customerName || '',
-                t.paymentMethod || '',
-                t.status,
-                t.total
-            ]);
-            let csvContent = '';
-            csvContent += headers.join(',') + '\n';
-            rows.forEach(row => {
-                csvContent += row.map(val => '"' + String(val).replace(/"/g, '""') + '"').join(',') + '\n';
-            });
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'transactions.csv';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function exportTransactionsPDF() {
-            const transactions = window.transactionManager.transactions;
-            if (!transactions || transactions.length === 0) {
-                alert('No transactions to export.');
-                return;
-            }
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.setFontSize(16);
-            doc.text('Transaction History', 14, 16);
-            doc.setFontSize(10);
-            const headers = ['ID', 'Date', 'Time', 'Customer', 'Payment', 'Status', 'Total'];
-            let startY = 24;
-            // Table header
-            headers.forEach((h, i) => {
-                doc.text(h, 14 + i * 28, startY);
-            });
-            startY += 6;
-            // Table rows
-            transactions.forEach((t, idx) => {
-                const row = [
-                    t.id,
-                    new Date(t.date).toLocaleDateString('en-US'),
-                    new Date(t.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
-                    t.customerName || '',
-                    t.paymentMethod || '',
-                    t.status,
-                    t.total
-                ];
-                row.forEach((val, i) => {
-                    doc.text(String(val), 14 + i * 28, startY + idx * 6);
-                });
-            });
-            doc.save('transactions.pdf');
-        }
     </script>
 </body>
 </html>

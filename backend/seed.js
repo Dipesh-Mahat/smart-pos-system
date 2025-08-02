@@ -8,7 +8,6 @@ require('dotenv').config();
 const User = require('./models/User');
 const Product = require('./models/Product');
 const Transaction = require('./models/Transaction');
-const Expense = require('./models/Expense');
 const InventoryLog = require('./models/InventoryLog');
 const Customer = require('./models/Customer');
 const Category = require('./models/Category');
@@ -37,7 +36,6 @@ const clearDB = async () => {
   await User.deleteMany({});
   await Product.deleteMany({});
   await Transaction.deleteMany({});
-  await Expense.deleteMany({});
   await InventoryLog.deleteMany({});
   await Customer.deleteMany({});
   await Category.deleteMany({});
@@ -325,11 +323,11 @@ const seedProducts = async (shopOwner, supplier) => {
   console.log('Seeding products with daily use Nepali items...');
   
   const products = [
-    // Rice and Grains
+    // Rice and Grains - Professional naming
     {
-      name: 'Chamal (Rice) - 5kg',
+      name: 'Basmati Rice Premium - 5kg',
       barcode: 'RICE005',
-      description: 'Daily use white rice 5kg pack',
+      description: 'Premium quality Basmati rice 5kg pack',
       category: 'Grains',
       price: 650,
       costPrice: 520,
@@ -342,13 +340,32 @@ const seedProducts = async (shopOwner, supplier) => {
         supplierId: supplier._id,
         supplierName: supplier.firstName + ' ' + supplier.lastName
       },
+      brand: 'Trishakti',
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Local White Rice - 5kg',
+      barcode: 'RICE006',
+      description: 'Local variety white rice 5kg pack',
+      category: 'Grains',
+      price: 480,
+      costPrice: 400,
+      stock: 50,
+      minStockLevel: 12,
+      unit: 'pack',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
       brand: 'Local',
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Daal Masoor (Red Lentils) - 1kg',
+      name: 'Red Lentils (Masoor Dal) - 1kg',
       barcode: 'DAAL001',
-      description: 'Red lentils 1kg pack',
+      description: 'Premium red lentils 1kg pack',
       category: 'Grains',
       price: 180,
       costPrice: 150,
@@ -361,11 +378,30 @@ const seedProducts = async (shopOwner, supplier) => {
         supplierId: supplier._id,
         supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      brand: 'Local',
+      brand: 'Nepal Agro',
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Chiura (Beaten Rice) - 500g',
+      name: 'Black Lentils (Kalo Dal) - 1kg',
+      barcode: 'DAAL002',
+      description: 'Premium black lentils 1kg pack',
+      category: 'Grains',
+      price: 220,
+      costPrice: 190,
+      stock: 35,
+      minStockLevel: 10,
+      unit: 'pack',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Nepal Agro',
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Beaten Rice (Chiura) - 500g',
       barcode: 'CHIURA500',
       description: 'Traditional beaten rice 500g',
       category: 'Grains',
@@ -386,9 +422,9 @@ const seedProducts = async (shopOwner, supplier) => {
     
     // Spices and Oil
     {
-      name: 'Nun (Salt) - 1kg',
+      name: 'Refined Salt - 1kg',
       barcode: 'SALT1KG',
-      description: 'Table salt 1kg pack',
+      description: 'Iodized table salt 1kg pack',
       category: 'Spices',
       price: 35,
       costPrice: 25,
@@ -405,9 +441,9 @@ const seedProducts = async (shopOwner, supplier) => {
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Khana Pakune Tel (Cooking Oil) - 1L',
+      name: 'Sunflower Cooking Oil - 1L',
       barcode: 'OIL1L',
-      description: 'Refined cooking oil 1 liter',
+      description: 'Pure sunflower cooking oil 1 liter',
       category: 'Oil',
       price: 250,
       costPrice: 220,
@@ -424,7 +460,26 @@ const seedProducts = async (shopOwner, supplier) => {
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Haldi (Turmeric Powder) - 100g',
+      name: 'Mustard Oil - 500ml',
+      barcode: 'MUSTOIL500',
+      description: 'Pure mustard oil 500ml bottle',
+      category: 'Oil',
+      price: 195,
+      costPrice: 165,
+      stock: 25,
+      minStockLevel: 8,
+      unit: 'pack',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Local',
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Turmeric Powder - 100g',
       barcode: 'HALDI100',
       description: 'Pure turmeric powder 100g',
       category: 'Spices',
@@ -439,18 +494,37 @@ const seedProducts = async (shopOwner, supplier) => {
         supplierId: supplier._id,
         supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      brand: 'Local',
+      brand: 'Everest',
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'Red Chili Powder - 100g',
+      barcode: 'CHILI100',
+      description: 'Ground red chili powder 100g',
+      category: 'Spices',
+      price: 55,
+      costPrice: 40,
+      stock: 45,
+      minStockLevel: 12,
+      unit: 'pack',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'Everest',
       createdAt: new Date('2024-01-06')
     },
     
     // Noodles and Snacks
     {
-      name: 'Wai Wai Noodles',
+      name: 'Wai Wai Instant Noodles',
       barcode: 'WAIWAI001',
-      description: 'Popular instant noodles',
+      description: 'Popular instant noodles original flavor',
       category: 'Snacks',
-      price: 32,
-      costPrice: 24,
+      price: 30,
+      costPrice: 25,
       stock: 200,
       minStockLevel: 50,
       unit: 'piece',
@@ -464,12 +538,12 @@ const seedProducts = async (shopOwner, supplier) => {
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Rara Noodles',
+      name: 'Rara Instant Noodles',
       barcode: 'RARA001',
-      description: 'Instant noodles rara brand',
+      description: 'Instant noodles Rara brand chicken flavor',
       category: 'Snacks',
-      price: 28,
-      costPrice: 21,
+      price: 30,
+      costPrice: 20,
       stock: 180,
       minStockLevel: 40,
       unit: 'piece',
@@ -504,12 +578,12 @@ const seedProducts = async (shopOwner, supplier) => {
     
     // Personal Care
     {
-      name: 'Sabun (Soap) - Lux',
+      name: 'Lux Beauty Soap Bar',
       barcode: 'LUXSOAP',
-      description: 'Beauty soap bar',
+      description: 'Premium beauty soap bar 100g',
       category: 'Personal Care',
-      price: 48,
-      costPrice: 36,
+      price: 50,
+      costPrice: 35,
       stock: 80,
       minStockLevel: 20,
       unit: 'piece',
@@ -523,9 +597,9 @@ const seedProducts = async (shopOwner, supplier) => {
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Daant Saaf Paste (Toothpaste)',
+      name: 'Colgate Toothpaste - 200g',
       barcode: 'COLGATE001',
-      description: 'Toothpaste for dental care',
+      description: 'Advanced whitening toothpaste 200g',
       category: 'Personal Care',
       price: 185,
       costPrice: 140,
@@ -542,9 +616,9 @@ const seedProducts = async (shopOwner, supplier) => {
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Daant Brush (Toothbrush)',
+      name: 'Oral-B Soft Toothbrush',
       barcode: 'BRUSH001',
-      description: 'Soft bristle toothbrush',
+      description: 'Soft bristle toothbrush for daily use',
       category: 'Personal Care',
       price: 35,
       costPrice: 25,
@@ -561,9 +635,9 @@ const seedProducts = async (shopOwner, supplier) => {
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Shampoo Sachet',
+      name: 'Pantene Shampoo Sachet - 10ml',
       barcode: 'SHAMPOO001',
-      description: 'Hair shampoo small pack',
+      description: 'Pro-V hair shampoo small pack 10ml',
       category: 'Personal Care',
       price: 15,
       costPrice: 10,
@@ -582,9 +656,9 @@ const seedProducts = async (shopOwner, supplier) => {
     
     // Beverages
     {
-      name: 'Chiya Patti (Tea Leaves) - 250g',
+      name: 'Gorkha Tea Premium - 250g',
       barcode: 'TEA250',
-      description: 'Black tea leaves 250g pack',
+      description: 'Premium black tea leaves 250g pack',
       category: 'Beverages',
       price: 180,
       costPrice: 150,
@@ -601,9 +675,28 @@ const seedProducts = async (shopOwner, supplier) => {
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Chini (Sugar) - 1kg',
+      name: 'CocaCola - 330ml Can',
+      barcode: 'COLA330',
+      description: 'Classic cola drink 330ml can',
+      category: 'Beverages',
+      price: 60,
+      costPrice: 45,
+      stock: 48,
+      minStockLevel: 12,
+      unit: 'pack',
+      shopId: shopOwner._id,
+      isActive: true,
+      supplierInfo: {
+        supplierId: supplier._id,
+        supplierName: supplier.firstName + ' ' + supplier.lastName
+      },
+      brand: 'CocaCola',
+      createdAt: new Date('2024-01-06')
+    },
+    {
+      name: 'White Sugar Premium - 1kg',
       barcode: 'SUGAR1KG',
-      description: 'White sugar 1kg pack',
+      description: 'Pure white sugar 1kg pack',
       category: 'Sweeteners',
       price: 120,
       costPrice: 100,
@@ -616,13 +709,13 @@ const seedProducts = async (shopOwner, supplier) => {
         supplierId: supplier._id,
         supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      brand: 'Local',
+      brand: 'Nepal Sugar Mills',
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Biscuit - Marie',
+      name: 'Marie Gold Biscuits - 200g',
       barcode: 'MARIE001',
-      description: 'Plain marie biscuits',
+      description: 'Classic marie biscuits 200g pack',
       category: 'Snacks',
       price: 45,
       costPrice: 35,
@@ -635,17 +728,17 @@ const seedProducts = async (shopOwner, supplier) => {
         supplierId: supplier._id,
         supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      brand: 'Parle-G',
+      brand: 'Britannia',
       createdAt: new Date('2024-01-06')
     },
     
     // Stationery
     {
-      name: 'Pencil',
+      name: 'Apsara HB Pencil',
       barcode: 'PENCIL001',
-      description: 'Writing pencil HB',
+      description: 'Premium HB writing pencil',
       category: 'Stationery',
-      price: 8,
+      price: 10,
       costPrice: 5,
       stock: 200,
       minStockLevel: 50,
@@ -660,9 +753,9 @@ const seedProducts = async (shopOwner, supplier) => {
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Copy Kitab (Notebook)',
+      name: 'Exercise Notebook - 40 Pages',
       barcode: 'COPY001',
-      description: 'Exercise notebook 40 pages',
+      description: 'Quality exercise notebook 40 pages',
       category: 'Stationery',
       price: 25,
       costPrice: 18,
@@ -675,15 +768,15 @@ const seedProducts = async (shopOwner, supplier) => {
         supplierId: supplier._id,
         supplierName: supplier.firstName + ' ' + supplier.lastName
       },
-      brand: 'Local',
+      brand: 'Mero Copy',
       createdAt: new Date('2024-01-06')
     },
     {
-      name: 'Pen - Ball Point',
+      name: 'Reynolds Ball Point Pen Blue',
       barcode: 'PEN001',
-      description: 'Blue ball point pen',
+      description: 'Smooth writing blue ball point pen',
       category: 'Stationery',
-      price: 12,
+      price: 15,
       costPrice: 8,
       stock: 150,
       minStockLevel: 40,
@@ -817,7 +910,6 @@ const seedCustomers = async (shopOwner) => {
       },
       type: 'regular',
       status: 'active',
-      loyaltyPoints: 120,
       totalSpent: 1850.50,
       totalOrders: 15,
       lastOrderDate: new Date('2024-01-15')
@@ -834,7 +926,6 @@ const seedCustomers = async (shopOwner) => {
       },
       type: 'regular',
       status: 'active',
-      loyaltyPoints: 200,
       totalSpent: 2650.75,
       totalOrders: 22,
       lastOrderDate: new Date('2024-01-12')
@@ -851,7 +942,6 @@ const seedCustomers = async (shopOwner) => {
       },
       type: 'regular',
       status: 'active',
-      loyaltyPoints: 90,
       totalSpent: 1420.25,
       totalOrders: 12,
       lastOrderDate: new Date('2024-01-10')
@@ -868,7 +958,6 @@ const seedCustomers = async (shopOwner) => {
       },
       type: 'regular',
       status: 'active',
-      loyaltyPoints: 45,
       totalSpent: 890.00,
       totalOrders: 8,
       lastOrderDate: new Date('2024-01-08')
@@ -885,7 +974,6 @@ const seedCustomers = async (shopOwner) => {
       },
       type: 'regular',
       status: 'active',
-      loyaltyPoints: 150,
       totalSpent: 2180.80,
       totalOrders: 18,
       lastOrderDate: new Date('2024-01-14')
