@@ -37,9 +37,18 @@ class SimpleScanner {
                     </button>
                 </div>
                 <div class="camera-container">
-                    <video id="scannerVideo" autoplay playsinline></video>
+                    <video id="scannerVideo" autoplay playsinline muted></video>
                     <div class="scan-overlay">
                         <div class="scan-line"></div>
+                        <div class="scan-corners">
+                            <div class="corner top-left"></div>
+                            <div class="corner top-right"></div>
+                            <div class="corner bottom-left"></div>
+                            <div class="corner bottom-right"></div>
+                        </div>
+                    </div>
+                    <div class="camera-status" id="cameraStatus" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Initializing camera...
                     </div>
                 </div>
                 <div class="manual-entry">
@@ -82,25 +91,137 @@ class SimpleScanner {
         // Show modal
         this.modal.classList.add('active');
         
+        // Show camera status
+        const cameraStatus = document.getElementById('cameraStatus');
+        if (cameraStatus) {
+            cameraStatus.style.display = 'flex';
+            cameraStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Requesting camera access...';
+        }
+        
         try {
-            // Request camera access
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
+            // Debug: Show available cameras
+            await this.getCameraInfo();
+            
+            // Try multiple camera configurations for best compatibility
+            let stream = null;
+            const cameraConfigs = [
+                // First try: rear camera with high resolution
+                {
+                    video: {
+                        facingMode: { exact: 'environment' },
+                        width: { ideal: 1920, min: 640 },
+                        height: { ideal: 1080, min: 480 },
+                        aspectRatio: { ideal: 16/9 }
+                    }
+                },
+                // Fallback: rear camera with medium resolution
+                {
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280, min: 640 },
+                        height: { ideal: 720, min: 480 }
+                    }
+                },
+                // Last resort: any available camera
+                {
+                    video: {
+                        width: { ideal: 1280, min: 640 },
+                        height: { ideal: 720, min: 480 }
+                    }
                 }
-            });
+            ];
+
+            for (let i = 0; i < cameraConfigs.length; i++) {
+                const config = cameraConfigs[i];
+                try {
+                    if (cameraStatus) {
+                        cameraStatus.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Trying camera configuration ${i + 1}...`;
+                    }
+                    
+                    stream = await navigator.mediaDevices.getUserMedia(config);
+                    console.log('Camera config successful:', config);
+                    break;
+                } catch (err) {
+                    console.log(`Camera config ${i + 1} failed:`, err);
+                    if (cameraStatus && i === cameraConfigs.length - 1) {
+                        cameraStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Camera access failed';
+                    }
+                }
+            }
+
+            if (!stream) {
+                throw new Error('No camera available');
+            }
             
             this.currentStream = stream;
             this.video.srcObject = stream;
             
-            // Start QuaggaJS scanning
-            this.startQuaggaScanner();
+            if (cameraStatus) {
+                cameraStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting camera...';
+            }
+            
+            // Wait for video to load and set proper orientation
+            this.video.onloadedmetadata = () => {
+                console.log('Video metadata loaded');
+                
+                // Ensure video plays and is properly oriented
+                this.video.play().then(() => {
+                    console.log('Video playing successfully');
+                    
+                    if (cameraStatus) {
+                        cameraStatus.innerHTML = '<i class="fas fa-check"></i> Camera ready - point at barcode';
+                        setTimeout(() => {
+                            cameraStatus.style.display = 'none';
+                        }, 2000);
+                    }
+                    
+                    // Fix video display orientation
+                    const videoTrack = stream.getVideoTracks()[0];
+                    if (videoTrack) {
+                        const settings = videoTrack.getSettings();
+                        console.log('Camera settings:', settings);
+                        
+                        // Apply CSS transform based on camera type
+                        if (settings.facingMode === 'user') {
+                            // Front camera - horizontal flip for mirror effect
+                            this.video.style.transform = 'scaleX(-1)';
+                            console.log('Applied front camera mirror transform');
+                        } else {
+                            // Back camera - no transform needed
+                            this.video.style.transform = 'none';
+                            console.log('Using back camera - no transform');
+                        }
+                    }
+                    
+                    // Start QuaggaJS scanning after video is ready
+                    setTimeout(() => this.startQuaggaScanner(), 500);
+                    
+                }).catch(err => {
+                    console.error('Video play error:', err);
+                    if (cameraStatus) {
+                        cameraStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Video play failed';
+                    }
+                });
+            };
+            
+            this.video.onerror = (err) => {
+                console.error('Video error:', err);
+                if (cameraStatus) {
+                    cameraStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Video error';
+                }
+            };
             
         } catch (error) {
-            alert('Camera access required for barcode scanning. Please allow camera permissions.');
-            this.closeScanner();
+            console.error('Camera access error:', error);
+            if (cameraStatus) {
+                cameraStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Camera access denied';
+                cameraStatus.style.color = '#ef476f';
+            }
+            
+            setTimeout(() => {
+                alert('Camera access is required for barcode scanning. Please:\n\n1. Allow camera permissions when prompted\n2. Make sure no other app is using the camera\n3. Try refreshing the page\n\nYou can also enter barcodes manually below.');
+                if (cameraStatus) cameraStatus.style.display = 'none';
+            }, 1000);
         }
     }
 
@@ -150,40 +271,64 @@ class SimpleScanner {
             return;
         }
 
+        // Wait for video to be ready
+        if (this.video.videoWidth === 0 || this.video.videoHeight === 0) {
+            setTimeout(() => this.startQuaggaScanner(), 100);
+            return;
+        }
+
         Quagga.init({
             inputStream: {
                 name: "Live",
                 type: "LiveStream",
                 target: this.video,
                 constraints: {
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 },
-                    facingMode: "environment"
-                }
+                    width: { min: 640, ideal: 1280 },
+                    height: { min: 480, ideal: 720 },
+                    facingMode: "environment",
+                    aspectRatio: { ideal: 16/9 }
+                },
+                singleChannel: false // Use color information for better detection
             },
+            locator: {
+                patchSize: "medium",
+                halfSample: true
+            },
+            numOfWorkers: 2,
+            frequency: 10, // Scan frequency
             decoder: {
                 readers: [
                     "code_128_reader",
-                    "ean_reader",
+                    "ean_reader", 
                     "ean_8_reader",
                     "code_39_reader",
-                    "upc_reader"
+                    "code_39_vin_reader",
+                    "codabar_reader",
+                    "upc_reader",
+                    "upc_e_reader",
+                    "i2of5_reader"
                 ]
-            }
+            },
+            locate: true
         }, (err) => {
             if (err) {
+                console.error('Quagga initialization error:', err);
                 alert('Failed to initialize barcode scanner. Please use manual entry.');
                 return;
             }
             
+            console.log('Quagga initialized successfully');
             Quagga.start();
             
-            // Handle barcode detection
+            // Handle barcode detection with confidence check
             Quagga.onDetected((result) => {
                 if (result && result.codeResult && result.codeResult.code) {
                     const barcode = result.codeResult.code.trim();
+                    const confidence = result.codeResult.decodedCodes.reduce((sum, code) => sum + code.error, 0) / result.codeResult.decodedCodes.length;
                     
-                    if (barcode && this.onBarcodeScanned) {
+                    // Only accept barcodes with reasonable confidence
+                    if (barcode && confidence < 0.3 && this.onBarcodeScanned) {
+                        console.log('Barcode detected:', barcode, 'Confidence:', confidence);
                         Quagga.stop();
                         this.closeScanner();
                         this.onBarcodeScanned(barcode);
@@ -212,18 +357,43 @@ class SimpleScanner {
             try {
                 Quagga.stop();
             } catch (e) {
-                // Ignore errors
+                console.log('Quagga stop error (ignore):', e);
             }
         }
         
         // Stop camera stream
         if (this.currentStream) {
-            this.currentStream.getTracks().forEach(track => track.stop());
+            this.currentStream.getTracks().forEach(track => {
+                track.stop();
+                console.log('Stopped camera track:', track.label);
+            });
             this.currentStream = null;
+        }
+        
+        // Reset video element
+        if (this.video) {
+            this.video.srcObject = null;
+            this.video.style.transform = 'none'; // Reset any transforms
         }
         
         // Hide modal
         this.modal.classList.remove('active');
+        
+        // Clear callback
+        this.onBarcodeScanned = null;
+    }
+
+    // Debug method to check camera capabilities
+    async getCameraInfo() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            console.log('Available cameras:', videoDevices);
+            return videoDevices;
+        } catch (error) {
+            console.error('Error getting camera info:', error);
+            return [];
+        }
     }
 }
 
