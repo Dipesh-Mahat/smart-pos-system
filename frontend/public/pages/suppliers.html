@@ -416,10 +416,6 @@
 <body>    <div class="main-content">
         <!-- Page Header -->
         <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 32px; gap: 20px;">
-            <div class="page-title" style="display: flex; align-items: center; gap: 12px; font-size: 2rem; font-weight: 700; color: #2c3e50;">
-                <i class="fas fa-truck"></i>
-                Suppliers
-            </div>
             <div class="header-actions" style="display: flex; gap: 15px; align-items: center;">
                 <a href="order-history.html" class="btn btn-secondary" style="background: #e74c3c; color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.3s; border: none;">
                     <i class="fas fa-history"></i>
@@ -490,41 +486,37 @@
             try {
                 showLoading(true);
                 
-                // Determine API base URL based on environment
-                const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                    ? 'http://localhost:5000/api' 
-                    : 'https://smart-pos-system.onrender.com/api';
-                
-            const token = localStorage.getItem('token');
-            const fetchResponse = await fetch(`${API_BASE_URL}/shop/orders/suppliers`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                },
-                credentials: 'include'
-            });
-                
-                if (!fetchResponse.ok) {
-                    throw new Error(`HTTP error! status: ${fetchResponse.status}`);
+                // Check authentication first
+                if (!window.authService || !window.authService.isLoggedIn()) {
+                    console.warn('User not authenticated, redirecting to login...');
+                    window.location.href = '../landing.html';
+                    return;
                 }
                 
-                const response = await fetchResponse.json();
+                // Use the global API service for authenticated requests
+                const response = await window.apiService.request('/shop/orders/suppliers');
                 
-                if (response.success) {
+                if (response && response.success) {
                     allSuppliers = response.suppliers || [];
                     displaySuppliers(allSuppliers);
                     updateStatistics(allSuppliers);
                 } else {
-                    showError(`Failed to load suppliers: ${response.error || response.message || 'Unknown error'}`);
+                    showError(`Failed to load suppliers: ${response?.error || response?.message || 'Unknown error'}`);
                 }
             } catch (error) {
+                console.error('Error loading suppliers:', error);
+                
                 let errorMessage = 'Error loading suppliers. ';
                 
-                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                if (error.status === 401 || error.message?.includes('unauthorized')) {
+                    errorMessage += 'Authentication failed. Redirecting to login...';
+                    showError(errorMessage);
+                    setTimeout(() => {
+                        window.location.href = '../landing.html';
+                    }, 2000);
+                    return;
+                } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
                     errorMessage += 'Cannot connect to server. Please ensure the backend server is running.';
-                } else if (error.status === 401) {
-                    errorMessage += 'Authentication failed. Please log in again.';
                 } else if (error.status === 403) {
                     errorMessage += 'Access denied. Please check your permissions.';
                 } else {
@@ -683,6 +675,15 @@
 
         // Filter functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication first
+            if (!window.authService || !window.authService.isLoggedIn()) {
+                console.log('User not authenticated, redirecting...');
+                window.location.href = '../landing.html';
+                return;
+            }
+            
+            console.log('User authenticated, initializing suppliers page...');
+            
             // Load suppliers when page is ready
             loadSuppliers();
             
@@ -778,16 +779,25 @@
     </script>
 
     <!-- Navbar and Menu Scripts -->
+    <script src="../js/auth-service.js"></script>
+    <script src="../js/api-service.js"></script>
     <script src="../js/navbar.js"></script>
     <script src="../js/menu.js"></script>
     <script src="../js/custom-modals.js"></script>
     <script>
+        // Prevent auto-initialization since we'll do it manually
+        window.navbarManualInit = true;
+        
         // Initialize navbar with custom actions
         document.addEventListener('DOMContentLoaded', function() {
-            const navbar = new SmartPOSNavbar({
-                title: 'Suppliers - Smart POS',
-                customActions: []
-            });
+            // Only initialize if not already done
+            if (!window.smartPOSNavbar) {
+                const navbar = new SmartPOSNavbar({
+                    title: 'Suppliers',
+                    customActions: []
+                });
+                window.smartPOSNavbar = navbar;
+            }
         });
     </script>
 </body>
