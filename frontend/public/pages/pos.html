@@ -845,19 +845,7 @@
             box-shadow: 0 4px 15px rgba(6, 214, 160, 0.3);
         }        /* Menu state responsive adjustments */
         @media screen and (min-width: 1024px) {
-            .main-content {
-                margin-left: var(--sidebar-width, 280px);
-                transition: margin-left 0.3s ease;
-            }
-            
-            body.menu-closed .main-content {
-                margin-left: var(--sidebar-collapsed-width, 80px);
-            }
-            
-            .pos-main {
-                margin-left: 0;
-                width: 100%;
-            }
+            /* Additional responsive adjustments handled in main desktop section above */
         }
 
         @media screen and (max-width: 1200px) {
@@ -1955,15 +1943,48 @@
             min-height: 100vh;
         }
         
-        /* Override for desktop menu responsiveness */
+        /* Desktop menu responsiveness */
         @media screen and (min-width: 1024px) {
             .main-content {
-                transition: all 0.3s ease !important;
+                margin-left: 0;
+                width: 100%;
+                transition: all 0.3s ease;
+            }
+            
+            /* When menu is expanded */
+            body:not(.menu-closed) .main-content {
+                margin-left: var(--sidebar-width, 280px);
+                width: calc(100% - var(--sidebar-width, 280px));
+            }
+            
+            /* When menu is collapsed */
+            body.menu-closed .main-content {
+                margin-left: var(--sidebar-collapsed-width, 80px);
+                width: calc(100% - var(--sidebar-collapsed-width, 80px));
             }
             
             .pos-main {
-                width: 100% !important;
-                margin-left: 0 !important;
+                width: 100%;
+                margin-left: 0;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .pos-content {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .cart-panel {
+                min-width: 320px;
+                max-width: 380px;
+                flex-shrink: 0;
+            }
+            
+            .products-grid {
+                flex: 1;
+                min-width: 0;
+                max-width: calc(100% - 400px);
             }
         }
         
@@ -2126,22 +2147,157 @@
     <!-- Mobile Scanner Connection Modal -->
 
 
-    <div class="bill-modal" id="billModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:2999; justify-content:center; align-items:center;">
-  <div style="background:#fff; border-radius:12px; max-width:400px; width:95%; padding:24px; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
-    <h2 style="margin-top:0; text-align:center;">Bill Summary</h2>
-    <div id="billItems" style="max-height:220px; overflow-y:auto; margin-bottom:16px;"></div>
-    <div style="border-top:1px solid #eee; padding-top:12px; margin-bottom:12px;">
-      <div style="display:flex; justify-content:space-between; font-weight:600;">
-        <span>Total:</span>
-        <span id="billTotal"></span>
-      </div>
+    <!-- Enhanced Bill Summary Modal -->
+    <div class="bill-modal" id="billModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:2999; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+        <div class="bill-modal-content" style="background:#fff; border-radius:16px; max-width:480px; width:95%; max-height:90vh; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation: modalSlideIn 0.3s ease;">
+            <!-- Header -->
+            <div class="bill-header" style="background:linear-gradient(135deg, #4361ee, #3a56d4); color:white; padding:24px; text-align:center; position:relative;">
+                <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:8px;">
+                    <i class="fas fa-receipt" style="font-size:24px;"></i>
+                    <h2 style="margin:0; font-size:24px; font-weight:700;">Bill Summary</h2>
+                </div>
+                <p style="margin:0; opacity:0.9; font-size:14px;">Review your order before payment</p>
+                <div style="position:absolute; top:16px; right:20px;">
+                    <button id="closeBillBtn" style="background:rgba(255,255,255,0.2); border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; color:white; display:flex; align-items:center; justify-content:center; transition:all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Items List -->
+            <div class="bill-content" style="padding:24px; max-height:400px; overflow-y:auto;">
+                <div class="bill-items-container">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:2px solid #f0f2f5;">
+                        <span style="font-weight:600; color:#495057; font-size:14px; text-transform:uppercase; letter-spacing:0.5px;">Items</span>
+                        <span style="font-weight:600; color:#495057; font-size:14px; text-transform:uppercase; letter-spacing:0.5px;">Amount</span>
+                    </div>
+                    <div id="billItems" class="bill-items-list">
+                        <!-- Items will be populated here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer with Total and Actions -->
+            <div class="bill-footer" style="background:#f8f9fa; padding:24px; border-top:1px solid #e9ecef;">
+                <!-- Total Only -->
+                <div style="margin-bottom:20px;">
+                    <div style="display:flex; justify-content:space-between; padding:16px; background:rgba(6, 214, 160, 0.1); border-radius:10px; font-size:20px; font-weight:700; color:#212529;">
+                        <span>Total Amount:</span>
+                        <span id="billTotal" style="color:#06d6a0;">NPR 0</span>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div style="display:flex; gap:12px;">
+                    <button id="cancelBillBtn" style="flex:1; background:#6c757d; color:#fff; border:none; border-radius:10px; padding:14px 20px; font-weight:600; cursor:pointer; font-size:16px; transition:all 0.3s ease; display:flex; align-items:center; justify-content:center; gap:8px;" onmouseover="this.style.background='#5a6268'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#6c757d'; this.style.transform='translateY(0)'">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </button>
+                    <button id="confirmPaymentBtn" style="flex:2; background:linear-gradient(135deg, #06d6a0, #04b886); color:#fff; border:none; border-radius:10px; padding:14px 20px; font-weight:600; cursor:pointer; font-size:16px; transition:all 0.3s ease; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 15px rgba(6, 214, 160, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(6, 214, 160, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(6, 214, 160, 0.3)'">
+                        <i class="fas fa-credit-card"></i>
+                        Confirm Payment
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
-    <div style="display:flex; gap:10px;">
-      <button id="confirmPaymentBtn" style="flex:1; background:#43a047; color:#fff; border:none; border-radius:6px; padding:12px; font-weight:600; cursor:pointer;">Confirm Payment</button>
-      <button id="cancelBillBtn" style="flex:1; background:#eee; color:#333; border:none; border-radius:6px; padding:12px; font-weight:600; cursor:pointer;">Cancel</button>
-    </div>
-  </div>
-</div>
+
+    <style>
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .bill-modal .bill-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .bill-modal .bill-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .bill-modal .bill-content::-webkit-scrollbar-thumb {
+            background: #4361ee;
+            border-radius: 3px;
+        }
+        
+        .bill-modal .bill-content::-webkit-scrollbar-thumb:hover {
+            background: #3a56d4;
+        }
+        
+        .bill-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f2f5;
+            transition: all 0.2s ease;
+        }
+        
+        .bill-item-row:hover {
+            background: rgba(67, 97, 238, 0.02);
+            margin: 0 -8px;
+            padding: 16px 8px;
+            border-radius: 8px;
+        }
+        
+        .bill-item-row:last-child {
+            border-bottom: none;
+        }
+        
+        .bill-item-details {
+            flex: 1;
+            margin-right: 16px;
+        }
+        
+        .bill-item-name {
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+        
+        .bill-item-meta {
+            font-size: 13px;
+            color: #6c757d;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .bill-item-price {
+            text-align: right;
+            flex-shrink: 0;
+        }
+        
+        .bill-item-unit-price {
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 2px;
+        }
+        
+        .bill-item-total-price {
+            font-weight: 600;
+            color: #06d6a0;
+            font-size: 16px;
+        }
+        
+        .quantity-badge {
+            background: #4361ee;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    </style>
 
     <!-- Professional Reusable Menu Component -->
     <script>
@@ -2403,69 +2559,126 @@ function showBillModal(cartArr) {
     const billModal = document.getElementById('billModal');
     const billItems = document.getElementById('billItems');
     const billTotal = document.getElementById('billTotal');
+    
+    // Clear previous items
     billItems.innerHTML = '';
     let total = 0;
-    cartArr.forEach(item => {
-        // item: { id, name, price, quantity }
+    
+    // Populate items with enhanced styling
+    cartArr.forEach((item, index) => {
         const itemTotal = (item.price || 0) * (item.quantity || 1);
         total += itemTotal;
+        
         const row = document.createElement('div');
-        row.style.display = 'flex';
-        row.style.justifyContent = 'space-between';
-        row.style.marginBottom = '8px';
-        row.innerHTML = `<span>${item.name} x${item.quantity}</span><span>NPR ${itemTotal.toLocaleString()}</span>`;
+        row.className = 'bill-item-row';
+        
+        row.innerHTML = `
+            <div class="bill-item-details">
+                <div class="bill-item-name">${item.name}</div>
+                <div class="bill-item-meta">
+                    <span class="quantity-badge">×${item.quantity}</span>
+                    <span>NPR ${(item.price || 0).toLocaleString()} each</span>
+                </div>
+            </div>
+            <div class="bill-item-price">
+                <div class="bill-item-unit-price">NPR ${(item.price || 0).toLocaleString()}</div>
+                <div class="bill-item-total-price">NPR ${itemTotal.toLocaleString()}</div>
+            </div>
+        `;
+        
         billItems.appendChild(row);
     });
+    
+    // Update total only
     billTotal.textContent = 'NPR ' + total.toLocaleString();
+    
+    // Show modal
     billModal.style.display = 'flex';
+    
+    // Add keyboard support
+    document.addEventListener('keydown', handleBillModalKeydown);
 
-    // Confirm and Cancel handlers
+    // Close button handler
+    document.getElementById('closeBillBtn').onclick = function() {
+        closeBillModal();
+    };
+    
+    // Confirm payment handler
     document.getElementById('confirmPaymentBtn').onclick = async function() {
-        billModal.style.display = 'none';
-        await customAlert('Payment Successful', 'Payment processed successfully!', 'success');
-        if (posSystem && Array.isArray(posSystem.cart)) posSystem.cart = [];
-        if (window.cart) window.cart = [];
-        posSystem.updateCartDisplay();
+        closeBillModal();
+        
+        // Show processing animation
+        const processingModal = showProcessingModal();
+        
+        // Simulate payment processing
+        setTimeout(async () => {
+            processingModal.remove();
+            await customAlert('Payment Successful', 'Your payment has been processed successfully! Receipt will be generated shortly.', 'success');
+            
+            // Clear cart
+            if (posSystem && Array.isArray(posSystem.cart)) posSystem.cart = [];
+            if (window.cart) window.cart = [];
+            posSystem.updateCartDisplay();
+        }, 2000);
     };
+    
+    // Cancel button handler
     document.getElementById('cancelBillBtn').onclick = function() {
-        billModal.style.display = 'none';
+        closeBillModal();
     };
+}
+
+function closeBillModal() {
+    const billModal = document.getElementById('billModal');
+    billModal.style.display = 'none';
+    document.removeEventListener('keydown', handleBillModalKeydown);
+}
+
+function handleBillModalKeydown(e) {
+    if (e.key === 'Escape') {
+        closeBillModal();
+    } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        document.getElementById('confirmPaymentBtn').click();
+    }
+}
+
+function showProcessingModal() {
+    const processingModal = document.createElement('div');
+    processingModal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.8);
+        z-index: 3000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(5px);
+    `;
+    
+    processingModal.innerHTML = `
+        <div style="background: white; border-radius: 16px; padding: 40px; text-align: center; max-width: 320px; width: 90%;">
+            <div style="margin-bottom: 20px;">
+                <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #4361ee; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            </div>
+            <h3 style="margin: 0 0 8px 0; color: #212529; font-size: 18px;">Processing Payment</h3>
+            <p style="margin: 0; color: #6c757d; font-size: 14px;">Please wait while we process your payment...</p>
+        </div>
+        <style>
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+    `;
+    
+    document.body.appendChild(processingModal);
+    return processingModal;
 }
    </script>
    <style>
-        /* Responsive menu state handling for POS */
-        @media (min-width: 1024px) {
-            .main-content {
-                margin-left: var(--sidebar-width, 280px);
-                transition: margin-left 0.3s ease, width 0.3s ease;
-                width: calc(100% - var(--sidebar-width, 280px));
-            }
-            
-            body.menu-closed .main-content {
-                margin-left: var(--sidebar-collapsed-width, 80px);
-                width: calc(100% - var(--sidebar-collapsed-width, 80px));
-            }
-            
-            /* Ensure POS content uses full available width */
-            .main-content {
-                width: 100%;
-                max-width: 100%;
-            }
-            
-            .pos-main {
-                width: 100%;
-                max-width: 100%;
-                margin: 0;
-                padding: 0;
-            }
-            
-            .pos-content {
-                width: 100%;
-                max-width: 100%;
-                box-sizing: border-box;
-            }
-        }
-        
         /* Mobile menu handling */
         @media (max-width: 1023px) {
             .main-content {
