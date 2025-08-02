@@ -6,7 +6,24 @@ class SimpleScanner {
         this.modal = null;
         this.video = null;
         this.onBarcodeScanned = null;
+        
+        // Test if QuaggaJS is available
+        this.checkQuaggaAvailability();
+        
         this.init();
+    }
+
+    checkQuaggaAvailability() {
+        if (typeof Quagga === 'undefined') {
+            console.error('QuaggaJS not loaded! Make sure the script is included.');
+            setTimeout(() => {
+                if (typeof Quagga === 'undefined') {
+                    console.error('QuaggaJS still not available after delay');
+                }
+            }, 2000);
+        } else {
+            console.log('QuaggaJS is available');
+        }
     }
 
     init() {
@@ -23,6 +40,12 @@ class SimpleScanner {
     }
 
     createModal() {
+        // Remove any existing modal first
+        const existingModal = document.getElementById('scannerModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
         // Create scanner modal
         this.modal = document.createElement('div');
         this.modal.className = 'camera-modal';
@@ -60,7 +83,14 @@ class SimpleScanner {
         `;
         
         document.body.appendChild(this.modal);
+        
+        // Get video element reference
         this.video = document.getElementById('scannerVideo');
+        if (!this.video) {
+            console.error('Failed to create video element!');
+        } else {
+            console.log('Video element created successfully');
+        }
     }
 
     setupEventListeners() {
@@ -95,133 +125,52 @@ class SimpleScanner {
         const cameraStatus = document.getElementById('cameraStatus');
         if (cameraStatus) {
             cameraStatus.style.display = 'flex';
-            cameraStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Requesting camera access...';
+            cameraStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting camera...';
         }
         
         try {
-            // Debug: Show available cameras
-            await this.getCameraInfo();
-            
-            // Try multiple camera configurations for best compatibility
-            let stream = null;
-            const cameraConfigs = [
-                // First try: rear camera with high resolution
-                {
-                    video: {
-                        facingMode: { exact: 'environment' },
-                        width: { ideal: 1920, min: 640 },
-                        height: { ideal: 1080, min: 480 },
-                        aspectRatio: { ideal: 16/9 }
-                    }
-                },
-                // Fallback: rear camera with medium resolution
-                {
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1280, min: 640 },
-                        height: { ideal: 720, min: 480 }
-                    }
-                },
-                // Last resort: any available camera
-                {
-                    video: {
-                        width: { ideal: 1280, min: 640 },
-                        height: { ideal: 720, min: 480 }
-                    }
+            // Simple camera constraints that work better
+            const constraints = {
+                video: {
+                    facingMode: 'environment', // Prefer back camera
+                    width: { ideal: 640, max: 1280 },
+                    height: { ideal: 480, max: 720 },
+                    frameRate: { ideal: 30, max: 30 }
                 }
-            ];
+            };
 
-            for (let i = 0; i < cameraConfigs.length; i++) {
-                const config = cameraConfigs[i];
-                try {
-                    if (cameraStatus) {
-                        cameraStatus.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Trying camera configuration ${i + 1}...`;
-                    }
-                    
-                    stream = await navigator.mediaDevices.getUserMedia(config);
-                    console.log('Camera config successful:', config);
-                    break;
-                } catch (err) {
-                    console.log(`Camera config ${i + 1} failed:`, err);
-                    if (cameraStatus && i === cameraConfigs.length - 1) {
-                        cameraStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Camera access failed';
-                    }
-                }
-            }
-
-            if (!stream) {
-                throw new Error('No camera available');
-            }
-            
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
             this.currentStream = stream;
             this.video.srcObject = stream;
             
+            // Force video to show immediately
+            this.video.play();
+            
             if (cameraStatus) {
-                cameraStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting camera...';
+                cameraStatus.innerHTML = '<i class="fas fa-check"></i> Camera ready!';
+                setTimeout(() => {
+                    cameraStatus.style.display = 'none';
+                }, 1500);
             }
             
-            // Wait for video to load and set proper orientation
-            this.video.onloadedmetadata = () => {
-                console.log('Video metadata loaded');
-                
-                // Ensure video plays and is properly oriented
-                this.video.play().then(() => {
-                    console.log('Video playing successfully');
-                    
-                    if (cameraStatus) {
-                        cameraStatus.innerHTML = '<i class="fas fa-check"></i> Camera ready - point at barcode';
-                        setTimeout(() => {
-                            cameraStatus.style.display = 'none';
-                        }, 2000);
-                    }
-                    
-                    // Fix video display orientation
-                    const videoTrack = stream.getVideoTracks()[0];
-                    if (videoTrack) {
-                        const settings = videoTrack.getSettings();
-                        console.log('Camera settings:', settings);
-                        
-                        // Apply CSS transform based on camera type
-                        if (settings.facingMode === 'user') {
-                            // Front camera - horizontal flip for mirror effect
-                            this.video.style.transform = 'scaleX(-1)';
-                            console.log('Applied front camera mirror transform');
-                        } else {
-                            // Back camera - no transform needed
-                            this.video.style.transform = 'none';
-                            console.log('Using back camera - no transform');
-                        }
-                    }
-                    
-                    // Start QuaggaJS scanning after video is ready
-                    setTimeout(() => this.startQuaggaScanner(), 500);
-                    
-                }).catch(err => {
-                    console.error('Video play error:', err);
-                    if (cameraStatus) {
-                        cameraStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Video play failed';
-                    }
-                });
-            };
+            // Fix video orientation - force no transform for all cameras
+            this.video.style.transform = 'none';
+            this.video.style.objectFit = 'cover';
             
-            this.video.onerror = (err) => {
-                console.error('Video error:', err);
-                if (cameraStatus) {
-                    cameraStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Video error';
-                }
-            };
+            // Start scanning immediately when video is ready
+            this.video.addEventListener('loadedmetadata', () => {
+                console.log('Video ready - starting scanner');
+                setTimeout(() => this.startQuaggaScanner(), 1000);
+            });
             
         } catch (error) {
-            console.error('Camera access error:', error);
+            console.error('Camera error:', error);
             if (cameraStatus) {
-                cameraStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Camera access denied';
+                cameraStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Camera failed';
                 cameraStatus.style.color = '#ef476f';
             }
             
-            setTimeout(() => {
-                alert('Camera access is required for barcode scanning. Please:\n\n1. Allow camera permissions when prompted\n2. Make sure no other app is using the camera\n3. Try refreshing the page\n\nYou can also enter barcodes manually below.');
-                if (cameraStatus) cameraStatus.style.display = 'none';
-            }, 1000);
+            alert('Camera access failed. Please:\n1. Allow camera permissions\n2. Make sure camera is not used by another app\n3. Try refreshing the page');
         }
     }
 
@@ -266,75 +215,76 @@ class SimpleScanner {
     }
 
     startQuaggaScanner() {
+        // Check if Quagga is loaded
         if (typeof Quagga === 'undefined') {
-            alert('Barcode scanner not available. Please use manual entry.');
+            console.error('QuaggaJS not loaded');
+            alert('Barcode scanner library not loaded. Please refresh the page and try again.');
             return;
         }
 
-        // Wait for video to be ready
-        if (this.video.videoWidth === 0 || this.video.videoHeight === 0) {
-            setTimeout(() => this.startQuaggaScanner(), 100);
+        // Make sure video is ready
+        if (!this.video || this.video.videoWidth === 0) {
+            console.log('Video not ready, retrying in 500ms...');
+            setTimeout(() => this.startQuaggaScanner(), 500);
             return;
         }
 
+        console.log('Starting QuaggaJS with video size:', this.video.videoWidth, 'x', this.video.videoHeight);
+
+        // Simple, reliable Quagga configuration
         Quagga.init({
             inputStream: {
                 name: "Live",
                 type: "LiveStream",
-                target: this.video,
-                constraints: {
-                    width: { min: 640, ideal: 1280 },
-                    height: { min: 480, ideal: 720 },
-                    facingMode: "environment",
-                    aspectRatio: { ideal: 16/9 }
-                },
-                singleChannel: false // Use color information for better detection
+                target: this.video
             },
-            locator: {
-                patchSize: "medium",
-                halfSample: true
-            },
-            numOfWorkers: 2,
-            frequency: 10, // Scan frequency
             decoder: {
                 readers: [
                     "code_128_reader",
-                    "ean_reader", 
-                    "ean_8_reader",
+                    "ean_reader",
+                    "ean_8_reader", 
                     "code_39_reader",
-                    "code_39_vin_reader",
-                    "codabar_reader",
                     "upc_reader",
-                    "upc_e_reader",
-                    "i2of5_reader"
+                    "upc_e_reader"
                 ]
-            },
-            locate: true
+            }
         }, (err) => {
             if (err) {
-                console.error('Quagga initialization error:', err);
-                alert('Failed to initialize barcode scanner. Please use manual entry.');
+                console.error('Quagga init error:', err);
+                alert('Scanner initialization failed: ' + err.message + '\n\nPlease use manual barcode entry.');
                 return;
             }
             
-            console.log('Quagga initialized successfully');
-            Quagga.start();
+            console.log('QuaggaJS initialized successfully');
             
-            // Handle barcode detection with confidence check
-            Quagga.onDetected((result) => {
-                if (result && result.codeResult && result.codeResult.code) {
-                    const barcode = result.codeResult.code.trim();
-                    const confidence = result.codeResult.decodedCodes.reduce((sum, code) => sum + code.error, 0) / result.codeResult.decodedCodes.length;
-                    
-                    // Only accept barcodes with reasonable confidence
-                    if (barcode && confidence < 0.3 && this.onBarcodeScanned) {
-                        console.log('Barcode detected:', barcode, 'Confidence:', confidence);
-                        Quagga.stop();
-                        this.closeScanner();
-                        this.onBarcodeScanned(barcode);
+            try {
+                Quagga.start();
+                console.log('QuaggaJS started');
+                
+                // Handle successful barcode detection
+                Quagga.onDetected((result) => {
+                    if (result && result.codeResult && result.codeResult.code) {
+                        const barcode = result.codeResult.code.trim();
+                        console.log('Barcode detected:', barcode);
+                        
+                        if (barcode && this.onBarcodeScanned) {
+                            // Stop scanning immediately
+                            try {
+                                Quagga.stop();
+                            } catch (e) {
+                                console.log('Quagga stop error (ignore):', e);
+                            }
+                            
+                            this.closeScanner();
+                            this.onBarcodeScanned(barcode);
+                        }
                     }
-                }
-            });
+                });
+                
+            } catch (startError) {
+                console.error('Quagga start error:', startError);
+                alert('Failed to start scanner: ' + startError.message);
+            }
         });
     }
 

@@ -1430,6 +1430,10 @@
             background-color: #333;
             overflow: hidden;
             border-radius: 12px;
+            /* Ensure container doesn't cause video scaling issues */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         #cameraVideo, #scannerVideo {
@@ -1437,15 +1441,17 @@
             height: 100%;
             object-fit: cover;
             background-color: #000;
-            border-radius: 12px;
-            /* Ensure proper video orientation - no transforms by default */
-            transform: none;
-            /* Prevent any unwanted flipping */
-            -webkit-transform: none;
-            /* Smooth video rendering */
-            image-rendering: optimizeQuality;
+            /* Remove all transforms - let camera show natural orientation */
+            transform: none !important;
+            -webkit-transform: none !important;
+            /* Prevent browser from flipping video */
             -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
+            /* Ensure proper video scaling */
+            object-position: center;
+            /* Prevent zoom out effect */
+            min-width: 100%;
+            min-height: 100%;
         }
         
         /* Specific styling for scanner video in modal */
