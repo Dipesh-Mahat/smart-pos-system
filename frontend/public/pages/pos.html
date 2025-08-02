@@ -2493,6 +2493,27 @@
                 window.smartPOSNavbar = navbar;
             }
             
+            // Fix mobile menu positioning by calculating actual navbar height
+            setTimeout(() => {
+                const navbar = document.querySelector('.smart-pos-navbar');
+                if (navbar) {
+                    const navbarHeight = navbar.offsetHeight;
+                    console.log('Calculated navbar height:', navbarHeight + 'px');
+                    document.documentElement.style.setProperty('--navbar-height', navbarHeight + 'px');
+                }
+            }, 100);
+            
+            // Also recalculate on window resize
+            window.addEventListener('resize', () => {
+                setTimeout(() => {
+                    const navbar = document.querySelector('.smart-pos-navbar');
+                    if (navbar) {
+                        const navbarHeight = navbar.offsetHeight;
+                        document.documentElement.style.setProperty('--navbar-height', navbarHeight + 'px');
+                    }
+                }, 100);
+            });
+            
             // Add event listeners for the custom action buttons
             document.addEventListener('click', async function(e) {
                 if (e.target.closest('[data-action="clearPos"]') || e.target.closest('[data-action="clearPos"] *')) {
@@ -2695,10 +2716,8 @@ function showAutoFadeSuccessNotification(title, message) {
             /* Ensure mobile menu is visible when open - CRITICAL FIX */
             #sideMenu, .side-menu {
                 position: fixed !important;
-                top: 80px !important;
                 left: -280px !important;
                 width: 280px !important;
-                height: calc(100vh - 80px) !important;
                 background: white !important;
                 z-index: 1600 !important;
                 transition: all 0.3s ease !important;
@@ -2707,6 +2726,12 @@ function showAutoFadeSuccessNotification(title, message) {
                 opacity: 0 !important;
                 transform: translateX(-20px) !important;
                 visibility: hidden !important;
+                margin-top: 0 !important;
+                padding-top: 0 !important;
+                border-top: none !important;
+                /* Dynamic positioning based on actual navbar height */
+                top: var(--navbar-height, 80px) !important;
+                height: calc(100vh - var(--navbar-height, 80px)) !important;
             }
             
             #sideMenu.open, .side-menu.open {
@@ -2719,16 +2744,18 @@ function showAutoFadeSuccessNotification(title, message) {
             
             #menuOverlay, .menu-overlay {
                 position: fixed !important;
-                top: 80px !important;
                 left: 0 !important;
                 width: 100% !important;
-                height: calc(100% - 80px) !important;
                 background: rgba(0,0,0,0.5) !important;
                 z-index: 1500 !important;
                 opacity: 0 !important;
                 visibility: hidden !important;
                 transition: all 0.3s ease !important;
                 backdrop-filter: blur(4px) !important;
+                margin-top: 0 !important;
+                /* Dynamic positioning based on actual navbar height */
+                top: var(--navbar-height, 80px) !important;
+                height: calc(100% - var(--navbar-height, 80px)) !important;
             }
             
             #menuOverlay.active, .menu-overlay.active {
