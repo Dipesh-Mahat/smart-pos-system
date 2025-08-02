@@ -10,6 +10,7 @@ class SmartPOSSystem {
         this.isScanning = false;
         this.scanner = null;
         this.currentStream = null;
+        this.quaggaRunning = false; // Track Quagga state
         this.init();
     }
 
@@ -436,12 +437,14 @@ class SmartPOSSystem {
         
         // Stop Quagga if it's running
         try {
-            if (typeof Quagga !== 'undefined') {
+            if (typeof Quagga !== 'undefined' && this.quaggaRunning) {
                 Quagga.stop();
+                this.quaggaRunning = false;
                 console.log('Quagga stopped');
             }
         } catch (e) {
             console.warn('Error stopping Quagga:', e);
+            this.quaggaRunning = false; // Reset state even if error
         }
         
         // Stop camera stream
@@ -552,6 +555,7 @@ class SmartPOSSystem {
             
             console.log('✅ Quagga ready - starting scan...');
             Quagga.start();
+            this.quaggaRunning = true; // Set flag when Quagga starts
             this.updateScanningStatus('🎯 Point at barcode and hold steady');
             
             // Simple detection handler
@@ -568,6 +572,7 @@ class SmartPOSSystem {
                         
                         // Stop scanning immediately
                         Quagga.stop();
+                        this.quaggaRunning = false; // Update flag
                         this.showScanningIndicator(false);
                         this.updateScanningStatus('✅ Scanned successfully!');
                         
@@ -582,11 +587,15 @@ class SmartPOSSystem {
             // Auto-stop after 15 seconds
             setTimeout(() => {
                 try {
-                    Quagga.stop();
-                    this.showScanningIndicator(false);
-                    this.updateScanningStatus('Try again or enter barcode manually');
+                    if (this.quaggaRunning) {
+                        Quagga.stop();
+                        this.quaggaRunning = false;
+                        this.showScanningIndicator(false);
+                        this.updateScanningStatus('Try again or enter barcode manually');
+                    }
                 } catch (e) {
                     console.warn('Error stopping scan:', e);
+                    this.quaggaRunning = false; // Reset flag on error
                 }
             }, 15000);
         });

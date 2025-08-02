@@ -298,6 +298,42 @@
             cursor: pointer;
         }
         
+        /* Mobile-only scan button */
+        .mobile-scan-bar {
+            display: none; /* Hidden by default */
+            padding: 16px;
+            background: white;
+            border-bottom: 2px solid var(--gray-200);
+            margin-bottom: 0;
+        }
+        
+        .mobile-scan-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .mobile-scan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+        
+        .mobile-scan-btn i {
+            font-size: 22px;
+        }
+        
         .categories-bar {
             display: flex;
             flex-direction: row;
@@ -910,26 +946,15 @@
                 background-color: var(--gray-100);
             }
             
-            .search-bar {
+            /* Show mobile scan button */
+            .mobile-scan-bar {
+                display: block;
                 order: 1;
-                flex-direction: row;
-                padding: 16px;
-                gap: 12px;
-                background: white;
-                border-bottom: 2px solid var(--gray-200);
-                margin-bottom: 0;
             }
             
-            .search-input {
-                flex: 1;
-                font-size: 16px;
-                padding: 14px 16px;
-            }
-            
-            .scan-btn {
-                min-width: 50px;
-                padding: 14px;
-                justify-content: center;
+            /* Hide search bar on mobile - mobile is scan-only */
+            .search-bar {
+                display: none;
             }
             
             /* Hide categories bar on mobile - not needed for scanning workflow */
@@ -942,7 +967,7 @@
             }
             
             .pos-content {
-                order: 3;
+                order: 2;
                 padding: 0;
                 gap: 12px;
                 flex-direction: column;
@@ -1024,12 +1049,16 @@
                 background-color: var(--gray-100);
             }
             
-            .search-bar {
+            /* Show mobile scan button */
+            .mobile-scan-bar {
+                display: block;
                 order: 1;
                 padding: 12px;
-                background: white;
-                border-bottom: 2px solid var(--gray-200);
-                margin-bottom: 0;
+            }
+            
+            /* Hide search bar on mobile - mobile is scan-only */
+            .search-bar {
+                display: none;
             }
             
             /* Hide categories bar on mobile - not needed for scanning workflow */
@@ -1038,7 +1067,7 @@
             }
             
             .pos-content {
-                order: 3;
+                order: 2;
                 padding: 0;
                 display: flex;
                 flex-direction: column;
@@ -2335,6 +2364,14 @@
         <!-- Navbar component will be loaded here automatically -->
         <div class="main-content">
             <div class="pos-main">
+                    <!-- Mobile-only scan button -->
+                    <div class="mobile-scan-bar">
+                        <button class="mobile-scan-btn" id="mobileScanBtn" data-scan-type="barcode">
+                            <i class="fas fa-barcode"></i> 
+                            <span>Scan Product</span>
+                        </button>
+                    </div>
+                    
                     <!-- 1. Search bar and scan button at the very top -->
                     <div class="search-bar">
                         <input type="text" class="search-input" id="searchInput" placeholder="Search products or scan barcode...">
@@ -2683,6 +2720,18 @@
             const scanBtn = document.getElementById('scanBtn');
             if (scanBtn) {
                 scanBtn.addEventListener('click', function() {
+                    // Always open camera scanner directly (no connection logic)
+                    document.getElementById('cameraModal').classList.add('active');
+                    if (posSystem && posSystem.startDirectScan) {
+                        posSystem.startDirectScan();
+                    }
+                });
+            }
+            
+            // Set up mobile scan button event listener
+            const mobileScanBtn = document.getElementById('mobileScanBtn');
+            if (mobileScanBtn) {
+                mobileScanBtn.addEventListener('click', function() {
                     // Always open camera scanner directly (no connection logic)
                     document.getElementById('cameraModal').classList.add('active');
                     if (posSystem && posSystem.startDirectScan) {
