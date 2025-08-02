@@ -88,7 +88,7 @@
         }
         
         /* Prevent layout shift during loading */
-        .pos-container {
+        .main-content {
             min-height: 100vh;
         }
         
@@ -178,14 +178,7 @@
             transition: opacity 0.3s ease;
         }
         
-        .pos-container {
-            display: flex;
-            min-height: 100vh;
-            max-height: 100vh;
-            background-color: var(--gray-100);
-            overflow: hidden;
-        }
-          .pos-main {
+        .pos-main {
             display: flex;
             flex-direction: column;
             gap: 0;
@@ -916,11 +909,6 @@
         }
 
         @media screen and (max-width: 768px) {
-            .main-content {
-                padding: 0;
-                margin-left: 0;
-            }
-            
             .pos-main {
                 padding: 0;
                 height: auto;
@@ -1962,28 +1950,18 @@
             padding: 24px;
         }
         
-        .main-content, .container, .pos-container, .pos-main {
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            box-sizing: border-box !important;
+        .main-content {
+            background-color: var(--gray-100);
+            min-height: 100vh;
         }
         
         /* Override for desktop menu responsiveness */
         @media screen and (min-width: 1024px) {
             .main-content {
-                width: calc(100% - var(--sidebar-width, 280px)) !important;
-                margin-left: var(--sidebar-width, 280px) !important;
                 transition: all 0.3s ease !important;
             }
             
-            body.menu-closed .main-content {
-                width: calc(100% - var(--sidebar-collapsed-width, 80px)) !important;
-                margin-left: var(--sidebar-collapsed-width, 80px) !important;
-            }
-            
-            .pos-container, .pos-main {
+            .pos-main {
                 width: 100% !important;
                 margin-left: 0 !important;
             }
@@ -2004,8 +1982,7 @@
     <div class="container">
         <!-- Navbar component will be loaded here automatically -->
         <div class="main-content">
-            <div class="pos-container">
-                <div class="pos-main">
+            <div class="pos-main">
                     <!-- 1. Search bar and scan button at the very top -->
                     <div class="search-bar">
                         <input type="text" class="search-input" id="searchInput" placeholder="Search products or scan barcode...">
@@ -2470,7 +2447,7 @@ function showBillModal(cartArr) {
             }
             
             /* Ensure POS content uses full available width */
-            .pos-container {
+            .main-content {
                 width: 100%;
                 max-width: 100%;
             }
