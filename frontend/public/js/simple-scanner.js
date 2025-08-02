@@ -176,6 +176,8 @@ class SimpleScanner {
 
     // Alias method for compatibility
     startScan() {
+        console.log('🚀 Starting scanner...');
+        
         // Ensure modal is created before starting scan
         if (!this.modal) {
             if (document.readyState === 'loading') {
@@ -190,26 +192,41 @@ class SimpleScanner {
         }
         
         this.startScanner((barcode) => {
+            console.log('📱 Scanner callback received barcode:', barcode);
+            
             // Try multiple ways to find the POS system
             let posSystem = window.posSystem || window.SmartPOSSystem;
             
+            console.log('🔍 Looking for POS system...', {
+                posSystem: !!posSystem,
+                windowPosSystem: !!window.posSystem,
+                windowSmartPOSSystem: !!window.SmartPOSSystem
+            });
+            
             // If we can't find it yet, wait a bit and try again
             if (!posSystem) {
+                console.log('⏳ POS system not found, waiting...');
                 setTimeout(() => {
                     posSystem = window.posSystem || window.SmartPOSSystem;
+                    console.log('🔄 Retry - POS system found:', !!posSystem);
+                    
                     if (posSystem && posSystem.processBarcode) {
+                        console.log('✅ Processing barcode with POS system:', barcode);
                         posSystem.processBarcode(barcode);
                     } else {
-                        alert(`Scanned: ${barcode}\nPOS system not ready yet.`);
+                        console.error('❌ POS system still not ready');
+                        alert(`Scanned: ${barcode}\n\nPOS system not ready yet. Please try again.`);
                     }
                 }, 100);
                 return;
             }
             
-            if (posSystem.processBarcode) {
+            if (posSystem && posSystem.processBarcode) {
+                console.log('✅ Processing barcode immediately:', barcode);
                 posSystem.processBarcode(barcode);
             } else {
-                alert(`Scanned barcode: ${barcode}`);
+                console.error('❌ POS system found but no processBarcode method');
+                alert(`Scanned barcode: ${barcode}\n\nCannot add to cart - POS system error.`);
             }
         });
     }
@@ -259,24 +276,47 @@ class SimpleScanner {
             
             try {
                 Quagga.start();
-                console.log('QuaggaJS started');
+                console.log('QuaggaJS started and listening for barcodes...');
+                
+                // Show visual feedback that scanning is active
+                const scanLine = document.querySelector('.scan-line');
+                if (scanLine) {
+                    scanLine.classList.add('active');
+                }
                 
                 // Handle successful barcode detection
                 Quagga.onDetected((result) => {
                     if (result && result.codeResult && result.codeResult.code) {
                         const barcode = result.codeResult.code.trim();
-                        console.log('Barcode detected:', barcode);
+                        console.log('🎯 BARCODE DETECTED:', barcode);
                         
                         if (barcode && this.onBarcodeScanned) {
-                            // Stop scanning immediately
+                            // Stop scanning immediately to prevent multiple scans
+                            console.log('Stopping scanner and processing barcode...');
+                            
                             try {
                                 Quagga.stop();
+                                console.log('Quagga stopped');
                             } catch (e) {
                                 console.log('Quagga stop error (ignore):', e);
                             }
                             
+                            // Close scanner modal  
                             this.closeScanner();
+                            
+                            // Process the barcode
+                            console.log('Calling barcode callback with:', barcode);
                             this.onBarcodeScanned(barcode);
+                        }
+                    }
+                });
+                
+                // Add some debug info for failed detections
+                Quagga.onProcessed((result) => {
+                    if (result && result.boxes) {
+                        // Only log every 30th frame to avoid spam
+                        if (Math.random() < 0.03) {
+                            console.log('Scanner processing... looking for barcodes');
                         }
                     }
                 });
@@ -292,10 +332,16 @@ class SimpleScanner {
         const input = document.getElementById('manualBarcodeInput');
         const barcode = input.value.trim();
         
+        console.log('📝 Manual barcode entered:', barcode);
+        
         if (barcode && this.onBarcodeScanned) {
+            console.log('✅ Processing manual barcode...');
             this.closeScanner();
             this.onBarcodeScanned(barcode);
             input.value = '';
+        } else {
+            console.log('❌ No barcode entered or no callback available');
+            alert('Please enter a barcode');
         }
     }
 

@@ -636,28 +636,56 @@ class SmartPOSSystem {
     }
 
     processBarcode(barcode) {
+        console.log('🎯 POS System processing barcode:', barcode);
+        console.log('📦 Available products:', this.products.length);
+        
         if (!barcode || typeof barcode !== 'string') {
+            console.error('❌ Invalid barcode:', barcode);
             this.showScanNotification('Invalid barcode scanned', 'error');
             return;
         }
 
         // Clean and normalize the scanned barcode
         const scannedBarcode = barcode.trim();
+        console.log('🔍 Searching for barcode:', scannedBarcode);
         
         if (scannedBarcode.length === 0) {
+            console.error('❌ Empty barcode');
             this.showScanNotification('Empty barcode detected', 'error');
             return;
+        }
+
+        // Log first few products for debugging
+        if (this.products.length > 0) {
+            console.log('📋 Sample products:', this.products.slice(0, 3).map(p => ({
+                name: p.name,
+                barcode: p.barcode,
+                id: p._id || p.id
+            })));
         }
 
         // Find product by barcode
         const product = this.products.find(p => {
             const productBarcode = p.barcode ? p.barcode.toString().trim() : '';
-            return productBarcode === scannedBarcode;
+            const match = productBarcode === scannedBarcode;
+            
+            if (match) {
+                console.log('✅ MATCH FOUND:', {
+                    productName: p.name,
+                    productBarcode: productBarcode,
+                    scannedBarcode: scannedBarcode
+                });
+            }
+            
+            return match;
         });
         
         if (product) {
+            console.log('🛒 Found product:', product.name, 'Stock:', product.stock);
+            
             // Check stock availability
             if (product.stock <= 0) {
+                console.log('❌ Out of stock');
                 this.showScanNotification(`${product.name} is out of stock`, 'error');
                 this.closeCameraModal();
                 return;
@@ -665,13 +693,26 @@ class SmartPOSSystem {
             
             // Add to cart using the correct ID
             const productId = product._id || product.id;
+            console.log('➕ Adding to cart with ID:', productId);
+            
             this.addToCart(productId);
             this.closeCameraModal();
             
             // Show success notification
             this.showScanNotification(`Added ${product.name} to cart`, 'success');
+            console.log('✅ Successfully added to cart');
             
         } else {
+            console.log('❌ Product not found for barcode:', scannedBarcode);
+            console.log('🔍 Checking all product barcodes:');
+            
+            // Debug: log all barcodes to help with matching
+            this.products.forEach((p, index) => {
+                if (index < 10) { // Only log first 10 to avoid spam
+                    console.log(`Product ${index + 1}: "${p.name}" - Barcode: "${p.barcode}"`);
+                }
+            });
+            
             this.closeCameraModal();
             this.showBarcodeNotFound(scannedBarcode);
         }
