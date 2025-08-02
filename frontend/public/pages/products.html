@@ -677,14 +677,122 @@
             </div>
         </div>
     </div>    <!-- Include JavaScript files -->
-    <script src="../js/auth-service.js"></script>
-    <script src="../js/api-service.js"></script>
     <script src="../js/menu.js"></script>
     <script src="../js/navbar.js"></script>
     <script>
         // Products Management System
         class ProductsManager {
-            // ...existing code...
+            constructor() {
+                this.products = [];
+                this.filteredProducts = [];
+                this.currentFilter = 'all';
+                this.searchTerm = '';
+                this.init();
+            }
+
+            async init() {
+                console.log('Initializing ProductsManager...');
+                await this.loadProducts();
+                console.log('ProductsManager initialized successfully');
+            }
+
+            async loadProducts() {
+                console.log('Loading products from API...');
+                
+                // Debug authentication
+                console.log('Auth service available:', !!window.authService);
+                console.log('User logged in:', window.authService?.isLoggedIn());
+                console.log('Token available:', !!window.authService?.getToken());
+                
+                const loadingElement = document.getElementById('loadingState');
+                const productsGridElement = document.getElementById('productsGrid');
+                
+                // Show loading state
+                if (loadingElement) loadingElement.style.display = 'flex';
+                if (productsGridElement) productsGridElement.style.display = 'none';
+
+                try {
+                    // Ensure we have a valid auth token before making requests
+                    if (window.authService && !window.authService.isLoggedIn()) {
+                        console.warn('User not authenticated, redirecting to login...');
+                        window.location.href = '../landing.html';
+                        return;
+                    }
+
+                    // Use the API service to fetch real products from the database
+                    const data = await window.apiService.request('/shop/products');
+                    
+                    // Handle the correct API response format: {products: [...], pagination: {...}}
+                    if (data && data.products && Array.isArray(data.products)) {
+                        // Normalize the product data - convert _id to id for consistency
+                        this.products = data.products.map(product => ({
+                            ...product,
+                            id: product._id || product.id // Add id field using _id value
+                        }));
+                        console.log('Loaded products from database:', this.products.length);
+                    } else if (data && data.success && Array.isArray(data.products)) {
+                        // Legacy format support
+                        this.products = data.products.map(product => ({
+                            ...product,
+                            id: product._id || product.id // Handle both _id and id
+                        }));
+                        console.log('Loaded products from database (legacy format):', this.products.length);
+                    } else {
+                        console.warn('Failed to load products from API, no products available');
+                        this.products = [];
+                    }
+                } catch (error) {
+                    console.error('Error loading products:', error);
+                    
+                    // If it's an authentication error, redirect to login
+                    if (error.status === 401 || error.message?.includes('unauthorized')) {
+                        console.warn('Authentication failed, redirecting to login...');
+                        window.location.href = '../landing.html';
+                        return;
+                    }
+                    
+                    // No products available
+                    this.products = [];
+                }
+                
+                // Hide loading state
+                if (loadingElement) loadingElement.style.display = 'none';
+                if (productsGridElement) productsGridElement.style.display = 'grid';
+                
+                // Apply filters and render
+                this.applyFilters();
+                this.renderProducts();
+                this.updateStats();
+            }
+
+            showEmpty() {
+                const grid = document.getElementById('productsGrid');
+                if (grid) {
+                    grid.innerHTML = `
+                        <div style="
+                            grid-column: 1 / -1;
+                            text-align: center;
+                            padding: 60px 20px;
+                            color: #6c757d;
+                        ">
+                            <i class="fas fa-box-open" style="font-size: 48px; margin-bottom: 20px; color: #dee2e6;"></i>
+                            <h3 style="margin: 0 0 10px 0; color: #495057;">No Products Found</h3>
+                            <p style="margin: 0; font-size: 14px;">
+                                ${this.searchTerm ? `No products match "${this.searchTerm}"` : 
+                                  this.currentFilter !== 'all' ? `No products in selected category` : 
+                                  'No products available. Add some products to get started.'}
+                            </p>
+                        </div>
+                    `;
+                }
+            }
+
+            hideLoading() {
+                const loadingElement = document.getElementById('loadingState');
+                if (loadingElement) {
+                    loadingElement.style.display = 'none';
+                }
+            }
 
             renderProducts() {
                 const grid = document.getElementById('productsGrid');
@@ -791,8 +899,6 @@
                 updateElement('activeProducts', active);
                 updateElement('lowStockProducts', lowStock);
                 updateElement('unlistedProducts', unlisted);
-                
-                console.log('Stats updated:', { total, active, lowStock, unlisted });
             }
 
             applyFilters() {
@@ -1303,10 +1409,16 @@
             
             console.log('User authenticated, initializing products page...');
             
-            // Initialize navbar
-            const navbar = new SmartPOSNavbar({
-                title: 'Products Management'
-            });
+            // Prevent auto-initialization and initialize navbar manually
+            window.navbarManualInit = true;
+            
+            // Initialize navbar only if not already initialized
+            if (!window.smartPOSNavbar) {
+                const navbar = new SmartPOSNavbar({
+                    title: 'Products Management'
+                });
+                window.smartPOSNavbar = navbar;
+            }
             
             // Initialize products manager
             window.productsManager = new ProductsManager();

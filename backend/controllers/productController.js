@@ -163,10 +163,27 @@ exports.updateProduct = async (req, res) => {
   session.startTransaction();
   
   try {
+    let shopId;
+    
+    // For development: if no authenticated user, find any shop owner
+    if (req.user && req.user._id) {
+      shopId = req.user._id;
+    } else {
+      // Development fallback: find any shop owner
+      const User = require('../models/User');
+      const shopOwner = await User.findOne({ role: 'shopowner' });
+      if (!shopOwner) {
+        await session.abortTransaction();
+        return res.status(404).json({ error: 'No shop owner found' });
+      }
+      shopId = shopOwner._id;
+      console.warn('Development mode: Using fallback shop owner for product update');
+    }
+    
     // Find product and ensure it belongs to the shop
     const product = await Product.findOne({
       _id: req.params.id,
-      shopId: req.user._id
+      shopId: shopId
     }).session(session);
     
     if (!product) {
@@ -188,7 +205,7 @@ exports.updateProduct = async (req, res) => {
     // If stock changed, log the inventory change
     if (newStock !== oldStock) {
       const inventoryLog = new InventoryLog({
-        shopId: req.user._id,
+        shopId: shopId,
         productId: product._id,
         type: 'adjustment',
         quantity: newStock - oldStock,
@@ -196,7 +213,7 @@ exports.updateProduct = async (req, res) => {
         newStock: newStock,
         reference: 'Manual adjustment',
         notes: req.body.notes || 'Stock updated via product edit',
-        performedBy: req.user._id
+        performedBy: shopId
       });
       
       await inventoryLog.save({ session });

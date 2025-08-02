@@ -438,6 +438,28 @@
             setupFilters();
         });
         
+        // Add the missing refreshAlerts function
+        function refreshAlerts() {
+            // Refresh low stock and out of stock alerts
+            const apiService = window.apiService;
+            if (apiService) {
+                apiService.request('/inventory/alerts')
+                    .then(response => {
+                        if (response.success) {
+                            updateAlerts(response.data);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error refreshing alerts:', error);
+                    });
+            }
+        }
+        
+        function updateAlerts(alerts) {
+            // Update alert badges or notifications
+            console.log('Alerts updated:', alerts);
+        }
+        
         function loadInventoryData() {
             const inventoryTable = document.getElementById('inventoryTableBody');
             if (!inventoryTable) return;
@@ -461,14 +483,18 @@
                 
                 // Fetch inventory data and statistics from API
                 Promise.all([
-                    apiService.request(`/products${queryParams}`),
-                    apiService.request('/inventory/stats')
+                    apiService.request(`/shop/products${queryParams}`),
+                    apiService.request('/shop/inventory/stats')
                 ])
                 .then(([productsResponse, statsResponse]) => {
-                    if (productsResponse.success && productsResponse.data.products) {
+                    // Handle the correct API response format: {products: [...], pagination: {...}}
+                    if (productsResponse && productsResponse.products && Array.isArray(productsResponse.products)) {
+                        displayInventory(productsResponse.products);
+                    } else if (productsResponse.success && productsResponse.data && productsResponse.data.products) {
+                        // Legacy format support
                         displayInventory(productsResponse.data.products);
                     } else {
-                        console.error('Failed to load inventory:', productsResponse.message);
+                        console.error('Failed to load inventory:', productsResponse.message || 'Unknown error');
                         displayInventory([]);
                     }
 
@@ -628,8 +654,8 @@
         }
         
         function editItem(itemId) {
-            // Navigate to item management page instead
-            window.location.href = `item-management.html`;
+            // Navigate to products page instead
+            window.location.href = `products.html`;
         }
         
         function adjustStock(itemId) {
@@ -649,19 +675,26 @@
     <script>
         // Initialize navbar with custom actions
         document.addEventListener('DOMContentLoaded', function() {
-            const navbar = new SmartPOSNavbar();
+            // Wait for navbar to be initialized, then add custom actions
+            setTimeout(() => {
+                if (window.smartPOSNavbar && typeof window.smartPOSNavbar.addCustomAction === 'function') {
+                    // Add custom navbar actions for inventory
+                    window.smartPOSNavbar.addCustomAction('add-item', 'Add Item', 'fas fa-plus', 'btn-primary');
+                    window.smartPOSNavbar.addCustomAction('manage-items', 'Manage Items', 'fas fa-boxes', 'btn-secondary');
+                    window.smartPOSNavbar.addCustomAction('export-data', 'Export', 'fas fa-download', 'btn-secondary');
+                } else {
+                    console.warn('Navbar not ready for custom actions');
+                }
+            }, 500);
             
-            // Add custom navbar actions for inventory
-            navbar.addAction('add-item', 'Add Item', 'fas fa-plus', 'btn-primary');
-            navbar.addAction('manage-items', 'Manage Items', 'fas fa-boxes', 'btn-secondary');
-            navbar.addAction('export-data', 'Export', 'fas fa-download', 'btn-secondary');            // Handle navbar action clicks
+            // Handle navbar action clicks
             document.addEventListener('navbarAction', function(e) {
                 switch(e.detail.actionId) {
                     case 'add-item':
-                        window.location.href = 'item-management.html';
+                        window.location.href = 'products.html';
                         break;
                     case 'manage-items':
-                        window.location.href = 'item-management.html';
+                        window.location.href = 'products.html';
                         break;
                     case 'export-data':
                         console.log('Exporting inventory data...');
