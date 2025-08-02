@@ -4,9 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order History - Smart POS System</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/menu.css">
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="../css/suppliers.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        .main-content {
+            padding: 24px;
+            background-color: #f8f9fa;
+            min-height: calc(100vh - 70px);
+            margin-left: 250px;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+        }
+
         .order-history-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -321,19 +339,32 @@
             opacity: 0.3;
         }
 
-        .back-link {
-            display: inline-flex;
+        .breadcrumb {
+            display: flex;
             align-items: center;
             gap: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+
+        .breadcrumb a {
             color: #3498db;
             text-decoration: none;
-            font-weight: 600;
-            margin-bottom: 20px;
             transition: color 0.3s;
         }
 
-        .back-link:hover {
+        .breadcrumb a:hover {
             color: #2980b9;
+        }
+
+        .breadcrumb .separator {
+            color: #bdc3c7;
+            font-weight: normal;
+        }
+
+        .breadcrumb .current {
+            color: #2c3e50;
         }
 
         /* Bill Modal */
@@ -425,11 +456,14 @@
     </style>
 </head>
 <body>
-    <div class="order-history-container">
-        <!-- Back Link -->
-        <a href="suppliers.html" class="back-link">
-            ← Back to Suppliers
-        </a>
+    <div class="main-content">
+        <div class="order-history-container">
+        <!-- Breadcrumb Navigation -->
+        <div class="breadcrumb">
+            <a href="suppliers.html">Suppliers</a>
+            <span class="separator">></span>
+            <span class="current">Order History</span>
+        </div>
 
         <!-- Header -->
         <div class="order-history-header">
@@ -481,6 +515,7 @@
                 <div>Loading your orders...</div>
             </div>
         </div>
+        </div>
     </div>
 
     <!-- Bill Modal -->
@@ -508,552 +543,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script src="../js/menu.js"></script>
     <script src="../js/bill-generator.js"></script>
     <script src="../js/qrcode.min.js"></script>
-    <script>
-        let allOrders = [];
-        let filteredOrders = [];
-        let suppliers = [];
-        let currentBillData = null;
-        const billGenerator = new SmartPOSBillGenerator();
-
-        // Authentication check
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is authenticated
-            if (!window.authService || !window.authService.isLoggedIn()) {
-                window.location.href = '../landing.html';
-                return;
-            }
-            
-            // Initialize the page
-            loadSuppliers();
-            loadOrders();
-        });
-
-        // Load orders and suppliers on page load
-
-        async function loadSuppliers() {
-            try {
-                const response = await fetch('/api/shop/orders/suppliers');
-                if (response.ok) {
-                    suppliers = await response.json();
-                    populateSupplierFilter();
-                } else {
-                    console.error('Failed to load suppliers');
-                }
-            } catch (error) {
-                console.error('Error loading suppliers:', error);
-            }
-        }
-
-        function populateSupplierFilter() {
-            const supplierFilter = document.getElementById('supplier-filter');
-            suppliers.forEach(supplier => {
-                const option = document.createElement('option');
-                option.value = supplier._id;
-                option.textContent = supplier.supplierName;
-                supplierFilter.appendChild(option);
-            });
-        }
-
-        async function loadOrders() {
-            try {
-                // Add loading indicator
-                document.getElementById('orders-list').innerHTML = '<div class="loading"><div>Loading your order history...</div></div>';
-                
-                // Use proper API endpoint with authentication headers
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-                
-                // Add auth token if available
-                const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
-
-                const response = await fetch('/api/shop/orders/suppliers', { headers });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const suppliersData = await response.json();
-                console.log('Orders data loaded:', suppliersData);
-                
-                // Extract all orders from all suppliers with better error handling
-                allOrders = [];
-                
-                if (Array.isArray(suppliersData)) {
-                    suppliersData.forEach(supplier => {
-                        if (supplier.orders && Array.isArray(supplier.orders) && supplier.orders.length > 0) {
-                            supplier.orders.forEach(order => {
-                                // Ensure proper order structure
-                                const processedOrder = {
-                                    ...order,
-                                    _id: order._id || order.id || `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                                    status: order.status || 'pending',
-                                    createdAt: order.createdAt || order.orderDate || new Date().toISOString(),
-                                    items: Array.isArray(order.items) ? order.items : [],
-                                    total: parseFloat(order.total || order.totalAmount || 0),
-                                    subtotal: parseFloat(order.subtotal || order.subTotal || order.total || 0),
-                                    supplierInfo: {
-                                        _id: supplier._id,
-                                        supplierName: supplier.supplierName || supplier.name || 'Unknown Supplier',
-                                        email: supplier.email || 'No email provided',
-                                        phone: supplier.phone || 'No phone provided',
-                                        address: supplier.address || 'No address provided'
-                                    }
-                                };
-                                allOrders.push(processedOrder);
-                            });
-                        }
-                    });
-                } else {
-                    console.warn('Unexpected data format:', suppliersData);
-                }
-
-                // Sort orders by date (newest first)
-                allOrders.sort((a, b) => {
-                    const dateA = new Date(a.createdAt);
-                    const dateB = new Date(b.createdAt);
-                    return dateB - dateA;
-                });
-                
-                filteredOrders = [...allOrders];
-                displayOrders();
-                
-                console.log(`Loaded ${allOrders.length} orders successfully`);
-                
-            } catch (error) {
-                console.error('Error loading orders:', error);
-                const errorMessage = getErrorMessage(error);
-                document.getElementById('orders-list').innerHTML = `
-                    <div class="no-orders">
-                        <i style="font-size: 3rem; color: #e74c3c;">⚠️</i>
-                        <h3>Error Loading Orders</h3>
-                        <p>${errorMessage}</p>
-                        <button onclick="loadOrders()" style="
-                            background: #3498db; 
-                            color: white; 
-                            border: none; 
-                            padding: 10px 20px; 
-                            border-radius: 5px; 
-                            cursor: pointer; 
-                            margin-top: 15px;
-                            font-weight: 600;
-                        ">
-                            <i class="fas fa-refresh"></i> Retry
-                        </button>
-                    </div>
-                `;
-            }
-        }
-
-        function getErrorMessage(error) {
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                return 'Cannot connect to server. Please ensure the backend server is running on the correct port.';
-            } else if (error.message.includes('401')) {
-                return 'Authentication failed. Please log in again.';
-            } else if (error.message.includes('403')) {
-                return 'Access denied. Please check your permissions.';
-            } else if (error.message.includes('404')) {
-                return 'Orders endpoint not found. Please check the API configuration.';
-            } else if (error.message.includes('500')) {
-                return 'Server error. Please try again later.';
-            } else {
-                return `${error.message || 'Unknown error occurred'}. Please check your connection and try again.`;
-            }
-        }
-
-        function displayOrders() {
-            const ordersList = document.getElementById('orders-list');
-            const ordersCount = document.getElementById('orders-count');
-
-            if (filteredOrders.length === 0) {
-                ordersList.innerHTML = `
-                    <div class="no-orders">
-                        <i style="font-size: 4rem; color: #bdc3c7;">📦</i>
-                        <h3>No orders found</h3>
-                        <p>No orders match your current filters. Try adjusting your search criteria or check back later.</p>
-                    </div>
-                `;
-                ordersCount.textContent = '0 orders found';
-                return;
-            }
-
-            ordersCount.textContent = `${filteredOrders.length} order${filteredOrders.length !== 1 ? 's' : ''} found`;
-
-            const ordersHTML = filteredOrders.map((order, index) => {
-                // Safely handle date formatting
-                let formattedDate;
-                try {
-                    const orderDate = new Date(order.createdAt || order.orderDate || Date.now());
-                    formattedDate = orderDate.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
-                } catch (e) {
-                    formattedDate = 'Invalid Date';
-                }
-
-                const statusClass = `status-${(order.status || 'pending').toLowerCase()}`;
-                const statusDisplay = (order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1);
-                
-                // Calculate order summary safely
-                const itemsCount = Array.isArray(order.items) ? order.items.length : 0;
-                const orderTotal = parseFloat(order.total || order.totalAmount || 0);
-                
-                // Generate order ID display
-                const orderId = order._id ? order._id.slice(-8).toUpperCase() : `ORD-${(index + 1).toString().padStart(4, '0')}`;
-                
-                return `
-                    <div class="order-card" data-order-id="${order._id}">
-                        <div class="order-header">
-                            <div class="order-info">
-                                <h3 class="order-number">Order #${orderId}</h3>
-                                <p class="order-date">
-                                    <i class="fas fa-calendar-alt" style="margin-right: 5px; color: #7f8c8d;"></i>
-                                    ${formattedDate}
-                                </p>
-                            </div>
-                            <span class="order-status ${statusClass}">${statusDisplay}</span>
-                        </div>
-
-                        <div class="order-details">
-                            <div class="detail-group">
-                                <div class="detail-label">
-                                    <i class="fas fa-store" style="margin-right: 5px;"></i>
-                                    Supplier
-                                </div>
-                                <div class="detail-value supplier-name">${order.supplierInfo.supplierName}</div>
-                            </div>
-                            <div class="detail-group">
-                                <div class="detail-label">
-                                    <i class="fas fa-box" style="margin-right: 5px;"></i>
-                                    Items Count
-                                </div>
-                                <div class="detail-value">${itemsCount} item${itemsCount !== 1 ? 's' : ''}</div>
-                            </div>
-                            <div class="detail-group">
-                                <div class="detail-label">
-                                    <i class="fas fa-dollar-sign" style="margin-right: 5px;"></i>
-                                    Total Amount
-                                </div>
-                                <div class="detail-value order-total">NPR ${orderTotal.toLocaleString('en-NP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                            </div>
-                        </div>
-
-                        ${itemsCount > 0 ? `
-                            <div class="order-items">
-                                <div class="items-header">
-                                    <i class="fas fa-list" style="margin-right: 8px;"></i>
-                                    Order Items
-                                </div>
-                                <div class="item-row" style="font-weight: 600; color: #2c3e50; background: #f8f9fa; padding: 10px 0; border-radius: 5px;">
-                                    <div>Product</div>
-                                    <div style="text-align: right;">Quantity</div>
-                                    <div style="text-align: right;">Unit Price</div>
-                                    <div style="text-align: right;">Total</div>
-                                </div>
-                                ${order.items.slice(0, 3).map(item => {
-                                    const itemPrice = parseFloat(item.price || item.unitPrice || 0);
-                                    const itemQuantity = parseInt(item.quantity || 1);
-                                    const itemTotal = itemPrice * itemQuantity;
-                                    
-                                    return `
-                                        <div class="item-row">
-                                            <div class="item-name" title="${item.productName || item.name || 'Unknown Product'}">
-                                                ${(item.productName || item.name || 'Unknown Product').length > 25 ? 
-                                                    (item.productName || item.name || 'Unknown Product').substring(0, 25) + '...' : 
-                                                    (item.productName || item.name || 'Unknown Product')
-                                                }
-                                            </div>
-                                            <div class="item-quantity">${itemQuantity}</div>
-                                            <div class="item-price">NPR ${itemPrice.toFixed(2)}</div>
-                                            <div class="item-total">NPR ${itemTotal.toFixed(2)}</div>
-                                        </div>
-                                    `;
-                                }).join('')}
-                                ${itemsCount > 3 ? `
-                                    <div class="item-row" style="font-style: italic; color: #7f8c8d; background: #f8f9fa; border-radius: 5px;">
-                                        <div>
-                                            <i class="fas fa-ellipsis-h" style="margin-right: 5px;"></i>
-                                            and ${itemsCount - 3} more item${itemsCount - 3 !== 1 ? 's' : ''}
-                                        </div>
-                                        <div></div>
-                                        <div></div>
-                                        <div></div>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        ` : `
-                            <div class="order-items">
-                                <div style="text-align: center; color: #7f8c8d; padding: 20px; font-style: italic;">
-                                    <i class="fas fa-info-circle" style="margin-right: 5px;"></i>
-                                    No items details available for this order
-                                </div>
-                            </div>
-                        `}
-
-                        <div class="order-actions">
-                            <button class="action-btn view-btn" onclick="viewOrderBill('${order._id}')" title="View detailed bill">
-                                <i class="fas fa-eye"></i> View Bill
-                            </button>
-                            <button class="action-btn export-btn" onclick="exportOrderBill('${order._id}')" title="Export as PDF">
-                                <i class="fas fa-file-pdf"></i> Export PDF
-                            </button>
-                            <button class="action-btn reorder-btn" onclick="reorderItems('${order._id}')" title="Reorder these items">
-                                <i class="fas fa-redo"></i> Reorder
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            ordersList.innerHTML = ordersHTML;
-        }
-
-        function applyFilters() {
-            const supplierFilter = document.getElementById('supplier-filter').value;
-            const statusFilter = document.getElementById('status-filter').value;
-            const dateFrom = document.getElementById('date-from').value;
-            const dateTo = document.getElementById('date-to').value;
-
-            filteredOrders = allOrders.filter(order => {
-                // Supplier filter
-                if (supplierFilter && order.supplierInfo._id !== supplierFilter) {
-                    return false;
-                }
-
-                // Status filter
-                if (statusFilter && (order.status || 'pending') !== statusFilter) {
-                    return false;
-                }
-
-                // Date filters
-                const orderDate = new Date(order.createdAt || order.orderDate);
-                if (dateFrom && orderDate < new Date(dateFrom)) {
-                    return false;
-                }
-                if (dateTo && orderDate > new Date(dateTo + 'T23:59:59')) {
-                    return false;
-                }
-
-                return true;
-            });
-
-            displayOrders();
-        }
-
-        function viewOrderBill(orderId) {
-            const order = allOrders.find(o => o._id === orderId);
-            if (!order) {
-                alert('Order not found');
-                return;
-            }
-
-            generateOrderBill(order, true);
-        }
-
-        function exportOrderBill(orderId) {
-            const order = allOrders.find(o => o._id === orderId);
-            if (!order) {
-                alert('Order not found');
-                return;
-            }
-
-            generateOrderBill(order, false);
-        }
-
-        function generateOrderBill(order, showModal = true) {
-            // Convert order data to bill format
-            const billData = {
-                billNo: `ORD-${order._id.slice(-8).toUpperCase()}`,
-                date: new Date(order.createdAt || order.orderDate),
-                supplier: {
-                    name: order.supplierInfo.supplierName,
-                    email: order.supplierInfo.email,
-                    phone: order.supplierInfo.phone,
-                    address: order.supplierInfo.address
-                },
-                customer: {
-                    name: 'Smart POS Shop',
-                    email: 'shop@smartpos.com',
-                    phone: '+977-1-234567',
-                    address: 'Kathmandu, Nepal'
-                },
-                items: order.items.map(item => ({
-                    name: item.productName || item.name || 'Unknown Product',
-                    quantity: item.quantity || 1,
-                    cost: item.price || 0,
-                    sell: item.price || 0,
-                    unit: item.unit || 'pcs'
-                })),
-                subtotal: order.subtotal || order.total || 0,
-                discount: order.discount || 0,
-                deliveryDate: order.deliveryDate || order.createdAt
-            };
-
-            // Create bill using the generator
-            const bill = billGenerator.createBill(billData);
-            const billHTML = billGenerator.generateBillHTML(false);
-
-            currentBillData = bill;
-
-            if (showModal) {
-                // Show in modal
-                document.getElementById('bill-content').innerHTML = '';
-                document.getElementById('bill-content').appendChild(billHTML);
-                document.getElementById('bill-modal').style.display = 'block';
-            } else {
-                // Export directly to PDF
-                exportToPDF(billHTML, `Order-${order._id.slice(-8).toUpperCase()}.pdf`);
-            }
-        }
-
-        function exportCurrentBill() {
-            if (!currentBillData) {
-                alert('No bill data available');
-                return;
-            }
-
-            const billElement = document.querySelector('#bill-content .smart-pos-bill');
-            if (billElement) {
-                exportToPDF(billElement, `Order-${currentBillData.billNo}.pdf`);
-            }
-        }
-
-        function printCurrentBill() {
-            if (!currentBillData) {
-                alert('No bill data available');
-                return;
-            }
-
-            const billElement = document.querySelector('#bill-content .smart-pos-bill');
-            if (billElement) {
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <html>
-                        <head>
-                            <title>Print Bill - ${currentBillData.billNo}</title>
-                            <style>
-                                body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
-                                @media print { body { padding: 0; } }
-                            </style>
-                        </head>
-                        <body>
-                            ${billElement.outerHTML}
-                        </body>
-                    </html>
-                `);
-                printWindow.document.close();
-                printWindow.print();
-            }
-        }
-
-        function exportToPDF(element, filename) {
-            const options = {
-                margin: 1,
-                filename: filename,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().set(options).from(element).save();
-        }
-
-        function exportAllOrders() {
-            if (filteredOrders.length === 0) {
-                alert('No orders to export');
-                return;
-            }
-
-            if (confirm(`Export ${filteredOrders.length} orders as PDF? This may take a moment.`)) {
-                // Create a combined document with all bills
-                const combinedHTML = document.createElement('div');
-                
-                filteredOrders.forEach((order, index) => {
-                    const billData = {
-                        billNo: `ORD-${order._id.slice(-8).toUpperCase()}`,
-                        date: new Date(order.createdAt || order.orderDate),
-                        supplier: {
-                            name: order.supplierInfo.supplierName,
-                            email: order.supplierInfo.email,
-                            phone: order.supplierInfo.phone,
-                            address: order.supplierInfo.address
-                        },
-                        customer: {
-                            name: 'Smart POS Shop',
-                            email: 'shop@smartpos.com',
-                            phone: '+977-1-234567',
-                            address: 'Kathmandu, Nepal'
-                        },
-                        items: order.items.map(item => ({
-                            name: item.productName || item.name || 'Unknown Product',
-                            quantity: item.quantity || 1,
-                            cost: item.price || 0,
-                            sell: item.price || 0,
-                            unit: item.unit || 'pcs'
-                        })),
-                        subtotal: order.subtotal || order.total || 0,
-                        discount: order.discount || 0,
-                        deliveryDate: order.deliveryDate || order.createdAt
-                    };
-
-                    const bill = billGenerator.createBill(billData);
-                    const billHTML = billGenerator.generateBillHTML(true);
-                    
-                    combinedHTML.appendChild(billHTML);
-                    
-                    // Add page break except for last item
-                    if (index < filteredOrders.length - 1) {
-                        const pageBreak = document.createElement('div');
-                        pageBreak.style.pageBreakAfter = 'always';
-                        combinedHTML.appendChild(pageBreak);
-                    }
-                });
-
-                exportToPDF(combinedHTML, `All-Orders-${new Date().toISOString().split('T')[0]}.pdf`);
-            }
-        }
-
-        function reorderItems(orderId) {
-            const order = allOrders.find(o => o._id === orderId);
-            if (!order) {
-                alert('Order not found');
-                return;
-            }
-
-            if (confirm(`Reorder ${order.items.length} items from ${order.supplierInfo.supplierName}?`)) {
-                // In a real implementation, this would add items to cart
-                alert('Items added to cart! Redirecting to suppliers page...');
-                window.location.href = 'suppliers.html';
-            }
-        }
-
-        function closeBillModal() {
-            document.getElementById('bill-modal').style.display = 'none';
-            currentBillData = null;
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('bill-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeBillModal();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeBillModal();
-            }
-        });
-    </script>
+    <script src="../js/custom-modals.js"></script>
+    <script src="../js/order-history.js"></script>
 </body>
 </html>
