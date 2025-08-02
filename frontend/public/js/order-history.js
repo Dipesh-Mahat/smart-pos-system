@@ -59,25 +59,27 @@ class OrderHistoryManager {
 
     async loadSuppliers() {
         try {
-            const headers = {
-                'Content-Type': 'application/json'
-            };
-            
-            // Add auth token if available
-            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
+            // Check if user is authenticated
+            if (!window.authService || !window.authService.isLoggedIn()) {
+                console.warn('User not authenticated, skipping suppliers load');
+                return;
             }
 
-            const response = await fetch('http://localhost:5000/api/shop/orders/suppliers', { headers });
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success && data.suppliers) {
-                    this.suppliers = data.suppliers;
-                    this.populateSupplierFilter();
-                }
+            // Get user profile to determine the correct API endpoint
+            const userProfile = window.authService.getUser();
+            
+            let apiEndpoint;
+            let data;
+            
+            // Use shop endpoint for suppliers (works for both admin and shop owners)
+            apiEndpoint = '/shop/orders/suppliers';
+            data = await window.apiService.request(apiEndpoint);
+            
+            if (data.success && data.suppliers) {
+                this.suppliers = data.suppliers;
+                this.populateSupplierFilter();
             } else {
-                console.error('Failed to load suppliers');
+                console.error('Failed to load suppliers:', data.message || 'Unknown error');
             }
         } catch (error) {
             console.error('Error loading suppliers:', error);
@@ -100,25 +102,22 @@ class OrderHistoryManager {
             // Add loading indicator
             document.getElementById('orders-list').innerHTML = '<div class="loading"><div>Loading your order history...</div></div>';
             
-            // Use proper API endpoint with authentication headers
-            const headers = {
-                'Content-Type': 'application/json'
-            };
-            
-            // Add auth token if available
-            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
+            // Check if user is authenticated
+            if (!window.authService || !window.authService.isLoggedIn()) {
+                console.warn('User not authenticated, redirecting...');
+                window.location.href = '../landing.html';
+                return;
             }
 
-            const response = await fetch('http://localhost:5000/api/shop/orders', { headers });
+            // Get user profile to determine the correct API endpoint
+            const userProfile = window.authService.getUser();
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            let apiEndpoint;
+            let ordersResponse;
             
-            const ordersResponse = await response.json();
-            console.log('Orders data loaded:', ordersResponse);
+            // Use shop endpoint for orders (works for both admin and shop owners)
+            apiEndpoint = '/shop/orders';
+            ordersResponse = await window.apiService.request(apiEndpoint);
             
             // Handle the API response structure
             if (ordersResponse.success && ordersResponse.orders) {
@@ -163,28 +162,14 @@ class OrderHistoryManager {
             this.filteredOrders = [...this.allOrders];
             this.displayOrders();
             
-            console.log(`Loaded ${this.allOrders.length} orders successfully`);
-            
         } catch (error) {
             console.error('Error loading orders:', error);
             const errorMessage = this.getErrorMessage(error);
             document.getElementById('orders-list').innerHTML = `
-                <div class="no-orders">
-                    <i style="font-size: 3rem; color: #e74c3c;">⚠️</i>
-                    <h3>Error Loading Orders</h3>
-                    <p>${errorMessage}</p>
-                    <button onclick="orderHistoryManager.loadOrders()" style="
-                        background: #3498db; 
-                        color: white; 
-                        border: none; 
-                        padding: 10px 20px; 
-                        border-radius: 5px; 
-                        cursor: pointer; 
-                        margin-top: 15px;
-                        font-weight: 600;
-                    ">
-                        <i class="fas fa-refresh"></i> Retry
-                    </button>
+                <div class="no-orders" style="text-align: center; padding: 50px 20px; color: #7f8c8d;">
+                    <i style="font-size: 3rem; color: #e74c3c; margin-bottom: 20px; display: block;">⚠️</i>
+                    <h3 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.5rem;">Error Loading Orders</h3>
+                    <p style="max-width: 600px; margin: 0 auto; line-height: 1.6; font-size: 1rem;">${errorMessage}</p>
                 </div>
             `;
         }
@@ -193,14 +178,18 @@ class OrderHistoryManager {
     getErrorMessage(error) {
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
             return 'Cannot connect to server. Please ensure the backend server is running on the correct port.';
-        } else if (error.message.includes('401')) {
+        } else if (error.message && error.message.includes('401')) {
             return 'Authentication failed. Please log in again.';
-        } else if (error.message.includes('403')) {
-            return 'Access denied. Please check your permissions.';
-        } else if (error.message.includes('404')) {
-            return 'Orders endpoint not found. Please check the API configuration.';
-        } else if (error.message.includes('500')) {
+        } else if (error.message && error.message.includes('403')) {
+            return 'Access denied. You may not have permission to view orders, or you need to be logged in as a shop owner.';
+        } else if (error.message && error.message.includes('404')) {
+            return 'Orders endpoint not found. This feature may not be available for your user role.';
+        } else if (error.message && error.message.includes('500')) {
             return 'Server error. Please try again later.';
+        } else if (error.status === 403) {
+            return 'Access denied. You may need to be logged in as a shop owner to view orders.';
+        } else if (error.status === 404) {
+            return 'Orders endpoint not found. This feature may not be available for your user role.';
         } else {
             return `${error.message || 'Unknown error occurred'}. Please check your connection and try again.`;
         }
@@ -211,13 +200,32 @@ class OrderHistoryManager {
         const ordersCount = document.getElementById('orders-count');
 
         if (this.filteredOrders.length === 0) {
-            ordersList.innerHTML = `
-                <div class="no-orders">
-                    <i style="font-size: 4rem; color: #bdc3c7;">📦</i>
-                    <h3>No orders found</h3>
-                    <p>No orders match your current filters. Try adjusting your search criteria or check back later.</p>
-                </div>
-            `;
+            // Check if this is due to filters or truly no orders
+            const hasFilters = document.getElementById('supplier-filter').value || 
+                             document.getElementById('status-filter').value ||
+                             document.getElementById('date-from').value ||
+                             document.getElementById('date-to').value;
+            
+            if (hasFilters && this.allOrders.length > 0) {
+                // Orders exist but filters are hiding them
+                ordersList.innerHTML = `
+                    <div class="no-orders">
+                        <i style="font-size: 4rem; color: #bdc3c7;">�</i>
+                        <h3>No orders match your filters</h3>
+                        <p>No orders match your current search criteria. Try adjusting your filters or <button onclick="orderHistoryManager.clearFilters()" style="background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">clear all filters</button> to see all orders.</p>
+                    </div>
+                `;
+            } else {
+                // No orders at all
+                ordersList.innerHTML = `
+                    <div class="no-orders">
+                        <i style="font-size: 4rem; color: #bdc3c7;">📦</i>
+                        <h3>No Order History Yet</h3>
+                        <p><strong>Welcome to Ram Kirana Pasal!</strong></p>
+                        <p>You haven't placed any orders with suppliers yet. Once you start ordering inventory from suppliers, your order history will appear here.</p>
+                    </div>
+                `;
+            }
             ordersCount.textContent = '0 orders found';
             return;
         }
@@ -560,6 +568,18 @@ class OrderHistoryManager {
 
             this.exportToPDF(combinedHTML, `All-Orders-${new Date().toISOString().split('T')[0]}.pdf`);
         }
+    }
+
+    clearFilters() {
+        // Clear all filter inputs
+        document.getElementById('supplier-filter').value = '';
+        document.getElementById('status-filter').value = '';
+        document.getElementById('date-from').value = '';
+        document.getElementById('date-to').value = '';
+        
+        // Reset filtered orders to show all orders
+        this.filteredOrders = [...this.allOrders];
+        this.displayOrders();
     }
 
     reorderItems(orderId) {
