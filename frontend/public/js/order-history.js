@@ -29,8 +29,6 @@ class OrderHistoryManager {
             if (!window.smartPOSNavbar) {
                 const navbar = new SmartPOSNavbar({
                     title: 'Order History',
-                    showBackButton: true,
-                    backUrl: 'suppliers.html',
                     customActions: []
                 });
                 window.smartPOSNavbar = navbar;
@@ -71,7 +69,7 @@ class OrderHistoryManager {
                 headers['Authorization'] = `Bearer ${token}`;
             }
 
-            const response = await fetch('/api/shop/orders/suppliers', { headers });
+            const response = await fetch('http://localhost:5000/api/shop/orders/suppliers', { headers });
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && data.suppliers) {
@@ -113,7 +111,7 @@ class OrderHistoryManager {
                 headers['Authorization'] = `Bearer ${token}`;
             }
 
-            const response = await fetch('/api/shop/orders', { headers });
+            const response = await fetch('http://localhost:5000/api/shop/orders', { headers });
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
