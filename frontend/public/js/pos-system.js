@@ -794,4 +794,178 @@ class SmartPOSSystem {
             }, 300);
         }, 3000);
     }
+
+    // Bill Scanning Methods
+    async startBillScan() {
+        console.log('📄 Starting bill scanning mode...');
+        
+        try {
+            // Request camera with specific constraints for bill scanning
+            const constraints = {
+                video: {
+                    facingMode: 'environment',
+                    width: { min: 720, ideal: 1280, max: 1920 },
+                    height: { min: 480, ideal: 720, max: 1080 },
+                    frameRate: { min: 15, ideal: 30 }
+                }
+            };
+            
+            console.log('📱 Requesting camera access for bill scanning...');
+            
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            console.log('✅ Camera access granted for bill scanning');
+            
+            this.setupBillScanStream(stream);
+            this.updateBillScanStatus('📄 Position the bill within the frame');
+            
+        } catch (error) {
+            console.error('❌ Error accessing camera for bill scanning:', error);
+            this.updateBillScanStatus('❌ Camera access failed - check permissions');
+        }
+    }
+
+    setupBillScanStream(stream) {
+        const videoElement = document.getElementById('billScanVideo');
+        if (videoElement) {
+            videoElement.srcObject = stream;
+            this.currentBillStream = stream;
+            
+            videoElement.onloadedmetadata = () => {
+                console.log('📹 Bill scan video metadata loaded');
+                this.updateBillScanStatus('🎯 Hold the bill steady within the frame');
+            };
+        }
+    }
+
+    updateBillScanStatus(message) {
+        const statusElement = document.getElementById('billScanStatus');
+        if (statusElement) {
+            statusElement.textContent = message;
+        }
+        console.log('📄 Bill scan status:', message);
+    }
+
+    async captureBillScan() {
+        console.log('📸 Capturing bill scan...');
+        
+        try {
+            const videoElement = document.getElementById('billScanVideo');
+            const canvas = document.getElementById('billScanCanvas');
+            
+            if (videoElement && canvas) {
+                const context = canvas.getContext('2d');
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+                
+                // Draw the current video frame to canvas
+                context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                
+                // Convert to image data for processing
+                const imageData = canvas.toDataURL('image/jpeg', 0.8);
+                
+                this.updateBillScanStatus('🔍 Processing bill image...');
+                
+                // Here you could integrate with OCR services or image processing
+                // For now, we'll simulate bill processing
+                setTimeout(() => {
+                    this.processBillImage(imageData);
+                }, 1500);
+            }
+        } catch (error) {
+            console.error('❌ Error capturing bill:', error);
+            this.updateBillScanStatus('❌ Failed to capture bill');
+        }
+    }
+
+    processBillImage(imageData) {
+        console.log('🔍 Processing bill image data...');
+        
+        // This is where you would integrate with OCR services
+        // For now, we'll show a success message
+        this.updateBillScanStatus('✅ Bill captured successfully!');
+        
+        // Show notification
+        this.showScanNotification('Bill scanned successfully! (Processing feature coming soon)', 'success');
+        
+        // Close modal after a delay
+        setTimeout(() => {
+            this.closeBillScanModal();
+        }, 2000);
+    }
+
+    closeBillScanModal() {
+        console.log('🚪 Closing bill scan modal...');
+        
+        // Stop camera stream
+        if (this.currentBillStream) {
+            this.currentBillStream.getTracks().forEach(track => {
+                track.stop();
+                console.log('📹 Bill scan camera track stopped');
+            });
+            this.currentBillStream = null;
+        }
+        
+        // Clear video element
+        const videoElement = document.getElementById('billScanVideo');
+        if (videoElement) {
+            videoElement.srcObject = null;
+        }
+        
+        // Reset status
+        this.updateBillScanStatus('Position the bill within the frame');
+        
+        console.log('✅ Bill scan modal closed and camera stopped');
+    }
+
+    showManualBillEntry() {
+        console.log('⌨️ Showing manual bill entry...');
+        
+        // Close the bill scan modal
+        document.getElementById('billScanModal').classList.remove('active');
+        this.closeBillScanModal();
+        
+        // Show a simple prompt for now (you can enhance this with a custom modal)
+        const billData = prompt('Enter bill details (item1:price1, item2:price2, etc.):\nExample: Coffee:2.50, Sandwich:5.00');
+        
+        if (billData) {
+            this.processManualBillData(billData);
+        }
+    }
+
+    processManualBillData(billData) {
+        console.log('📝 Processing manual bill data:', billData);
+        
+        try {
+            // Parse the bill data (simple format: item:price, item:price)
+            const items = billData.split(',').map(item => {
+                const [name, price] = item.trim().split(':');
+                return {
+                    name: name?.trim(),
+                    price: parseFloat(price?.trim()) || 0
+                };
+            }).filter(item => item.name && item.price > 0);
+            
+            if (items.length > 0) {
+                // Add items to cart
+                items.forEach(item => {
+                    // Create a temporary product object
+                    const tempProduct = {
+                        id: 'manual_' + Date.now() + '_' + Math.random(),
+                        name: item.name,
+                        price: item.price,
+                        category: 'Manual Entry',
+                        stock: 1
+                    };
+                    this.addToCart(tempProduct);
+                });
+                
+                this.showScanNotification(`Added ${items.length} items from manual bill entry`, 'success');
+            } else {
+                this.showScanNotification('No valid items found in bill data', 'error');
+            }
+        } catch (error) {
+            console.error('❌ Error processing manual bill data:', error);
+            this.showScanNotification('Error processing bill data', 'error');
+        }
+    }
 }

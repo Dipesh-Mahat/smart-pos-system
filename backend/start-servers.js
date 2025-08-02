@@ -203,15 +203,13 @@ server.listen(PORT, () => {
 ║                      SERVER STARTED                     ║
 ╠══════════════════════════════════════════════════════════╣
 ║  🚀 Server running on: http://localhost:${PORT}               ║
-║  📱 Mobile Scanner: http://localhost:${PORT}/mobile-scanner.html  ║
-║  🔧 API Base URL: http://localhost:${PORT}/api                ║
+║   API Base URL: http://localhost:${PORT}/api                ║
 ║  📊 Admin Dashboard: http://localhost:${PORT}/pages/admin-dashboard.html ║
 ║  🏪 POS System: http://localhost:${PORT}/pages/pos.html       ║
 ╠══════════════════════════════════════════════════════════╣
 ║  📋 Features:                                            ║
 ║    ✅ REST API Server                                    ║
 ║    ✅ Socket.IO for real-time communication              ║
-║    ✅ Mobile Scanner Integration                         ║
 ║    ✅ Authentication & Authorization                     ║
 ║    ✅ File Upload Support                                ║
 ║    ✅ Security Middleware                                ║

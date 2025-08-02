@@ -22,14 +22,6 @@
       "dest": "/frontend/public/pages/$1"
     },
     {
-      "src": "/mobile-scanner.html",
-      "dest": "/frontend/public/mobile-scanner.html"
-    },
-    {
-      "src": "/mobile-scanner",
-      "dest": "/frontend/public/mobile-scanner.html"
-    },
-    {
       "src": "/",
       "dest": "/frontend/public/index.html"
     },

@@ -17,7 +17,7 @@
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
     <script src="../js/custom-modals.js"></script>
-    <script src="../js/enhanced-scanner.js"></script>
+    <script src="../js/scanner.js"></script>
     <script src="../js/pos-system.js"></script>
     <style>
         .menu-container {
@@ -1315,8 +1315,6 @@
             color: var(--danger-color);
         }
         
-        /* Mobile Scanner Display */
-        
         /* Camera Modal Styles */
         .camera-modal {
             position: fixed;
@@ -1523,15 +1521,15 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(6, 214, 160, 0.3);
         }
-        
-        /* Mobile Scanner Modal Styles */
-        .mobile-scanner-modal {
+
+        /* Bill Scanning Modal Styles (Larger Interface) */
+        .bill-scan-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.95);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -1541,15 +1539,265 @@
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
         
-        .mobile-scanner-modal.active {
+        .bill-scan-modal.active {
             opacity: 1;
             visibility: visible;
         }
         
-        /* The smart scan dialog styles are now provided by navbar.js */
+        .bill-scan-modal-content {
+            background-color: white;
+            border-radius: 20px;
+            width: 95%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            transform: translateY(30px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
         
-        /* The scan dialog styles are now provided by navbar.js */
+        .bill-scan-modal.active .bill-scan-modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .bill-scan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .bill-scan-header h3 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .bill-scan-header h3 i {
+            font-size: 28px;
+            opacity: 0.9;
+        }
+        
+        .close-bill-scan {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: white;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .close-bill-scan:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+        
+        .bill-scan-container {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            background-color: #222;
+            overflow: hidden;
+        }
+        
+        #billScanVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .bill-scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .bill-scan-line {
+            position: absolute;
+            width: 90%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #00ff41, #00ff41, transparent);
+            animation: billScanLine 3s infinite linear;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px #00ff41;
+        }
+        
+        .bill-scan-corners {
+            position: absolute;
+            width: 80%;
+            height: 70%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #00ff41;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+        
+        .corner.top-left {
+            top: 0;
+            left: 0;
+            border-right: none;
+            border-bottom: none;
+            border-top-left-radius: 8px;
+        }
+        
+        .corner.top-right {
+            top: 0;
+            right: 0;
+            border-left: none;
+            border-bottom: none;
+            border-top-right-radius: 8px;
+        }
+        
+        .corner.bottom-left {
+            bottom: 0;
+            left: 0;
+            border-right: none;
+            border-top: none;
+            border-bottom-left-radius: 8px;
+        }
+        
+        .corner.bottom-right {
+            bottom: 0;
+            right: 0;
+            border-left: none;
+            border-top: none;
+            border-bottom-right-radius: 8px;
+        }
+        
+        @keyframes billScanLine {
+            0% {
+                top: 15%;
+                opacity: 1;
+            }
+            50% {
+                top: 50%;
+                opacity: 0.7;
+            }
+            100% {
+                top: 85%;
+                opacity: 1;
+            }
+        }
+        
+        .bill-scan-status {
+            padding: 20px 25px 10px;
+            text-align: center;
+            background: #f8f9fa;
+        }
+        
+        .bill-scan-status p {
+            margin: 0;
+            color: #495057;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .bill-scan-controls {
+            display: flex;
+            padding: 20px 25px;
+            gap: 15px;
+            background: #f8f9fa;
+        }
+        
+        .bill-scan-btn {
+            flex: 1;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bill-scan-btn.capture {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .bill-scan-btn.capture:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .bill-scan-btn.manual {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+        }
+        
+        .bill-scan-btn.manual:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+        }
+        
+        .bill-scan-btn i {
+            font-size: 18px;
+        }
 
+        /* Mobile Responsive for Bill Scanning */
+        @media (max-width: 768px) {
+            .bill-scan-modal-content {
+                width: 98%;
+                max-width: none;
+                border-radius: 15px;
+            }
+            
+            .bill-scan-container {
+                height: 350px;
+            }
+            
+            .bill-scan-header h3 {
+                font-size: 20px;
+            }
+            
+            .bill-scan-controls {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .bill-scan-btn {
+                padding: 14px 18px;
+                font-size: 15px;
+            }
+        }
+        
         /* Scan notification */
         .scan-notification {
             position: fixed;
@@ -1603,23 +1851,6 @@
             100% { opacity: 1; }
         }
         
-        .mobile-scanner-content {
-            background-color: white;
-            border-radius: var(--border-radius);
-            width: 90%;
-            max-width: 550px;
-            padding: 24px;
-            box-shadow: var(--box-shadow-md);
-            transform: translateY(20px);
-            opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-        }
-        
-        .mobile-scanner-modal.active .mobile-scanner-content {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        
         /* Connection steps styles */
         .connection-steps {
             padding: 0 10px;
@@ -1667,18 +1898,6 @@
             margin: 0;
             color: #6c757d;
             font-size: 14px;
-        }
-        
-        .mobile-scanner-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            color: #6c757d;
-        }
-        
-        .qr-loading i {
-            font-size: 24px;
         }
         
         .connection-info {
@@ -2253,8 +2472,41 @@
     </div>
     </div>
 
-    <!-- Mobile Scanner Connection Modal -->
-
+    <!-- Bill Scanning Modal (Larger Interface) -->
+    <div class="bill-scan-modal" id="billScanModal">
+        <div class="bill-scan-modal-content">
+            <div class="bill-scan-header">
+                <h3><i class="fas fa-receipt"></i> Scan Bill/Receipt</h3>
+                <button class="close-bill-scan" id="closeBillScanModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="bill-scan-container">
+                <video id="billScanVideo" autoplay playsinline></video>
+                <div class="bill-scan-overlay">
+                    <div class="bill-scan-line"></div>
+                    <div class="bill-scan-corners">
+                        <div class="corner top-left"></div>
+                        <div class="corner top-right"></div>
+                        <div class="corner bottom-left"></div>
+                        <div class="corner bottom-right"></div>
+                    </div>
+                </div>
+                <canvas id="billScanCanvas" style="display: none;"></canvas>
+            </div>
+            <div class="bill-scan-status">
+                <p id="billScanStatus">Position the bill within the frame</p>
+            </div>
+            <div class="bill-scan-controls">
+                <button class="bill-scan-btn capture" id="captureBillBtn">
+                    <i class="fas fa-camera"></i> Capture Bill
+                </button>
+                <button class="bill-scan-btn manual" id="manualBillEntry">
+                    <i class="fas fa-keyboard"></i> Manual Entry
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Enhanced Bill Summary Modal -->
     <div class="bill-modal" id="billModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:2999; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
@@ -2446,6 +2698,26 @@
                 });
             }
             
+            // Function to handle different scanning types
+            function startScanning(type) {
+                // Close the scanner selection modal first
+                document.getElementById('scannerModal').classList.remove('active');
+                
+                if (type === 'product') {
+                    // Open the existing camera modal for product scanning
+                    document.getElementById('cameraModal').classList.add('active');
+                    if (posSystem && posSystem.startDirectScan) {
+                        posSystem.startDirectScan();
+                    }
+                } else if (type === 'bill') {
+                    // Open the larger bill scanning modal
+                    document.getElementById('billScanModal').classList.add('active');
+                    if (posSystem && posSystem.startBillScan) {
+                        posSystem.startBillScan();
+                    }
+                }
+            }
+            
             // Product scanning option
             const productScanOption = document.getElementById('productScanOption');
             if (productScanOption) {
@@ -2481,6 +2753,35 @@
             if (addManualBarcode) {
                 addManualBarcode.addEventListener('click', function() {
                     posSystem.processManualBarcode();
+                });
+            }
+            
+            // Bill Scanning Modal Event Listeners
+            const closeBillScanModal = document.getElementById('closeBillScanModal');
+            if (closeBillScanModal) {
+                closeBillScanModal.addEventListener('click', function() {
+                    document.getElementById('billScanModal').classList.remove('active');
+                    if (posSystem && posSystem.closeBillScanModal) {
+                        posSystem.closeBillScanModal();
+                    }
+                });
+            }
+            
+            const captureBillBtn = document.getElementById('captureBillBtn');
+            if (captureBillBtn) {
+                captureBillBtn.addEventListener('click', function() {
+                    if (posSystem && posSystem.captureBillScan) {
+                        posSystem.captureBillScan();
+                    }
+                });
+            }
+            
+            const manualBillEntry = document.getElementById('manualBillEntry');
+            if (manualBillEntry) {
+                manualBillEntry.addEventListener('click', function() {
+                    if (posSystem && posSystem.showManualBillEntry) {
+                        posSystem.showManualBillEntry();
+                    }
                 });
             }
             

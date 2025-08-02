@@ -1,5 +1,5 @@
 /**
- * Enhanced Barcode Scanner with High Accuracy Settings
+ * Barcode Scanner with High Accuracy Settings
  * 
  * This module provides optimized barcode scanning with:
  * - Multi-library support (Quagga2, ZXing, Native BarcodeDetector)
@@ -8,7 +8,7 @@
  * - Advanced pre-processing for poor lighting conditions
  */
 
-class EnhancedBarcodeScanner {
+class BarcodeScanner {
     constructor(options = {}) {
         this.options = {
             // Default settings optimized for accuracy
@@ -561,4 +561,4 @@ class EnhancedBarcodeScanner {
 }
 
 // Make available globally
-window.EnhancedBarcodeScanner = EnhancedBarcodeScanner;
+window.BarcodeScanner = BarcodeScanner;
