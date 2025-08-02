@@ -41,9 +41,6 @@ function loadSupplierInfo(supplierId) {
             document.getElementById('supplierContact').textContent = '';
         }
     });
-    
-    // Also load the supplier insights
-    loadSupplierInsights(supplierId);
 }
 
 function loadSupplierProducts(supplierId) {
@@ -194,69 +191,6 @@ function updateOrderSection() {
 function removeProduct(productId) {
     delete selectedProducts[productId];
     updateOrderSection();
-}
-
-function loadSupplierInsights(supplierId) {
-    apiService.get('/shop/suppliers/' + supplierId + '/insights').then(res => {
-        if (res.success && res.data) {
-            const insightsGrid = document.querySelector('.insights-grid');
-            const insights = res.data;
-            
-            // Check if insights grid exists and has required children
-            if (insightsGrid && insightsGrid.children.length >= 4) {
-                // Update best seller insight
-                if (insights.bestSeller) {
-                    const bestSellerElement = insightsGrid.children[0];
-                    const nameEl = bestSellerElement.querySelector('p');
-                    const detailEl = bestSellerElement.querySelector('span');
-                    
-                    if (nameEl) nameEl.textContent = insights.bestSeller.name;
-                    if (detailEl) detailEl.textContent = 
-                        `${insights.bestSeller.quantity} units sold ${insights.bestSeller.period}`;
-                }
-                
-                // Update top discount insight
-                if (insights.topDiscount) {
-                    const discountElement = insightsGrid.children[1];
-                    const nameEl = discountElement.querySelector('p');
-                    const detailEl = discountElement.querySelector('span');
-                    
-                    if (nameEl) nameEl.textContent = insights.topDiscount.discount + ' off on ' + insights.topDiscount.name;
-                    
-                    if (detailEl) {
-                        // Format date
-                        const validDate = new Date(insights.topDiscount.validUntil);
-                        const formattedDate = validDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
-                        detailEl.textContent = `Valid till ${formattedDate}`;
-                    }
-                }
-                
-                // Update avg rating insight
-                if (insights.avgRating) {
-                    const ratingElement = insightsGrid.children[2];
-                    const nameEl = ratingElement.querySelector('p');
-                    const detailEl = ratingElement.querySelector('span');
-                    
-                    if (nameEl) nameEl.textContent = insights.avgRating.value + '/5';
-                    if (detailEl) detailEl.textContent = `Based on ${insights.avgRating.count} reviews`;
-                }
-                
-                // Update fastest delivery insight
-                if (insights.fastestDelivery) {
-                    const deliveryElement = insightsGrid.children[3];
-                    const nameEl = deliveryElement.querySelector('p');
-                    const detailEl = deliveryElement.querySelector('span');
-                    
-                    if (nameEl) nameEl.textContent = insights.fastestDelivery.time;
-                    if (detailEl) detailEl.textContent = insights.fastestDelivery.period;
-                }
-            } else {
-                console.log('Insights grid not found or incomplete, skipping insights update');
-            }
-        }
-    }).catch(error => {
-        console.error('Error loading supplier insights:', error);
-    });
 }
 
 function setupOrderForm() {
