@@ -438,167 +438,110 @@
             setupFilters();
         });
         
-        // Add the missing refreshAlerts function
+        // Add the refreshAlerts function
         function refreshAlerts() {
-            // Refresh low stock and out of stock alerts
-            const apiService = window.apiService;
-            if (apiService) {
-                apiService.request('/inventory/alerts')
-                    .then(response => {
-                        if (response.success) {
-                            updateAlerts(response.data);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error refreshing alerts:', error);
-                    });
-            }
-        }
-        
-        function updateAlerts(alerts) {
-            // Update alert badges or notifications
-            console.log('Alerts updated:', alerts);
+            // For now, just refresh the inventory data which will recalculate alerts
+            console.log('Refreshing inventory alerts...');
+            loadInventoryData();
         }
         
         function loadInventoryData() {
-            const inventoryTable = document.getElementById('inventoryTableBody');
-            if (!inventoryTable) return;
-            
-            // Show loading state
-            inventoryTable.innerHTML = '<tr><td colspan="7" class="text-center">Loading inventory data...</td></tr>';
+            console.log('Loading inventory data...');
             
             const apiService = window.apiService;
-            if (apiService) {
-                // Get filter values
-                const categoryFilter = document.getElementById('categoryFilter').value;
-                const statusFilter = document.getElementById('statusFilter').value;
-                const searchQuery = document.getElementById('searchInput').value;
-                
-                // Build query parameters
-                let queryParams = '?';
-                if (categoryFilter && categoryFilter !== 'all') queryParams += `category=${categoryFilter}&`;
-                if (statusFilter === 'low-stock') queryParams += 'lowStock=true&';
-                if (statusFilter === 'out-of-stock') queryParams += 'stock=0&';
-                if (searchQuery) queryParams += `search=${encodeURIComponent(searchQuery)}&`;
-                
-                // Fetch inventory data and statistics from API
-                Promise.all([
-                    apiService.request(`/shop/products${queryParams}`),
-                    apiService.request('/shop/inventory/stats')
-                ])
-                .then(([productsResponse, statsResponse]) => {
-                    // Handle the correct API response format: {products: [...], pagination: {...}}
-                    if (productsResponse && productsResponse.products && Array.isArray(productsResponse.products)) {
-                        displayInventory(productsResponse.products);
-                    } else if (productsResponse.success && productsResponse.data && productsResponse.data.products) {
-                        // Legacy format support
-                        displayInventory(productsResponse.data.products);
-                    } else {
-                        console.error('Failed to load inventory:', productsResponse.message || 'Unknown error');
-                        displayInventory([]);
-                    }
-
-                    // Update statistics
-                    if (statsResponse.success) {
-                        updateInventorySummary(statsResponse);
-                    } else {
-                        console.error('Failed to load statistics:', statsResponse.message);
-                        updateInventorySummary(null);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading inventory data:', error);
-                    // Show empty inventory
-                    displayInventory([]);
-                    updateInventorySummary(null);
-                    });
-            } else {
-                // Show empty inventory if no API service
-                displayInventory([]);
-                updateInventorySummary([]);
+            if (!apiService) {
+                console.error('API service not available');
+                updateInventorySummary(null);
+                return;
             }
+            
+            // Show loading state on statistics cards
+            document.getElementById('totalItems').textContent = 'Loading...';
+            document.getElementById('lowStockItems').textContent = 'Loading...';
+            document.getElementById('expiringItems').textContent = 'Loading...';
+            document.getElementById('totalValue').textContent = 'Loading...';
+            
+            // Fetch inventory data and calculate statistics
+            apiService.request('/shop/products')
+            .then(productsResponse => {
+                console.log('Products response:', productsResponse);
+                
+                // Process products data to calculate statistics
+                let products = [];
+                if (productsResponse && productsResponse.products && Array.isArray(productsResponse.products)) {
+                    products = productsResponse.products;
+                } else if (productsResponse.success && productsResponse.data && Array.isArray(productsResponse.data)) {
+                    products = productsResponse.data;
+                } else if (Array.isArray(productsResponse)) {
+                    products = productsResponse;
+                } else {
+                    console.error('Failed to load products:', productsResponse);
+                    products = [];
+                }
+                
+                // Calculate statistics from products data
+                const calculatedStats = calculateInventoryStats(products);
+                console.log('Calculated stats:', calculatedStats);
+                
+                // Create response format with calculated stats
+                const statsResponse = {
+                    success: true,
+                    data: {
+                        stats: calculatedStats
+                    }
+                };
+                updateInventorySummary(statsResponse);
+            })
+            .catch(error => {
+                console.error('Error loading inventory data:', error);
+                updateInventorySummary(null);
+            });
         }
         
-        function displayInventory(products) {
-            const inventoryTable = document.getElementById('inventoryTableBody');
-            if (!inventoryTable) return;
-            
-            if (!products || products.length === 0) {
-                inventoryTable.innerHTML = '<tr><td colspan="7" class="text-center">No inventory items found</td></tr>';
-                return;
+        function calculateInventoryStats(products) {
+            if (!products || !Array.isArray(products)) {
+                return {
+                    totalProducts: 0,
+                    lowStockItems: 0,
+                    expiringItems: 0,
+                    inventoryValue: 0
+                };
             }
             
-            // Filter products based on UI filters
-            const categoryFilter = document.getElementById('categoryFilter').value;
-            const statusFilter = document.getElementById('statusFilter').value;
-            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            let totalProducts = products.length;
+            let lowStockItems = 0;
+            let expiringItems = 0;
+            let inventoryValue = 0;
             
-            const filteredProducts = products.filter(product => {
-                // Category filter
-                if (categoryFilter && categoryFilter !== 'all' && product.category !== categoryFilter) {
-                    return false;
+            products.forEach(product => {
+                // Calculate low stock items
+                const minStock = product.minStockLevel || product.minStock || 5;
+                if (product.stock <= minStock && product.stock > 0) {
+                    lowStockItems++;
                 }
                 
-                // Status filter
-                if (statusFilter === 'low-stock' && product.stock > (product.minStockLevel || product.minStock)) {
-                    return false;
-                }
-                if (statusFilter === 'out-of-stock' && product.stock > 0) {
-                    return false;
-                }
+                // Calculate inventory value
+                const cost = product.cost || product.price || 0;
+                const stock = product.stock || 0;
+                inventoryValue += cost * stock;
                 
-                // Search filter
-                if (searchQuery && !product.name.toLowerCase().includes(searchQuery) && 
-                    !product.category.toLowerCase().includes(searchQuery) &&
-                    !(product.barcode && product.barcode.toLowerCase().includes(searchQuery))) {
-                    return false;
+                // Check for expiring items (if expiryDate exists)
+                if (product.expiryDate) {
+                    const expiryDate = new Date(product.expiryDate);
+                    const today = new Date();
+                    const daysUntilExpiry = (expiryDate - today) / (1000 * 60 * 60 * 24);
+                    if (daysUntilExpiry <= 7 && daysUntilExpiry > 0) {
+                        expiringItems++;
+                    }
                 }
-                
-                return true;
             });
             
-            if (filteredProducts.length === 0) {
-                inventoryTable.innerHTML = '<tr><td colspan="7" class="text-center">No matching inventory items</td></tr>';
-                return;
-            }
-            
-            // Generate table rows
-            inventoryTable.innerHTML = filteredProducts.map(product => {
-                const stockStatus = product.stock === 0 ? 'out-of-stock' : 
-                                    product.stock <= (product.minStockLevel || product.minStock) ? 'low-stock' : 'in-stock';
-                
-                return `
-                    <tr>
-                        <td>
-                            <div class="item-details">
-                                <img src="${product.image || '../images/icons/product-placeholder.png'}" alt="${product.name}" class="item-thumbnail">
-                                <div>
-                                    <div class="item-name">${product.name}</div>
-                                    <div class="item-sku">${product.sku || product.barcode || 'No SKU'}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>${product.category}</td>
-                        <td class="text-right">₹${(product.price || 0).toLocaleString()}</td>
-                        <td class="text-right">₹${(product.cost || 0).toLocaleString()}</td>
-                        <td class="text-center ${stockStatus}">${product.stock}</td>
-                        <td class="text-center">${product.minStockLevel || product.minStock || 0}</td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-icon" onclick="editItem('${product._id || product.id}')">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn-icon" onclick="adjustStock('${product._id || product.id}')">
-                                    <i class="fas fa-boxes"></i>
-                                </button>
-                                <button class="btn-icon" onclick="viewHistory('${product._id || product.id}')">
-                                    <i class="fas fa-history"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+            return {
+                totalProducts,
+                lowStockItems,
+                expiringItems,
+                inventoryValue
+            };
         }
         
         // Function to format currency values
@@ -613,33 +556,34 @@
         }
 
         function updateInventorySummary(response) {
-            if (!response || !response.data) {
+            console.log('Updating inventory summary with:', response);
+            
+            if (!response || !response.data || !response.data.stats) {
                 // Set defaults if no data
                 document.getElementById('totalItems').textContent = '0';
                 document.getElementById('lowStockItems').textContent = '0';
                 document.getElementById('expiringItems').textContent = '0';
                 document.getElementById('totalValue').textContent = 'NPR 0';
+                console.log('No stats data available, showing defaults');
                 return;
             }
 
             const { stats } = response.data;
+            console.log('Stats data:', stats);
             
             // Update summary display with real data
-            document.getElementById('totalItems').textContent = stats.totalProducts || '0';
-            document.getElementById('lowStockItems').textContent = stats.lowStockItems || '0';
-            document.getElementById('expiringItems').textContent = stats.expiringItems || '0';
+            document.getElementById('totalItems').textContent = (stats.totalProducts || 0).toString();
+            document.getElementById('lowStockItems').textContent = (stats.lowStockItems || 0).toString();
+            document.getElementById('expiringItems').textContent = (stats.expiringItems || 0).toString();
             document.getElementById('totalValue').textContent = formatCurrency(stats.inventoryValue || 0);
+            
+            console.log('Inventory summary updated successfully');
         }
         
         function setupFilters() {
-            // Set up category filter
-            document.getElementById('categoryFilter').addEventListener('change', loadInventoryData);
-            
-            // Set up status filter
-            document.getElementById('statusFilter').addEventListener('change', loadInventoryData);
-            
-            // Set up search
-            document.getElementById('searchInput').addEventListener('input', debounce(loadInventoryData, 300));
+            // This is a dashboard page - no filters needed
+            // Filters would be implemented on a separate products/inventory table page
+            console.log('Dashboard page - no filters to setup');
         }
         
         // Debounce function to limit search API calls
@@ -677,29 +621,40 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Wait for navbar to be initialized, then add custom actions
             setTimeout(() => {
-                if (window.smartPOSNavbar && typeof window.smartPOSNavbar.addCustomAction === 'function') {
-                    // Add custom navbar actions for inventory
-                    window.smartPOSNavbar.addCustomAction('add-item', 'Add Item', 'fas fa-plus', 'btn-primary');
-                    window.smartPOSNavbar.addCustomAction('manage-items', 'Manage Items', 'fas fa-boxes', 'btn-secondary');
-                    window.smartPOSNavbar.addCustomAction('export-data', 'Export', 'fas fa-download', 'btn-secondary');
-                } else {
-                    console.warn('Navbar not ready for custom actions');
+                try {
+                    if (window.smartPOSNavbar && typeof window.smartPOSNavbar.addCustomAction === 'function') {
+                        // Add custom navbar actions for inventory
+                        window.smartPOSNavbar.addCustomAction('add-item', 'Add Item', 'fas fa-plus', 'btn-primary');
+                        window.smartPOSNavbar.addCustomAction('manage-items', 'Manage Items', 'fas fa-boxes', 'btn-secondary');
+                        window.smartPOSNavbar.addCustomAction('export-data', 'Export', 'fas fa-download', 'btn-secondary');
+                        console.log('Navbar custom actions added successfully');
+                    } else {
+                        console.log('Navbar addCustomAction method not available - using basic navbar');
+                    }
+                } catch (error) {
+                    console.error('Error adding navbar custom actions:', error);
                 }
-            }, 500);
+            }, 1000); // Increased timeout to ensure navbar is ready
             
             // Handle navbar action clicks
             document.addEventListener('navbarAction', function(e) {
-                switch(e.detail.actionId) {
-                    case 'add-item':
-                        window.location.href = 'products.html';
-                        break;
-                    case 'manage-items':
-                        window.location.href = 'products.html';
-                        break;
-                    case 'export-data':
-                        console.log('Exporting inventory data...');
-                        alert('Export functionality will be implemented');
-                        break;
+                try {
+                    switch(e.detail.actionId) {
+                        case 'add-item':
+                            window.location.href = 'products.html';
+                            break;
+                        case 'manage-items':
+                            window.location.href = 'products.html';
+                            break;
+                        case 'export-data':
+                            console.log('Exporting inventory data...');
+                            alert('Export functionality will be implemented');
+                            break;
+                        default:
+                            console.log('Unknown navbar action:', e.detail.actionId);
+                    }
+                } catch (error) {
+                    console.error('Error handling navbar action:', error);
                 }
             });
         });
