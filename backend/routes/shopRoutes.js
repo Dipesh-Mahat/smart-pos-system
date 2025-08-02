@@ -2,13 +2,12 @@ const express = require('express');
 const router = express.Router();
 const authenticateJWT = require('../middleware/authJWT');
 const authorize = require('../middleware/authorize');
-const { productImageUpload, expenseAttachmentUpload } = require('../utils/fileUpload');
+const { productImageUpload } = require('../utils/fileUpload');
 
 // Import controllers
 const dashboardController = require('../controllers/dashboardController');
 const productController = require('../controllers/productController');
 const transactionController = require('../controllers/transactionController');
-const expenseController = require('../controllers/expenseController');
 const customerController = require('../controllers/customerController');
 const categoryController = require('../controllers/categoryController');
 const orderController = require('../controllers/orderController');
@@ -75,21 +74,21 @@ router.get('/dashboard/sales-by-category', dashboardController.getSalesByCategor
 
 /**
  * @swagger
- * /shop/dashboard/expense-breakdown:
+
  *   get:
- *     summary: Get expense breakdown data
+
  *     tags: [Dashboard]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Expense breakdown retrieved successfully
+
  *       401:
  *         description: Unauthorized
  *       500:
  *         description: Server error
  */
-router.get('/dashboard/expense-breakdown', dashboardController.getExpenseBreakdown);
+
 
 /**
  * @swagger
@@ -544,10 +543,10 @@ router.get('/transaction-summary', transactionController.getTransactionSummary);
 
 /**
  * @swagger
- * /shop/expenses:
+
  *   get:
- *     summary: Get all expenses
- *     tags: [Expenses]
+
+
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -572,7 +571,7 @@ router.get('/transaction-summary', transactionController.getTransactionSummary);
  *         name: category
  *         schema:
  *           type: string
- *         description: Expense category
+
  *       - in: query
  *         name: startDate
  *         schema:
@@ -587,14 +586,14 @@ router.get('/transaction-summary', transactionController.getTransactionSummary);
  *         description: End date for filtering
  *     responses:
  *       200:
- *         description: Expenses retrieved successfully
+
  *       401:
  *         description: Unauthorized
  *       500:
  *         description: Server error
  *   post:
- *     summary: Create a new expense
- *     tags: [Expenses]
+
+
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -602,10 +601,10 @@ router.get('/transaction-summary', transactionController.getTransactionSummary);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Expense'
+
  *     responses:
  *       201:
- *         description: Expense created successfully
+
  *       400:
  *         description: Invalid request data
  *       401:
@@ -613,33 +612,33 @@ router.get('/transaction-summary', transactionController.getTransactionSummary);
  *       500:
  *         description: Server error
  */
-router.get('/expenses', expenseController.getExpenses);
-router.post('/expenses', expenseController.createExpense);
+
+
 
 /**
  * @swagger
- * /shop/expenses/categories:
+
  *   get:
- *     summary: Get all expense categories
- *     tags: [Expenses]
+
+
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Expense categories retrieved successfully
+
  *       401:
  *         description: Unauthorized
  *       500:
  *         description: Server error
  */
-router.get('/expenses/categories', expenseController.getExpenseCategories);
+
 
 /**
  * @swagger
- * /shop/expenses/monthly-summary:
+
  *   get:
- *     summary: Get monthly expense summary
- *     tags: [Expenses]
+
+
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -655,20 +654,20 @@ router.get('/expenses/categories', expenseController.getExpenseCategories);
  *         description: Month for the summary
  *     responses:
  *       200:
- *         description: Monthly expense summary retrieved successfully
+
  *       401:
  *         description: Unauthorized
  *       500:
  *         description: Server error
  */
-router.get('/expenses/monthly-summary', expenseController.getMonthlyExpenseSummary);
+
 
 /**
  * @swagger
- * /shop/expenses/{id}:
+
  *   get:
- *     summary: Get an expense by ID
- *     tags: [Expenses]
+
+
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -677,19 +676,19 @@ router.get('/expenses/monthly-summary', expenseController.getMonthlyExpenseSumma
  *         required: true
  *         schema:
  *           type: string
- *         description: Expense ID
+
  *     responses:
  *       200:
- *         description: Expense retrieved successfully
+
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Expense not found
+
  *       500:
  *         description: Server error
  *   put:
- *     summary: Update an expense
- *     tags: [Expenses]
+
+
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -698,27 +697,27 @@ router.get('/expenses/monthly-summary', expenseController.getMonthlyExpenseSumma
  *         required: true
  *         schema:
  *           type: string
- *         description: Expense ID
+
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Expense'
+
  *     responses:
  *       200:
- *         description: Expense updated successfully
+
  *       400:
  *         description: Invalid request data
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Expense not found
+
  *       500:
  *         description: Server error
  *   delete:
- *     summary: Delete an expense
- *     tags: [Expenses]
+
+
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -727,27 +726,27 @@ router.get('/expenses/monthly-summary', expenseController.getMonthlyExpenseSumma
  *         required: true
  *         schema:
  *           type: string
- *         description: Expense ID
+
  *     responses:
  *       200:
- *         description: Expense deleted successfully
+
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Expense not found
+
  *       500:
  *         description: Server error
  */
-router.get('/expenses/:id', expenseController.getExpense);
-router.put('/expenses/:id', expenseController.updateExpense);
-router.delete('/expenses/:id', expenseController.deleteExpense);
+
+
+
 
 /**
  * @swagger
- * /shop/expenses/{id}/upload-attachment:
+
  *   post:
- *     summary: Upload an attachment for an expense
- *     tags: [Expenses]
+
+
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -756,7 +755,7 @@ router.delete('/expenses/:id', expenseController.deleteExpense);
  *         required: true
  *         schema:
  *           type: string
- *         description: Expense ID
+
  *     requestBody:
  *       required: true
  *       content:
@@ -775,11 +774,11 @@ router.delete('/expenses/:id', expenseController.deleteExpense);
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Expense not found
+
  *       500:
  *         description: Server error
  */
-router.post('/expenses/:id/upload-attachment', expenseAttachmentUpload, expenseController.uploadExpenseAttachment);
+
 
 // Add a test endpoint for shopowner functionality
 router.get('/test-shopowner', (req, res) => {

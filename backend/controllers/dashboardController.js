@@ -1,6 +1,5 @@
 const Transaction = require('../models/Transaction');
 const Product = require('../models/Product');
-const Expense = require('../models/Expense');
 const mongoose = require('mongoose');
 
 // Get dashboard summary data
@@ -68,23 +67,6 @@ exports.getDashboardSummary = async (req, res) => {
           totalSales: { $sum: '$total' },
           transactionCount: { $sum: 1 },
           averageTicket: { $avg: '$total' }
-        }
-      }
-    ]);
-    
-    // Expenses summary
-    const expensesSummary = await Expense.aggregate([
-      {
-        $match: {
-          shopId: new mongoose.Types.ObjectId(shopId),
-          date: { $gte: startDate, $lte: endDate }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          totalExpenses: { $sum: '$amount' },
-          expenseCount: { $sum: 1 }
         }
       }
     ]);
@@ -399,108 +381,5 @@ exports.getSalesByCategory = async (req, res) => {
   } catch (error) {
     console.error('Error getting sales by category:', error);
     res.status(500).json({ error: 'Failed to retrieve sales by category' });
-  }
-};
-
-// Get expense breakdown
-exports.getExpenseBreakdown = async (req, res) => {
-  try {
-    const { period = 'month' } = req.query;
-    
-    // Calculate date range based on period
-    const now = new Date();
-    let startDate;
-    
-    switch (period) {
-      case 'today':
-        startDate = new Date(now.setHours(0, 0, 0, 0));
-        break;
-      case 'week':
-        startDate = new Date(now);
-        startDate.setDate(startDate.getDate() - 7);
-        break;
-      case 'month':
-        startDate = new Date(now);
-        startDate.setMonth(startDate.getMonth() - 1);
-        break;
-      case 'year':
-        startDate = new Date(now);
-        startDate.setFullYear(startDate.getFullYear() - 1);
-        break;
-      default:
-        startDate = new Date(now);
-        startDate.setMonth(startDate.getMonth() - 1);
-    }
-    
-    // Get expense breakdown by category
-    const expensesByCategory = await Expense.aggregate([
-      {
-        $match: {
-          shopId: new mongoose.Types.ObjectId(req.user._id),
-          date: { $gte: startDate }
-        }
-      },
-      {
-        $group: {
-          _id: '$category',
-          totalAmount: { $sum: '$amount' },
-          count: { $sum: 1 }
-        }
-      },
-      {
-        $project: {
-          category: '$_id',
-          totalAmount: 1,
-          count: 1,
-          _id: 0
-        }
-      },
-      { $sort: { totalAmount: -1 } }
-    ]);
-    
-    // Get expenses over time
-    const expensesOverTime = await Expense.aggregate([
-      {
-        $match: {
-          shopId: new mongoose.Types.ObjectId(req.user._id),
-          date: { $gte: startDate }
-        }
-      },
-      {
-        $group: {
-          _id: {
-            year: { $year: '$date' },
-            month: { $month: '$date' },
-            day: { $dayOfMonth: '$date' }
-          },
-          totalAmount: { $sum: '$amount' },
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } },
-      {
-        $project: {
-          date: {
-            $dateFromParts: {
-              year: '$_id.year',
-              month: '$_id.month',
-              day: '$_id.day'
-            }
-          },
-          totalAmount: 1,
-          count: 1,
-          _id: 0
-        }
-      }
-    ]);
-    
-    res.status(200).json({
-      expensesByCategory,
-      expensesOverTime,
-      period
-    });
-  } catch (error) {
-    console.error('Error getting expense breakdown:', error);
-    res.status(500).json({ error: 'Failed to retrieve expense breakdown' });
   }
 };

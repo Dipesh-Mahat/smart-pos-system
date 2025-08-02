@@ -116,7 +116,6 @@ class AIDataCollectionService {
           type: user?.businessType || settings?.businessType || 'Retail',
           address: settings?.address,
           currency: settings?.currency || 'NPR',
-          taxRate: settings?.taxRate || 13,
           businessHours: settings?.businessHours
         },
         preferences: {

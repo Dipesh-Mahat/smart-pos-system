@@ -167,11 +167,6 @@ class ApiService {
      * @returns {Promise<Object>} Response data
      */
     async createProduct(productData) {
-        // Remove any demo products when creating the first real product
-        if (typeof hideDemoProducts === 'function') {
-            hideDemoProducts();
-        }
-        
         // Check if we need to use FormData for file uploads
         if (productData.image instanceof File) {
             const formData = new FormData();

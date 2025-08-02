@@ -28,11 +28,6 @@ const TransactionItemSchema = new Schema({
     default: 0,
     min: [0, 'Discount cannot be negative']
   },
-  tax: {
-    type: Number,
-    default: 0,
-    min: [0, 'Tax cannot be negative']
-  },
   subtotal: {
     type: Number,
     required: true,
@@ -88,11 +83,6 @@ const TransactionSchema = new Schema({
     type: Number,
     default: 0,
     min: [0, 'Discount cannot be negative']
-  },
-  tax: {
-    type: Number,
-    default: 0,
-    min: [0, 'Tax cannot be negative']
   },
   total: {
     type: Number,
@@ -155,9 +145,8 @@ TransactionSchema.methods.calculateTotals = function() {
   // Calculate subtotal from all items
   this.subtotal = this.items.reduce((sum, item) => sum + item.subtotal, 0);
   
-  // Calculate total with discount and tax
-  const discountedSubtotal = this.subtotal - this.discount;
-  this.total = discountedSubtotal + this.tax;
+  // Calculate total with discount
+  this.total = this.subtotal - this.discount;
   
   // Calculate change
   this.amountPaid = this.payments.reduce((sum, payment) => sum + payment.amount, 0);

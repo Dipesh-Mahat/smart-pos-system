@@ -498,7 +498,6 @@ exports.createSupplierProduct = async (req, res) => {
         minStockLevel,
         barcode,
         unit = 'piece',
-        tax = 0,
         brand
       } = req.body;
 
@@ -519,7 +518,6 @@ exports.createSupplierProduct = async (req, res) => {
         minStockLevel: parseInt(minStockLevel) || 5,
         barcode,
         unit,
-        tax: parseFloat(tax),
         imageUrl,
         shopId: null, // No shopId for supplier products
         supplierInfo: {
@@ -581,7 +579,6 @@ exports.updateSupplierProduct = async (req, res) => {
         minStockLevel,
         barcode,
         unit,
-        tax,
         isActive
       } = req.body;
 
@@ -595,7 +592,6 @@ exports.updateSupplierProduct = async (req, res) => {
       if (minStockLevel) product.minStockLevel = parseInt(minStockLevel);
       if (barcode !== undefined) product.barcode = barcode;
       if (unit) product.unit = unit;
-      if (tax !== undefined) product.tax = parseFloat(tax);
       if (isActive !== undefined) product.isActive = isActive === 'true' || isActive === true;
 
       // Update image if new one uploaded

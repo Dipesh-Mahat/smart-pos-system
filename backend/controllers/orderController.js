@@ -156,10 +156,9 @@ exports.createOrder = async (req, res) => {
     const orderNumber = `ORD-${req.user._id.toString().slice(-6)}-${(orderCount + 1).toString().padStart(4, '0')}`;
     
     // Calculate totals
-    const tax = 0; // No tax for now
     const shippingCost = 0; // No shipping cost for now
     const discount = 0; // No discount for now
-    const total = subtotal + tax + shippingCost - discount;
+    const total = subtotal + shippingCost - discount;
     
     // Create order
     const orderData = {
@@ -168,7 +167,6 @@ exports.createOrder = async (req, res) => {
       supplierId,
       items: processedItems,
       subtotal,
-      tax,
       shippingCost,
       discount,
       total,

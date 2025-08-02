@@ -45,7 +45,7 @@ const generateSecureFilename = (originalname, type) => {
 const createUploadDirs = () => {
     const uploadDir = path.join(__dirname, '../uploads');
     const productImagesDir = path.join(uploadDir, 'products');
-    const expenseAttachmentsDir = path.join(uploadDir, 'expenses');
+
     
     const createSecureDir = (dir) => {
         if (!fs.existsSync(dir)) {
@@ -58,7 +58,7 @@ const createUploadDirs = () => {
   
     createSecureDir(uploadDir);
     createSecureDir(productImagesDir);
-    createSecureDir(expenseAttachmentsDir);
+
 };
 
 /**
@@ -111,7 +111,7 @@ const validateFile = async (file, type) => {
 /**
  * Process and store uploaded file securely
  * @param {Object} file - The uploaded file
- * @param {string} type - Type of upload (products/expenses)
+
  * @returns {Promise<string>} - The secure filename
  */
 const processAndStoreFile = async (file, type) => {
@@ -259,16 +259,16 @@ const productImageStorage = multer.diskStorage({
   }
 });
 
-// Configure storage for expense attachments
-const expenseAttachmentStorage = multer.diskStorage({
+
+
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../uploads/expenses'));
+
   },
   filename: (req, file, cb) => {
     const shopId = req.user._id;
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
-    cb(null, `expense-${shopId}-${uniqueSuffix}${ext}`);
+
   }
 });
 
@@ -299,9 +299,9 @@ const uploadProductImage = multer({
   fileFilter: imageFileFilter
 }).single('image');
 
-// Setup multer for expense attachments
-const uploadExpenseAttachment = multer({
-  storage: expenseAttachmentStorage,
+
+
+
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB limit
   },
@@ -324,9 +324,9 @@ const productImageUpload = (req, res, next) => {
   });
 };
 
-// Middleware for expense attachment upload
-const expenseAttachmentUpload = (req, res, next) => {
-  uploadExpenseAttachment(req, res, (err) => {
+
+
+
     if (err instanceof multer.MulterError) {
       // A Multer error occurred when uploading
       return res.status(400).json({ error: `Upload error: ${err.message}` });
@@ -342,5 +342,5 @@ const expenseAttachmentUpload = (req, res, next) => {
 
 module.exports = {
   productImageUpload,
-  expenseAttachmentUpload
+
 };

@@ -48,14 +48,14 @@ class SmartPOSSystem {
                 }));
                 console.log('Loaded products from database (legacy format):', this.products.length);
             } else {
-                console.warn('Failed to load products from API, using demo data as fallback');
-                // Use demo products as a fallback only if API fails
-                this.products = getDemoProducts();
+                console.warn('Failed to load products from API, no products available');
+                // No products available
+                this.products = [];
             }
         } catch (error) {
             console.error('Error loading products:', error);
-            // Use demo products as a fallback only if API fails
-            this.products = getDemoProducts();
+            // No products available
+            this.products = [];
         }
         
         this.displayAllProducts();
@@ -344,8 +344,6 @@ class SmartPOSSystem {
 
     updateCartDisplay() {
         const cartItemsContainer = document.getElementById('cartItems');
-        const subtotalElement = document.getElementById('subtotal');
-        const taxElement = document.getElementById('tax');
         const totalElement = document.getElementById('total');
         const cartCountElement = document.getElementById('cartCount');
         
@@ -359,19 +357,17 @@ class SmartPOSSystem {
                     <p>Add products by clicking on them</p>
                 </div>
             `;
-            subtotalElement.textContent = 'NPR 0';
-            taxElement.textContent = 'NPR 0';
             totalElement.textContent = 'NPR 0';
             cartCountElement.textContent = '0';
             return;
         }
         
-        let subtotal = 0;
+        let total = 0;
         cartItemsContainer.innerHTML = '';
         
         this.cart.forEach((item, index) => {
             const itemTotal = item.price * item.quantity;
-            subtotal += itemTotal;
+            total += itemTotal;
             
             const cartItemElement = document.createElement('div');
             cartItemElement.className = 'cart-item';
@@ -407,11 +403,6 @@ class SmartPOSSystem {
             cartItemsContainer.appendChild(cartItemElement);
         });
         
-        const tax = subtotal * 0.08;
-        const total = subtotal + tax;
-        
-        subtotalElement.textContent = `NPR ${Math.round(subtotal)}`;
-        taxElement.textContent = `NPR ${Math.round(tax)}`;
         totalElement.textContent = `NPR ${Math.round(total)}`;
         cartCountElement.textContent = this.cart.length.toString();
     }

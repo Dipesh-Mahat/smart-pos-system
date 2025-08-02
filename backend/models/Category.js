@@ -37,12 +37,6 @@ const CategorySchema = new Schema({
     required: [true, 'Shop ID is required']
   },
   metadata: {
-    taxRate: {
-      type: Number,
-      default: 0,
-      min: [0, 'Tax rate cannot be negative'],
-      max: [100, 'Tax rate cannot exceed 100%']
-    },
     commissionRate: {
       type: Number,
       default: 0,

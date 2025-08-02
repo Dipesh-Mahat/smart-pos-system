@@ -89,7 +89,6 @@ const swaggerOptions = {
             paymentMethod: { type: 'string', enum: ['cash', 'card', 'mobile'], example: 'cash' },
             total: { type: 'number', example: 21.98 },
             discount: { type: 'number', example: 0 },
-            tax: { type: 'number', example: 0 },
             grandTotal: { type: 'number', example: 21.98 },
             status: { type: 'string', enum: ['completed', 'refunded', 'voided'], example: 'completed' }
           }

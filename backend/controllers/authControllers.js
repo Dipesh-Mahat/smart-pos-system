@@ -235,20 +235,6 @@ const register = async (req, res) => {
       const newUser = await User.create(userData);
       console.log('User registered successfully:', newUser.email);
 
-      // Seed demo products for new shopowner
-      if (newUser.role === 'shopowner') {
-        try {
-          const Product = require('../models/Product');
-          const demoProducts = require('../utils/demoProducts');
-          // Attach shopId to each demo product
-          const demoProductsToInsert = demoProducts.map(p => ({ ...p, shopId: newUser._id }));
-          await Product.insertMany(demoProductsToInsert);
-          console.log('Demo products seeded for shop:', newUser._id);
-        } catch (seedErr) {
-          console.error('Error seeding demo products:', seedErr);
-        }
-      }
-
       // Return user ID for debugging purposes
       return res.status(201).json({ 
         success: true,

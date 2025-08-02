@@ -131,7 +131,6 @@ async function seedCategories(users) {
           isActive: true,
           sortOrder: 1,
           metadata: {
-            taxRate: 13, // VAT in Nepal
             commissionRate: 5
           }
         },
@@ -142,7 +141,6 @@ async function seedCategories(users) {
           isActive: true,
           sortOrder: 2,
           metadata: {
-            taxRate: 13,
             commissionRate: 8
           }
         },
@@ -153,7 +151,6 @@ async function seedCategories(users) {
           isActive: true,
           sortOrder: 3,
           metadata: {
-            taxRate: 13,
             commissionRate: 6
           }
         },
@@ -164,7 +161,6 @@ async function seedCategories(users) {
           isActive: true,
           sortOrder: 4,
           metadata: {
-            taxRate: 13,
             commissionRate: 7
           }
         },
@@ -175,7 +171,6 @@ async function seedCategories(users) {
           isActive: true,
           sortOrder: 5,
           metadata: {
-            taxRate: 13,
             commissionRate: 6
           }
         },
@@ -186,7 +181,6 @@ async function seedCategories(users) {
           isActive: true,
           sortOrder: 6,
           metadata: {
-            taxRate: 13,
             commissionRate: 4
           }
         }
@@ -553,11 +547,6 @@ async function seedSettings(users) {
             symbol: 'Rs.',
             position: 'before',
             decimalPlaces: 2
-          },
-          tax: {
-            defaultRate: 13,
-            inclusive: false,
-            displayOnReceipts: true
           },
           inventory: {
             trackStock: true,

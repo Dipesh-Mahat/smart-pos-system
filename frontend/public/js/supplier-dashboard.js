@@ -203,18 +203,18 @@ function loadProducts() {
                     // Use real products from API
                     renderProducts(response.data.products);
                 } else {
-                    // Fall back to demo products if no real products exist
-                    renderProducts(getDemoProducts().slice(0, 4));
+                    // No products available - show empty list
+                    renderProducts([]);
                 }
             })
             .catch(error => {
                 console.error('Error loading products:', error);
-                // Fall back to demo products on error
-                renderProducts(getDemoProducts().slice(0, 4));
+                // Show empty list on error
+                renderProducts([]);
             });
     } else {
-        // Use demo products if no API service available
-        renderProducts(getDemoProducts().slice(0, 4));
+        // No API service available - show empty list
+        renderProducts([]);
     }
 }
 

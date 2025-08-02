@@ -613,7 +613,6 @@
     <script src="../js/security-logger.js"></script>
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
-    <script src="../js/demo-products.js"></script>
     
     <!-- Check authentication on page load -->
     <script>
@@ -817,7 +816,7 @@
                         <div class="stock-level">${product.stock} remaining</div>
                         <div class="stock-min">Min: ${product.minStockLevel || product.minStock}</div>
                     </div>
-                    <a href="add-item.html?id=${product._id || product.id}" class="restock-btn">
+                    <a href="item-management.html" class="restock-btn">
                         <i class="fas fa-plus"></i> Restock
                     </a>
                 </div>

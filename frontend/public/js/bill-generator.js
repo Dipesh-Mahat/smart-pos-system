@@ -149,8 +149,6 @@ class SmartPOSBillGenerator {
                 subTotal: 0,
                 discount: data.discount || 0,
                 discountType: data.discountType || 'percentage', // 'percentage' or 'fixed'
-                tax: data.tax || 0,
-                taxType: data.taxType || 'percentage', // 'percentage' or 'fixed'
                 grandTotal: 0
             },
             deliveryDate: data.deliveryDate ? this.formatDate(data.deliveryDate) : '',
@@ -197,19 +195,11 @@ class SmartPOSBillGenerator {
             discountAmount = this.billData.summary.discount;
         }
         
-        // Calculate after discount
+        // Calculate after discount (which becomes the grand total)
         const afterDiscount = this.billData.summary.subTotal - discountAmount;
         
-        // Calculate tax
-        let taxAmount = 0;
-        if (this.billData.summary.taxType === 'percentage') {
-            taxAmount = (this.billData.summary.tax / 100) * afterDiscount;
-        } else {
-            taxAmount = this.billData.summary.tax;
-        }
-        
-        // Calculate grand total
-        this.billData.summary.grandTotal = afterDiscount + taxAmount;
+        // Calculate grand total (no tax)
+        this.billData.summary.grandTotal = afterDiscount;
         
         return this.billData;
     }
@@ -679,29 +669,6 @@ class SmartPOSBillGenerator {
             summary.appendChild(discountRow);
         }
         
-        // Tax (if applicable)
-        if (this.billData.summary.tax > 0) {
-            const taxLabel = this.billData.summary.taxType === 'percentage' ? 
-                `Tax (${this.billData.summary.tax}%):` : 'Tax:';
-            
-            const afterDiscount = this.billData.summary.subTotal - 
-                (this.billData.summary.discountType === 'percentage' ?
-                (this.billData.summary.discount / 100) * this.billData.summary.subTotal :
-                this.billData.summary.discount);
-                
-            const taxAmount = this.billData.summary.taxType === 'percentage' ?
-                (this.billData.summary.tax / 100) * afterDiscount :
-                this.billData.summary.tax;
-                
-            const taxRow = document.createElement('div');
-            taxRow.className = 'bill-summary-row';
-            taxRow.innerHTML = `
-                <span>${taxLabel}</span>
-                <span>+ ${this.formatCurrency(taxAmount)}</span>
-            `;
-            summary.appendChild(taxRow);
-        }
-        
         // Grand Total
         const grandTotalRow = document.createElement('div');
         grandTotalRow.className = 'bill-summary-row total';
@@ -710,7 +677,7 @@ class SmartPOSBillGenerator {
             <span>${this.formatCurrency(this.billData.summary.grandTotal)}</span>
         `;
         summary.appendChild(grandTotalRow);
-        
+
         bill.appendChild(summary);
         
         // Add separator

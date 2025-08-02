@@ -69,9 +69,6 @@ class SupplierBillIntegration {
             sell: item.unitPrice * 1.2 // Default 20% markup for shop owner's selling price (can be adjusted)
         }));
         
-        // Calculate tax percentage
-        const taxPercentage = order.subtotal > 0 ? (order.tax / order.subtotal) * 100 : 13;
-        
         // Calculate discount percentage
         const discountPercentage = order.subtotal > 0 ? (order.discount / order.subtotal) * 100 : 0;
         
@@ -104,10 +101,7 @@ class SupplierBillIntegration {
             items: items,
             
             discount: discountPercentage,
-            discountType: 'percentage',
-            
-            tax: taxPercentage,
-            taxType: 'percentage'
+            discountType: 'percentage'
             
             // Removed paymentInfo, gstInfo, and notes as per requirements
         };

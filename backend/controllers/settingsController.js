@@ -105,7 +105,7 @@ exports.updateSettingSection = async (req, res) => {
     
     // Valid sections
     const validSections = [
-      'business', 'currency', 'tax', 'receipt', 
+      'business', 'currency', 'receipt', 
       'inventory', 'pos', 'notifications'
     ];
     
@@ -164,13 +164,6 @@ exports.resetSettings = async (req, res) => {
             symbol: 'Rs.',
             position: 'before',
             decimalPlaces: 2
-          };
-          break;
-        case 'tax':
-          defaultSettings.tax = {
-            defaultRate: 13,
-            inclusive: false,
-            registrationNumber: ''
           };
           break;
         case 'receipt':

@@ -1356,7 +1356,6 @@ const seedOrders = async (shopOwner, supplier, products) => {
         }
       ],
       subtotal: products[0].costPrice * 20 + products[1].costPrice * 15,
-      tax: 0,
       shippingCost: 200,
       discount: 500,
       total: (products[0].costPrice * 20 + products[1].costPrice * 15) + 200 - 500,
@@ -1399,7 +1398,6 @@ const seedOrders = async (shopOwner, supplier, products) => {
         }
       ],
       subtotal: products[6].costPrice * 100 + products[7].costPrice * 80,
-      tax: 0,
       shippingCost: 150,
       discount: 180,
       total: (products[6].costPrice * 100 + products[7].costPrice * 80) + 150 - 180,
@@ -1450,7 +1448,6 @@ const seedOrders = async (shopOwner, supplier, products) => {
         }
       ],
       subtotal: products[9].costPrice * 50 + products[10].costPrice * 30 + products[11].costPrice * 30,
-      tax: 0,
       shippingCost: 200,
       discount: 0,
       total: (products[9].costPrice * 50 + products[10].costPrice * 30 + products[11].costPrice * 30) + 200,

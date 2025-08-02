@@ -56,11 +56,6 @@ const OrderSchema = new Schema({
     required: true,
     min: [0, 'Subtotal cannot be negative']
   },
-  tax: {
-    type: Number,
-    default: 0,
-    min: [0, 'Tax cannot be negative']
-  },
   shippingCost: {
     type: Number,
     default: 0,
@@ -131,7 +126,7 @@ OrderSchema.virtual('orderAge').get(function() {
 // Methods to handle order calculations
 OrderSchema.methods.calculateTotals = function() {
   this.subtotal = this.items.reduce((sum, item) => sum + item.totalPrice, 0);
-  this.total = this.subtotal + this.tax + this.shippingCost - this.discount;
+  this.total = this.subtotal + this.shippingCost - this.discount;
   return this;
 };
 
