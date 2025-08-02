@@ -1420,25 +1420,36 @@
             justify-content: center;
             align-items: center;
             pointer-events: none;
+            z-index: 10;
         }
         
         .scan-line {
-            width: 80%;
-            height: 2px;
-            background-color: var(--danger-color);
             position: absolute;
-            animation: scanAnimation 2s infinite linear;
+            width: 80%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #ff0000, transparent);
+            animation: scanLine 2s infinite linear;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%);
         }
         
-        @keyframes scanAnimation {
+        .scan-line.active {
+            animation: scanLine 2s infinite linear;
+        }
+        
+        @keyframes scanLine {
             0% {
                 top: 20%;
+                opacity: 1;
             }
             50% {
-                top: 80%;
+                top: 50%;
+                opacity: 0.8;
             }
             100% {
-                top: 20%;
+                top: 80%;
+                opacity: 1;
             }
         }
         

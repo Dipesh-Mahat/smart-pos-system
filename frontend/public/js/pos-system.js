@@ -376,13 +376,7 @@ class SmartPOSSystem {
             console.log('✅ Camera access granted');
             
             this.setupCameraStream(stream);
-            
-            // Wait for video to be ready
-            const video = document.getElementById('cameraVideo');
-            if (video) {
-                await this.waitForVideoReady(video);
-                console.log('🎬 Camera stream is ready for scanning');
-            }
+            console.log('🎬 Camera stream setup complete');
             
         } catch (error) {
             console.error('❌ Camera access failed:', error);
@@ -473,170 +467,67 @@ class SmartPOSSystem {
         }
     }
 
-    // Process barcode using enhanced scanner
+    // Simple and fast barcode capture
     async captureBarcode() {
-        console.log('🎯 CAPTURE BARCODE INITIATED');
+        console.log('🎯 STARTING FAST BARCODE SCAN');
         
         try {
+            // Get camera modal elements
+            const cameraModal = document.getElementById('cameraModal');
             const videoElement = document.getElementById('cameraVideo');
-            let canvasElement = document.getElementById('barcodeCanvas');
             
-            console.log('Video element:', videoElement);
-            console.log('Video srcObject:', videoElement ? videoElement.srcObject : 'No video element');
-            console.log('Video paused:', videoElement ? videoElement.paused : 'No video element');
-            console.log('Video readyState:', videoElement ? videoElement.readyState : 'No video element');
-            
-            // Check if video is playing and we have camera access
-            if (!videoElement || !videoElement.srcObject || videoElement.paused || videoElement.readyState < 2) {
-                console.warn('⚠️ Camera not ready, starting camera stream...');
-                
-                // Start camera if not already started
-                if (!videoElement.srcObject) {
-                    await this.startDirectScan();
-                }
-                
-                // Wait for video to be ready
-                await this.waitForVideoReady(videoElement);
-                
-                // Try capture again after video is ready
-                setTimeout(() => {
-                    console.log('🔄 Retrying capture after camera setup...');
-                    this.captureBarcode();
-                }, 1000);
-                return;
+            // Show camera modal first
+            if (cameraModal) {
+                cameraModal.classList.add('active');
             }
             
-            console.log('✅ Video is ready, proceeding with barcode scanning');
-            
-            // Create canvas if it doesn't exist
-            if (!canvasElement) {
-                canvasElement = document.createElement('canvas');
-                canvasElement.id = 'barcodeCanvas';
-                canvasElement.style.display = 'none';
-                const cameraContainer = document.querySelector('.camera-container');
-                if (cameraContainer) {
-                    cameraContainer.appendChild(canvasElement);
-                } else {
-                    document.body.appendChild(canvasElement);
-                }
-                console.log('📄 Canvas element created');
-            }
-            
-            // Check if QuaggaJS is available directly (PRIORITY METHOD)
-            if (typeof Quagga !== 'undefined') {
-                console.log('🚀 Using QuaggaJS directly for barcode scanning...');
-                this.startQuaggaDirectScan();
-                return;
-            }
-            
-            // Fallback to enhanced scanner
-            if (typeof EnhancedBarcodeScanner !== 'undefined') {
-                console.log('🔧 Using enhanced barcode scanner as fallback...');
-                
-                const scanner = new EnhancedBarcodeScanner();
-                scanner.video = videoElement;
-                scanner.canvas = canvasElement;
-                scanner.canvas.width = videoElement.videoWidth || 640;
-                scanner.canvas.height = videoElement.videoHeight || 480;
-                scanner.canvasContext = scanner.canvas.getContext('2d');
-                
-                const initialized = await scanner.initialize();
-                if (!initialized) {
-                    console.warn('❌ Enhanced scanner failed to initialize');
-                    this.showManualBarcodeInput();
-                    return;
-                }
-                
-                const scanStarted = scanner.startScanning((barcode, format, confidence) => {
-                    console.log(`📱 Enhanced scanner detected: ${barcode}, Format: ${format}, Confidence: ${confidence}`);
-                    scanner.stopScanning();
-                    this.processBarcode(barcode);
-                });
-                
-                if (!scanStarted) {
-                    console.warn('❌ Enhanced scanner failed to start');
-                    this.showManualBarcodeInput();
-                }
-                
-            } else {
-                console.warn('❌ No barcode scanning libraries available');
+            // Check if QuaggaJS is available
+            if (typeof Quagga === 'undefined') {
+                console.error('❌ QuaggaJS not loaded');
                 this.showManualBarcodeInput();
+                return;
             }
+            
+            // Get camera permissions and start scanning immediately
+            console.log('📹 Starting camera...');
+            this.updateScanningStatus('Starting camera...');
+            
+            // Start QuaggaJS scanner directly on video element
+            this.startFastQuaggaScan();
+            
         } catch (error) {
-            console.error('💥 Error with barcode scanning:', error);
+            console.error('💥 Error starting barcode scan:', error);
             this.showManualBarcodeInput();
         }
     }
     
-    // Wait for video to be ready
-    async waitForVideoReady(videoElement) {
-        return new Promise((resolve) => {
-            if (videoElement.readyState >= 2) {
-                console.log('✅ Video already ready');
-                resolve();
-                return;
-            }
-            
-            console.log('⏳ Waiting for video to be ready...');
-            const checkReady = () => {
-                if (videoElement.readyState >= 2) {
-                    console.log('✅ Video is now ready');
-                    resolve();
-                } else {
-                    setTimeout(checkReady, 100);
-                }
-            };
-            
-            videoElement.addEventListener('loadeddata', () => {
-                console.log('📹 Video loadeddata event fired');
-                resolve();
-            }, { once: true });
-            
-            videoElement.addEventListener('canplay', () => {
-                console.log('▶️ Video canplay event fired');
-                resolve();
-            }, { once: true });
-            
-            // Start checking
-            checkReady();
-            
-            // Timeout after 5 seconds
-            setTimeout(() => {
-                console.warn('⏰ Video ready timeout');
-                resolve();
-            }, 5000);
-        });
-    }
-    
-    // Direct QuaggaJS scanning method
-    startQuaggaDirectScan() {
+    // Fast and simple QuaggaJS scanning
+    startFastQuaggaScan() {
         const videoElement = document.getElementById('cameraVideo');
         
-        console.log('🔍 Initializing QuaggaJS scanner...');
-        console.log('Video element ready state:', videoElement.readyState);
-        console.log('Video dimensions:', `${videoElement.videoWidth}x${videoElement.videoHeight}`);
+        console.log('� Starting FAST QuaggaJS scanner...');
         
-        // Show scanning indicator
+        // Show scanning indicators
         this.showScanningIndicator(true);
+        this.updateScanningStatus('Initializing camera...');
         
-        // Configure Quagga with optimized settings
+        // Simple Quagga configuration for fast scanning
         const config = {
             inputStream: {
                 name: "Live",
                 type: "LiveStream",
                 target: videoElement,
                 constraints: {
-                    width: { min: 640, ideal: 1280, max: 1920 },
-                    height: { min: 480, ideal: 720, max: 1080 },
-                    facingMode: "environment", // Use back camera
-                    frameRate: { min: 15, ideal: 30 }
+                    width: { min: 480, ideal: 640, max: 1280 },
+                    height: { min: 320, ideal: 480, max: 720 },
+                    facingMode: "environment"
                 }
             },
             locator: {
                 patchSize: "medium",
-                halfSample: true
+                halfSample: false
             },
-            numOfWorkers: 2,
+            numOfWorkers: 1,
             frequency: 10,
             decoder: {
                 readers: [
@@ -644,117 +535,97 @@ class SmartPOSSystem {
                     "ean_reader",
                     "ean_8_reader",
                     "code_39_reader",
-                    "upc_reader",
-                    "upc_e_reader",
-                    "i2of5_reader"
+                    "upc_reader"
                 ],
                 multiple: false
             },
             locate: true
         };
         
-        console.log('⚙️ Quagga configuration:', config);
-        
         Quagga.init(config, (err) => {
             if (err) {
-                console.error('❌ Quagga initialization failed:', err);
+                console.error('❌ Quagga init failed:', err);
                 this.showScanningIndicator(false);
-                this.showManualBarcodeInput();
+                this.updateScanningStatus('Camera error - try manual entry');
                 return;
             }
             
-            console.log('✅ Quagga initialized successfully!');
-            console.log('🎯 Starting barcode detection...');
-            
+            console.log('✅ Quagga ready - starting scan...');
             Quagga.start();
+            this.updateScanningStatus('🎯 Point at barcode and hold steady');
             
-            // Show scanning status
-            this.updateScanningStatus('Ready to scan - Point camera at barcode');
-            
-            // Track detected barcodes to avoid duplicates
-            let lastDetectedBarcode = null;
-            let lastDetectionTime = 0;
-            const detectionCooldown = 2000; // 2 seconds between detections
-            let detectionCount = 0;
-            
-            // Set up detection handler with improved accuracy
+            // Simple detection handler
             Quagga.onDetected((result) => {
                 if (result && result.codeResult && result.codeResult.code) {
                     const barcode = result.codeResult.code.trim();
-                    const confidence = result.codeResult.confidence;
-                    const currentTime = Date.now();
+                    const confidence = result.codeResult.confidence || 0;
                     
-                    detectionCount++;
-                    console.log(`🔍 Detection #${detectionCount}: "${barcode}", Confidence: ${confidence.toFixed(2)}%`);
+                    console.log(`� DETECTED: ${barcode} (${confidence.toFixed(1)}%)`);
                     
-                    // Update scanning status
-                    this.updateScanningStatus(`Detected: ${barcode} (${confidence.toFixed(1)}%)`);
-                    
-                    // Prevent duplicate detections of the same barcode within cooldown period
-                    if (barcode === lastDetectedBarcode && 
-                        (currentTime - lastDetectionTime) < detectionCooldown) {
-                        console.log('⏩ Ignoring duplicate detection within cooldown period');
-                        return;
-                    }
-                    
-                    // Only process if confidence is high enough
-                    if (confidence > 70) {
-                        console.log(`✅ HIGH CONFIDENCE BARCODE: "${barcode}"`);
-                        
-                        // Update tracking variables
-                        lastDetectedBarcode = barcode;
-                        lastDetectionTime = currentTime;
+                    // Accept any detection with reasonable confidence
+                    if (confidence > 50) {
+                        console.log('✅ BARCODE ACCEPTED!');
                         
                         // Stop scanning immediately
                         Quagga.stop();
                         this.showScanningIndicator(false);
-                        this.updateScanningStatus('Processing barcode...');
+                        this.updateScanningStatus('✅ Scanned successfully!');
                         
-                        console.log('🛑 Quagga stopped after successful detection');
-                        
-                        // Process the barcode with a slight delay to show status
+                        // Process barcode
                         setTimeout(() => {
                             this.processBarcode(barcode);
-                        }, 500);
-                        
-                    } else {
-                        console.log(`⚠️ Low confidence (${confidence.toFixed(2)}%), continuing scan...`);
-                        this.updateScanningStatus(`Low confidence: ${barcode} (${confidence.toFixed(1)}%) - Keep scanning...`);
+                        }, 300);
                     }
                 }
             });
             
-            // Auto-stop after 30 seconds
+            // Auto-stop after 15 seconds
             setTimeout(() => {
                 try {
                     Quagga.stop();
                     this.showScanningIndicator(false);
-                    this.updateScanningStatus('Scan timeout - try again or enter manually');
-                    console.log('⏰ Auto-stopped Quagga scanning after 30 seconds');
+                    this.updateScanningStatus('Try again or enter barcode manually');
                 } catch (e) {
-                    console.warn('⚠️ Error stopping Quagga:', e);
+                    console.warn('Error stopping scan:', e);
                 }
-            }, 30000);
+            }, 15000);
         });
     }
     
-    // Show scanning indicator
+    // Show scanning indicator with proper alignment
     showScanningIndicator(show) {
-        const scanOverlay = document.querySelector('.scan-overlay');
-        if (scanOverlay) {
-            if (show) {
-                scanOverlay.style.display = 'block';
-                scanOverlay.innerHTML = `
-                    <div class="scan-line active"></div>
-                    <div class="scan-corners">
-                        <div class="corner top-left"></div>
-                        <div class="corner top-right"></div>
-                        <div class="corner bottom-left"></div>
-                        <div class="corner bottom-right"></div>
-                    </div>
-                    <div class="scan-status" id="scanStatus">Initializing scanner...</div>
-                `;
-            } else {
+        const cameraContainer = document.querySelector('.camera-container');
+        let scanOverlay = document.querySelector('.scan-overlay');
+        
+        if (!cameraContainer) {
+            console.warn('Camera container not found');
+            return;
+        }
+        
+        if (show) {
+            // Create scan overlay if it doesn't exist
+            if (!scanOverlay) {
+                scanOverlay = document.createElement('div');
+                scanOverlay.className = 'scan-overlay';
+                cameraContainer.appendChild(scanOverlay);
+            }
+            
+            // Simple, working scan overlay
+            scanOverlay.innerHTML = `
+                <div class="scan-line active"></div>
+                <div class="scan-corners scanning-active">
+                    <div class="corner top-left"></div>
+                    <div class="corner top-right"></div>
+                    <div class="corner bottom-left"></div>
+                    <div class="corner bottom-right"></div>
+                </div>
+                <div class="scan-status" id="scanStatus">Ready to scan</div>
+            `;
+            
+            scanOverlay.style.display = 'block';
+            
+        } else {
+            if (scanOverlay) {
                 scanOverlay.style.display = 'none';
             }
         }
