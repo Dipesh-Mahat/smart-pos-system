@@ -17,7 +17,7 @@
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
     <script src="../js/custom-modals.js"></script>
-    <script src="../js/scanner.js"></script>
+    <script src="../js/simple-scanner.js"></script>
     <script src="../js/pos-system.js"></script>
     <style>
         .menu-container {
@@ -2707,6 +2707,7 @@
         // Initialize POS system
         document.addEventListener('DOMContentLoaded', function() {
             posSystem = new SmartPOSSystem();
+            window.posSystem = posSystem; // Make globally available
             
             // Device detection function
             function isMobileDevice() {
@@ -2720,11 +2721,8 @@
             const scanBtn = document.getElementById('scanBtn');
             if (scanBtn) {
                 scanBtn.addEventListener('click', function() {
-                    // Always open camera scanner directly (no connection logic)
-                    document.getElementById('cameraModal').classList.add('active');
-                    if (posSystem && posSystem.startDirectScan) {
-                        posSystem.startDirectScan();
-                    }
+                    // Use simple scanner
+                    window.scanner.startScan();
                 });
             }
             
@@ -2732,11 +2730,8 @@
             const mobileScanBtn = document.getElementById('mobileScanBtn');
             if (mobileScanBtn) {
                 mobileScanBtn.addEventListener('click', function() {
-                    // Always open camera scanner directly (no connection logic)
-                    document.getElementById('cameraModal').classList.add('active');
-                    if (posSystem && posSystem.startDirectScan) {
-                        posSystem.startDirectScan();
-                    }
+                    // Use simple scanner
+                    window.scanner.startScan();
                 });
             }
             

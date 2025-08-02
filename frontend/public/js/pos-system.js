@@ -69,6 +69,22 @@ class SmartPOSSystem {
             });
         }
 
+        // Scan button event listeners
+        const scanBtn = document.getElementById('scanBtn');
+        const mobileScanBtn = document.getElementById('mobileScanBtn');
+        
+        if (scanBtn) {
+            scanBtn.addEventListener('click', () => {
+                this.startScanning();
+            });
+        }
+        
+        if (mobileScanBtn) {
+            mobileScanBtn.addEventListener('click', () => {
+                this.startScanning();
+            });
+        }
+
         // Category buttons
         const categoryButtons = document.querySelectorAll('.category-btn');
         if (categoryButtons.length) {
@@ -107,6 +123,17 @@ class SmartPOSSystem {
                     }
                 });
             });
+        }
+    }
+    
+    // Start barcode scanning using simple scanner
+    startScanning() {
+        if (window.simpleScanner) {
+            window.simpleScanner.startScanner((barcode) => {
+                this.processBarcode(barcode);
+            });
+        } else {
+            alert('Scanner not available');
         }
     }
 
