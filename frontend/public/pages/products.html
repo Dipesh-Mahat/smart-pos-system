@@ -827,7 +827,7 @@
                         
                         return `
                         <div class="product-card ${!safeProduct.listed ? 'unlisted' : ''}" data-id="${safeProduct.id}" data-category="${safeProduct.category}">
-                            ${safeProduct.stock <= safeProduct.minStock ? '<div class="low-stock-warning">⚠️ Low Stock</div>' : ''}
+                            ${safeProduct.stock <= safeProduct.minStock ? '<div class="low-stock-warning">! Low Stock</div>' : ''}
                             
                             <div class="product-image">
                                 ${safeProduct.imageUrl ? 

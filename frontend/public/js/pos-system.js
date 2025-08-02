@@ -10,7 +10,11 @@ class SmartPOSSystem {
         this.isScanning = false;
         this.scanner = null;
         this.currentStream = null;
-        this.quaggaRunning = false; // Track Quagga state
+        this.quaggaRunning = false;
+        console.log('Requesting camera access with constraints:', constraints);
+            
+            this.currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+            console.log('Camera access granted'); // Track Quagga state
         this.init();
     }
 
@@ -358,7 +362,7 @@ class SmartPOSSystem {
 
     // Direct camera scanning
     async startDirectScan() {
-        console.log('🎥 Starting direct camera scan...');
+        console.log('Starting direct camera scan...');
         
         try {
             // Request camera with specific constraints
@@ -371,27 +375,27 @@ class SmartPOSSystem {
                 }
             };
             
-            console.log('📱 Requesting camera access with constraints:', constraints);
+            console.log('Requesting camera access with constraints:', constraints);
             
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            console.log('✅ Camera access granted');
+            console.log('Camera access granted');
             
             this.setupCameraStream(stream);
-            console.log('🎬 Camera stream setup complete');
+            console.log('Camera stream setup complete');
             
         } catch (error) {
-            console.error('❌ Camera access failed:', error);
+            console.error('Camera access failed:', error);
             
             // Try with basic constraints as fallback
             try {
-                console.log('🔄 Trying with basic camera constraints...');
+                console.log('Trying with basic camera constraints...');
                 const basicStream = await navigator.mediaDevices.getUserMedia({ 
                     video: true 
                 });
-                console.log('✅ Basic camera access granted');
+                console.log('Basic camera access granted');
                 this.setupCameraStream(basicStream);
             } catch (basicError) {
-                console.error('❌ Basic camera access also failed:', basicError);
+                console.error('Basic camera access also failed:', basicError);
                 alert('Camera access is required for barcode scanning. Please allow camera permissions and try again.');
                 this.showManualBarcodeInput();
             }
@@ -399,7 +403,7 @@ class SmartPOSSystem {
     }
 
     setupCameraStream(stream) {
-        console.log('⚙️ Setting up camera stream...');
+        console.log('Setting up camera stream...');
         
         this.currentStream = stream;
         const video = document.getElementById('cameraVideo');
@@ -409,26 +413,26 @@ class SmartPOSSystem {
             
             // Add event listeners for video events
             video.onloadedmetadata = () => {
-                console.log('📺 Video metadata loaded');
+                console.log('Video metadata loaded');
                 console.log(`Video dimensions: ${video.videoWidth}x${video.videoHeight}`);
             };
             
             video.oncanplay = () => {
-                console.log('▶️ Video can play');
+                console.log('Video can play');
             };
             
             video.onplay = () => {
-                console.log('🎬 Video started playing');
+                console.log('Video started playing');
             };
             
             // Ensure video plays
             video.play().then(() => {
-                console.log('✅ Video play() succeeded');
+                console.log('Video play() succeeded');
             }).catch(error => {
-                console.error('❌ Video play() failed:', error);
+                console.error('Video play() failed:', error);
             });
         } else {
-            console.error('❌ Video element not found');
+            console.error('Video element not found');
         }
     }
 
@@ -472,7 +476,7 @@ class SmartPOSSystem {
 
     // Simple and fast barcode capture
     async captureBarcode() {
-        console.log('🎯 STARTING FAST BARCODE SCAN');
+        console.log('STARTING FAST BARCODE SCAN');
         
         try {
             // Get camera modal elements
@@ -486,20 +490,20 @@ class SmartPOSSystem {
             
             // Check if QuaggaJS is available
             if (typeof Quagga === 'undefined') {
-                console.error('❌ QuaggaJS not loaded');
+                console.error('QuaggaJS not loaded');
                 this.showManualBarcodeInput();
                 return;
             }
             
             // Get camera permissions and start scanning immediately
-            console.log('📹 Starting camera...');
+            console.log('Starting camera...');
             this.updateScanningStatus('Starting camera...');
             
             // Start QuaggaJS scanner directly on video element
             this.startFastQuaggaScan();
             
         } catch (error) {
-            console.error('💥 Error starting barcode scan:', error);
+            console.error('Error starting barcode scan:', error);
             this.showManualBarcodeInput();
         }
     }
@@ -508,7 +512,7 @@ class SmartPOSSystem {
     startFastQuaggaScan() {
         const videoElement = document.getElementById('cameraVideo');
         
-        console.log('� Starting FAST QuaggaJS scanner...');
+        console.log('Starting FAST QuaggaJS scanner...');
         
         // Show scanning indicators
         this.showScanningIndicator(true);
@@ -547,16 +551,16 @@ class SmartPOSSystem {
         
         Quagga.init(config, (err) => {
             if (err) {
-                console.error('❌ Quagga init failed:', err);
+                console.error('Quagga init failed:', err);
                 this.showScanningIndicator(false);
                 this.updateScanningStatus('Camera error - try manual entry');
                 return;
             }
             
-            console.log('✅ Quagga ready - starting scan...');
+            console.log('Quagga ready - starting scan...');
             Quagga.start();
             this.quaggaRunning = true; // Set flag when Quagga starts
-            this.updateScanningStatus('🎯 Point at barcode and hold steady');
+            this.updateScanningStatus('Point at barcode and hold steady');
             
             // Simple detection handler
             Quagga.onDetected((result) => {
@@ -564,17 +568,17 @@ class SmartPOSSystem {
                     const barcode = result.codeResult.code.trim();
                     const confidence = result.codeResult.confidence || 0;
                     
-                    console.log(`� DETECTED: ${barcode} (${confidence.toFixed(1)}%)`);
+                    console.log(`DETECTED: ${barcode} (${confidence.toFixed(1)}%)`);
                     
                     // Accept any detection with reasonable confidence
                     if (confidence > 50) {
-                        console.log('✅ BARCODE ACCEPTED!');
+                        console.log('BARCODE ACCEPTED!');
                         
                         // Stop scanning immediately
                         Quagga.stop();
                         this.quaggaRunning = false; // Update flag
                         this.showScanningIndicator(false);
-                        this.updateScanningStatus('✅ Scanned successfully!');
+                        this.updateScanningStatus('Scanned successfully!');
                         
                         // Process barcode
                         setTimeout(() => {
@@ -645,7 +649,7 @@ class SmartPOSSystem {
         const statusElement = document.getElementById('scanStatus');
         if (statusElement) {
             statusElement.textContent = message;
-            console.log('📱 Status:', message);
+            console.log('Status:', message);
         }
     }
     
@@ -806,7 +810,7 @@ class SmartPOSSystem {
 
     // Bill Scanning Methods
     async startBillScan() {
-        console.log('📄 Starting bill scanning mode...');
+        console.log('Starting bill scanning mode...');
         
         try {
             // Request camera with specific constraints for bill scanning
@@ -819,17 +823,17 @@ class SmartPOSSystem {
                 }
             };
             
-            console.log('📱 Requesting camera access for bill scanning...');
+            console.log('Requesting camera access for bill scanning...');
             
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            console.log('✅ Camera access granted for bill scanning');
+            console.log('Camera access granted for bill scanning');
             
             this.setupBillScanStream(stream);
-            this.updateBillScanStatus('📄 Position the bill within the frame');
+            this.updateBillScanStatus('Position the bill within the frame');
             
         } catch (error) {
-            console.error('❌ Error accessing camera for bill scanning:', error);
-            this.updateBillScanStatus('❌ Camera access failed - check permissions');
+            console.error('Error accessing camera for bill scanning:', error);
+            this.updateBillScanStatus('Camera access failed - check permissions');
         }
     }
 
@@ -840,8 +844,8 @@ class SmartPOSSystem {
             this.currentBillStream = stream;
             
             videoElement.onloadedmetadata = () => {
-                console.log('📹 Bill scan video metadata loaded');
-                this.updateBillScanStatus('🎯 Hold the bill steady within the frame');
+                console.log('Bill scan video metadata loaded');
+                this.updateBillScanStatus('Hold the bill steady within the frame');
             };
         }
     }
@@ -851,7 +855,7 @@ class SmartPOSSystem {
         if (statusElement) {
             statusElement.textContent = message;
         }
-        console.log('📄 Bill scan status:', message);
+        console.log('Bill scan status:', message);
     }
 
     async captureBillScan() {
@@ -872,7 +876,7 @@ class SmartPOSSystem {
                 // Convert to image data for processing
                 const imageData = canvas.toDataURL('image/jpeg', 0.8);
                 
-                this.updateBillScanStatus('🔍 Processing bill image...');
+                this.updateBillScanStatus('Processing bill image...');
                 
                 // Here you could integrate with OCR services or image processing
                 // For now, we'll simulate bill processing
@@ -881,17 +885,17 @@ class SmartPOSSystem {
                 }, 1500);
             }
         } catch (error) {
-            console.error('❌ Error capturing bill:', error);
-            this.updateBillScanStatus('❌ Failed to capture bill');
+            console.error('Error capturing bill:', error);
+            this.updateBillScanStatus('Failed to capture bill');
         }
     }
 
     processBillImage(imageData) {
-        console.log('🔍 Processing bill image data...');
+        console.log('Processing bill image data...');
         
         // This is where you would integrate with OCR services
         // For now, we'll show a success message
-        this.updateBillScanStatus('✅ Bill captured successfully!');
+        this.updateBillScanStatus('Bill captured successfully!');
         
         // Show notification
         this.showScanNotification('Bill scanned successfully! (Processing feature coming soon)', 'success');
@@ -909,7 +913,7 @@ class SmartPOSSystem {
         if (this.currentBillStream) {
             this.currentBillStream.getTracks().forEach(track => {
                 track.stop();
-                console.log('📹 Bill scan camera track stopped');
+                console.log('Bill scan camera track stopped');
             });
             this.currentBillStream = null;
         }
@@ -923,11 +927,11 @@ class SmartPOSSystem {
         // Reset status
         this.updateBillScanStatus('Position the bill within the frame');
         
-        console.log('✅ Bill scan modal closed and camera stopped');
+        console.log('Bill scan modal closed and camera stopped');
     }
 
     showManualBillEntry() {
-        console.log('⌨️ Showing manual bill entry...');
+        console.log('Showing manual bill entry...');
         
         // Close the bill scan modal
         document.getElementById('billScanModal').classList.remove('active');
@@ -942,7 +946,7 @@ class SmartPOSSystem {
     }
 
     processManualBillData(billData) {
-        console.log('📝 Processing manual bill data:', billData);
+        console.log('Processing manual bill data:', billData);
         
         try {
             // Parse the bill data (simple format: item:price, item:price)
@@ -973,7 +977,7 @@ class SmartPOSSystem {
                 this.showScanNotification('No valid items found in bill data', 'error');
             }
         } catch (error) {
-            console.error('❌ Error processing manual bill data:', error);
+            console.error('Error processing manual bill data:', error);
             this.showScanNotification('Error processing bill data', 'error');
         }
     }

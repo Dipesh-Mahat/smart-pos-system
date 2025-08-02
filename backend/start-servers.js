@@ -202,18 +202,18 @@ server.listen(PORT, () => {
 ║                    SMART POS SYSTEM                     ║
 ║                      SERVER STARTED                     ║
 ╠══════════════════════════════════════════════════════════╣
-║  🚀 Server running on: http://localhost:${PORT}               ║
+║  Server running on: http://localhost:${PORT}                  ║
 ║   API Base URL: http://localhost:${PORT}/api                ║
-║  📊 Admin Dashboard: http://localhost:${PORT}/pages/admin-dashboard.html ║
-║  🏪 POS System: http://localhost:${PORT}/pages/pos.html       ║
+║  Admin Dashboard: http://localhost:${PORT}/pages/admin-dashboard.html ║
+║  POS System: http://localhost:${PORT}/pages/pos.html            ║
 ╠══════════════════════════════════════════════════════════╣
-║  📋 Features:                                            ║
-║    ✅ REST API Server                                    ║
-║    ✅ Socket.IO for real-time communication              ║
-║    ✅ Authentication & Authorization                     ║
-║    ✅ File Upload Support                                ║
-║    ✅ Security Middleware                                ║
-║    ✅ Error Logging                                      ║
+║  Features:                                               ║
+║    REST API Server                                       ║
+║    Socket.IO for real-time communication                 ║
+║    Authentication & Authorization                        ║
+║    File Upload Support                                   ║
+║    Security Middleware                                   ║
+║    Error Logging                                         ║
 ╚══════════════════════════════════════════════════════════╝
     `);
 });

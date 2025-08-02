@@ -580,7 +580,7 @@ async function seedDatabase() {
     
     // Check if database is already seeded
     if (await isDatabaseSeeded()) {
-      console.log('✅ Database already seeded, skipping...');
+      console.log('Database already seeded, skipping...');
       return;
     }
 
@@ -591,11 +591,11 @@ async function seedDatabase() {
     const customers = await seedCustomers(users);
     await seedSettings(users);
 
-    console.log('🎉 Database seeding completed successfully!');
+    console.log('Database seeding completed successfully!');
     console.log(`Created ${users.length} users, ${categories.length} categories, ${products.length} products, ${customers.length} customers`);
     
   } catch (error) {
-    console.error('❌ Error during database seeding:', error);
+    console.error('Error during database seeding:', error);
     throw error;
   }
 }

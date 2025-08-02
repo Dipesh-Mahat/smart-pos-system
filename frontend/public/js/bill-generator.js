@@ -794,7 +794,7 @@ class SmartPOSBillGenerator {
         // Print button
         if (this.options.enablePrinting) {
             const printButton = document.createElement('button');
-            printButton.textContent = '🖨️ Print';
+            printButton.textContent = 'Print';
             printButton.className = 'bill-preview-print';
             printButton.style.cssText = `
                 padding: 8px 15px;
@@ -813,7 +813,7 @@ class SmartPOSBillGenerator {
         // PDF button
         if (this.options.enablePDF) {
             const pdfButton = document.createElement('button');
-            pdfButton.textContent = '📄 Save PDF';
+            pdfButton.textContent = 'Save PDF';
             pdfButton.className = 'bill-preview-pdf';
             pdfButton.style.cssText = `
                 padding: 8px 15px;
@@ -832,7 +832,7 @@ class SmartPOSBillGenerator {
         // Email button
         if (this.options.enableEmail) {
             const emailButton = document.createElement('button');
-            emailButton.textContent = '✉️ Email';
+            emailButton.textContent = 'Email';
             emailButton.className = 'bill-preview-email';
             emailButton.style.cssText = `
                 padding: 8px 15px;

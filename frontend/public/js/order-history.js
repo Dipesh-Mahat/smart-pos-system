@@ -167,7 +167,7 @@ class OrderHistoryManager {
             const errorMessage = this.getErrorMessage(error);
             document.getElementById('orders-list').innerHTML = `
                 <div class="no-orders" style="text-align: center; padding: 50px 20px; color: #7f8c8d;">
-                    <i style="font-size: 3rem; color: #e74c3c; margin-bottom: 20px; display: block;">⚠️</i>
+                    <i style="font-size: 3rem; color: #e74c3c; margin-bottom: 20px; display: block;">!</i>
                     <h3 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.5rem;">Error Loading Orders</h3>
                     <p style="max-width: 600px; margin: 0 auto; line-height: 1.6; font-size: 1rem;">${errorMessage}</p>
                 </div>
