@@ -1,6 +1,11 @@
 // Shopowner-facing Supplier Products Page JS
 // Loads supplier info, products, and allows order/auto-order
 
+// Global variables
+let selectedProducts = {};
+let supplierProducts = [];
+let currentSupplierId = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const supplierId = urlParams.get('supplierId');
@@ -8,14 +13,15 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('productsGrid').innerHTML = '<div class="empty-state">No supplier selected.</div>';
         return;
     }
+    
+    // Set global supplier ID
+    currentSupplierId = supplierId;
+    
     loadSupplierInfo(supplierId);
     loadSupplierProducts(supplierId);
     setupOrderForm();
     setupAutoOrderModal(supplierId);
 });
-
-let selectedProducts = {};
-let supplierProducts = [];
 
 function loadSupplierInfo(supplierId) {
     apiService.get('/shop/orders/suppliers').then(res => {
@@ -196,33 +202,56 @@ function loadSupplierInsights(supplierId) {
             const insightsGrid = document.querySelector('.insights-grid');
             const insights = res.data;
             
-            // Update best seller insight
-            if (insights.bestSeller) {
-                insightsGrid.children[0].querySelector('p').textContent = insights.bestSeller.name;
-                insightsGrid.children[0].querySelector('span').textContent = 
-                    `${insights.bestSeller.quantity} units sold ${insights.bestSeller.period}`;
-            }
-            
-            // Update top discount insight
-            if (insights.topDiscount) {
-                insightsGrid.children[1].querySelector('p').textContent = insights.topDiscount.discount + ' off on ' + insights.topDiscount.name;
+            // Check if insights grid exists and has required children
+            if (insightsGrid && insightsGrid.children.length >= 4) {
+                // Update best seller insight
+                if (insights.bestSeller) {
+                    const bestSellerElement = insightsGrid.children[0];
+                    const nameEl = bestSellerElement.querySelector('p');
+                    const detailEl = bestSellerElement.querySelector('span');
+                    
+                    if (nameEl) nameEl.textContent = insights.bestSeller.name;
+                    if (detailEl) detailEl.textContent = 
+                        `${insights.bestSeller.quantity} units sold ${insights.bestSeller.period}`;
+                }
                 
-                // Format date
-                const validDate = new Date(insights.topDiscount.validUntil);
-                const formattedDate = validDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
-                insightsGrid.children[1].querySelector('span').textContent = `Valid till ${formattedDate}`;
-            }
-            
-            // Update avg rating insight
-            if (insights.avgRating) {
-                insightsGrid.children[2].querySelector('p').textContent = insights.avgRating.value + '/5';
-                insightsGrid.children[2].querySelector('span').textContent = `Based on ${insights.avgRating.count} reviews`;
-            }
-            
-            // Update fastest delivery insight
-            if (insights.fastestDelivery) {
-                insightsGrid.children[3].querySelector('p').textContent = insights.fastestDelivery.time;
-                insightsGrid.children[3].querySelector('span').textContent = insights.fastestDelivery.period;
+                // Update top discount insight
+                if (insights.topDiscount) {
+                    const discountElement = insightsGrid.children[1];
+                    const nameEl = discountElement.querySelector('p');
+                    const detailEl = discountElement.querySelector('span');
+                    
+                    if (nameEl) nameEl.textContent = insights.topDiscount.discount + ' off on ' + insights.topDiscount.name;
+                    
+                    if (detailEl) {
+                        // Format date
+                        const validDate = new Date(insights.topDiscount.validUntil);
+                        const formattedDate = validDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+                        detailEl.textContent = `Valid till ${formattedDate}`;
+                    }
+                }
+                
+                // Update avg rating insight
+                if (insights.avgRating) {
+                    const ratingElement = insightsGrid.children[2];
+                    const nameEl = ratingElement.querySelector('p');
+                    const detailEl = ratingElement.querySelector('span');
+                    
+                    if (nameEl) nameEl.textContent = insights.avgRating.value + '/5';
+                    if (detailEl) detailEl.textContent = `Based on ${insights.avgRating.count} reviews`;
+                }
+                
+                // Update fastest delivery insight
+                if (insights.fastestDelivery) {
+                    const deliveryElement = insightsGrid.children[3];
+                    const nameEl = deliveryElement.querySelector('p');
+                    const detailEl = deliveryElement.querySelector('span');
+                    
+                    if (nameEl) nameEl.textContent = insights.fastestDelivery.time;
+                    if (detailEl) detailEl.textContent = insights.fastestDelivery.period;
+                }
+            } else {
+                console.log('Insights grid not found or incomplete, skipping insights update');
             }
         }
     }).catch(error => {
@@ -284,17 +313,26 @@ function setupOrderForm() {
 }
 
 function openAutoOrderModal() {
-    if (!Object.keys(selectedProducts).length) {
-        alert('Please select at least one product first.');
-        return;
-    }
-    
     document.getElementById('autoOrderModal').style.display = 'flex';
     
-    // Populate product dropdown with selected products
+    // Populate product dropdown with all supplier products
     const productSelect = document.getElementById('productId');
-    productSelect.innerHTML = '<option value="">Select a product...</option>' + 
-        Object.values(selectedProducts).map(p => `<option value="${p._id}">${p.name}</option>`).join('');
+    productSelect.innerHTML = '<option value="">Select a product...</option>';
+    
+    if (supplierProducts && supplierProducts.length > 0) {
+        supplierProducts.forEach(product => {
+            const option = document.createElement('option');
+            option.value = product._id;
+            option.textContent = `${product.name} - NPR ${product.price}`;
+            productSelect.appendChild(option);
+        });
+    } else {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No products available';
+        option.disabled = true;
+        productSelect.appendChild(option);
+    }
     
     // Set default next order date to tomorrow
     const tomorrow = new Date();
@@ -397,4 +435,106 @@ function setupAutoOrderModal(supplierId) {
             submitBtn.disabled = false;
         });
     };
+}
+
+// Threshold-based Auto Order Functions
+function openThresholdAutoOrderModal() {
+    const modal = document.getElementById('thresholdAutoOrderModal');
+    const productSelect = document.getElementById('thresholdProductId');
+    
+    // Clear previous options
+    productSelect.innerHTML = '<option value="">Select a product...</option>';
+    
+    // Populate with supplier's products from global array
+    if (supplierProducts && supplierProducts.length > 0) {
+        supplierProducts.forEach(product => {
+            const option = document.createElement('option');
+            option.value = product._id;
+            option.textContent = `${product.name} - NPR ${product.price}`;
+            productSelect.appendChild(option);
+        });
+    } else {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No products available';
+        option.disabled = true;
+        productSelect.appendChild(option);
+    }
+    
+    modal.style.display = 'flex';
+    setupThresholdAutoOrderModal(currentSupplierId);
+}
+
+function closeThresholdAutoOrderModal() {
+    const modal = document.getElementById('thresholdAutoOrderModal');
+    modal.style.display = 'none';
+    document.getElementById('thresholdAutoOrderForm').reset();
+}
+
+function setupThresholdAutoOrderModal(supplierId) {
+    document.getElementById('thresholdAutoOrderForm').onsubmit = function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+        data.supplierId = supplierId;
+        data.quantity = parseInt(data.quantity);
+        data.minThreshold = parseInt(data.minThreshold);
+        data.type = 'threshold'; // Mark as threshold-based auto order
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Setting up...';
+        submitBtn.disabled = true;
+        
+        apiService.post('/shop/suppliers/' + supplierId + '/threshold-auto-orders', data).then(res => {
+            if (res.success) {
+                closeThresholdAutoOrderModal();
+                alert('Threshold-based auto-order set up successfully! Products will be automatically ordered when stock falls below ' + data.minThreshold + ' units.');
+                
+                // Add visual indicator to the product card
+                addThresholdIndicator(data.productId, data.minThreshold);
+            } else {
+                alert('Failed to set up threshold auto-order: ' + (res.message || 'Unknown error'));
+            }
+        }).catch(error => {
+            console.error('Error setting up threshold auto-order:', error);
+            alert('Failed to set up threshold auto-order. Please try again.');
+        }).finally(() => {
+            // Reset button state
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
+    };
+}
+
+function addThresholdIndicator(productId, threshold) {
+    const productCard = document.querySelector(`[data-product-id="${productId}"]`);
+    if (productCard) {
+        // Add or update threshold indicator
+        let indicator = productCard.querySelector('.threshold-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.className = 'threshold-indicator';
+            indicator.style.cssText = `
+                background: #e8f5e8;
+                border: 1px solid #4caf50;
+                border-radius: 6px;
+                padding: 6px 10px;
+                margin-top: 10px;
+                font-size: 12px;
+                color: #2e7d32;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            `;
+            productCard.appendChild(indicator);
+        }
+        
+        indicator.innerHTML = `
+            <i class="fas fa-sync-alt"></i>
+            Auto-order when below ${threshold} units
+        `;
+    }
 }

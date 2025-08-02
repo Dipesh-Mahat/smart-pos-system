@@ -349,6 +349,41 @@
             font-size: 24px;
             flex-shrink: 0;
         }
+
+        .threshold-indicator {
+            background: #e8f5e8 !important;
+            border: 1px solid #4caf50 !important;
+            border-radius: 6px !important;
+            padding: 6px 10px !important;
+            margin-top: 10px !important;
+            font-size: 12px !important;
+            color: #2e7d32 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+
+        .threshold-indicator i {
+            color: #4caf50;
+        }
+
+        .modal-content p {
+            color: #6c757d;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+            border: none;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -367,9 +402,9 @@
                 <div id="supplierContact" class="supplier-contact"></div>
             </div>
             <div class="header-actions">
-                <button class="btn btn-secondary" onclick="window.history.back()">
-                    <i class="fas fa-arrow-left"></i>
-                    Back to Suppliers
+                <button class="btn btn-success" onclick="openThresholdAutoOrderModal()">
+                    <i class="fas fa-sync-alt"></i>
+                    Setup Auto Order
                 </button>
             </div>
         </div>
@@ -449,6 +484,58 @@
         </div>
     </div>
 
+    <!-- Threshold-Based Auto-Order Modal -->
+    <div id="thresholdAutoOrderModal" class="modal">
+        <div class="modal-content">
+            <h3 id="thresholdModalTitle">Setup Threshold-Based Auto Order</h3>
+            <p style="color: #6c757d; margin-bottom: 20px;">
+                Automatically order products when inventory falls below minimum threshold
+            </p>
+            <form id="thresholdAutoOrderForm">
+                <div class="form-group">
+                    <label for="thresholdProductId">Product</label>
+                    <select id="thresholdProductId" name="productId" required>
+                        <option value="">Select a product...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="minThreshold">Minimum Threshold</label>
+                    <input type="number" id="minThreshold" name="minThreshold" min="1" required 
+                           placeholder="When stock reaches this level">
+                </div>
+                <div class="form-group">
+                    <label for="autoOrderQuantity">Auto Order Quantity</label>
+                    <input type="number" id="autoOrderQuantity" name="quantity" min="1" required 
+                           placeholder="How many to order automatically">
+                </div>
+                <div class="form-group">
+                    <label for="thresholdFrequency">Check Frequency</label>
+                    <select id="thresholdFrequency" name="frequency" required>
+                        <option value="">How often to check threshold...</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="thresholdNotes">Notes (Optional)</label>
+                    <textarea id="thresholdNotes" name="notes" rows="3" 
+                              placeholder="Additional notes for threshold-based auto-order..."></textarea>
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="submit" class="btn btn-success" style="flex: 1;">
+                        <i class="fas fa-save"></i>
+                        Setup Auto Order
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeThresholdAutoOrderModal()">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="../js/supplier-products-shopowner.js"></script>
     
@@ -456,17 +543,27 @@
     <script src="../js/navbar.js"></script>
     <script src="../js/menu.js"></script>
     <script>
-        // Initialize navbar
+        // Prevent auto-initialization since we'll do it manually
+        window.navbarManualInit = true;
+        
+        // Initialize navbar without back button but with auto order button
         document.addEventListener('DOMContentLoaded', function() {
-            const navbar = new SmartPOSNavbar();
-            navbar.addAction('back-to-suppliers', 'Back to Suppliers', 'fas fa-arrow-left', 'btn-secondary');
-            
-            // Handle navbar action clicks
-            document.addEventListener('navbarAction', function(e) {
-                if (e.detail.actionId === 'back-to-suppliers') {
-                    window.location.href = 'suppliers.html';
-                }
-            });
+            // Only initialize if not already done
+            if (!window.smartPOSNavbar) {
+                const navbar = new SmartPOSNavbar({
+                    title: 'Supplier Products',
+                    showBackButton: false,
+                    customActions: [
+                        {
+                            icon: 'fas fa-sync-alt',
+                            text: 'Auto Order',
+                            onClick: () => openThresholdAutoOrderModal(),
+                            class: 'btn-success'
+                        }
+                    ]
+                });
+                window.smartPOSNavbar = navbar;
+            }
         });
     </script>
 </body>
