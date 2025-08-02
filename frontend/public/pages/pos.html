@@ -951,34 +951,42 @@
                 margin: 12px;
                 margin-bottom: 0;
                 padding: 0;
-                border-radius: var(--border-radius);
                 background: white;
                 border: 1px solid var(--gray-200);
+                border-radius: var(--border-radius);
                 box-shadow: var(--box-shadow-sm);
                 overflow: hidden;
-                max-width: calc(100vw - 24px);
+                /* Better mobile sizing - increased height */
+                width: calc(100% - 24px);
+                max-width: none;
+                min-height: auto;
+                max-height: 700px; /* Doubled from 350px */
                 box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
             }
             
             .cart-header {
-                padding: 12px 16px; /* Reduced padding */
+                flex-shrink: 0; /* Prevent header from shrinking */
+                padding: 14px 16px;
                 border-bottom: 1px solid var(--gray-200);
                 margin-bottom: 0;
                 background: white;
                 border-radius: var(--border-radius) var(--border-radius) 0 0;
+                box-sizing: border-box;
             }
             
             .cart-items {
-                max-height: 180px; /* Reduced height */
-                min-height: 100px; /* Reduced min height */
-                padding: 8px 16px; /* Reduced padding */
+                max-height: 500px; /* Increased specifically for cart content area */
+                min-height: 300px; /* Increased for better empty cart message display */
+                padding: 8px 16px;
                 overflow-x: hidden;
                 overflow-y: auto;
                 box-sizing: border-box;
             }
             
             .cart-footer {
-                padding: 8px 16px; /* Reduced padding */
+                padding: 8px 16px; /* Keep desktop-like padding for checkout section */
                 border-top: 1px solid var(--gray-200);
                 background: white;
                 border-radius: 0 0 var(--border-radius) var(--border-radius);
@@ -986,7 +994,7 @@
             }
             
             .checkout-btn {
-                padding: 12px; /* Reduced padding */
+                padding: 12px; /* Keep desktop-like padding for checkout button */
                 font-size: 15px;
             }
             
@@ -1036,7 +1044,7 @@
             
             .cart-panel {
                 order: 1;
-                margin: 8px; /* Reduced margin */
+                margin: 8px;
                 margin-bottom: 0;
                 padding: 0;
                 background: white;
@@ -1044,29 +1052,40 @@
                 border-radius: var(--border-radius);
                 box-shadow: var(--box-shadow-sm);
                 overflow: hidden;
-                max-width: calc(100vw - 16px); /* Adjusted for smaller margin */
+                /* Compact mobile sizing - increased height */
+                width: calc(100% - 16px);
+                max-width: none;
+                min-height: auto;
+                max-height: 560px; /* Doubled from 280px */
                 box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
             }
             
             .cart-header {
-                padding: 10px 14px; /* Reduced padding */
+                flex-shrink: 0; /* Prevent header from shrinking */
+                padding: 12px 14px;
                 border-bottom: 1px solid var(--gray-200);
                 margin-bottom: 0;
                 background: white;
                 border-radius: var(--border-radius) var(--border-radius) 0 0;
-            }
-            
-            .cart-items {
-                max-height: 150px; /* Reduced height */
-                min-height: 80px; /* Reduced min height */
-                padding: 6px 14px; /* Reduced padding */
-                overflow-x: hidden;
-                overflow-y: auto;
                 box-sizing: border-box;
             }
             
+            .cart-items {
+                flex: 1;
+                max-height: 420px; /* Increased specifically for cart content area */
+                min-height: 250px; /* Increased for better empty cart message display */
+                padding: 6px 12px;
+                overflow-x: hidden;
+                overflow-y: auto;
+                box-sizing: border-box;
+                background: white;
+            }
+            
             .cart-footer {
-                padding: 6px 14px; /* Reduced padding */
+                flex-shrink: 0; /* Prevent footer from shrinking */
+                padding: 10px 12px; /* Keep desktop-like spacing for checkout section */
                 border-top: 1px solid var(--gray-200);
                 background: white;
                 border-radius: 0 0 var(--border-radius) var(--border-radius);
@@ -1074,8 +1093,12 @@
             }
             
             .checkout-btn {
-                padding: 10px; /* Reduced padding */
-                font-size: 14px;
+                padding: 12px 14px; /* Keep desktop-like padding for checkout button */
+                font-size: 15px;
+                font-weight: 600;
+                border-radius: 8px;
+                width: 100%;
+                min-height: 44px; /* Good touch target for small screens */
             }
             
             /* Hide products grid on mobile - mobile is for scanning only */
