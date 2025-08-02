@@ -387,14 +387,56 @@ class SmartPOSSystem {
         document.getElementById('cameraModal').classList.remove('active');
     }
 
-    // Process barcode (mock implementation - in real app would use barcode detection library)
-    captureBarcode() {
-        // In a real implementation, you would use a library like QuaggaJS or ZXing
-        // For now, we'll simulate scanning
-        const mockBarcodes = this.products.map(p => p.barcode);
-        const randomBarcode = mockBarcodes[Math.floor(Math.random() * mockBarcodes.length)];
-        
-        this.processBarcode(randomBarcode);
+    // Process barcode using enhanced scanner
+    async captureBarcode() {
+        try {
+            // Check if enhanced scanner is available
+            if (typeof EnhancedBarcodeScanner !== 'undefined') {
+                // Use the enhanced scanner for real barcode detection
+                const scanner = new EnhancedBarcodeScanner({
+                    videoElement: document.getElementById('cameraVideo'),
+                    canvasElement: document.getElementById('cameraCanvas')
+                });
+                
+                // Initialize scanner
+                const initialized = await scanner.initialize();
+                if (!initialized) {
+                    console.warn('Enhanced scanner failed to initialize, using manual input');
+                    this.showManualBarcodeInput();
+                    return;
+                }
+                
+                // Start scanning with callback
+                scanner.startScanning((barcode, format, confidence) => {
+                    console.log(`Barcode detected: ${barcode}, Format: ${format}, Confidence: ${confidence}`);
+                    scanner.stopScanning();
+                    scanner.destroy();
+                    this.processBarcode(barcode);
+                });
+                
+            } else {
+                console.warn('Enhanced scanner not available, using manual input');
+                this.showManualBarcodeInput();
+            }
+        } catch (error) {
+            console.error('Error with enhanced scanner:', error);
+            this.showManualBarcodeInput();
+        }
+    }
+    
+    // Show manual barcode input as fallback
+    showManualBarcodeInput() {
+        const barcodeInput = document.getElementById('manualBarcode');
+        if (barcodeInput) {
+            barcodeInput.focus();
+            barcodeInput.placeholder = 'Enter barcode manually...';
+        } else {
+            // Create a simple prompt for barcode input
+            const barcode = prompt('Enter product barcode:');
+            if (barcode && barcode.trim()) {
+                this.processBarcode(barcode.trim());
+            }
+        }
     }
 
     processManualBarcode() {

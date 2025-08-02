@@ -459,6 +459,30 @@ class EnhancedBarcodeScanner {
     }
     
     /**
+     * Fallback simulation mode when no barcode libraries are available
+     * This should prompt for manual barcode entry instead of random selection
+     * @param {Function} onDetection - Callback for barcode detection
+     */
+    startSimulatedScanning(onDetection) {
+        console.warn('No barcode scanning libraries available. Please enter barcode manually.');
+        
+        // Instead of generating random barcodes, prompt for manual entry
+        const manualBarcode = prompt('No barcode scanner available. Please enter the barcode manually:');
+        
+        if (manualBarcode && manualBarcode.trim()) {
+            const barcode = manualBarcode.trim();
+            console.log('Manual barcode entered:', barcode);
+            
+            // Call the detection callback with the manually entered barcode
+            if (typeof onDetection === 'function') {
+                onDetection(barcode, 'manual', 1.0);
+            }
+        } else {
+            console.log('No barcode entered or cancelled');
+        }
+    }
+    
+    /**
      * Stop scanning and release resources
      */
     stopScanning() {
