@@ -476,7 +476,7 @@
             showSkeletonLoading();
             
             try {
-                const response = await fetch('/api/ai-business-intelligence/dashboard', {
+                const response = await fetch('/api/ai-intelligence/dashboard', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${getAuthToken()}`,
@@ -510,11 +510,11 @@
                 throw new Error('AI service not available');
                 
             } catch (error) {
-                console.log('Falling back to static insights:', error);
+                console.log('AI service unavailable, using static insights:', error);
                 // Small delay to show skeleton before loading fallback
                 setTimeout(() => {
                     loadFallbackInsights();
-                }, 800);
+                }, 500);
             }
         }
 
@@ -727,10 +727,9 @@
 
         // Load fallback insights when AI is unavailable
         function loadFallbackInsights() {
-            console.log('Loading fallback insights with data:', fallbackInsights);
+            console.log('Loading business insights...');
             try {
                 const insightCards = Object.values(fallbackInsights);
-                console.log('Insight cards to display:', insightCards);
                 
                 if (!insightCards || insightCards.length === 0) {
                     console.error('No insight cards available!');
@@ -739,7 +738,8 @@
                 }
                 
                 displayInsights(insightCards);
-                console.log('Smart business insights loaded successfully');
+                console.log('Business insights loaded successfully');
+                showToast('Smart business insights ready!', 'success');
             } catch (error) {
                 console.error('Error in loadFallbackInsights:', error);
                 forceLoadBasicContent();
@@ -848,7 +848,6 @@
 
         // Display insights in cards with personalized enhancements
         function displayInsights(insightCards) {
-            console.log('displayInsights called with:', insightCards);
             const insightsSection = document.getElementById('insightsSection');
             
             if (!insightsSection) {
@@ -877,12 +876,10 @@
                 </div>
             `).join('');
 
-            console.log('Generated HTML:', html);
             insightsSection.innerHTML = html;
 
             // Animate cards
             const cards = insightsSection.querySelectorAll('.insight-card');
-            console.log('Found cards for animation:', cards.length);
             cards.forEach((card, index) => {
                 card.style.opacity = '0';
                 card.style.transform = 'translateY(20px)';
@@ -994,14 +991,14 @@
         if (document.readyState === 'loading') {
             // DOM not ready yet, wait for it
             document.addEventListener('DOMContentLoaded', function() {
-                console.log('AI Dashboard page loaded, initializing...');
+                console.log('Smart POS AI Dashboard - Initializing...');
                 
                 // Set demo mode for live server testing
                 if (!localStorage.getItem('token') && !sessionStorage.getItem('devMode')) {
                     sessionStorage.setItem('devMode', 'demo-mode');
                 }
                 
-                // Initialize navbar with proper title
+                // Initialize navbar
                 try {
                     if (typeof initSmartPOSNavbar === 'function') {
                         initSmartPOSNavbar({
@@ -1010,46 +1007,28 @@
                             showNotifications: true,
                             showProfile: true
                         });
-                        console.log('Navbar initialized');
-                    } else {
-                        console.log('initSmartPOSNavbar not available');
                     }
                 } catch (error) {
-                    console.log('Navbar initialization error:', error);
+                    console.log('Navbar initialization skipped');
                 }
                 
                 // Initialize menu
                 try {
                     if (typeof window.SmartPOSMenu !== 'undefined') {
                         new window.SmartPOSMenu();
-                        console.log('Menu initialized');
-                    } else {
-                        console.log('SmartPOSMenu not available');
                     }
                 } catch (error) {
-                    console.log('Menu initialization error:', error);
+                    console.log('Menu initialization skipped');
                 }
                 
-                // Load fallback insights immediately - this should always work
-                console.log('Loading fallback insights...');
+                // Try to load personalized AI insights first (with fallback)
+                console.log('Attempting to load AI insights...');
                 try {
-                    loadFallbackInsights();
-                    console.log('Fallback insights loaded successfully');
+                    loadAIInsights();
                 } catch (error) {
-                    console.error('Error loading fallback insights:', error);
-                    // Force load with basic HTML if all else fails
-                    forceLoadBasicContent();
+                    console.log('AI insights loading error, using fallback:', error);
+                    loadFallbackInsights();
                 }
-                
-                // Then try to load personalized AI insights in background
-                setTimeout(() => {
-                    console.log('Attempting to load personalized AI insights...');
-                    try {
-                        loadAIInsights();
-                    } catch (error) {
-                        console.log('AI insights loading error:', error);
-                    }
-                }, 1500); // Increased delay to show fallback first
             });
         } else {
             // DOM is already ready, initialize immediately
