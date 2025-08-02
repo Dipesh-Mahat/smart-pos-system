@@ -15,7 +15,7 @@ class EnhancedBarcodeScanner {
             useQuagga: true,
             useZXing: true,
             useNativeDetector: true,
-            preferredFormats: ['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'itf', 'codabar'],
+            preferredFormats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'itf', 'codabar'],
             videoConstraints: {
                 facingMode: 'environment',
                 width: { min: 640, ideal: 1280, max: 1920 },

@@ -56,45 +56,6 @@ class SmartPOSBillGenerator {
     }
     
     /**
-     * Generate QR code for payment information
-     * @param {string} data - Data to encode in QR code
-     * @returns {string} QR code HTML
-     */
-    generateQRCode(data) {
-        if (typeof qrcode !== 'undefined') {
-            // Create QR Code using qrcode-generator library if available
-            try {
-                const typeNumber = 0; // Auto-detect size
-                const errorCorrectionLevel = 'L'; // Low error correction
-                const qr = qrcode(typeNumber, errorCorrectionLevel);
-                qr.addData(data);
-                qr.make();
-                return qr.createImgTag(4); // Pixel size = 4
-            } catch (e) {
-                console.error("Error generating QR code:", e);
-                return this.generateQRCodeFallback();
-            }
-        } else {
-            return this.generateQRCodeFallback();
-        }
-    }
-    
-    /**
-     * Generate fallback QR code when library is not available
-     * @returns {string} QR code placeholder HTML
-     */
-    generateQRCodeFallback() {
-        return `
-            <div class="qr-code-placeholder" style="width:120px;height:120px;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;margin:10px auto;background:#f9f9f9">
-                <div style="text-align:center">
-                    <div style="font-size:32px">QR</div>
-                    <div style="font-size:12px">Scan to Pay</div>
-                </div>
-            </div>
-        `;
-    }
-    
-    /**
      * Format date in standard format
      * @param {Date|string} date - Date to format
      * @returns {string} Formatted date

@@ -144,7 +144,7 @@ class SmartPOSNavbar {
                 <div class="navbar-right">
                     ${customActions}
                     <div class="scan-button" id="navbarScanButton" title="Quick Scan">
-                        <i class="fas fa-qrcode"></i>
+                        <i class="fas fa-barcode"></i>
                         <span class="scan-label">Scan</span>
                     </div>
                     ${notifications}
@@ -1021,7 +1021,7 @@ class SmartPOSNavbar {
 
         dialog.innerHTML = `
             <div class="scan-dialog-header">
-                <h3><i class="fas fa-qrcode"></i> Smart Scanner</h3>
+                <h3><i class="fas fa-barcode"></i> Smart Scanner</h3>
                 <button class="close-scan-dialog" id="closeScanDialog">
                     <i class="fas fa-times"></i>
                 </button>
