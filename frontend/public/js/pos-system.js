@@ -259,7 +259,8 @@ class SmartPOSSystem {
         products.forEach(product => {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
-            productCard.addEventListener('click', () => this.addToCart(product.id));
+            // Use _id or id for adding to cart
+            productCard.addEventListener('click', () => this.addToCart(product._id || product.id));
             
             const iconClass = this.getCategoryIcon(product.category);
             
@@ -303,22 +304,40 @@ class SmartPOSSystem {
 
     // Cart functionality
     addToCart(productId) {
-        const product = this.products.find(p => p.id === productId);
-        if (!product) return;
+        // Find product by either id or _id field
+        const product = this.products.find(p => 
+            p.id === productId || p._id === productId
+        );
+        
+        if (!product) {
+            console.error('Product not found for ID:', productId);
+            return;
+        }
+        
+        console.log('Adding to cart:', product.name);
+        
+        // Use consistent ID (prefer _id for database compatibility)
+        const itemId = product._id || product.id;
         
         // Check if item already exists in cart
-        const existingItem = this.cart.find(item => item.id === productId);
+        const existingItem = this.cart.find(item => 
+            item.id === itemId || item._id === itemId
+        );
         
         if (existingItem) {
             existingItem.quantity += 1;
+            console.log('Updated quantity for existing item:', existingItem.name);
         } else {
             this.cart.push({
-                id: product.id,
+                id: itemId,
+                _id: itemId, // Keep both for compatibility
                 name: product.name,
                 price: product.price,
                 quantity: 1,
-                category: product.category
+                category: product.category,
+                barcode: product.barcode
             });
+            console.log('Added new item to cart:', product.name);
         }
         
         this.updateCartDisplay();
@@ -487,12 +506,27 @@ class SmartPOSSystem {
     }
 
     processBarcode(barcode) {
-        const product = this.products.find(p => p.barcode === barcode);
+        console.log('Processing barcode:', barcode);
+        console.log('Available products:', this.products.length);
+        
+        // Find product by barcode (exact match, case-sensitive)
+        const product = this.products.find(p => {
+            const productBarcode = p.barcode ? p.barcode.toString().trim() : '';
+            const scannedBarcode = barcode ? barcode.toString().trim() : '';
+            console.log(`Comparing product barcode "${productBarcode}" with scanned "${scannedBarcode}"`);
+            return productBarcode === scannedBarcode;
+        });
         
         if (product) {
-            this.addToCart(product.id);
+            console.log('Product found:', product.name);
+            this.addToCart(product.id || product._id);
             this.closeCameraModal();
+            
+            // Show success notification
+            this.showNotification(`Added ${product.name} to cart`, 'success');
         } else {
+            console.log('Product not found for barcode:', barcode);
+            console.log('Available barcodes:', this.products.map(p => p.barcode));
             this.showBarcodeError(barcode);
         }
     }
@@ -941,7 +975,11 @@ class SmartPOSSystem {
     
     // Find product by barcode
     findProductByBarcode(barcode) {
-        return this.products.find(p => p.barcode === barcode);
+        const scannedBarcode = barcode ? barcode.toString().trim() : '';
+        return this.products.find(p => {
+            const productBarcode = p.barcode ? p.barcode.toString().trim() : '';
+            return productBarcode === scannedBarcode;
+        });
     }
     
     // Show notification
