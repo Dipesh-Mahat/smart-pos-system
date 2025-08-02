@@ -23,11 +23,11 @@
     },
     {
       "src": "/mobile-scanner.html",
-      "dest": "/frontend/mobile-scanner.html"
+      "dest": "/frontend/public/mobile-scanner.html"
     },
     {
       "src": "/mobile-scanner",
-      "dest": "/frontend/mobile-scanner.html"
+      "dest": "/frontend/public/mobile-scanner.html"
     },
     {
       "src": "/",

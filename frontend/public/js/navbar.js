@@ -1084,7 +1084,9 @@ class SmartPOSNavbar {
         overlay.querySelectorAll('.scan-option').forEach(option => {
             option.addEventListener('click', () => {
                 const scanType = option.dataset.scanType;
-                window.location.href = `/frontend/mobile-scanner.html?mode=${scanType}`;
+                // Use relative path that works on both development and production (Vercel)
+                const baseUrl = window.location.origin;
+                window.location.href = `${baseUrl}/mobile-scanner.html?mode=${scanType}`;
             });
         });
     }
@@ -1326,12 +1328,10 @@ class SmartPOSNavbar {
         const roomCode = 'SC' + Math.floor(100000 + Math.random() * 900000);
         const token = this.generateSecureToken();
         
-        // Create mobile scanner URL - ensure we use the correct path relative to the server root
+        // Create mobile scanner URL - use correct path that works on both dev and production
         const baseUrl = window.location.origin;
-        // Get the correct path by removing the current path and adding mobile-scanner.html
-        // This ensures it works regardless of which page we're currently on
         const returnUrl = encodeURIComponent(window.location.href);
-        const mobileUrl = `${baseUrl}/frontend/mobile-scanner.html?room=${encodeURIComponent(roomCode)}&mode=${scanType}&token=${encodeURIComponent(token)}&returnUrl=${returnUrl}`;
+        const mobileUrl = `${baseUrl}/mobile-scanner.html?room=${encodeURIComponent(roomCode)}&mode=${scanType}&token=${encodeURIComponent(token)}&returnUrl=${returnUrl}`;
         
         // Check if user is on mobile
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
