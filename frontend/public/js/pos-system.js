@@ -357,24 +357,83 @@ class SmartPOSSystem {
 
     // Direct camera scanning
     async startDirectScan() {
+        console.log('🎥 Starting direct camera scan...');
+        
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'environment' } // Use back camera if available
-            });
+            // Request camera with specific constraints
+            const constraints = {
+                video: {
+                    facingMode: 'environment', // Use back camera if available
+                    width: { min: 640, ideal: 1280, max: 1920 },
+                    height: { min: 480, ideal: 720, max: 1080 },
+                    frameRate: { min: 15, ideal: 30 }
+                }
+            };
+            
+            console.log('📱 Requesting camera access with constraints:', constraints);
+            
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            console.log('✅ Camera access granted');
             
             this.setupCameraStream(stream);
+            
+            // Wait for video to be ready
+            const video = document.getElementById('cameraVideo');
+            if (video) {
+                await this.waitForVideoReady(video);
+                console.log('🎬 Camera stream is ready for scanning');
+            }
+            
         } catch (error) {
-            console.error('Camera access denied:', error);
-            alert('Camera access is required for barcode scanning. Please allow camera permissions.');
+            console.error('❌ Camera access failed:', error);
+            
+            // Try with basic constraints as fallback
+            try {
+                console.log('🔄 Trying with basic camera constraints...');
+                const basicStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: true 
+                });
+                console.log('✅ Basic camera access granted');
+                this.setupCameraStream(basicStream);
+            } catch (basicError) {
+                console.error('❌ Basic camera access also failed:', basicError);
+                alert('Camera access is required for barcode scanning. Please allow camera permissions and try again.');
+                this.showManualBarcodeInput();
+            }
         }
     }
 
     setupCameraStream(stream) {
+        console.log('⚙️ Setting up camera stream...');
+        
         this.currentStream = stream;
         const video = document.getElementById('cameraVideo');
+        
         if (video) {
             video.srcObject = stream;
-            video.play();
+            
+            // Add event listeners for video events
+            video.onloadedmetadata = () => {
+                console.log('📺 Video metadata loaded');
+                console.log(`Video dimensions: ${video.videoWidth}x${video.videoHeight}`);
+            };
+            
+            video.oncanplay = () => {
+                console.log('▶️ Video can play');
+            };
+            
+            video.onplay = () => {
+                console.log('🎬 Video started playing');
+            };
+            
+            // Ensure video plays
+            video.play().then(() => {
+                console.log('✅ Video play() succeeded');
+            }).catch(error => {
+                console.error('❌ Video play() failed:', error);
+            });
+        } else {
+            console.error('❌ Video element not found');
         }
     }
 
@@ -416,18 +475,38 @@ class SmartPOSSystem {
 
     // Process barcode using enhanced scanner
     async captureBarcode() {
+        console.log('🎯 CAPTURE BARCODE INITIATED');
+        
         try {
             const videoElement = document.getElementById('cameraVideo');
             let canvasElement = document.getElementById('barcodeCanvas');
             
+            console.log('Video element:', videoElement);
+            console.log('Video srcObject:', videoElement ? videoElement.srcObject : 'No video element');
+            console.log('Video paused:', videoElement ? videoElement.paused : 'No video element');
+            console.log('Video readyState:', videoElement ? videoElement.readyState : 'No video element');
+            
             // Check if video is playing and we have camera access
-            if (!videoElement || !videoElement.srcObject || videoElement.paused) {
-                console.warn('No camera stream available, starting camera...');
-                await this.startDirectScan();
-                // Wait a moment for camera to initialize
-                setTimeout(() => this.captureBarcode(), 1500);
+            if (!videoElement || !videoElement.srcObject || videoElement.paused || videoElement.readyState < 2) {
+                console.warn('⚠️ Camera not ready, starting camera stream...');
+                
+                // Start camera if not already started
+                if (!videoElement.srcObject) {
+                    await this.startDirectScan();
+                }
+                
+                // Wait for video to be ready
+                await this.waitForVideoReady(videoElement);
+                
+                // Try capture again after video is ready
+                setTimeout(() => {
+                    console.log('🔄 Retrying capture after camera setup...');
+                    this.captureBarcode();
+                }, 1000);
                 return;
             }
+            
+            console.log('✅ Video is ready, proceeding with barcode scanning');
             
             // Create canvas if it doesn't exist
             if (!canvasElement) {
@@ -440,77 +519,108 @@ class SmartPOSSystem {
                 } else {
                     document.body.appendChild(canvasElement);
                 }
+                console.log('📄 Canvas element created');
             }
             
-            // Check if QuaggaJS is available directly
+            // Check if QuaggaJS is available directly (PRIORITY METHOD)
             if (typeof Quagga !== 'undefined') {
-                console.log('Using QuaggaJS directly for barcode scanning...');
+                console.log('🚀 Using QuaggaJS directly for barcode scanning...');
                 this.startQuaggaDirectScan();
                 return;
             }
             
-            // Check if enhanced scanner is available
+            // Fallback to enhanced scanner
             if (typeof EnhancedBarcodeScanner !== 'undefined') {
-                console.log('Using enhanced barcode scanner...');
+                console.log('🔧 Using enhanced barcode scanner as fallback...');
                 
-                // Create a new scanner instance
                 const scanner = new EnhancedBarcodeScanner();
-                
-                // Set the video and canvas manually since we already have them
                 scanner.video = videoElement;
                 scanner.canvas = canvasElement;
                 scanner.canvas.width = videoElement.videoWidth || 640;
                 scanner.canvas.height = videoElement.videoHeight || 480;
                 scanner.canvasContext = scanner.canvas.getContext('2d');
                 
-                // Initialize the scanner (this will detect available libraries)
                 const initialized = await scanner.initialize();
                 if (!initialized) {
-                    console.warn('Enhanced scanner failed to initialize, using manual input');
+                    console.warn('❌ Enhanced scanner failed to initialize');
                     this.showManualBarcodeInput();
                     return;
                 }
                 
-                console.log('Enhanced scanner initialized, starting scan...');
-                
-                // Start scanning with callback
                 const scanStarted = scanner.startScanning((barcode, format, confidence) => {
-                    console.log(`Barcode detected: ${barcode}, Format: ${format}, Confidence: ${confidence}`);
+                    console.log(`📱 Enhanced scanner detected: ${barcode}, Format: ${format}, Confidence: ${confidence}`);
                     scanner.stopScanning();
                     this.processBarcode(barcode);
                 });
                 
                 if (!scanStarted) {
-                    console.warn('Scanner failed to start, using manual input');
+                    console.warn('❌ Enhanced scanner failed to start');
                     this.showManualBarcodeInput();
                 }
                 
-                // Auto-stop scanning after 10 seconds to prevent indefinite scanning
-                setTimeout(() => {
-                    if (scanner.isScanning) {
-                        scanner.stopScanning();
-                        console.log('Auto-stopped scanning after 10 seconds');
-                    }
-                }, 10000);
-                
             } else {
-                console.warn('Enhanced scanner not available, using manual input');
+                console.warn('❌ No barcode scanning libraries available');
                 this.showManualBarcodeInput();
             }
         } catch (error) {
-            console.error('Error with barcode scanning:', error);
+            console.error('💥 Error with barcode scanning:', error);
             this.showManualBarcodeInput();
         }
+    }
+    
+    // Wait for video to be ready
+    async waitForVideoReady(videoElement) {
+        return new Promise((resolve) => {
+            if (videoElement.readyState >= 2) {
+                console.log('✅ Video already ready');
+                resolve();
+                return;
+            }
+            
+            console.log('⏳ Waiting for video to be ready...');
+            const checkReady = () => {
+                if (videoElement.readyState >= 2) {
+                    console.log('✅ Video is now ready');
+                    resolve();
+                } else {
+                    setTimeout(checkReady, 100);
+                }
+            };
+            
+            videoElement.addEventListener('loadeddata', () => {
+                console.log('📹 Video loadeddata event fired');
+                resolve();
+            }, { once: true });
+            
+            videoElement.addEventListener('canplay', () => {
+                console.log('▶️ Video canplay event fired');
+                resolve();
+            }, { once: true });
+            
+            // Start checking
+            checkReady();
+            
+            // Timeout after 5 seconds
+            setTimeout(() => {
+                console.warn('⏰ Video ready timeout');
+                resolve();
+            }, 5000);
+        });
     }
     
     // Direct QuaggaJS scanning method
     startQuaggaDirectScan() {
         const videoElement = document.getElementById('cameraVideo');
         
-        console.log('Initializing QuaggaJS with video element:', videoElement);
+        console.log('🔍 Initializing QuaggaJS scanner...');
+        console.log('Video element ready state:', videoElement.readyState);
+        console.log('Video dimensions:', `${videoElement.videoWidth}x${videoElement.videoHeight}`);
+        
+        // Show scanning indicator
+        this.showScanningIndicator(true);
         
         // Configure Quagga with optimized settings
-        Quagga.init({
+        const config = {
             inputStream: {
                 name: "Live",
                 type: "LiveStream",
@@ -541,20 +651,31 @@ class SmartPOSSystem {
                 multiple: false
             },
             locate: true
-        }, (err) => {
+        };
+        
+        console.log('⚙️ Quagga configuration:', config);
+        
+        Quagga.init(config, (err) => {
             if (err) {
-                console.error('Quagga initialization failed:', err);
+                console.error('❌ Quagga initialization failed:', err);
+                this.showScanningIndicator(false);
                 this.showManualBarcodeInput();
                 return;
             }
             
-            console.log('Quagga initialized successfully, starting detection...');
+            console.log('✅ Quagga initialized successfully!');
+            console.log('🎯 Starting barcode detection...');
+            
             Quagga.start();
+            
+            // Show scanning status
+            this.updateScanningStatus('Ready to scan - Point camera at barcode');
             
             // Track detected barcodes to avoid duplicates
             let lastDetectedBarcode = null;
             let lastDetectionTime = 0;
             const detectionCooldown = 2000; // 2 seconds between detections
+            let detectionCount = 0;
             
             // Set up detection handler with improved accuracy
             Quagga.onDetected((result) => {
@@ -563,45 +684,89 @@ class SmartPOSSystem {
                     const confidence = result.codeResult.confidence;
                     const currentTime = Date.now();
                     
-                    console.log(`Quagga raw detection: ${barcode}, Confidence: ${confidence.toFixed(2)}`);
+                    detectionCount++;
+                    console.log(`🔍 Detection #${detectionCount}: "${barcode}", Confidence: ${confidence.toFixed(2)}%`);
+                    
+                    // Update scanning status
+                    this.updateScanningStatus(`Detected: ${barcode} (${confidence.toFixed(1)}%)`);
                     
                     // Prevent duplicate detections of the same barcode within cooldown period
                     if (barcode === lastDetectedBarcode && 
                         (currentTime - lastDetectionTime) < detectionCooldown) {
-                        console.log('Ignoring duplicate detection within cooldown period');
+                        console.log('⏩ Ignoring duplicate detection within cooldown period');
                         return;
                     }
                     
-                    // Only process if confidence is high enough (increased threshold)
+                    // Only process if confidence is high enough
                     if (confidence > 70) {
-                        console.log(`High confidence barcode detected: ${barcode}`);
+                        console.log(`✅ HIGH CONFIDENCE BARCODE: "${barcode}"`);
                         
                         // Update tracking variables
                         lastDetectedBarcode = barcode;
                         lastDetectionTime = currentTime;
                         
-                        // Stop scanning immediately to prevent multiple detections
+                        // Stop scanning immediately
                         Quagga.stop();
-                        console.log('Quagga stopped after successful detection');
+                        this.showScanningIndicator(false);
+                        this.updateScanningStatus('Processing barcode...');
                         
-                        // Process the barcode
-                        this.processBarcode(barcode);
+                        console.log('🛑 Quagga stopped after successful detection');
+                        
+                        // Process the barcode with a slight delay to show status
+                        setTimeout(() => {
+                            this.processBarcode(barcode);
+                        }, 500);
+                        
                     } else {
-                        console.log(`Low confidence detection (${confidence.toFixed(2)}), continuing scan...`);
+                        console.log(`⚠️ Low confidence (${confidence.toFixed(2)}%), continuing scan...`);
+                        this.updateScanningStatus(`Low confidence: ${barcode} (${confidence.toFixed(1)}%) - Keep scanning...`);
                     }
                 }
             });
             
-            // Auto-stop after 20 seconds to prevent indefinite scanning
+            // Auto-stop after 30 seconds
             setTimeout(() => {
                 try {
                     Quagga.stop();
-                    console.log('Auto-stopped Quagga scanning after 20 seconds');
+                    this.showScanningIndicator(false);
+                    this.updateScanningStatus('Scan timeout - try again or enter manually');
+                    console.log('⏰ Auto-stopped Quagga scanning after 30 seconds');
                 } catch (e) {
-                    console.warn('Error stopping Quagga:', e);
+                    console.warn('⚠️ Error stopping Quagga:', e);
                 }
-            }, 20000);
+            }, 30000);
         });
+    }
+    
+    // Show scanning indicator
+    showScanningIndicator(show) {
+        const scanOverlay = document.querySelector('.scan-overlay');
+        if (scanOverlay) {
+            if (show) {
+                scanOverlay.style.display = 'block';
+                scanOverlay.innerHTML = `
+                    <div class="scan-line active"></div>
+                    <div class="scan-corners">
+                        <div class="corner top-left"></div>
+                        <div class="corner top-right"></div>
+                        <div class="corner bottom-left"></div>
+                        <div class="corner bottom-right"></div>
+                    </div>
+                    <div class="scan-status" id="scanStatus">Initializing scanner...</div>
+                `;
+            } else {
+                scanOverlay.style.display = 'none';
+            }
+        }
+    }
+    
+    // Update scanning status
+    updateScanningStatus(message) {
+        const statusElement = document.getElementById('scanStatus');
+        if (statusElement) {
+            statusElement.textContent = message;
+            console.log('📱 Status:', message);
+        }
     }
     
     // Show manual barcode input as fallback
