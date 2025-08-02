@@ -952,19 +952,8 @@
                 justify-content: center;
             }
             
+            /* Hide categories bar on mobile - not needed for scanning workflow */
             .categories-bar {
-                order: 2;
-                padding: 12px 16px;
-                overflow-x: auto;
-                white-space: nowrap;
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-                background: white;
-                border-bottom: 2px solid var(--gray-200);
-                margin-bottom: 12px;
-            }
-            
-            .categories-bar::-webkit-scrollbar {
                 display: none;
             }
             
@@ -985,78 +974,57 @@
                 order: 1;
                 margin: 12px;
                 margin-bottom: 0;
-                padding: 0; /* Remove padding to prevent overflow */
+                padding: 0;
                 border-radius: var(--border-radius);
                 background: white;
-                border: 1px solid var(--gray-300);
+                border: 1px solid var(--gray-200);
                 box-shadow: var(--box-shadow-sm);
-                overflow: hidden; /* Prevent mobile cart overflow */
-                max-width: calc(100vw - 24px); /* Ensure it fits screen */
+                overflow: hidden;
+                max-width: calc(100vw - 24px);
                 box-sizing: border-box;
             }
             
             .cart-header {
-                padding: 12px 16px; /* Add horizontal padding back */
-                border-bottom: 2px solid var(--primary-color);
-                margin-bottom: 0; /* Remove margin to prevent spacing issues */
+                padding: 12px 16px; /* Reduced padding */
+                border-bottom: 1px solid var(--gray-200);
+                margin-bottom: 0;
                 background: white;
                 border-radius: var(--border-radius) var(--border-radius) 0 0;
             }
             
             .cart-items {
-                max-height: 200px;
-                min-height: 120px;
-                border-radius: 8px;
-                background-color: var(--gray-50);
-                padding: 12px 16px; /* Add horizontal padding */
-                margin: 12px 16px; /* Add margin for proper spacing */
-                overflow-x: hidden; /* Prevent horizontal overflow */
-                overflow-y: auto; /* Allow vertical scrolling */
+                max-height: 180px; /* Reduced height */
+                min-height: 100px; /* Reduced min height */
+                padding: 8px 16px; /* Reduced padding */
+                overflow-x: hidden;
+                overflow-y: auto;
                 box-sizing: border-box;
             }
             
-            .products-grid {
-                order: 2;
-                margin: 0 12px 12px 12px;
-                padding: 16px;
-                height: auto;
-                max-height: none;
-                min-height: 70vh;
+            .cart-footer {
+                padding: 8px 16px; /* Reduced padding */
+                border-top: 1px solid var(--gray-200);
                 background: white;
-                border-radius: var(--border-radius);
-                border: 1px solid var(--gray-300);
-                box-shadow: var(--box-shadow-sm);
+                border-radius: 0 0 var(--border-radius) var(--border-radius);
+                box-sizing: border-box;
+            }
+            
+            .checkout-btn {
+                padding: 12px; /* Reduced padding */
+                font-size: 15px;
+            }
+            
+            /* Hide products grid on mobile - mobile is for scanning only */
+            .products-grid {
+                display: none;
             }
             
             .products-list {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 180px));
-                justify-content: start;
-                max-height: none;
-                height: auto;
-                min-height: 70vh;
-                gap: 12px;
-                overflow-y: auto;
-                padding-bottom: 20px;
+                display: none;
             }
             
             .product-card {
-                height: 220px;
-                max-width: 180px;
-                padding: 12px;
-            }
-            
-            .product-img {
-                height: 100px;
-            }
-            
-            .product-name {
-                font-size: 14px;
-                -webkit-line-clamp: 2;
-                line-clamp: 2;
-            }
-            
-            .product-price {
-                font-size: 15px;
+                display: none;
             }
         }
         
@@ -1076,12 +1044,9 @@
                 margin-bottom: 0;
             }
             
+            /* Hide categories bar on mobile - not needed for scanning workflow */
             .categories-bar {
-                order: 2;
-                padding: 12px;
-                background: white;
-                border-bottom: 2px solid var(--gray-200);
-                margin-bottom: 8px;
+                display: none;
             }
             
             .pos-content {
@@ -1095,71 +1060,59 @@
             
             .cart-panel {
                 order: 1;
-                margin: 8px;
+                margin: 8px; /* Reduced margin */
                 margin-bottom: 0;
-                padding: 0; /* Remove padding to prevent overflow */
+                padding: 0;
                 background: white;
-                border: 1px solid var(--gray-300);
+                border: 1px solid var(--gray-200);
                 border-radius: var(--border-radius);
                 box-shadow: var(--box-shadow-sm);
-                overflow: hidden; /* Prevent overflow */
-                max-width: calc(100vw - 16px); /* Ensure it fits screen */
+                overflow: hidden;
+                max-width: calc(100vw - 16px); /* Adjusted for smaller margin */
                 box-sizing: border-box;
             }
             
             .cart-header {
-                padding: 8px 12px; /* Add horizontal padding */
-                border-bottom: 2px solid var(--primary-color);
-                margin-bottom: 0; /* Remove margin */
+                padding: 10px 14px; /* Reduced padding */
+                border-bottom: 1px solid var(--gray-200);
+                margin-bottom: 0;
                 background: white;
                 border-radius: var(--border-radius) var(--border-radius) 0 0;
             }
             
             .cart-items {
-                max-height: 180px;
-                min-height: 100px;
-                border-radius: 8px;
-                background-color: var(--gray-50);
-                padding: 8px 12px; /* Add horizontal padding */
-                margin: 8px 12px; /* Add margin for proper spacing */
-                overflow-x: hidden; /* Prevent horizontal overflow */
-                overflow-y: auto; /* Allow vertical scrolling */
+                max-height: 150px; /* Reduced height */
+                min-height: 80px; /* Reduced min height */
+                padding: 6px 14px; /* Reduced padding */
+                overflow-x: hidden;
+                overflow-y: auto;
                 box-sizing: border-box;
             }
             
-            .products-grid {
-                order: 2;
-                margin: 0 8px 8px 8px;
-                padding: 12px;
+            .cart-footer {
+                padding: 6px 14px; /* Reduced padding */
+                border-top: 1px solid var(--gray-200);
                 background: white;
-                border-radius: var(--border-radius);
-                border: 1px solid var(--gray-300);
-                box-shadow: var(--box-shadow-sm);
+                border-radius: 0 0 var(--border-radius) var(--border-radius);
+                box-sizing: border-box;
+            }
+            
+            .checkout-btn {
+                padding: 10px; /* Reduced padding */
+                font-size: 14px;
+            }
+            
+            /* Hide products grid on mobile - mobile is for scanning only */
+            .products-grid {
+                display: none;
             }
             
             .products-list {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                gap: 10px;
-                min-height: 80vh;
-                overflow-y: auto;
-                padding-bottom: 20px;
+                display: none;
             }
             
             .product-card {
-                padding: 10px;
-                height: 200px;
-            }
-            
-            .product-img {
-                height: 80px;
-            }
-            
-            .product-name {
-                font-size: 13px;
-            }
-            
-            .product-price {
-                font-size: 14px;
+                display: none;
             }
             
             .cart-item {
