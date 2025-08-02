@@ -10,11 +10,7 @@ class SmartPOSSystem {
         this.isScanning = false;
         this.scanner = null;
         this.currentStream = null;
-        this.quaggaRunning = false;
-        console.log('Requesting camera access with constraints:', constraints);
-            
-            this.currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-            console.log('Camera access granted'); // Track Quagga state
+        this.quaggaRunning = false; // Track Quagga state
         this.init();
     }
 
@@ -982,3 +978,6 @@ class SmartPOSSystem {
         }
     }
 }
+
+// Make SmartPOSSystem available globally
+window.SmartPOSSystem = SmartPOSSystem;
