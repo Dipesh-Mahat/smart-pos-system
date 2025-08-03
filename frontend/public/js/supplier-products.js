@@ -36,7 +36,7 @@ function initializeProductsPage() {
 
 async function loadProducts() {
     try {
-        const response = await fetch('http://localhost:3000/api/supplier/products', {
+        const response = await fetch('http://localhost:3000/api/supplier/products?limit=100', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,

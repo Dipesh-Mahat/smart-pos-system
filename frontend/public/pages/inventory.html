@@ -462,7 +462,7 @@
             document.getElementById('totalValue').textContent = 'Loading...';
             
             // Fetch inventory data and calculate statistics
-            apiService.request('/shop/products')
+            apiService.request('/shop/products?limit=100')
             .then(productsResponse => {
                 console.log('Products response:', productsResponse);
                 

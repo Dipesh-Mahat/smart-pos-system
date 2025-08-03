@@ -373,7 +373,7 @@ exports.deleteProductImage = async (req, res) => {
 // Get all products for a supplier
 exports.getSupplierProducts = async (req, res) => {
   try {
-    const { page = 1, limit = 20, search, category, lowStock, sort = 'name', order = 'asc' } = req.query;
+    const { page = 1, limit = 100, search, category, lowStock, sort = 'name', order = 'asc' } = req.query;
     
     // Build query
     const query = { 'supplierInfo.supplierId': req.user._id };

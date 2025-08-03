@@ -29,7 +29,7 @@ class SmartPOSSystem {
 
         try {
             // Use the API service to fetch real products from the database
-            const data = await window.apiService.request('/shop/products');
+            const data = await window.apiService.request('/shop/products?limit=100');
             
             // Handle the correct API response format: {products: [...], pagination: {...}}
             if (data && data.products && Array.isArray(data.products)) {
@@ -1112,7 +1112,7 @@ class SmartPOSSystem {
     async validateStockForCheckout() {
         try {
             // Get latest product data to ensure stock levels are current
-            const data = await window.apiService.request('/shop/products');
+            const data = await window.apiService.request('/shop/products?limit=100');
             let currentProducts = [];
             
             if (data && data.products && Array.isArray(data.products)) {

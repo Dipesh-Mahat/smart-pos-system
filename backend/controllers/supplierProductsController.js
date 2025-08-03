@@ -15,7 +15,7 @@ exports.getSupplierProducts = async (req, res) => {
     const { supplierId } = req.params;
     const { 
       page = 1, 
-      limit = 20, 
+      limit = 100, 
       search, 
       category, 
       sort = 'name', 
