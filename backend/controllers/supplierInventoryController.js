@@ -732,7 +732,7 @@ async function getInventoryStats(supplierId) {
   
   // Get total inventory value
   const inventoryValue = await SupplierInventory.aggregate([
-    { $match: { supplierId: ObjectId(supplierId) } },
+    { $match: { supplierId: new mongoose.Types.ObjectId(supplierId) } },
     { $project: { value: { $multiply: ['$currentStock', '$costPrice'] } } },
     { $group: { _id: null, total: { $sum: '$value' } } }
   ]);

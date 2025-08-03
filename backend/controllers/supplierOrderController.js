@@ -561,7 +561,7 @@ exports.getSupplierOrderInsights = async (req, res) => {
     const fulfillmentTimes = await Order.aggregate([
       { 
         $match: { 
-          supplierId: ObjectId(supplierId),
+          supplierId: new mongoose.Types.ObjectId(supplierId),
           status: 'delivered',
           orderDate: { $exists: true },
           actualDeliveryDate: { $exists: true }
@@ -592,7 +592,7 @@ exports.getSupplierOrderInsights = async (req, res) => {
     const orderCounts = await Order.aggregate([
       {
         $match: {
-          supplierId: ObjectId(supplierId),
+          supplierId: new mongoose.Types.ObjectId(supplierId),
           orderDate: { 
             $gte: new Date(new Date().setDate(new Date().getDate() - 30))  // Last 30 days
           }
@@ -645,7 +645,7 @@ exports.getSupplierOrderInsights = async (req, res) => {
     const previousMonth = await Order.aggregate([
       {
         $match: {
-          supplierId: ObjectId(supplierId),
+          supplierId: new mongoose.Types.ObjectId(supplierId),
           orderDate: {
             $gte: new Date(new Date().setDate(new Date().getDate() - 60)),
             $lt: new Date(new Date().setDate(new Date().getDate() - 30))

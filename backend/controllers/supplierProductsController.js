@@ -80,7 +80,7 @@ exports.getSupplierProducts = async (req, res) => {
     
     // Get supplier inventory for stock information
     const inventoryItems = await SupplierInventory.find({
-      supplierId: new ObjectId(supplierId)
+      supplierId: new mongoose.Types.ObjectId(supplierId)
     }).lean();
     
     // Map inventory data to products
