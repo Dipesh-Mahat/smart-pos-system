@@ -475,6 +475,8 @@ exports.placeSupplierOrder = async (req, res) => {
  */
 exports.setupAutoOrder = async (req, res) => {
   try {
+    console.log('Setting up auto order with body:', req.body); // Debug log
+    
     const shopOwnerId = req.user._id;
     const { supplierId } = req.params;
     const {
@@ -482,8 +484,35 @@ exports.setupAutoOrder = async (req, res) => {
       quantity,
       frequency,
       nextOrderDate,
-      notes
+      notes,
+      minStockLevel,
+      reorderQuantity,
+      autoOrderEnabled,
+      orderFrequencyDays,
+      priority
     } = req.body;
+    
+    // Basic validation for required fields
+    if (!productId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Product ID is required'
+      });
+    }
+    
+    if (!quantity || quantity < 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid quantity is required (minimum 1)'
+      });
+    }
+    
+    if (!frequency || !['daily', 'weekly', 'monthly'].includes(frequency)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid frequency is required (daily, weekly, or monthly)'
+      });
+    }
     
     // Validate supplierId is a valid ObjectId
     if (!mongoose.Types.ObjectId.isValid(supplierId)) {
@@ -537,11 +566,27 @@ exports.setupAutoOrder = async (req, res) => {
     
     if (existingAutoOrder) {
       // Update existing auto-order
-      existingAutoOrder.quantity = quantity;
-      existingAutoOrder.frequency = frequency;
-      existingAutoOrder.nextOrderDate = nextOrderDate;
-      existingAutoOrder.notes = notes;
+      existingAutoOrder.quantity = quantity || existingAutoOrder.quantity || 1;
+      existingAutoOrder.frequency = frequency || existingAutoOrder.frequency || 'weekly';
+      existingAutoOrder.nextOrderDate = nextOrderDate ? new Date(nextOrderDate) : new Date(Date.now() + 24 * 60 * 60 * 1000);
+      existingAutoOrder.notes = notes || existingAutoOrder.notes || '';
       existingAutoOrder.isActive = true;
+      
+      // Update threshold-based fields if provided (ensure reorderQuantity is always set)
+      if (minStockLevel !== undefined) existingAutoOrder.minStockLevel = minStockLevel;
+      if (reorderQuantity !== undefined) {
+        existingAutoOrder.reorderQuantity = reorderQuantity;
+      } else if (quantity !== undefined) {
+        existingAutoOrder.reorderQuantity = quantity;
+      } else if (!existingAutoOrder.reorderQuantity) {
+        existingAutoOrder.reorderQuantity = 1;
+      }
+      
+      if (autoOrderEnabled !== undefined) existingAutoOrder.autoOrderEnabled = autoOrderEnabled;
+      if (orderFrequencyDays !== undefined) existingAutoOrder.orderFrequencyDays = orderFrequencyDays;
+      if (priority !== undefined) existingAutoOrder.priority = priority;
+      
+      console.log('Updating existing auto order:', existingAutoOrder); // Debug log
       
       await existingAutoOrder.save();
       
@@ -552,17 +597,28 @@ exports.setupAutoOrder = async (req, res) => {
       });
     } else {
       // Create new auto-order
-      const newAutoOrder = new AutoOrder({
+      const autoOrderData = {
         shopId: shopOwnerId,
         supplierId,
         productId,
         productName: product.name,
-        quantity,
-        frequency,
-        nextOrderDate,
-        notes,
-        isActive: true
-      });
+        quantity: quantity || 1,
+        frequency: frequency || 'weekly',
+        nextOrderDate: nextOrderDate ? new Date(nextOrderDate) : new Date(Date.now() + 24 * 60 * 60 * 1000), // Parse ISO string to Date
+        notes: notes || '',
+        isActive: true,
+        
+        // Threshold-based fields (ensure all required fields are set)
+        minStockLevel: minStockLevel || 10,
+        reorderQuantity: reorderQuantity || quantity || 1,
+        autoOrderEnabled: autoOrderEnabled !== undefined ? autoOrderEnabled : true,
+        orderFrequencyDays: orderFrequencyDays || 7,
+        priority: priority || 'medium'
+      };
+      
+      console.log('Creating new auto order with data:', autoOrderData); // Debug log
+      
+      const newAutoOrder = new AutoOrder(autoOrderData);
       
       await newAutoOrder.save();
       
@@ -574,10 +630,23 @@ exports.setupAutoOrder = async (req, res) => {
     }
   } catch (error) {
     console.error('Error setting up auto-order:', error);
+    
+    // Provide more specific error messages
+    let errorMessage = 'Failed to set up auto-order';
+    
+    if (error.name === 'ValidationError') {
+      // Handle Mongoose validation errors
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      errorMessage = `Validation failed: ${validationErrors.join(', ')}`;
+    } else if (error.code === 11000) {
+      errorMessage = 'Auto-order already exists for this product';
+    }
+    
     return res.status(500).json({
       success: false,
-      message: 'Failed to set up auto-order',
-      error: error.message
+      message: errorMessage,
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };

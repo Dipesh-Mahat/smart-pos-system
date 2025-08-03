@@ -395,6 +395,16 @@ function openThresholdAutoOrderModal() {
         productSelect.appendChild(option);
     }
     
+    // Clear and enable input fields
+    document.getElementById('minThreshold').value = '';
+    document.getElementById('autoOrderQuantity').value = '';
+    document.getElementById('thresholdFrequency').value = '';
+    document.getElementById('thresholdNotes').value = '';
+    
+    // Ensure inputs are enabled and can accept manual input
+    document.getElementById('minThreshold').disabled = false;
+    document.getElementById('autoOrderQuantity').disabled = false;
+    
     modal.style.display = 'flex';
     setupThresholdAutoOrderModal(currentSupplierId);
 }
@@ -411,6 +421,25 @@ function setupThresholdAutoOrderModal(supplierId) {
         
         const formData = new FormData(this);
         const data = Object.fromEntries(formData.entries());
+        
+        // Validate required fields
+        if (!data.productId) {
+            alert('Please select a product');
+            return;
+        }
+        if (!data.minThreshold || data.minThreshold < 1) {
+            alert('Please enter a valid minimum threshold (at least 1)');
+            return;
+        }
+        if (!data.quantity || data.quantity < 1) {
+            alert('Please enter a valid auto order quantity (at least 1)');
+            return;
+        }
+        if (!data.frequency) {
+            alert('Please select a check frequency');
+            return;
+        }
+        
         data.supplierId = supplierId;
         data.quantity = parseInt(data.quantity);
         data.minThreshold = parseInt(data.minThreshold);
@@ -422,7 +451,22 @@ function setupThresholdAutoOrderModal(supplierId) {
         submitBtn.textContent = 'Setting up...';
         submitBtn.disabled = true;
         
-        apiService.post('/shop/suppliers/' + supplierId + '/threshold-auto-orders', data).then(res => {
+        // Prepare data for the existing auto-order endpoint
+        const autoOrderData = {
+            productId: data.productId,
+            quantity: data.quantity,
+            frequency: data.frequency,
+            minStockLevel: data.minThreshold, // Map threshold to minStockLevel
+            reorderQuantity: data.quantity,
+            autoOrderEnabled: true,
+            notes: data.notes || 'Threshold-based auto order',
+            nextOrderDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // Convert to ISO string
+        };
+
+        console.log('Sending auto order data:', autoOrderData); // Debug log
+
+        apiService.post('/shop/suppliers/' + supplierId + '/auto-orders', autoOrderData).then(res => {
+            console.log('Auto order response:', res); // Debug log
             if (res.success) {
                 closeThresholdAutoOrderModal();
                 alert('Threshold-based auto-order set up successfully! Products will be automatically ordered when stock falls below ' + data.minThreshold + ' units.');
@@ -430,11 +474,11 @@ function setupThresholdAutoOrderModal(supplierId) {
                 // Add visual indicator to the product card
                 addThresholdIndicator(data.productId, data.minThreshold);
             } else {
-                alert('Failed to set up threshold auto-order: ' + (res.message || 'Unknown error'));
+                alert('Failed to set up threshold auto-order: ' + (res.message || res.error || 'Unknown error'));
             }
         }).catch(error => {
             console.error('Error setting up threshold auto-order:', error);
-            alert('Failed to set up threshold auto-order. Please try again.');
+            alert('Failed to set up threshold auto-order: ' + (error.message || 'Network error. Please try again.'));
         }).finally(() => {
             // Reset button state
             submitBtn.textContent = originalText;

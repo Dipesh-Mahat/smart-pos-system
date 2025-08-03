@@ -452,14 +452,24 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="minThreshold">Minimum Threshold</label>
-                    <input type="number" id="minThreshold" name="minThreshold" min="1" required 
-                           placeholder="When stock reaches this level">
+                    <label for="minThreshold" style="display: block; margin-bottom: 6px; font-weight: 600; color: #2c3e50;">Minimum Threshold</label>
+                    <input type="text" id="minThreshold" name="minThreshold" required 
+                           placeholder="When stock reaches this level" 
+                           style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px; box-sizing: border-box;"
+                           value=""
+                           pattern="[0-9]+"
+                           title="Please enter a positive number"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value < 1) this.value = '';">
                 </div>
                 <div class="form-group">
-                    <label for="autoOrderQuantity">Auto Order Quantity</label>
-                    <input type="number" id="autoOrderQuantity" name="quantity" min="1" required 
-                           placeholder="How many to order automatically">
+                    <label for="autoOrderQuantity" style="display: block; margin-bottom: 6px; font-weight: 600; color: #2c3e50;">Auto Order Quantity</label>
+                    <input type="text" id="autoOrderQuantity" name="quantity" required 
+                           placeholder="How many to order automatically"
+                           style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px; box-sizing: border-box;"
+                           value=""
+                           pattern="[0-9]+"
+                           title="Please enter a positive number"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value < 1) this.value = '';">
                 </div>
                 <div class="form-group">
                     <label for="thresholdFrequency">Check Frequency</label>
