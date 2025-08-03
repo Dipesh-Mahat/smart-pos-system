@@ -11,6 +11,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+    <style>
+        /* Scanner animation */
+        @keyframes scanAnimation {
+            0% { transform: translateY(-50px); opacity: 0.2; }
+            50% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(50px); opacity: 0.2; }
+        }
+    </style>
+    
     <!-- QuaggaJS for barcode scanning -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     

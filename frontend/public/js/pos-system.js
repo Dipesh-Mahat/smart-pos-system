@@ -126,20 +126,16 @@ class SmartPOSSystem {
         }
     }
     
-    // Start barcode scanning using smart scanner
+    // Start barcode scanning
     startScanning() {
-        if (window.smartBarcodeScanner) {
-            window.smartBarcodeScanner.startScanner((product) => {
-                // The new scanner returns product object directly
-                if (product && product._id) {
-                    this.addToCart(product._id);
-                } else if (typeof product === 'string') {
-                    // Fallback for barcode string
-                    this.processBarcode(product);
-                }
+        if (window.scanner) {
+            window.scanner.startScan((barcode) => {
+                // Process the scanned barcode
+                this.processBarcode(barcode);
             });
         } else {
-            alert('Scanner not available');
+            console.error('Scanner not available');
+            alert('Scanner not available. Please refresh the page and try again.');
         }
     }
 
