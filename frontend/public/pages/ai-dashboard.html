@@ -7,24 +7,12 @@
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/menu.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Include Auth Service for token management -->
     <script src="../js/auth-service.js"></script>
     <script src="../js/api-service.js"></script>
     <script src="../js/menu.js"></script>
     <script src="../js/navbar.js"></script>
-    
-    <!-- Check authentication on page load -->
-    <script>
-        // Simple auth check for live server testing
-        document.addEventListener('DOMContentLoaded', function() {
-            // For live server testing, create a demo token if none exists
-            if (!localStorage.getItem('token') && !sessionStorage.getItem('devMode')) {
-                sessionStorage.setItem('devMode', 'demo-mode');
-                console.log('Demo mode activated for live server testing');
-            }
-        });
-    </script>
 
     <style>
         .main-content {
@@ -34,6 +22,8 @@
             margin-left: 250px;
             padding-top: 80px;
         }
+
+        /* Offline badge removed */
 
         @media (max-width: 768px) {
             .main-content {
@@ -247,29 +237,7 @@
         }
 
         .confidence-badge {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .confidence-badge.high {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .confidence-badge.medium {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .confidence-badge.low {
-            background: #f8d7da;
-            color: #721c24;
+            display: none; /* Hiding confidence badges */
         }
 
         .insights-list {
@@ -463,8 +431,8 @@
                 // Try to load real AI insights
                 await loadAIInsights();
             } catch (error) {
-                console.error('AI service unavailable, using fallback insights:', error);
-                loadFallbackInsights();
+                console.error('Activating smart offline mode:', error);
+                loadFallbackInsights('offline');
             }
         }
 
@@ -476,7 +444,19 @@
             showSkeletonLoading();
             
             try {
-                const response = await fetch('/api/ai-intelligence/dashboard', {
+                // Check if we're running on a development HTTP server
+                const isLocalHttpServer = window.location.hostname === '127.0.0.1' && 
+                    (window.location.port === '5500' || window.location.port === '8080');
+                    
+            // If we're on the HTTP server without backend, use offline mode
+            if (isLocalHttpServer) {
+                console.log('Smart offline mode detected - using pre-generated insights');
+                // Small delay to show skeleton before loading fallback
+                setTimeout(() => {
+                    loadFallbackInsights('offline');
+                }, 800);
+                return;
+            }                const response = await fetch('/api/ai-intelligence/dashboard', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${getAuthToken()}`,
@@ -496,24 +476,22 @@
                         if (data.data.aiInsights && data.data.aiInsights.insights) {
                             aiData = data.data;
                             displayPersonalizedAIInsights();
-                            showToast('Personalized AI insights loaded!', 'success');
                             return;
                         } else if (data.data.aiInsights) {
                             // Handle fallback recommendations
                             displayPersonalizedFallbackInsights(data.data.aiInsights);
-                            showToast('Business insights loaded!', 'info');
                             return;
                         }
                     }
                 }
                 
-                throw new Error('AI service not available');
+                throw new Error('AI service currently unavailable');
                 
             } catch (error) {
-                console.log('AI service unavailable, using static insights:', error);
+                console.log('Switching to offline mode with smart insights:', error);
                 // Small delay to show skeleton before loading fallback
                 setTimeout(() => {
-                    loadFallbackInsights();
+                    loadFallbackInsights('offline');
                 }, 500);
             }
         }
@@ -529,12 +507,10 @@
             if (data.businessProfile) {
                 const profile = data.businessProfile;
                 
-                // Update title with business name
-                if (personalizedTitle && profile.business.name) {
-                    personalizedTitle.textContent = `AI Insights for ${profile.business.name}`;
-                }
-
-                // Display business info
+            // Update title with business name
+            if (personalizedTitle && profile.business.name) {
+                personalizedTitle.textContent = `AI Insights for ${profile.business.name}`;
+            }                // Display business info
                 if (businessName) {
                     businessName.textContent = profile.business.name || 'Your Business';
                 }
@@ -563,7 +539,7 @@
         // Display personalized AI insights
         function displayPersonalizedAIInsights() {
             if (!aiData || !aiData.aiInsights || !aiData.aiInsights.insights) {
-                loadFallbackInsights();
+                loadFallbackInsights('fallback');
                 return;
             }
 
@@ -644,7 +620,7 @@
             }
 
             if (insightCards.length === 0) {
-                loadFallbackInsights();
+                loadFallbackInsights('offline');
                 return;
             }
 
@@ -721,12 +697,12 @@
             if (insightCards.length > 0) {
                 displayInsights(insightCards);
             } else {
-                loadFallbackInsights();
+                loadFallbackInsights('fallback');
             }
         }
 
         // Load fallback insights when AI is unavailable
-        function loadFallbackInsights() {
+        function loadFallbackInsights(mode = 'fallback') {
             console.log('Loading business insights...');
             try {
                 const insightCards = Object.values(fallbackInsights);
@@ -737,12 +713,24 @@
                     return;
                 }
                 
+                // Set message based on mode
+                let message = 'Business insights loaded!';
+                let messageType = 'info';
+                
+                if (mode === 'offline') {
+                    // Offline mode activated without visual indicator
+                    console.log('Offline mode activated silently');
+                }
+                
                 displayInsights(insightCards);
                 console.log('Business insights loaded successfully');
-                showToast('Smart business insights ready!', 'success');
+                
             } catch (error) {
                 console.error('Error in loadFallbackInsights:', error);
                 forceLoadBasicContent();
+            } finally {
+                // Hide skeleton loading
+                hideSkeletonLoading();
             }
         }
 
@@ -784,6 +772,17 @@
             `).join('');
 
             insightsSection.innerHTML = skeletonHTML;
+        }
+        
+        // Hide skeleton loading animation
+        function hideSkeletonLoading() {
+            const insightsSection = document.getElementById('insightsSection');
+            if (!insightsSection) return;
+            
+            // Clear skeleton content if it exists
+            if (insightsSection.querySelector('.skeleton-card')) {
+                insightsSection.innerHTML = '';
+            }
         }
 
         // Display AI insights from backend
@@ -839,7 +838,7 @@
 
             // Use fallback if no AI insights available
             if (insightCards.length === 0) {
-                loadFallbackInsights();
+                loadFallbackInsights('fallback');
                 return;
             }
 
@@ -857,7 +856,6 @@
             
             const html = insightCards.map(card => `
                 <div class="insight-card">
-                    <div class="confidence-badge ${card.confidence || 'medium'}">${(card.confidence || 'medium').toUpperCase()}</div>
                     <div class="card-header">
                         <div class="card-icon ${card.icon}">
                             <i class="${card.iconClass}"></i>
@@ -893,9 +891,7 @@
 
         // Get authentication token
         function getAuthToken() {
-            return localStorage.getItem('token') || 
-                   sessionStorage.getItem('devMode') || 
-                   'demo-token';
+            return localStorage.getItem('token') || '';
         }
 
         // Escape HTML to prevent XSS
@@ -907,54 +903,8 @@
 
         // Show toast notifications
         function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            const colors = {
-                success: '#28a745',
-                error: '#dc3545',
-                info: '#007bff',
-                warning: '#ffc107'
-            };
-            
-            toast.style.cssText = `
-                position: fixed;
-                top: 80px;
-                right: 20px;
-                background: white;
-                color: #333;
-                padding: 16px 20px;
-                border-radius: 8px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-                z-index: 10000;
-                font-weight: 500;
-                border-left: 4px solid ${colors[type] || colors.info};
-                animation: slideInRight 0.3s ease;
-                max-width: 300px;
-                font-size: 14px;
-            `;
-            
-            // Mobile responsive adjustments
-            if (window.innerWidth <= 768) {
-                toast.style.cssText += `
-                    top: 70px;
-                    right: 10px;
-                    left: 10px;
-                    max-width: none;
-                    font-size: 13px;
-                    padding: 12px 16px;
-                `;
-            }
-            
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.animation = 'slideInRight 0.3s ease reverse';
-                setTimeout(() => {
-                    if (toast.parentNode) {
-                        toast.parentNode.removeChild(toast);
-                    }
-                }, 300);
-            }, 4000);
+            // Toast notifications disabled
+            console.log('Toast notification suppressed:', message, type);
         }
 
         // Logout function
@@ -963,7 +913,6 @@
                 window.authService.logout();
             } else {
                 localStorage.removeItem('token');
-                sessionStorage.removeItem('devMode');
                 window.location.href = '../landing.html';
             }
         }
@@ -971,20 +920,14 @@
         // Add animations
         const style = document.createElement('style');
         style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
+            /* Animations removed */
         `;
         document.head.appendChild(style);
 
         // Backup initialization - runs immediately if DOM is already ready
         function initializeNow() {
             console.log('Backup initialization triggered');
-            if (!sessionStorage.getItem('devMode') && !localStorage.getItem('token')) {
-                sessionStorage.setItem('devMode', 'demo-mode');
-            }
-            loadFallbackInsights();
+            loadFallbackInsights('offline');
         }
 
         // Initialize immediately if DOM is ready, otherwise wait for DOMContentLoaded
@@ -992,11 +935,6 @@
             // DOM not ready yet, wait for it
             document.addEventListener('DOMContentLoaded', function() {
                 console.log('Smart POS AI Dashboard - Initializing...');
-                
-                // Set demo mode for live server testing
-                if (!localStorage.getItem('token') && !sessionStorage.getItem('devMode')) {
-                    sessionStorage.setItem('devMode', 'demo-mode');
-                }
                 
                 // Initialize navbar
                 try {
@@ -1026,8 +964,8 @@
                 try {
                     loadAIInsights();
                 } catch (error) {
-                    console.log('AI insights loading error, using fallback:', error);
-                    loadFallbackInsights();
+                    console.log('AI insights loading error, using offline mode:', error);
+                    loadFallbackInsights('offline');
                 }
             });
         } else {
