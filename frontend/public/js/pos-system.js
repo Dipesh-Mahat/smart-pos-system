@@ -88,23 +88,41 @@ class SmartPOSSystem {
         // Category buttons
         const categoryButtons = document.querySelectorAll('.category-btn');
         if (categoryButtons.length) {
-            categoryButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    // Remove active class from all buttons
-                    categoryButtons.forEach(btn => btn.classList.remove('active'));
-                    // Add active class to clicked button
-                    e.currentTarget.classList.add('active');
+            categoryButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    this.filterByCategory(btn.textContent);
                     
-                    const category = e.currentTarget.textContent;
-                    if (category === 'All Products') {
-                        this.displayAllProducts();
-                    } else {
-                        this.filterByCategory(category);
-                    }
+                    // Toggle active class
+                    categoryButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
                 });
             });
         }
-
+        
+        // Add checkout confirmation handler
+        const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
+        if (confirmPaymentBtn) {
+            confirmPaymentBtn.addEventListener('click', () => {
+                this.processCheckout();
+            });
+        }
+        
+        // Add bill modal close handler
+        const closeBillBtn = document.getElementById('closeBillBtn');
+        const cancelBillBtn = document.getElementById('cancelBillBtn');
+        
+        if (closeBillBtn) {
+            closeBillBtn.addEventListener('click', () => {
+                document.getElementById('billModal').style.display = 'none';
+            });
+        }
+        
+        if (cancelBillBtn) {
+            cancelBillBtn.addEventListener('click', () => {
+                document.getElementById('billModal').style.display = 'none';
+            });
+        }
+        
         // View options
         const viewButtons = document.querySelectorAll('.view-btn');
         if (viewButtons.length) {
@@ -124,8 +142,26 @@ class SmartPOSSystem {
                 });
             });
         }
+        
+        // Add checkout button handler
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', () => {
+                // Get current cart from the POS system
+                const currentCart = this.cart;
+                
+                // Validate the cart
+                if (!currentCart || currentCart.length === 0) {
+                    this.showProductNotification('Empty Cart', 'Please add items to your cart before checkout.', 'warning');
+                    return;
+                }
+                
+                // Show the bill modal
+                this.showBillModal(currentCart);
+            });
+        }
     }
-    
+
     // Start barcode scanning
     startScanning() {
         if (window.scanner) {
@@ -240,6 +276,12 @@ class SmartPOSSystem {
         if (!product) {
             return;
         }
+
+        // Check if product is out of stock
+        if (product.stock <= 0) {
+            this.showProductNotification('Out of Stock', `${product.name} is currently out of stock.`, 'error');
+            return;
+        }
         
         // Use consistent ID (prefer _id for database compatibility)
         const itemId = product._id || product.id;
@@ -250,6 +292,11 @@ class SmartPOSSystem {
         );
         
         if (existingItem) {
+            // Check if adding one more would exceed available stock
+            if (existingItem.quantity >= product.stock) {
+                this.showProductNotification('Maximum Stock Reached', `Cannot add more units of ${product.name}. Maximum available stock reached.`, 'error');
+                return;
+            }
             existingItem.quantity += 1;
         } else {
             this.cart.push({
@@ -259,7 +306,8 @@ class SmartPOSSystem {
                 price: product.price,
                 quantity: 1,
                 category: product.category,
-                barcode: product.barcode
+                barcode: product.barcode,
+                maxStock: product.stock // Store the max stock in the cart item
             });
         }
         
@@ -275,6 +323,25 @@ class SmartPOSSystem {
     updateItemQuantity(index, change) {
         if (!this.cart[index]) return;
         
+        // Get the current cart item
+        const cartItem = this.cart[index];
+        
+        // When increasing quantity, check if we have enough stock
+        if (change > 0) {
+            // Find the product to check current stock
+            const product = this.products.find(p => 
+                p.id === cartItem.id || p._id === cartItem._id
+            );
+            
+            // If we can't find the product or adding would exceed stock, prevent it
+            if (!product || cartItem.quantity >= product.stock) {
+                this.showProductNotification('Maximum Stock Reached', 
+                    `Cannot add more units. Maximum available stock reached.`, 'error');
+                return;
+            }
+        }
+        
+        // Apply the quantity change
         this.cart[index].quantity += change;
         
         if (this.cart[index].quantity <= 0) {
@@ -358,6 +425,28 @@ class SmartPOSSystem {
                 <div>
                     <h4>Product Added!</h4>
                     <p>${product.name} - NPR ${product.price}</p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.remove(), 3000);
+    }
+    
+    showProductNotification(title, message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `barcode-notification ${type}`;
+        
+        const icon = type === 'success' ? 'fa-check-circle' : 
+                    type === 'error' ? 'fa-exclamation-circle' :
+                    type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+        
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas ${icon}"></i>
+                <div>
+                    <h4>${title}</h4>
+                    <p>${message}</p>
                 </div>
             </div>
         `;
@@ -781,6 +870,11 @@ class SmartPOSSystem {
             }, 300);
         }, 3000);
     }
+    
+    // Alias for showNotification for better naming in scan contexts
+    showScanNotification(message, type = 'success') {
+        this.showNotification(message, type);
+    }
 
     // Bill Scanning Methods
     async startBillScan() {
@@ -954,6 +1048,159 @@ class SmartPOSSystem {
             console.error('Error processing manual bill data:', error);
             this.showScanNotification('Error processing bill data', 'error');
         }
+    }
+    
+    // Process checkout with stock validation
+    async processCheckout() {
+        try {
+            // Validate cart
+            if (!this.cart || this.cart.length === 0) {
+                this.showProductNotification('Empty Cart', 'Please add items to your cart before checkout.', 'error');
+                return;
+            }
+            
+            // Verify stock availability for all items
+            const stockValidation = await this.validateStockForCheckout();
+            if (!stockValidation.valid) {
+                // Display validation errors
+                this.showProductNotification('Stock Issue', stockValidation.message, 'error');
+                
+                // Hide the bill modal
+                document.getElementById('billModal').style.display = 'none';
+                return;
+            }
+            
+            // Prepare transaction data
+            const transactionData = {
+                items: this.cart.map(item => ({
+                    productId: item.id,
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                    subtotal: item.price * item.quantity
+                })),
+                total: this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+            };
+            
+            // Send transaction to server
+            const response = await window.apiService.request('/transactions', {
+                method: 'POST',
+                body: JSON.stringify(transactionData)
+            });
+            
+            if (response && response.success) {
+                // Show success notification
+                this.showProductNotification('Sale Complete', 'Transaction has been successfully processed.', 'success');
+                
+                // Clear cart and update display
+                this.cart = [];
+                this.updateCartDisplay();
+                
+                // Hide the bill modal
+                document.getElementById('billModal').style.display = 'none';
+            } else {
+                throw new Error(response?.message || 'Failed to process transaction');
+            }
+        } catch (error) {
+            console.error('Transaction error:', error);
+            this.showProductNotification('Transaction Error', 
+                'There was an error processing your transaction. Please try again.', 'error');
+        }
+    }
+    
+    // Validate that all items in cart have sufficient stock
+    async validateStockForCheckout() {
+        try {
+            // Get latest product data to ensure stock levels are current
+            const data = await window.apiService.request('/shop/products');
+            let currentProducts = [];
+            
+            if (data && data.products && Array.isArray(data.products)) {
+                currentProducts = data.products;
+            } else if (data && data.success && Array.isArray(data.products)) {
+                currentProducts = data.products;
+            } else {
+                // If API call fails, use cached products (less reliable)
+                currentProducts = this.products;
+            }
+            
+            // Check each cart item against current stock
+            for (const cartItem of this.cart) {
+                const product = currentProducts.find(p => 
+                    p._id === cartItem.id || p.id === cartItem.id
+                );
+                
+                // If product not found or insufficient stock
+                if (!product) {
+                    return {
+                        valid: false,
+                        message: `Product "${cartItem.name}" is no longer available.`
+                    };
+                }
+                
+                if (product.stock < cartItem.quantity) {
+                    return {
+                        valid: false,
+                        message: `Not enough stock for "${cartItem.name}". Only ${product.stock} available.`
+                    };
+                }
+            }
+            
+            // All items have sufficient stock
+            return { valid: true };
+            
+        } catch (error) {
+            console.error('Stock validation error:', error);
+            // On error, allow checkout but log warning
+            console.warn('Proceeding with checkout without fresh stock validation');
+            return { valid: true };
+        }
+    }
+    
+    // Show the bill modal with cart items
+    showBillModal(cartArr) {
+        const billModal = document.getElementById('billModal');
+        const billItems = document.getElementById('billItems');
+        const billTotal = document.getElementById('billTotal');
+        
+        if (!billModal || !billItems || !billTotal) {
+            console.error('Bill modal elements not found');
+            return;
+        }
+        
+        // Clear previous items
+        billItems.innerHTML = '';
+        let total = 0;
+        
+        // Populate items with enhanced styling
+        cartArr.forEach((item, index) => {
+            const itemTotal = (item.price || 0) * (item.quantity || 1);
+            total += itemTotal;
+            
+            const row = document.createElement('div');
+            row.className = 'bill-item-row';
+            row.innerHTML = `
+                <div class="bill-item-details">
+                    <div class="bill-item-name">${item.name}</div>
+                    <div class="bill-item-meta">
+                        <span class="quantity-badge">${item.quantity}x</span>
+                        <span>NPR ${item.price}</span>
+                    </div>
+                </div>
+                <div class="bill-item-price">
+                    <div class="bill-item-unit-price">Unit: NPR ${item.price}</div>
+                    <div class="bill-item-total-price">NPR ${itemTotal}</div>
+                </div>
+            `;
+            
+            billItems.appendChild(row);
+        });
+        
+        // Update total in bill modal
+        billTotal.textContent = 'NPR ' + total.toLocaleString();
+        
+        // Show modal with proper centering
+        billModal.style.display = 'flex';
     }
 }
 

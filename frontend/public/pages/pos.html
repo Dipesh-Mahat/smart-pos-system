@@ -2622,8 +2622,8 @@
     </div>
 
     <!-- Enhanced Bill Summary Modal -->
-    <div class="bill-modal" id="billModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:2999; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
-        <div class="bill-modal-content" style="background:#fff; border-radius:16px; max-width:480px; width:95%; max-height:90vh; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation: modalSlideIn 0.3s ease;">
+    <div class="bill-modal" id="billModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:2999; display:none; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+        <div class="bill-modal-content" style="background:#fff; border-radius:16px; max-width:480px; width:95%; max-height:90vh; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation: modalSlideIn 0.3s ease; margin:auto;">
             <!-- Header -->
             <div class="bill-header" style="background:linear-gradient(135deg, #4361ee, #3a56d4); color:white; padding:24px; text-align:center; position:relative;">
                 <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:8px;">
@@ -2632,7 +2632,7 @@
                 </div>
                 <p style="margin:0; opacity:0.9; font-size:14px;">Review your order before payment</p>
                 <div style="position:absolute; top:16px; right:20px;">
-                    <button id="closeBillBtn" style="background:rgba(255,255,255,0.2); border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; color:white; display:flex; align-items:center; justify-content:center; transition:all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                    <button id="closeBillBtn" style="background:rgba(255,255,255,0.2); border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; color:white; display:flex; align-items:center; justify-content:center; transition:all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'" onclick="document.getElementById('billModal').style.display='none'">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -2663,13 +2663,13 @@
                 
                 <!-- Action Buttons -->
                 <div style="display:flex; gap:12px;">
-                    <button id="cancelBillBtn" style="flex:1; background:#6c757d; color:#fff; border:none; border-radius:10px; padding:14px 20px; font-weight:600; cursor:pointer; font-size:16px; transition:all 0.3s ease; display:flex; align-items:center; justify-content:center; gap:8px;" onmouseover="this.style.background='#5a6268'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#6c757d'; this.style.transform='translateY(0)'">
+                    <button id="cancelBillBtn" style="flex:1; background:#6c757d; color:#fff; border:none; border-radius:10px; padding:14px 20px; font-weight:600; cursor:pointer; font-size:16px; transition:all 0.3s ease; display:flex; align-items:center; justify-content:center; gap:8px;" onmouseover="this.style.background='#5a6268'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#6c757d'; this.style.transform='translateY(0)'" onclick="document.getElementById('billModal').style.display='none'">
                         <i class="fas fa-times"></i>
                         Cancel
                     </button>
-                    <button id="confirmPaymentBtn" style="flex:2; background:linear-gradient(135deg, #06d6a0, #04b886); color:#fff; border:none; border-radius:10px; padding:14px 20px; font-weight:600; cursor:pointer; font-size:16px; transition:all 0.3s ease; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 15px rgba(6, 214, 160, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(6, 214, 160, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(6, 214, 160, 0.3)'">
-                        <i class="fas fa-credit-card"></i>
-                        Confirm Payment
+                    <button id="confirmPaymentBtn" style="flex:2; background:linear-gradient(135deg, #06d6a0, #04b886); color:#fff; border:none; border-radius:10px; padding:14px 20px; font-weight:600; cursor:pointer; font-size:16px; transition:all 0.3s ease; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 15px rgba(6, 214, 160, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(6, 214, 160, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(6, 214, 160, 0.3)'" onclick="posSystem.processCheckout()">
+                        <i class="fas fa-check-circle"></i>
+                        Complete Sale
                     </button>
                 </div>
             </div>
@@ -2911,10 +2911,10 @@
                     // Always use posSystem.cart if available, else fallback to window.cart
                     let currentCart = (posSystem && Array.isArray(posSystem.cart)) ? posSystem.cart : (window.cart || []);
                     if (!currentCart || currentCart.length === 0) {
-                        await customAlert('Cart Empty', 'Please add items to your cart before checking out.', 'warning');
+                        posSystem.showProductNotification('Empty Cart', 'Please add items to your cart before checkout.', 'warning');
                         return;
                     }
-                    showBillModal(currentCart);
+                    posSystem.showBillModal(currentCart);
                 });
             }
             
@@ -3077,94 +3077,21 @@ if (checkoutBtn) {
         // Always use posSystem.cart if available, else fallback to window.cart
         let currentCart = (posSystem && Array.isArray(posSystem.cart)) ? posSystem.cart : (window.cart || []);
         if (!currentCart || currentCart.length === 0) {
-            await customAlert('Cart Empty', 'Please add items to your cart before checking out.', 'warning');
+            posSystem.showProductNotification('Empty Cart', 'Please add items to your cart before checkout.', 'warning');
             return;
         }
-        showBillModal(currentCart);
+        posSystem.showBillModal(currentCart);
     });
 }
-function showBillModal(cartArr) {
-    const billModal = document.getElementById('billModal');
-    const billItems = document.getElementById('billItems');
-    const billTotal = document.getElementById('billTotal');
-    
-    // Clear previous items
-    billItems.innerHTML = '';
-    let total = 0;
-    
-    // Populate items with enhanced styling
-    cartArr.forEach((item, index) => {
-        const itemTotal = (item.price || 0) * (item.quantity || 1);
-        total += itemTotal;
-        
-        const row = document.createElement('div');
-        row.className = 'bill-item-row';
-        
-        row.innerHTML = `
-            <div class="bill-item-details">
-                <div class="bill-item-name">${item.name}</div>
-                <div class="bill-item-meta">
-                    <span class="quantity-badge">×${item.quantity}</span>
-                    <span>NPR ${(item.price || 0).toLocaleString()} each</span>
-                </div>
-            </div>
-            <div class="bill-item-price">
-                <div class="bill-item-unit-price">NPR ${(item.price || 0).toLocaleString()}</div>
-                <div class="bill-item-total-price">NPR ${itemTotal.toLocaleString()}</div>
-            </div>
-        `;
-        
-        billItems.appendChild(row);
-    });
-    
-    // Update total only
-    billTotal.textContent = 'NPR ' + total.toLocaleString();
-    
-    // Show modal
-    billModal.style.display = 'flex';
     
     // Add keyboard support
-    document.addEventListener('keydown', handleBillModalKeydown);
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.getElementById('billModal').style.display = 'none';
+        }
+    });
 
-    // Close button handler
-    document.getElementById('closeBillBtn').onclick = function() {
-        closeBillModal();
-    };
-    
-    // Confirm payment handler
-    document.getElementById('confirmPaymentBtn').onclick = async function() {
-        closeBillModal();
-        
-        // Show auto-fading success notification
-        showAutoFadeSuccessNotification('Payment Successful', 'Your payment has been processed successfully! Receipt will be generated shortly.');
-        
-        // Clear cart
-        if (posSystem && Array.isArray(posSystem.cart)) posSystem.cart = [];
-        if (window.cart) window.cart = [];
-        posSystem.updateCartDisplay();
-    };
-    
-    // Cancel button handler
-    document.getElementById('cancelBillBtn').onclick = function() {
-        closeBillModal();
-    };
-}
-
-function closeBillModal() {
-    const billModal = document.getElementById('billModal');
-    billModal.style.display = 'none';
-    document.removeEventListener('keydown', handleBillModalKeydown);
-}
-
-function handleBillModalKeydown(e) {
-    if (e.key === 'Escape') {
-        closeBillModal();
-    } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        document.getElementById('confirmPaymentBtn').click();
-    }
-}
-
-function showAutoFadeSuccessNotification(title, message) {
+function showAutoFadeSuccessNotification(title, message, type = 'success') {
     // Create notification overlay
     const overlay = document.createElement('div');
     overlay.style.cssText = `
@@ -3183,6 +3110,28 @@ function showAutoFadeSuccessNotification(title, message) {
         transition: opacity 0.3s ease;
     `;
     
+    // Define colors based on type
+    let backgroundColor, iconColor;
+    let icon = 'fa-check';
+    
+    switch(type) {
+        case 'error':
+            backgroundColor = 'linear-gradient(135deg, #ff4d4d, #cc0000)';
+            iconColor = 'white';
+            icon = 'fa-exclamation-triangle';
+            break;
+        case 'warning':
+            backgroundColor = 'linear-gradient(135deg, #ffc107, #ff9800)';
+            iconColor = 'white';
+            icon = 'fa-exclamation-circle';
+            break;
+        case 'success':
+        default:
+            backgroundColor = 'linear-gradient(135deg, #06d6a0, #04b886)';
+            iconColor = 'white';
+            icon = 'fa-check';
+    }
+    
     // Create notification content
     const notification = document.createElement('div');
     notification.style.cssText = `
@@ -3199,8 +3148,8 @@ function showAutoFadeSuccessNotification(title, message) {
     
     notification.innerHTML = `
         <div style="margin-bottom: 20px;">
-            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #06d6a0, #04b886); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                <i class="fas fa-check" style="font-size: 28px; color: white;"></i>
+            <div style="width: 60px; height: 60px; background: ${backgroundColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                <i class="fas ${icon}" style="font-size: 28px; color: ${iconColor};"></i>
             </div>
         </div>
         <h3 style="margin: 0 0 12px 0; color: #212529; font-size: 24px; font-weight: 700;">${title}</h3>
