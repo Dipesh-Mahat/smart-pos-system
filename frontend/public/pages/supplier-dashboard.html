@@ -36,9 +36,7 @@
             <div class="dashboard-content" id="dashboardContent">
                 <div class="content-header">
                     <div class="header-actions">
-                        <button class="btn btn-primary" onclick="document.getElementById('addProductModal').style.display='flex'">
-                            <i class="fas fa-plus"></i> Add Product
-                        </button>
+                        <!-- Add Product button removed -->
                     </div>
                 </div>
             <!-- Quick Stats -->
@@ -304,65 +302,7 @@
         </div>
     </div>
 
-    <!-- Modal for Add Product -->
-    <div class="modal" id="addProductModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add New Product</h3>
-                <button class="close-modal" id="closeAddProductModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form class="product-form" id="productForm">
-                <div class="form-group">
-                    <label for="productName">Product Name *</label>
-                    <input type="text" id="productName" required>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="productCategory">Category *</label>
-                        <select id="productCategory" required>
-                            <option value="">Select Category</option>
-                            <option value="groceries">Groceries</option>
-                            <option value="beverages">Beverages</option>
-                            <option value="snacks">Snacks & Confectionery</option>
-                            <option value="personal-care">Personal Care</option>
-                            <option value="household">Household Items</option>
-                            <option value="dairy">Dairy Products</option>
-                            <option value="cooking-oil">Cooking Oil</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="productBrand">Brand</label>
-                        <input type="text" id="productBrand">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="productPrice">Price (₹) *</label>
-                        <input type="number" id="productPrice" step="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="productStock">Stock Quantity *</label>
-                        <input type="number" id="productStock" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="productDescription">Description</label>
-                    <textarea id="productDescription" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="productImage">Product Image</label>
-                    <input type="file" id="productImage" accept="image/*">
-                </div>                <div class="form-actions">
-                    <button type="button" class="btn-secondary" id="cancelAddProduct">Cancel</button>
-                    <button type="submit" class="btn-primary">Add Product</button>
-                </div>            </form>
-        </div>
-    </div>
-
-        </div> <!-- End of main-content -->
-    </div> <!-- End of container -->    <!-- Navbar and Menu Scripts -->
+    <!-- Navbar and Menu Scripts -->
     <script src="../js/supplier-navbar.js"></script>
     <script src="../js/supplier-menu.js"></script>
     <script>

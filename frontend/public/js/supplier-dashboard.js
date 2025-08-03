@@ -456,77 +456,14 @@ function initializeNotifications() {
 
 // Modals
 function initializeModals() {
-    const addProductBtn = document.getElementById('addProductBtn');
-    const addProductModal = document.getElementById('addProductModal');
-    const closeAddProductModal = document.getElementById('closeAddProductModal');
-    const cancelAddProduct = document.getElementById('cancelAddProduct');
-    
-    if (addProductBtn) {
-        addProductBtn.addEventListener('click', () => {
-            addProductModal.classList.add('active');
-        });
-    }
-    
-    if (closeAddProductModal) {
-        closeAddProductModal.addEventListener('click', () => {
-            addProductModal.classList.remove('active');
-        });
-    }
-    
-    if (cancelAddProduct) {
-        cancelAddProduct.addEventListener('click', () => {
-            addProductModal.classList.remove('active');
-        });
-    }
-    
-    // Close modal when clicking outside
-    addProductModal?.addEventListener('click', (e) => {
-        if (e.target === addProductModal) {
-            addProductModal.classList.remove('active');
-        }
-    });
+    // Add Product functionality removed
+    console.log('Modal initialization complete');
 }
 
 // Forms
 function initializeForms() {
-    const productForm = document.getElementById('productForm');
-    
-    if (productForm) {
-        productForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            handleAddProduct();
-        });
-    }
-}
-
-function handleAddProduct() {
-    const form = document.getElementById('productForm');
-    const formData = new FormData(form);
-    
-    // Show loading state
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Adding...';
-    submitBtn.disabled = true;
-    
-    // Simulate API call
-    setTimeout(() => {
-        // Reset form and close modal
-        form.reset();
-        document.getElementById('addProductModal').classList.remove('active');
-        
-        // Reset button
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-        
-        // Show success message
-        showNotification('Product added successfully!', 'success');
-        
-        // Reload products if on products page
-        if (currentSection === 'products') {
-            loadProducts();
-        }
-    }, 1500);
+    // Add Product form functionality removed
+    console.log('Forms initialization complete');
 }
 
 // Data Tables
