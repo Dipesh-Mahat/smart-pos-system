@@ -8,16 +8,9 @@ const fs = require('fs');
 // Get all products for a shop
 exports.getProducts = async (req, res) => {
   try {
-    // For testing without authentication, use any user
-    const User = require('../models/User');
-    const shopOwner = await User.findOne({ role: 'shopowner' });
-    
-    if (!shopOwner) {
-      return res.status(404).json({ success: false, message: 'No shop owner found' });
-    }
-    
-    const shopId = shopOwner._id;
-    const { page = 1, limit = 20, search, category, lowStock, sort = 'name', order = 'asc' } = req.query;
+    // Use the authenticated user from middleware
+    const shopId = req.user._id;
+    const { page = 1, limit = 100, search, category, lowStock, sort = 'name', order = 'asc' } = req.query;
     
     // Build query
     const query = { shopId: shopId };
@@ -95,6 +88,8 @@ exports.getProduct = async (req, res) => {
 exports.createProduct = async (req, res) => {
   try {
     // Process the product data
+    const skipInventoryLog = req.body.skipInventoryLog === true;
+    
     const {
       name,
       description,
@@ -133,15 +128,22 @@ exports.createProduct = async (req, res) => {
 
     await product.save();
 
-    // Create inventory log for initial stock
-    if (stock && parseInt(stock) > 0) {
+    // Create inventory log for initial stock only if not skipped
+    if (!skipInventoryLog && stock && parseInt(stock) > 0) {
+      // Inventory log requires additional fields
+      const stockQuantity = parseInt(stock);
       const inventoryLog = new InventoryLog({
         productId: product._id,
         shopId: req.user._id,
-        quantity: parseInt(stock),
-        type: 'initial',
-        notes: 'Initial stock entry'
+        performedBy: req.user._id,  // Required field
+        quantity: stockQuantity,
+        previousStock: 0,           // Required field
+        newStock: stockQuantity,    // Required field
+        // Use a valid enum value from the schema
+        type: 'purchase',  // Changed from 'initial' to a valid enum value
+        notes: 'Initial stock entry for new product'
       });
+      
       await inventoryLog.save();
     }
 
@@ -153,6 +155,33 @@ exports.createProduct = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating product:', error);
+    
+    // Handle duplicate key errors (like duplicate barcode)
+    if (error.code === 11000) {
+      let field = 'field';
+      let value = '';
+      
+      if (error.keyPattern && error.keyValue) {
+        field = Object.keys(error.keyPattern)[0];
+        value = error.keyValue[field];
+      }
+      
+      return res.status(400).json({ 
+        success: false, 
+        message: `A product with this ${field} (${value}) already exists. Please use a different ${field}.`,
+        error: `Duplicate ${field}` 
+      });
+    }
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Validation error: ' + error.message,
+        error: error.message 
+      });
+    }
+    
     res.status(500).json({ success: false, message: 'Error creating product', error: error.message });
   }
 };

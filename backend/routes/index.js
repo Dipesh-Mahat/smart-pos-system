@@ -27,40 +27,40 @@ router.get('/health', (req, res) => {
 
 // Supplier routes (temporarily disable authentication for testing)
 router.get('/shop/orders/suppliers', (req, res, next) => {
-  // Mock authentication for testing - using actual shop owner ID
-  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  // Mock authentication for testing - using actual shop owner ID from existing products
+  req.user = { _id: '688da6f077e9338dab0e0919', role: 'shopowner' };
   next();
 }, orderController.getAvailableSuppliers);
 
 // Add mock authentication for supplier products route
 router.get('/shop/suppliers/:supplierId/products', (req, res, next) => {
-  // Mock authentication for testing - using actual shop owner ID
-  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  // Mock authentication for testing - using actual shop owner ID from existing products
+  req.user = { _id: '688da6f077e9338dab0e0919', role: 'shopowner' };
   next();
 }, supplierProductsController.getSupplierProducts);
 
 // Add mock authentication for shop products route (development testing)
 router.get('/shop/products', (req, res, next) => {
-  // Mock authentication for testing - using actual shop owner ID
-  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  // Mock authentication for testing - using actual shop owner ID from existing products
+  req.user = { _id: '688da6f077e9338dab0e0919', role: 'shopowner' };
   next();
 }, productController.getProducts);
 
 router.post('/shop/products', (req, res, next) => {
-  // Mock authentication for testing - using actual shop owner ID
-  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  // Mock authentication for testing - using actual shop owner ID from existing products
+  req.user = { _id: '688da6f077e9338dab0e0919', role: 'shopowner' };
   next();
 }, productController.createProduct);
 
 router.put('/shop/products/:id', (req, res, next) => {
-  // Mock authentication for testing - using actual shop owner ID
-  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  // Mock authentication for testing - using actual shop owner ID from existing products
+  req.user = { _id: '688da6f077e9338dab0e0919', role: 'shopowner' };
   next();
 }, productController.updateProduct);
 
 router.delete('/shop/products/:id', (req, res, next) => {
-  // Mock authentication for testing - using actual shop owner ID
-  req.user = { _id: '68897fb04b38446aef6844da', role: 'shopowner' };
+  // Mock authentication for testing - using actual shop owner ID from existing products
+  req.user = { _id: '688da6f077e9338dab0e0919', role: 'shopowner' };
   next();
 }, productController.deleteProduct);
 

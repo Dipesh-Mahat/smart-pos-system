@@ -700,13 +700,6 @@
             }
 
             async loadProducts() {
-                console.log('Loading products from API...');
-                
-                // Debug authentication
-                console.log('Auth service available:', !!window.authService);
-                console.log('User logged in:', window.authService?.isLoggedIn());
-                console.log('Token available:', !!window.authService?.getToken());
-                
                 const loadingElement = document.getElementById('loadingState');
                 const productsGridElement = document.getElementById('productsGrid');
                 
@@ -723,7 +716,7 @@
                     }
 
                     // Use the API service to fetch real products from the database
-                    const data = await window.apiService.request('/shop/products');
+                    const data = await window.apiService.request('/shop/products?limit=100');
                     
                     // Handle the correct API response format: {products: [...], pagination: {...}}
                     if (data && data.products && Array.isArray(data.products)) {
@@ -733,7 +726,6 @@
                             id: product._id || product.id, // Add id field using _id value
                             listed: product.listed === true || product.status === 'active' || (!product.hasOwnProperty('listed') && !product.hasOwnProperty('status'))
                         }));
-                        console.log('Loaded products from database:', this.products.length);
                     } else if (data && data.success && Array.isArray(data.products)) {
                         // Legacy format support
                         this.products = data.products.map(product => ({
@@ -741,7 +733,6 @@
                             id: product._id || product.id, // Handle both _id and id
                             listed: product.listed === true || product.status === 'active' || (!product.hasOwnProperty('listed') && !product.hasOwnProperty('status'))
                         }));
-                        console.log('Loaded products from database (legacy format):', this.products.length);
                     } else {
                         console.warn('Failed to load products from API, no products available');
                         this.products = [];
@@ -1330,34 +1321,78 @@
                     
                     // Generate barcode if not provided
                     if (!productData.barcode) {
-                        productData.barcode = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
+                        // Generate a more unique barcode using timestamp and random number
+                        const timestamp = Date.now().toString();
+                        const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+                        productData.barcode = `${timestamp.slice(-8)}${random}`;
+                    }
+
+                    // Get submit button and store original HTML
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    let originalBtnHTML = '<i class="fas fa-plus"></i> Add Product'; // Default value
+                    if (submitBtn) {
+                        originalBtnHTML = submitBtn.innerHTML; // Store the original button HTML
                     }
 
                     try {
                         // Show loading state
-                        const submitBtn = e.target.querySelector('button[type="submit"]');
-                        const originalHTML = submitBtn.innerHTML;
-                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
-                        submitBtn.disabled = true;
+                        if (submitBtn) {
+                            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+                            submitBtn.disabled = true;
+                        }
+
+                        // Format data for backend compatibility
+                        // Make sure numeric values are actually numbers
+                        if (productData.price) productData.price = parseFloat(productData.price);
+                        if (productData.cost) productData.cost = parseFloat(productData.cost);
+                        if (productData.stock) productData.stock = parseInt(productData.stock);
+                        
+                        // Fix field name mismatches between front-end and back-end
+                        if (productData.minStockLevel) {
+                            productData.minStockLevel = parseInt(productData.minStockLevel);
+                        } else {
+                            productData.minStockLevel = 5; // Default minimum stock level
+                        }
+                        
+                        // Ensure the required structure for the backend
+                        productData.status = 'active';
+                        
+                        // Important: Skip inventory log creation if validation issues
+                        productData.skipInventoryLog = true;
+                        
+                        // Add authentication data
+                        if (window.authService && window.authService.getUser()) {
+                            const userData = window.authService.getUser();
+                            if (userData._id) {
+                                productData.shopId = userData._id;
+                            }
+                        }
+
+                        console.log('Sending product data:', productData);
 
                         // Send to backend
                         const response = await window.apiService.post('/shop/products', productData);
                         
-                        if (response.success !== false) {
+                        console.log('Received response:', response);
+                        
+                        if (response && response.success !== false) {
                             this.showNotification('Product added successfully!', 'success');
                             closeAddProductModal();
                             this.loadProducts(); // Refresh the products list
                         } else {
-                            throw new Error(response.message || response.error || 'Failed to add product');
+                            const errorMsg = response?.message || response?.error || 'Failed to add product';
+                            console.error('Error from server:', errorMsg);
+                            throw new Error(errorMsg);
                         }
                     } catch (error) {
                         console.error('Error adding product:', error);
                         this.showNotification(`Error adding product: ${error.message}`, 'error');
                         
                         // Reset button
-                        const submitBtn = e.target.querySelector('button[type="submit"]');
-                        submitBtn.innerHTML = originalHTML;
-                        submitBtn.disabled = false;
+                        if (submitBtn) {
+                            submitBtn.innerHTML = originalBtnHTML;
+                            submitBtn.disabled = false;
+                        }
                     }
                 });
 
