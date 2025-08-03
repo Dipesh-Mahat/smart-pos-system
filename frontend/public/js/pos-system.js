@@ -209,7 +209,15 @@ class SmartPOSSystem {
         const productsContainer = document.getElementById('productsList');
         if (!productsContainer) return;
 
-        if (products.length === 0) {
+        // Filter to only show active/listed products
+        const activeProducts = products.filter(product => {
+            // Show product if it's active via status field or isActive field
+            return product.status === 'active' || 
+                   product.isActive === true || 
+                   (!product.hasOwnProperty('status') && !product.hasOwnProperty('isActive'));
+        });
+
+        if (activeProducts.length === 0) {
             productsContainer.innerHTML = `
                 <div class="no-products">
                     <i class="fas fa-search"></i>
@@ -220,7 +228,7 @@ class SmartPOSSystem {
         }
 
         productsContainer.innerHTML = '';
-        products.forEach(product => {
+        activeProducts.forEach(product => {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
             // Use _id or id for adding to cart

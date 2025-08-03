@@ -715,8 +715,8 @@
                         return;
                     }
 
-                    // Use the API service to fetch real products from the database
-                    const data = await window.apiService.request('/shop/products?limit=100');
+                    // Use the API service to fetch real products from the database (including inactive ones for management)
+                    const data = await window.apiService.request('/shop/products?limit=100&includeInactive=true');
                     
                     // Handle the correct API response format: {products: [...], pagination: {...}}
                     if (data && data.products && Array.isArray(data.products)) {
@@ -724,14 +724,20 @@
                         this.products = data.products.map(product => ({
                             ...product,
                             id: product._id || product.id, // Add id field using _id value
-                            listed: product.listed === true || product.status === 'active' || (!product.hasOwnProperty('listed') && !product.hasOwnProperty('status'))
+                            // Determine listing status from multiple possible fields
+                            listed: product.status === 'active' || 
+                                   product.isActive === true || 
+                                   (!product.hasOwnProperty('status') && !product.hasOwnProperty('isActive'))
                         }));
                     } else if (data && data.success && Array.isArray(data.products)) {
                         // Legacy format support
                         this.products = data.products.map(product => ({
                             ...product,
                             id: product._id || product.id, // Handle both _id and id
-                            listed: product.listed === true || product.status === 'active' || (!product.hasOwnProperty('listed') && !product.hasOwnProperty('status'))
+                            // Determine listing status from multiple possible fields
+                            listed: product.status === 'active' || 
+                                   product.isActive === true || 
+                                   (!product.hasOwnProperty('status') && !product.hasOwnProperty('isActive'))
                         }));
                     } else {
                         console.warn('Failed to load products from API, no products available');
@@ -813,13 +819,15 @@
                             category: product.category || 'Uncategorized',
                             price: parseFloat(product.price || 0),
                             stock: parseInt(product.stock || 0),
-                            minStock: parseInt(product.minStock || 5),
+                            minStock: parseInt(product.minStock || product.minStockLevel || 5),
                             unit: product.unit || 'units',
                             barcode: product.barcode || 'N/A',
                             imageUrl: product.imageUrl || '',
                             icon: product.icon || 'fas fa-box',
-                            // Handle listing status - default to true if status is 'active' or listed is true
-                            listed: product.listed === true || product.status === 'active' || (!product.hasOwnProperty('listed') && !product.hasOwnProperty('status'))
+                            // Handle listing status consistently
+                            listed: product.status === 'active' || 
+                                   product.isActive === true || 
+                                   (!product.hasOwnProperty('status') && !product.hasOwnProperty('isActive'))
                         };
                         
                         return `
@@ -878,13 +886,17 @@
                 }
 
                 const total = this.products.length;
-                // Use the same logic as in rendering for determining listed status
+                // Use consistent logic for determining listed status
                 const active = this.products.filter(p => 
-                    p.listed === true || p.status === 'active' || (!p.hasOwnProperty('listed') && !p.hasOwnProperty('status'))
+                    p.status === 'active' || 
+                    p.isActive === true || 
+                    (!p.hasOwnProperty('status') && !p.hasOwnProperty('isActive'))
                 ).length;
-                const lowStock = this.products.filter(p => p.stock <= p.minStock).length;
+                const lowStock = this.products.filter(p => p.stock <= (p.minStockLevel || p.minStock || 5)).length;
                 const unlisted = this.products.filter(p => 
-                    !(p.listed === true || p.status === 'active' || (!p.hasOwnProperty('listed') && !p.hasOwnProperty('status')))
+                    !(p.status === 'active' || 
+                      p.isActive === true || 
+                      (!p.hasOwnProperty('status') && !p.hasOwnProperty('isActive')))
                 ).length;
 
                 // Safely update stats elements with error handling
@@ -909,11 +921,13 @@
                 // Apply category filter
                 if (this.currentFilter !== 'all') {
                     if (this.currentFilter === 'low-stock') {
-                        filtered = filtered.filter(p => p.stock <= p.minStock);
+                        filtered = filtered.filter(p => p.stock <= (p.minStockLevel || p.minStock || 5));
                     } else if (this.currentFilter === 'unlisted') {
-                        // Use the same logic as in rendering for determining unlisted status
+                        // Use consistent logic for determining unlisted status
                         filtered = filtered.filter(p => 
-                            !(p.listed === true || p.status === 'active' || (!p.hasOwnProperty('listed') && !p.hasOwnProperty('status')))
+                            !(p.status === 'active' || 
+                              p.isActive === true || 
+                              (!p.hasOwnProperty('status') && !p.hasOwnProperty('isActive')))
                         );
                     } else {
                         filtered = filtered.filter(p => p.category === this.currentFilter);
@@ -988,20 +1002,30 @@
                 const product = this.products.find(p => p.id === productId);
                 if (product) {
                     try {
-                        const newStatus = product.listed ? 'inactive' : 'active';
+                        // Determine current and new status
+                        const isCurrentlyListed = product.status === 'active' || 
+                                                product.isActive === true || 
+                                                (!product.hasOwnProperty('status') && !product.hasOwnProperty('isActive'));
                         
-                        // Update in backend
+                        const newStatus = isCurrentlyListed ? 'inactive' : 'active';
+                        const newIsActive = isCurrentlyListed ? false : true;
+                        
+                        // Update in backend with both fields for compatibility
                         const response = await window.apiService.put(`/shop/products/${productId}`, {
-                            status: newStatus
+                            status: newStatus,
+                            isActive: newIsActive
                         });
                         
                         if (response.success !== false) {
-                            product.listed = !product.listed;
+                            // Update local product data
                             product.status = newStatus;
+                            product.isActive = newIsActive;
+                            product.listed = newIsActive; // Update the computed field
+                            
                             this.renderProducts();
                             this.updateStats();
                             
-                            const action = product.listed ? 'listed' : 'unlisted';
+                            const action = newIsActive ? 'listed' : 'unlisted';
                             this.showNotification(`Product ${action} successfully!`, 'success');
                         } else {
                             throw new Error(response.message || 'Failed to update product');
@@ -1016,26 +1040,247 @@
             async editProduct(productId) {
                 const product = this.products.find(p => p.id === productId);
                 if (product) {
-                    // Create edit modal (simplified version for now)
-                    const newPrice = prompt(`Edit price for ${product.name}:`, product.price);
-                    if (newPrice && !isNaN(newPrice) && parseFloat(newPrice) > 0) {
+                    // Create a more comprehensive edit modal
+                    const modalHTML = `
+                        <div id="editProductModal" style="
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            background: rgba(0,0,0,0.8);
+                            z-index: 1000;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 20px;
+                        ">
+                            <div style="
+                                background: white;
+                                border-radius: 12px;
+                                padding: 30px;
+                                max-width: 500px;
+                                width: 100%;
+                                max-height: 90vh;
+                                overflow-y: auto;
+                                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                            ">
+                                <div style="
+                                    display: flex;
+                                    justify-content: space-between;
+                                    align-items: center;
+                                    margin-bottom: 25px;
+                                    padding-bottom: 15px;
+                                    border-bottom: 2px solid #f0f0f0;
+                                ">
+                                    <h2 style="margin: 0; color: #2c3e50; font-size: 20px; font-weight: 700;">
+                                        <i class="fas fa-edit" style="color: #f39c12; margin-right: 8px;"></i>
+                                        Edit Product
+                                    </h2>
+                                    <button onclick="closeEditProductModal()" style="
+                                        background: none;
+                                        border: none;
+                                        font-size: 24px;
+                                        cursor: pointer;
+                                        color: #7f8c8d;
+                                        padding: 5px;
+                                        border-radius: 50%;
+                                        width: 35px;
+                                        height: 35px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                    ">&times;</button>
+                                </div>
+                                
+                                <form id="editProductForm" style="display: grid; gap: 18px;">
+                                    <div>
+                                        <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                            Product Name *
+                                        </label>
+                                        <input type="text" name="name" required value="${product.name}" style="
+                                            width: 100%;
+                                            padding: 12px;
+                                            border: 2px solid #e0e0e0;
+                                            border-radius: 8px;
+                                            font-size: 16px;
+                                            transition: border-color 0.3s;
+                                        ">
+                                    </div>
+
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                        <div>
+                                            <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                                Price (NPR) *
+                                            </label>
+                                            <input type="number" name="price" required min="0" step="0.01" value="${product.price}" style="
+                                                width: 100%;
+                                                padding: 12px;
+                                                border: 2px solid #e0e0e0;
+                                                border-radius: 8px;
+                                                font-size: 16px;
+                                                transition: border-color 0.3s;
+                                            ">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                                Stock Quantity
+                                            </label>
+                                            <input type="number" name="stock" min="0" value="${product.stock}" style="
+                                                width: 100%;
+                                                padding: 12px;
+                                                border: 2px solid #e0e0e0;
+                                                border-radius: 8px;
+                                                font-size: 16px;
+                                                transition: border-color 0.3s;
+                                            ">
+                                        </div>
+                                    </div>
+
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                        <div>
+                                            <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                                Min Stock Level
+                                            </label>
+                                            <input type="number" name="minStockLevel" min="0" value="${product.minStockLevel || product.minStock || 5}" style="
+                                                width: 100%;
+                                                padding: 12px;
+                                                border: 2px solid #e0e0e0;
+                                                border-radius: 8px;
+                                                font-size: 16px;
+                                                transition: border-color 0.3s;
+                                            ">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                                Category
+                                            </label>
+                                            <select name="category" style="
+                                                width: 100%;
+                                                padding: 12px;
+                                                border: 2px solid #e0e0e0;
+                                                border-radius: 8px;
+                                                font-size: 16px;
+                                                transition: border-color 0.3s;
+                                            ">
+                                                <option value="Groceries" ${product.category === 'Groceries' ? 'selected' : ''}>Groceries</option>
+                                                <option value="Beverages" ${product.category === 'Beverages' ? 'selected' : ''}>Beverages</option>
+                                                <option value="Snacks" ${product.category === 'Snacks' ? 'selected' : ''}>Snacks</option>
+                                                <option value="Dairy Products" ${product.category === 'Dairy Products' ? 'selected' : ''}>Dairy Products</option>
+                                                <option value="Personal Care" ${product.category === 'Personal Care' ? 'selected' : ''}>Personal Care</option>
+                                                <option value="Household Items" ${product.category === 'Household Items' ? 'selected' : ''}>Household Items</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div style="display: flex; gap: 15px; margin-top: 20px; justify-content: flex-end;">
+                                        <button type="button" onclick="closeEditProductModal()" style="
+                                            background: #95a5a6;
+                                            color: white;
+                                            border: none;
+                                            padding: 12px 24px;
+                                            border-radius: 8px;
+                                            cursor: pointer;
+                                            font-weight: 600;
+                                            font-size: 16px;
+                                            transition: background 0.3s;
+                                        ">Cancel</button>
+                                        <button type="submit" style="
+                                            background: linear-gradient(135deg, #f39c12, #e67e22);
+                                            color: white;
+                                            border: none;
+                                            padding: 12px 24px;
+                                            border-radius: 8px;
+                                            cursor: pointer;
+                                            font-weight: 600;
+                                            font-size: 16px;
+                                            transition: all 0.3s;
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 8px;
+                                        ">
+                                            <i class="fas fa-save"></i>
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    `;
+
+                    // Add modal to page
+                    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+                    // Add form submission handler
+                    document.getElementById('editProductForm').addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        
+                        const formData = new FormData(e.target);
+                        const updateData = {};
+                        
+                        // Convert FormData to object
+                        for (let [key, value] of formData.entries()) {
+                            if (value.trim()) {
+                                updateData[key] = value;
+                            }
+                        }
+
+                        // Convert numeric fields
+                        if (updateData.price) updateData.price = parseFloat(updateData.price);
+                        if (updateData.stock) updateData.stock = parseInt(updateData.stock);
+                        if (updateData.minStockLevel) updateData.minStockLevel = parseInt(updateData.minStockLevel);
+
+                        const submitBtn = e.target.querySelector('button[type="submit"]');
+                        const originalBtnHTML = submitBtn.innerHTML;
+
                         try {
-                            const response = await window.apiService.put(`/shop/products/${productId}`, {
-                                price: parseFloat(newPrice)
-                            });
+                            // Show loading state
+                            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                            submitBtn.disabled = true;
+
+                            console.log('Updating product with data:', updateData);
+
+                            const response = await window.apiService.put(`/shop/products/${productId}`, updateData);
                             
                             if (response.success !== false) {
-                                product.price = parseFloat(newPrice);
+                                // Update local product data
+                                Object.assign(product, updateData);
                                 this.renderProducts();
+                                this.updateStats();
                                 this.showNotification('Product updated successfully!', 'success');
+                                closeEditProductModal();
                             } else {
                                 throw new Error(response.message || 'Failed to update product');
                             }
                         } catch (error) {
                             console.error('Error updating product:', error);
                             this.showNotification(`Error updating product: ${error.message}`, 'error');
+                            
+                            // Reset button
+                            submitBtn.innerHTML = originalBtnHTML;
+                            submitBtn.disabled = false;
                         }
-                    }
+                    });
+
+                    // Add input focus effects
+                    const inputs = document.querySelectorAll('#editProductForm input, #editProductForm select');
+                    inputs.forEach(input => {
+                        input.addEventListener('focus', function() {
+                            this.style.borderColor = '#f39c12';
+                            this.style.boxShadow = '0 0 0 3px rgba(243, 156, 18, 0.1)';
+                        });
+                        input.addEventListener('blur', function() {
+                            this.style.borderColor = '#e0e0e0';
+                            this.style.boxShadow = 'none';
+                        });
+                    });
+
+                    // Close modal on outside click
+                    document.getElementById('editProductModal').addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            closeEditProductModal();
+                        }
+                    });
                 }
             }
 
@@ -1483,6 +1728,13 @@
 
         function closeAddProductModal() {
             const modal = document.getElementById('addProductModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function closeEditProductModal() {
+            const modal = document.getElementById('editProductModal');
             if (modal) {
                 modal.remove();
             }

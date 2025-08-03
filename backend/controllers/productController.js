@@ -15,6 +15,15 @@ exports.getProducts = async (req, res) => {
     // Build query
     const query = { shopId: shopId };
     
+    // Only show active products for POS unless specifically requested
+    if (req.query.includeInactive !== 'true') {
+      query.$or = [
+        { status: 'active' },
+        { isActive: true },
+        { $and: [{ status: { $exists: false } }, { isActive: { $exists: false } }] } // Default for old products
+      ];
+    }
+    
     // Add search filter if provided
     if (search) {
       query.$or = [
@@ -122,7 +131,8 @@ exports.createProduct = async (req, res) => {
       barcode,
       sku,
       brand,
-      status: status || 'active'
+      status: status || 'active',
+      isActive: (status || 'active') === 'active'
       // Removed image field since image upload is not needed
     });
 
@@ -228,6 +238,14 @@ exports.updateProduct = async (req, res) => {
     Object.keys(req.body).forEach(key => {
       product[key] = req.body[key];
     });
+    
+    // Ensure consistency between status and isActive fields
+    if (req.body.status) {
+      product.isActive = req.body.status === 'active';
+    }
+    if (req.body.hasOwnProperty('isActive')) {
+      product.status = req.body.isActive ? 'active' : 'inactive';
+    }
     
     await product.save({ session });
     

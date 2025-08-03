@@ -62,6 +62,11 @@ const ProductSchema = new Schema({
     type: Boolean,
     default: true
   },
+  status: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'active'
+  },
   supplierInfo: {
     supplierId: {
       type: Schema.Types.ObjectId,
