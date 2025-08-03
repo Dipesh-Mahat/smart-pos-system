@@ -33,15 +33,25 @@ exports.createTransaction = async (req, res) => {
   session.startTransaction();
   
   try {
+    console.log('DEBUG: req.user in createTransaction:', req.user);
+    console.log('DEBUG: req.user.id:', req.user ? req.user.id : 'undefined');
+    console.log('DEBUG: req.user._id:', req.user ? req.user._id : 'undefined');
+    console.log('DEBUG: Full req.user object keys:', req.user ? Object.keys(req.user) : 'no user');
+    
+    if (!req.user || (!req.user.id && !req.user._id)) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+    
     // Generate receipt number
-    const receiptNumber = await generateReceiptNumber(req.user._id);
+    const receiptNumber = await generateReceiptNumber(req.user.id || req.user._id);
     
     // Prepare transaction data
+    const userId = req.user.id || req.user._id;
     const transactionData = {
       ...req.body,
       receiptNumber,
-      shopId: req.user._id,
-      cashierId: req.user._id,
+      shopId: userId,
+      cashierId: userId,
       cashierName: req.user.name || 'Shop Staff'
     };
     
@@ -76,7 +86,7 @@ exports.createTransaction = async (req, res) => {
       
       // Create inventory log
       const inventoryLog = new InventoryLog({
-        shopId: req.user._id,
+        shopId: req.user.id,
         productId: product._id,
         type: 'sale',
         quantity: -item.quantity,
@@ -85,7 +95,7 @@ exports.createTransaction = async (req, res) => {
         reference: 'Sale',
         referenceId: transaction._id,
         referenceModel: 'Transaction',
-        performedBy: req.user._id      });
+        performedBy: req.user.id      });
       
       await inventoryLog.save({ session });
     }
@@ -211,7 +221,7 @@ exports.getTransaction = async (req, res) => {
   try {
     const transaction = await Transaction.findOne({
       _id: req.params.id,
-      shopId: req.user._id
+      shopId: req.user.id
     })
       .populate('customerId', 'name email phone')
       .populate('cashierId', 'name');
@@ -236,7 +246,7 @@ exports.voidTransaction = async (req, res) => {
     // Find transaction
     const transaction = await Transaction.findOne({
       _id: req.params.id,
-      shopId: req.user._id
+      shopId: req.user.id
     }).session(session);
     
     if (!transaction) {
@@ -266,7 +276,7 @@ exports.voidTransaction = async (req, res) => {
         
         // Create inventory log
         const inventoryLog = new InventoryLog({
-          shopId: req.user._id,
+          shopId: req.user.id,
           productId: product._id,
           type: 'return',
           quantity: item.quantity,
@@ -275,7 +285,7 @@ exports.voidTransaction = async (req, res) => {
           reference: 'Void Transaction',
           referenceId: transaction._id,
           referenceModel: 'Transaction',
-          notes: req.body.reason || 'Transaction voided',          performedBy: req.user._id
+          notes: req.body.reason || 'Transaction voided',          performedBy: req.user.id
         });
         
         await inventoryLog.save({ session });
@@ -305,7 +315,7 @@ exports.processRefund = async (req, res) => {
     // Find transaction
     const transaction = await Transaction.findOne({
       _id: req.params.id,
-      shopId: req.user._id
+      shopId: req.user.id
     }).session(session);
     
     if (!transaction) {
@@ -360,7 +370,7 @@ exports.processRefund = async (req, res) => {
       amount,
       reason: reason || 'Customer request',
       date: new Date(),
-      processedBy: req.user._id
+      processedBy: req.user.id
     });
     
     await transaction.save({ session });
@@ -377,7 +387,7 @@ exports.processRefund = async (req, res) => {
           
           // Create inventory log
           const inventoryLog = new InventoryLog({
-            shopId: req.user._id,
+            shopId: req.user.id,
             productId: product._id,
             type: 'return',
             quantity: item.quantity,
@@ -386,7 +396,7 @@ exports.processRefund = async (req, res) => {
             reference: 'Refund',
             referenceId: transaction._id,
             referenceModel: 'Transaction',            notes: reason || 'Customer refund',
-            performedBy: req.user._id
+            performedBy: req.user.id
           });
           
           await inventoryLog.save({ session });
@@ -491,7 +501,7 @@ exports.getDailySalesSummary = async (req, res) => {
     
     // Get all transactions for the day
     const transactions = await Transaction.find({
-      shopId: req.user._id,
+      shopId: req.user.id,
       createdAt: { $gte: queryDate, $lte: endDate },
       status: { $in: ['completed', 'partially_refunded'] }
     }).lean();

@@ -7,7 +7,11 @@ class ApiService {
     constructor() {
         // Automatically determine if we're using local or production API
         this.baseUrl = this.determineApiBaseUrl();
-        this.authService = window.authService;
+        // Don't set authService in constructor - get it lazily when needed
+    }
+    
+    get authService() {
+        return window.authService;
     }
     
     determineApiBaseUrl() {

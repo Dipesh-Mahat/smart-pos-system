@@ -1052,6 +1052,16 @@ class SmartPOSSystem {
     
     // Process checkout with stock validation
     async processCheckout() {
+        // Prevent double-clicks by disabling the button
+        const completeButton = document.querySelector('.complete-sale-btn, button[onclick*="processCheckout"]');
+        if (completeButton) {
+            if (completeButton.disabled) {
+                return; // Already processing
+            }
+            completeButton.disabled = true;
+            completeButton.textContent = 'Processing...';
+        }
+        
         try {
             // Validate cart
             if (!this.cart || this.cart.length === 0) {
@@ -1071,26 +1081,44 @@ class SmartPOSSystem {
             }
             
             // Prepare transaction data
+            const subtotal = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const total = subtotal; // No additional fees for now
+            
             const transactionData = {
                 items: this.cart.map(item => ({
                     productId: item.id,
                     name: item.name,
                     quantity: item.quantity,
                     price: item.price,
-                    subtotal: item.price * item.quantity
+                    subtotal: item.price * item.quantity,
+                    barcode: item.barcode || '',
+                    unit: 'piece' // Default unit
                 })),
-                total: this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+                subtotal: subtotal,
+                total: total,
+                discount: 0, // No discount for now
+                payments: [{
+                    method: 'cash', // Default to cash payment
+                    amount: total
+                }],
+                amountPaid: total,
+                change: 0, // Exact amount paid
+                status: 'completed',
+                notes: 'POS Sale'
             };
             
             // Send transaction to server
-            const response = await window.apiService.request('/transactions', {
+            const response = await window.apiService.request('/shop/transactions', {
                 method: 'POST',
                 body: JSON.stringify(transactionData)
             });
             
-            if (response && response.success) {
+            // Check if transaction was created successfully
+            // Backend returns transaction object with _id when successful
+            if (response && (response._id || response.success)) {
                 // Show success notification
-                this.showProductNotification('Sale Complete', 'Transaction has been successfully processed.', 'success');
+                this.showProductNotification('Sale Complete', 
+                    `Transaction completed successfully! Receipt #${response.receiptNumber || 'N/A'}`, 'success');
                 
                 // Clear cart and update display
                 this.cart = [];
@@ -1099,12 +1127,19 @@ class SmartPOSSystem {
                 // Hide the bill modal
                 document.getElementById('billModal').style.display = 'none';
             } else {
-                throw new Error(response?.message || 'Failed to process transaction');
+                throw new Error(response?.error || response?.message || 'Failed to process transaction');
             }
         } catch (error) {
             console.error('Transaction error:', error);
             this.showProductNotification('Transaction Error', 
                 'There was an error processing your transaction. Please try again.', 'error');
+        } finally {
+            // Re-enable the complete sale button
+            const completeButton = document.querySelector('.complete-sale-btn, button[onclick*="processCheckout"]');
+            if (completeButton) {
+                completeButton.disabled = false;
+                completeButton.textContent = 'Complete Sale';
+            }
         }
     }
     
