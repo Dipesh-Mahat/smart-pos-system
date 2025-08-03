@@ -1518,10 +1518,16 @@
     <script>
         // Initialize navbar with custom actions
         document.addEventListener('DOMContentLoaded', function() {
-            const navbar = new SmartPOSNavbar();
+            // Define custom actions for the navbar
+            const customActions = [
+                { id: 'reset-settings', title: 'Reset', icon: 'undo', class: 'btn-secondary' }
+            ];
             
-            // Add custom navbar actions for settings
-            navbar.addAction('reset-settings', 'Reset', 'fas fa-undo', 'btn-secondary');
+            // Create navbar with custom actions
+            const navbar = new SmartPOSNavbar({ 
+                customActions: customActions,
+                title: 'Settings'
+            });
             
             // Handle navbar action clicks
             document.addEventListener('navbarAction', async function(e) {
