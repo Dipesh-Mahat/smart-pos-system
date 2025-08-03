@@ -643,17 +643,20 @@
                     <button class="search-btn" onclick="searchProducts()">
                         <i class="fas fa-search"></i> Search
                     </button>
+                    <button class="search-btn" onclick="clearSearch()" title="Clear Search" style="margin-left: 8px;">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
                 <div class="filter-buttons">
-                    <button class="filter-btn active" onclick="filterProducts('all')">All Products</button>
-                    <button class="filter-btn" onclick="filterProducts('Groceries')">Groceries</button>
-                    <button class="filter-btn" onclick="filterProducts('Beverages')">Beverages</button>
-                    <button class="filter-btn" onclick="filterProducts('Snacks')">Snacks</button>
-                    <button class="filter-btn" onclick="filterProducts('Dairy Products')">Dairy Products</button>
-                    <button class="filter-btn" onclick="filterProducts('Personal Care')">Personal Care</button>
-                    <button class="filter-btn" onclick="filterProducts('Household Items')">Household Items</button>
-                    <button class="filter-btn" onclick="filterProducts('low-stock')">Low Stock</button>
-                    <button class="filter-btn" onclick="filterProducts('unlisted')">Unlisted</button>
+                    <button class="filter-btn active" onclick="filterProducts('all', this)">All Products</button>
+                    <button class="filter-btn" onclick="filterProducts('Groceries', this)">Groceries</button>
+                    <button class="filter-btn" onclick="filterProducts('Beverages', this)">Beverages</button>
+                    <button class="filter-btn" onclick="filterProducts('Snacks', this)">Snacks</button>
+                    <button class="filter-btn" onclick="filterProducts('Dairy Products', this)">Dairy Products</button>
+                    <button class="filter-btn" onclick="filterProducts('Personal Care', this)">Personal Care</button>
+                    <button class="filter-btn" onclick="filterProducts('Household Items', this)">Household Items</button>
+                    <button class="filter-btn" onclick="filterProducts('low-stock', this)">Low Stock</button>
+                    <button class="filter-btn" onclick="filterProducts('unlisted', this)">Unlisted</button>
                 </div>
             </div>
 
@@ -929,29 +932,64 @@
                 // Apply search filter
                 if (this.searchTerm) {
                     const term = this.searchTerm.toLowerCase();
-                    filtered = filtered.filter(p => 
-                        p.name.toLowerCase().includes(term) ||
-                        p.category.toLowerCase().includes(term) ||
-                        (p.barcode && p.barcode.toLowerCase().includes(term)) ||
-                        (p.description && p.description.toLowerCase().includes(term))
-                    );
+                    filtered = filtered.filter(p => {
+                        // Search in multiple fields
+                        const searchableFields = [
+                            p.name?.toLowerCase() || '',
+                            p.category?.toLowerCase() || '',
+                            p.barcode?.toLowerCase() || '',
+                            p.description?.toLowerCase() || '',
+                            p.brand?.toLowerCase() || '',
+                            `npr ${p.price}`, // Allow searching by price with currency
+                            p.price?.toString() || ''
+                        ];
+                        
+                        return searchableFields.some(field => field.includes(term));
+                    });
                 }
 
                 this.filteredProducts = filtered;
                 this.renderProducts();
             }
 
-            filterProducts(category) {
+            filterProducts(category, buttonElement = null) {
                 this.currentFilter = category;
                 
                 // Update active filter button
                 document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-                event.target.classList.add('active');
+                
+                // Use provided button element or try to find it from event or search for it
+                if (buttonElement) {
+                    buttonElement.classList.add('active');
+                } else if (window.event && window.event.target) {
+                    window.event.target.classList.add('active');
+                } else {
+                    // Fallback: find button by its onclick attribute
+                    const targetBtn = document.querySelector(`button[onclick="filterProducts('${category}')"]`);
+                    if (targetBtn) {
+                        targetBtn.classList.add('active');
+                    }
+                }
                 
                 this.applyFilters();
             }
 
             searchProducts() {
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    this.searchTerm = searchInput.value.trim();
+                } else {
+                    this.searchTerm = '';
+                }
+                this.applyFilters();
+            }
+
+            clearSearch() {
+                this.searchTerm = '';
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
                 this.applyFilters();
             }
 
@@ -1378,9 +1416,9 @@
         }
 
         // Global functions
-        function filterProducts(category) {
+        function filterProducts(category, buttonElement = null) {
             if (window.productsManager) {
-                window.productsManager.filterProducts(category);
+                window.productsManager.filterProducts(category, buttonElement);
             }
         }
 
@@ -1399,6 +1437,12 @@
         function refreshProducts() {
             if (window.productsManager) {
                 window.productsManager.refreshProducts();
+            }
+        }
+
+        function clearSearch() {
+            if (window.productsManager) {
+                window.productsManager.clearSearch();
             }
         }
 
@@ -1433,6 +1477,23 @@
             
             // Initialize products manager
             window.productsManager = new ProductsManager();
+            
+            // Add search functionality
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                // Real-time search as user types
+                searchInput.addEventListener('input', function() {
+                    window.productsManager.searchTerm = this.value.trim();
+                    window.productsManager.applyFilters();
+                });
+                
+                // Search on Enter key
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchProducts();
+                    }
+                });
+            }
             
             console.log('Products page initialized successfully');
         });
