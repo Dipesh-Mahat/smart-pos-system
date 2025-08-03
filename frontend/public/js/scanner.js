@@ -74,11 +74,6 @@ class SimpleScanner {
                         <i class="fas fa-spinner fa-spin"></i> Initializing camera...
                     </div>
                 </div>
-                <div class="manual-entry">
-                    <p>Can't scan? Enter barcode manually:</p>
-                    <input type="text" id="manualBarcodeInput" placeholder="Enter barcode...">
-                    <button onclick="window.simpleScanner.processManualBarcode()">Add Product</button>
-                </div>
             </div>
         `;
         
@@ -100,16 +95,6 @@ class SimpleScanner {
                 this.closeScanner();
             }
         });
-
-        // Handle manual barcode input
-        const manualInput = document.getElementById('manualBarcodeInput');
-        if (manualInput) {
-            manualInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.processManualBarcode();
-                }
-            });
-        }
     }
 
     async startScanner(callback) {
@@ -229,6 +214,18 @@ class SimpleScanner {
             return;
         }
 
+        // Apply willReadFrequently to all Canvas elements before Quagga initialization
+        // This addresses the Canvas2D performance warning
+        HTMLCanvasElement.prototype.getContext = (function(originalGetContext) {
+            return function(type, attributes) {
+                if (type === '2d') {
+                    attributes = attributes || {};
+                    attributes.willReadFrequently = true;
+                }
+                return originalGetContext.call(this, type, attributes);
+            };
+        })(HTMLCanvasElement.prototype.getContext);
+        
         console.log('Starting QuaggaJS with video size:', this.video.videoWidth, 'x', this.video.videoHeight);
 
         // Simple, reliable Quagga configuration
@@ -236,8 +233,26 @@ class SimpleScanner {
             inputStream: {
                 name: "Live",
                 type: "LiveStream",
-                target: this.video
+                target: this.video,
+                area: {
+                    top: "0%",    // top offset
+                    right: "0%",  // right offset
+                    left: "0%",   // left offset
+                    bottom: "0%"  // bottom offset
+                },
+                singleChannel: false,
+                constraints: {
+                    width: { min: 640 },
+                    height: { min: 480 },
+                    aspectRatio: { min: 1, max: 2 },
+                    facingMode: "environment"
+                }
             },
+            locator: {
+                patchSize: "medium",
+                halfSample: true
+            },
+            numOfWorkers: 2,
             decoder: {
                 readers: [
                     "code_128_reader",
@@ -247,11 +262,12 @@ class SimpleScanner {
                     "upc_reader",
                     "upc_e_reader"
                 ]
-            }
+            },
+            locate: true
         }, (err) => {
             if (err) {
                 console.error('Quagga init error:', err);
-                alert('Scanner initialization failed: ' + err.message + '\n\nPlease use manual barcode entry.');
+                alert('Scanner initialization failed. Please try refreshing the page or check your camera permissions.');
                 return;
             }
             
@@ -281,6 +297,18 @@ class SimpleScanner {
                     }
                 });
                 
+                // Configure frequency of processing to improve performance
+                let lastProcessedTime = Date.now();
+                Quagga.onProcessed((result) => {
+                    // Throttle processing to prevent too frequent updates
+                    const now = Date.now();
+                    if (now - lastProcessedTime < 100) { // Process at most every 100ms
+                        return;
+                    }
+                    lastProcessedTime = now;
+                });
+                
+                
             } catch (startError) {
                 console.error('Quagga start error:', startError);
                 alert('Failed to start scanner: ' + startError.message);
@@ -288,16 +316,7 @@ class SimpleScanner {
         });
     }
 
-    processManualBarcode() {
-        const input = document.getElementById('manualBarcodeInput');
-        const barcode = input.value.trim();
-        
-        if (barcode && this.onBarcodeScanned) {
-            this.closeScanner();
-            this.onBarcodeScanned(barcode);
-            input.value = '';
-        }
-    }
+
 
     closeScanner() {
         this.isScanning = false;
