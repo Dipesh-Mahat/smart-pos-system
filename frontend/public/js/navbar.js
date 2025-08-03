@@ -23,6 +23,10 @@ class SmartPOSNavbar {
             ...options
         };
         this.notificationCount = 0; // Start with no notifications (will show dot based on actual unread count)
+        
+        // Make instance globally accessible
+        window.smartPOSNavbar = this;
+        
         this.init();
     }    init() {
         // Always ensure body can scroll on navbar initialization
@@ -550,6 +554,76 @@ class SmartPOSNavbar {
             .notification-time {
                 color: #999;
                 font-size: 11px;
+            }
+
+            /* New notification states */
+            .notification-loading,
+            .notification-empty,
+            .notification-error {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 40px 20px;
+                text-align: center;
+                color: #6c757d;
+            }
+
+            .notification-loading i,
+            .notification-empty i,
+            .notification-error i {
+                font-size: 24px;
+                margin-bottom: 10px;
+                color: #999;
+            }
+
+            .notification-loading i {
+                color: #007bff;
+            }
+
+            .notification-error i {
+                color: #dc3545;
+            }
+
+            .notification-loading span,
+            .notification-empty span,
+            .notification-error span {
+                font-weight: 600;
+                margin-bottom: 5px;
+            }
+
+            .notification-loading p,
+            .notification-empty p,
+            .notification-error p {
+                font-size: 12px;
+                margin: 0;
+                opacity: 0.8;
+            }
+
+            .notification-actions {
+                display: flex;
+                align-items: center;
+                margin-left: auto;
+            }
+
+            .mark-read-btn {
+                background: #28a745;
+                border: none;
+                border-radius: 50%;
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                color: white;
+                font-size: 10px;
+                transition: all 0.2s ease;
+            }
+
+            .mark-read-btn:hover {
+                background: #218838;
+                transform: scale(1.1);
             }            /* Responsive Design */
             @media screen and (max-width: 768px) {
                 .smart-pos-navbar {
@@ -752,70 +826,126 @@ class SmartPOSNavbar {
         this.loadUserProfile();
     }
 
-    loadNotifications() {
+    async loadNotifications() {
         const content = document.getElementById('notificationPanelContent');
         if (!content) return;
 
-        // Sample notifications for Nepali POS system
-        const notifications = [
-            {
-                type: 'critical',
-                icon: 'exclamation-circle',
-                title: 'Critical Stock Alert',
-                message: 'Wai Wai Noodles - Only 2 packets left in stock',
-                time: '2 minutes ago',
-                unread: true
-            },
-            {
-                type: 'warning',
-                icon: 'exclamation-triangle',
-                title: 'Low Stock Warning',
-                message: 'Dettol Soap - 8 units remaining, consider restocking',
-                time: '15 minutes ago',
-                unread: true
-            },
-            {
-                type: 'success',
-                icon: 'check-circle',
-                title: 'Sale Completed',
-                message: 'Transaction #TXN-2024-1125 - NPR 450 processed successfully',
-                time: '30 minutes ago',
-                unread: false
-            },
-            {
-                type: 'info',
-                icon: 'credit-card',
-                title: 'Mobile Recharge',
-                message: 'Ncell Recharge Card Rs.100 processed successfully',
-                time: '1 hour ago',
-                unread: false
-            },
-            {
-                type: 'warning',
-                icon: 'exclamation-triangle',
-                title: 'Daily Backup Reminder',
-                message: 'Remember to backup your sales data at end of day',
-                time: '2 hours ago',
-                unread: false
-            }
-        ];
+        try {
+            // Show loading state
+            content.innerHTML = `
+                <div class="notification-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Loading notifications...</span>
+                </div>
+            `;
 
-        content.innerHTML = notifications.map(notification => `
-            <div class="notification-item ${notification.unread ? 'unread' : ''} ${notification.type === 'critical' ? 'critical' : ''}">
-                <div class="notification-icon ${notification.type}">
-                    <i class="fas fa-${notification.icon}"></i>
+            // Fetch real notifications from backend
+            const response = await fetch('http://localhost:5000/api/shop/notifications?limit=5', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${window.authService ? window.authService.getToken() : ''}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success && data.notifications && data.notifications.length > 0) {
+                // Display real notifications
+                content.innerHTML = data.notifications.map(notification => `
+                    <div class="notification-item ${notification.unread ? 'unread' : ''} ${notification.type === 'critical' ? 'critical' : ''}" 
+                         data-id="${notification.id}">
+                        <div class="notification-icon ${notification.type}">
+                            <i class="fas fa-${notification.icon}"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-title">${notification.title}</div>
+                            <div class="notification-message">${notification.message}</div>
+                            <div class="notification-time">${notification.timeAgo}</div>
+                        </div>
+                        ${notification.unread ? `
+                            <div class="notification-actions">
+                                <button class="mark-read-btn" onclick="smartPOSNavbar.markNotificationAsRead('${notification.id}')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+                
+                // Update notification count
+                this.updateNotificationCount(data.unreadCount || 0);
+            } else {
+                // No notifications
+                content.innerHTML = `
+                    <div class="notification-empty">
+                        <i class="fas fa-bell-slash"></i>
+                        <span>No notifications</span>
+                        <p>You're all caught up!</p>
+                    </div>
+                `;
+                this.updateNotificationCount(0);
+            }
+            
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+            
+            // Show error state or fallback to demo data
+            content.innerHTML = `
+                <div class="notification-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Unable to load notifications</span>
+                    <p>Please check your connection and try again.</p>
                 </div>
-                <div class="notification-content">
-                    <div class="notification-title">${notification.title}</div>
-                    <div class="notification-message">${notification.message}</div>
-                    <div class="notification-time">${notification.time}</div>
-                </div>
-            </div>
-        `).join('');
-        
-        // Count unread notifications and show dot if any
-        const unreadCount = notifications.filter(n => n.unread).length;
-        this.updateNotificationCount(unreadCount);
+            `;
+            this.updateNotificationCount(0);
+        }
+    }
+
+    async markNotificationAsRead(notificationId) {
+        try {
+            const response = await fetch(`http://localhost:5000/api/shop/notifications/${notificationId}/read`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${window.authService ? window.authService.getToken() : ''}`
+                }
+            });
+
+            if (response.ok) {
+                // Reload notifications to update the UI
+                this.loadNotifications();
+            } else {
+                console.error('Failed to mark notification as read');
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
+    }
+
+    async markAllNotificationsAsRead() {
+        try {
+            const response = await fetch('http://localhost:5000/api/shop/notifications/mark-all-read', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${window.authService ? window.authService.getToken() : ''}`
+                }
+            });
+
+            if (response.ok) {
+                // Reload notifications to update the UI
+                this.loadNotifications();
+            } else {
+                console.error('Failed to mark all notifications as read');
+            }
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error);
+        }
     }
 
     toggleNotificationPanel() {

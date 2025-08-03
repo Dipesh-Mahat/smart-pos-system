@@ -12,6 +12,7 @@ const categoryController = require('../controllers/categoryController');
 const orderController = require('../controllers/orderController');
 const settingsController = require('../controllers/settingsController');
 const supplierProductsController = require('../controllers/supplierProductsController');
+const notificationController = require('../controllers/notificationController');
 
 // Apply JWT authentication and shop owner authorization to all routes
 router.use(authenticateJWT);
@@ -1892,5 +1893,117 @@ router.post('/settings/reset', settingsController.resetSettings);
  *         description: Server error
  */
 router.get('/settings/business-profile', settingsController.getBusinessProfile);
+
+// ========================================================================================
+// NOTIFICATION ROUTES
+// ========================================================================================
+
+/**
+ * @swagger
+ * /shop/notifications:
+ *   get:
+ *     summary: Get notifications for shop owner
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of notifications per page
+ *     responses:
+ *       200:
+ *         description: Notifications retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/notifications', notificationController.getNotifications);
+
+/**
+ * @swagger
+ * /shop/notifications/{id}/read:
+ *   put:
+ *     summary: Mark a notification as read
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Notification ID
+ *     responses:
+ *       200:
+ *         description: Notification marked as read
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.put('/notifications/:notificationId/read', notificationController.markAsRead);
+
+/**
+ * @swagger
+ * /shop/notifications/mark-all-read:
+ *   put:
+ *     summary: Mark all notifications as read
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All notifications marked as read
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.put('/notifications/mark-all-read', notificationController.markAllAsRead);
+
+/**
+ * @swagger
+ * /shop/notifications:
+ *   post:
+ *     summary: Create a new notification
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               recipients:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               message:
+ *                 type: string
+ *               method:
+ *                 type: string
+ *                 enum: [email, push, sms, other]
+ *     responses:
+ *       201:
+ *         description: Notification created successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.post('/notifications', notificationController.createNotification);
 
 module.exports = router;
