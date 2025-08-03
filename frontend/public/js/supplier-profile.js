@@ -1,13 +1,10 @@
 /**
  * Supplier Profile JavaScript
  * Handles profile page functionality including data loading,
- * form submissions, and tab navigation
+ * form submissions, and profile image upload
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize tab navigation
-    initializeTabs();
-    
     // Load supplier profile data from database
     loadProfileData();
     
@@ -16,33 +13,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize profile image upload
     initializeProfileImageUpload();
-});
-
-/**
- * Initialize tab navigation functionality
- */
-function initializeTabs() {
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
     
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            // Remove active class from all buttons and contents
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-            
-            // Add active class to clicked button
-            button.classList.add('active');
-            
-            // Show corresponding content
-            const tabId = button.getAttribute('data-tab');
-            const activeContent = document.getElementById(tabId + 'Tab');
-            if (activeContent) {
-                activeContent.classList.add('active');
-            }
-        });
-    });
-}
+    // Load stats
+    loadProfileStats();
+});
 
 /**
  * Load profile data directly from the database
@@ -51,27 +25,51 @@ function loadProfileData() {
     // Get the supplier ID from URL or session
     const supplierId = getSupplierIdFromSession();
     
+    // Show loading state
+    showLoadingState(true);
+    
+    // Get API base URL
+    const apiBaseUrl = getApiBaseUrl();
+    
     // Direct database connection using fetch API to backend
-    fetch(`/api/suppliers/${supplierId}/profile`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Update UI with data from database
-            populateProfileData(data);
-            populateFormFields(data);
-        })
-        .catch(error => {
-            console.error('Error loading supplier data:', error);
-            // Show a small notification instead of using mock data
-            showNotification('Could not load profile data. Using placeholder values.', 'error');
-            
-            // Keep the loading placeholders that are already in the HTML
-            // We don't inject mock data as the UI already has loading indicators
-        });
+    fetch(`${apiBaseUrl}/supplier/profile`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}` // Add auth token if available
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Profile data received:', data);
+        
+        // Handle different response formats
+        const profileData = data.data?.profile || data.profile || data;
+        
+        // Update form fields with real data
+        populateFormFields(profileData);
+        
+        // Update stats if available
+        if (data.data?.stats || data.stats) {
+            updateStatsDisplay(data.data?.stats || data.stats);
+        }
+        
+        showLoadingState(false);
+        console.log('Profile data loaded successfully');
+    })
+    .catch(error => {
+        console.error('Error loading supplier data:', error);
+        showLoadingState(false);
+        
+        // Show error but don't show notification since we removed them
+        console.warn('Using fallback data due to API error');
+        loadFallbackData();
+    });
 }
 
 /**
@@ -80,20 +78,36 @@ function loadProfileData() {
  */
 function populateProfileData(data) {
     // Populate business name
-    document.getElementById('businessName').textContent = data.businessName || 'Your Business';
+    const businessNameElement = document.getElementById('businessName');
+    if (businessNameElement) {
+        businessNameElement.textContent = data.businessName || data.companyName || 'Your Business Name';
+    }
     
-    // Populate contact information
+    // Populate contact information using backend API field mapping
     const ownerNameElement = document.querySelector('#ownerName span');
     const emailElement = document.querySelector('#email span');
     const phoneElement = document.querySelector('#phone span');
+    const businessTypeElement = document.querySelector('#businessType span');
     
-    if (ownerNameElement) ownerNameElement.textContent = data.contactName || 'Your Name';
-    if (emailElement) emailElement.textContent = data.email || 'your.email@example.com';
-    if (phoneElement) phoneElement.textContent = data.phone || 'Your Phone Number';
+    if (ownerNameElement) {
+        ownerNameElement.textContent = data.primaryContact || data.contactName || data.ownerName || 'Contact Person';
+    }
+    
+    if (emailElement) {
+        emailElement.textContent = data.primaryEmail || data.email || 'email@example.com';
+    }
+    
+    if (phoneElement) {
+        phoneElement.textContent = data.primaryPhone || data.phone || 'Phone Number';
+    }
+    
+    if (businessTypeElement) {
+        businessTypeElement.textContent = formatBusinessType(data.businessType) || 'Business Type';
+    }
     
     // Set profile image if available
-    if (data.profileImage) {
-        const profileImage = document.getElementById('profileImage');
+    const profileImage = document.getElementById('profileImage');
+    if (profileImage && data.profileImage) {
         profileImage.src = data.profileImage;
         profileImage.onerror = function() {
             this.src = '../images/avatars/user-avatar.png';
@@ -102,12 +116,178 @@ function populateProfileData(data) {
 }
 
 /**
+ * Format business type for display
+ * @param {string} type - The business type
+ * @returns {string} Formatted business type
+ */
+function formatBusinessType(type) {
+    if (!type) return '';
+    
+    const types = {
+        'manufacturer': 'Manufacturer',
+        'wholesaler': 'Wholesaler',
+        'distributor': 'Distributor',
+        'retailer': 'Retailer',
+        'importer': 'Importer',
+        'exporter': 'Exporter'
+    };
+    
+    return types[type] || type.charAt(0).toUpperCase() + type.slice(1);
+}
+
+/**
+ * Show/hide loading state
+ * @param {boolean} isLoading - Whether to show loading state
+ */
+function showLoadingState(isLoading) {
+    const loadingElements = [
+        document.getElementById('businessName'),
+        document.querySelector('#ownerName span'),
+        document.querySelector('#email span'),
+        document.querySelector('#phone span'),
+        document.querySelector('#businessType span')
+    ];
+    
+    loadingElements.forEach(element => {
+        if (element) {
+            if (isLoading) {
+                element.textContent = 'Loading...';
+                element.style.color = '#6c757d';
+                element.style.fontStyle = 'italic';
+            } else {
+                element.style.color = '';
+                element.style.fontStyle = '';
+            }
+        }
+    });
+}
+
+/**
+ * Load fallback data when API fails
+ */
+function loadFallbackData() {
+    const fallbackData = {
+        businessName: 'Your Business Name',
+        contactName: 'Contact Person',
+        email: 'your.email@example.com',
+        phone: 'Your Phone Number',
+        businessType: 'Business Type'
+    };
+    
+    populateProfileData(fallbackData);
+}
+
+/**
+ * Get auth token from localStorage or sessionStorage
+ * @returns {string} Auth token
+ */
+function getAuthToken() {
+    return localStorage.getItem('authToken') || sessionStorage.getItem('authToken') || '';
+}
+
+/**
+ * Load profile stats
+ */
+function loadProfileStats() {
+    const supplierId = getSupplierIdFromSession();
+    const apiBaseUrl = getApiBaseUrl();
+    
+    // Load stats data from multiple endpoints
+    Promise.all([
+        fetch(`${apiBaseUrl}/supplier/products/stats`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            }
+        }).then(res => res.ok ? res.json() : { totalProducts: 0, activeProducts: 0 }),
+        
+        fetch(`${apiBaseUrl}/supplier/orders/stats`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            }
+        }).then(res => res.ok ? res.json() : { totalOrders: 0, monthlyRevenue: 0 })
+    ])
+    .then(([productStats, orderStats]) => {
+        // Combine stats from different endpoints
+        const combinedStats = {
+            totalProducts: productStats.totalProducts || productStats.data?.totalProducts || 0,
+            activeProducts: productStats.activeProducts || productStats.data?.activeProducts || 0,
+            totalOrders: orderStats.totalOrders || orderStats.data?.totalOrders || 0,
+            monthlyRevenue: orderStats.monthlyRevenue || orderStats.data?.monthlyRevenue || 0
+        };
+        
+        updateStatsDisplay(combinedStats);
+    })
+    .catch(error => {
+        console.error('Error loading stats:', error);
+        // Use default values if API fails
+        const defaultStats = {
+            totalProducts: 0,
+            totalOrders: 0,
+            activeProducts: 0,
+            monthlyRevenue: 0
+        };
+        updateStatsDisplay(defaultStats);
+    });
+}
+
+/**
+ * Update stats display
+ * @param {Object} data - Stats data
+ */
+function updateStatsDisplay(data) {
+    const totalProductsElement = document.getElementById('totalProducts');
+    const totalOrdersElement = document.getElementById('totalOrders');
+    const activeProductsElement = document.getElementById('activeProducts');
+    const monthlyRevenueElement = document.getElementById('monthlyRevenue');
+    
+    if (totalProductsElement) {
+        totalProductsElement.textContent = data.totalProducts || '0';
+    }
+    
+    if (totalOrdersElement) {
+        totalOrdersElement.textContent = data.totalOrders || '0';
+    }
+    
+    if (activeProductsElement) {
+        activeProductsElement.textContent = data.activeProducts || '0';
+    }
+    
+    if (monthlyRevenueElement) {
+        const revenue = parseFloat(data.monthlyRevenue) || 0;
+        monthlyRevenueElement.textContent = '₹' + revenue.toLocaleString('en-IN');
+    }
+}
+
+/**
+ * Show message to user
+ */
+function showMessage(messageId, text, type = 'success') {
+    const messageEl = document.getElementById(messageId);
+    if (messageEl) {
+        messageEl.textContent = text;
+        messageEl.className = `message ${type} show`;
+        
+        // Hide after 5 seconds
+        setTimeout(() => {
+            messageEl.classList.remove('show');
+        }, 5000);
+    }
+}
+
+/**
  * Populate form fields with data
  * @param {Object} data - The supplier profile data
  */
 function populateFormFields(data) {
-    // Business Information Form
-    document.getElementById('businessNameInput').value = data.businessName || '';
+    // Business Information Form - mapping to backend API fields
+    const businessNameInput = document.getElementById('businessNameInput');
+    if (businessNameInput) {
+        businessNameInput.value = data.businessName || data.companyName || '';
+    }
     
     const businessTypeSelect = document.getElementById('businessType');
     if (businessTypeSelect && data.businessType) {
@@ -119,14 +299,51 @@ function populateFormFields(data) {
         }
     }
     
-    document.getElementById('businessDescription').value = data.description || '';
+    const gstNumberInput = document.getElementById('gstNumber');
+    if (gstNumberInput) {
+        gstNumberInput.value = data.taxId || data.gstNumber || '';
+    }
     
-    // Contact Details Form
-    document.getElementById('contactName').value = data.contactName || '';
-    document.getElementById('position').value = data.position || '';
-    document.getElementById('contactEmail').value = data.email || '';
-    document.getElementById('contactPhone').value = data.phone || '';
-    document.getElementById('address').value = data.address || '';
+    const panNumberInput = document.getElementById('panNumber');  
+    if (panNumberInput) {
+        panNumberInput.value = data.businessRegistration || data.panNumber || '';
+    }
+    
+    const businessDescriptionInput = document.getElementById('businessDescription');
+    if (businessDescriptionInput) {
+        businessDescriptionInput.value = data.companyDesc || data.description || '';
+    }
+    
+    // Contact Details Form - mapping to backend API fields
+    const contactNameInput = document.getElementById('contactName');
+    if (contactNameInput) {
+        contactNameInput.value = data.primaryContact || data.contactName || data.ownerName || '';
+    }
+    
+    const positionInput = document.getElementById('position');
+    if (positionInput) {
+        positionInput.value = data.contactTitle || data.position || data.designation || '';
+    }
+    
+    const contactEmailInput = document.getElementById('contactEmail');
+    if (contactEmailInput) {
+        contactEmailInput.value = data.primaryEmail || data.email || '';
+    }
+    
+    const contactPhoneInput = document.getElementById('contactPhone');
+    if (contactPhoneInput) {  
+        contactPhoneInput.value = data.primaryPhone || data.phone || '';
+    }
+    
+    const addressInput = document.getElementById('address');
+    if (addressInput) {
+        addressInput.value = data.businessAddress || data.address || '';
+    }
+    
+    const websiteInput = document.getElementById('website');
+    if (websiteInput) {
+        websiteInput.value = data.website || '';
+    }
 }
 
 /**
@@ -142,7 +359,9 @@ function initializeForms() {
             const formData = {
                 businessName: document.getElementById('businessNameInput').value,
                 businessType: document.getElementById('businessType').value,
-                description: document.getElementById('businessDescription').value
+                companyDesc: document.getElementById('businessDescription').value,
+                taxId: document.getElementById('gstNumber').value,
+                businessRegistration: document.getElementById('panNumber').value
             };
             
             // Update the UI immediately for better user experience
@@ -160,17 +379,17 @@ function initializeForms() {
             e.preventDefault();
             
             const formData = {
-                contactName: document.getElementById('contactName').value,
-                position: document.getElementById('position').value,
-                email: document.getElementById('contactEmail').value,
-                phone: document.getElementById('contactPhone').value,
-                address: document.getElementById('address').value
+                primaryContact: document.getElementById('contactName').value,
+                contactTitle: document.getElementById('position').value,
+                primaryEmail: document.getElementById('contactEmail').value,
+                primaryPhone: document.getElementById('contactPhone').value,
+                businessAddress: document.getElementById('address').value
             };
             
             // Update the UI immediately
-            document.querySelector('#ownerName span').textContent = formData.contactName;
-            document.querySelector('#email span').textContent = formData.email;
-            document.querySelector('#phone span').textContent = formData.phone;
+            document.querySelector('#ownerName span').textContent = formData.primaryContact;
+            document.querySelector('#email span').textContent = formData.primaryEmail;
+            document.querySelector('#phone span').textContent = formData.primaryPhone;
             
             // Save to database
             saveToDatabase('contact', formData);
@@ -216,14 +435,33 @@ function initializeForms() {
  * @param {Object} formData - The form data to update
  */
 function saveToDatabase(section, formData) {
-    const supplierId = getSupplierIdFromSession();
+    // Show loading state
+    showNotification('Updating profile...', 'info');
     
-    // Use correct API endpoint format
-    fetch(`/api/suppliers/${supplierId}/${section}`, {
+    // Get API base URL
+    const apiBaseUrl = getApiBaseUrl();
+    
+    // Map sections to correct API endpoints
+    let endpoint;
+    switch(section) {
+        case 'business':
+            endpoint = `${apiBaseUrl}/supplier/profile/company`;
+            break;
+        case 'contact':
+            endpoint = `${apiBaseUrl}/supplier/profile/contact`;
+            break;
+        case 'password':
+            endpoint = `${apiBaseUrl}/auth/change-password`;
+            break;
+        default:
+            endpoint = `${apiBaseUrl}/supplier/profile`;
+    }
+    
+    fetch(endpoint, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-Token': getCsrfToken() // Get CSRF token for security
+            'Authorization': `Bearer ${getAuthToken()}` // Use JWT token
         },
         body: JSON.stringify(formData)
     })
@@ -234,12 +472,49 @@ function saveToDatabase(section, formData) {
         return response.json();
     })
     .then(data => {
-        showNotification(`${section.charAt(0).toUpperCase() + section.slice(1)} information updated successfully`, 'success');
+        // Show success message based on section
+        let message = '';
+        switch(section) {
+            case 'business':
+                message = 'Business information updated successfully!';
+                break;
+            case 'contact':
+                message = 'Contact details updated successfully!';
+                break;
+            case 'password':
+                message = 'Password changed successfully!';
+                break;
+            default:
+                message = 'Profile updated successfully!';
+        }
+        showNotification(message, 'success');
     })
     .catch(error => {
         console.error(`Error updating ${section} information:`, error);
         showNotification(`Failed to update ${section} information. Please try again.`, 'error');
     });
+}
+
+/**
+ * Get API base URL based on environment
+ * @returns {string} API base URL
+ */
+function getApiBaseUrl() {
+    // Auto-detect API URL based on environment
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1';
+    
+    return isLocalhost ? 
+           'http://localhost:5000/api' : 
+           'https://smart-pos-system.onrender.com/api';
+}
+
+/**
+ * Get authentication token from localStorage or session
+ * @returns {string} The JWT token
+ */
+function getAuthToken() {
+    return localStorage.getItem('authToken') || sessionStorage.getItem('authToken') || '';
 }
 
 /**
@@ -357,34 +632,6 @@ function showNotification(message, type = 'success') {
             notification.remove();
         }, 300);
     }, 3000);
-}
-
-/**
- * Populate form fields with data
- * @param {Object} data - The supplier profile data
- */
-function populateFormFields(data) {
-    // Business Information Form
-    document.getElementById('businessNameInput').value = data.businessName || '';
-    
-    const businessTypeSelect = document.getElementById('businessType');
-    if (businessTypeSelect && data.businessType) {
-        for (let i = 0; i < businessTypeSelect.options.length; i++) {
-            if (businessTypeSelect.options[i].value === data.businessType) {
-                businessTypeSelect.selectedIndex = i;
-                break;
-            }
-        }
-    }
-    
-    document.getElementById('businessDescription').value = data.description || '';
-    
-    // Contact Details Form
-    document.getElementById('contactName').value = data.contactName || '';
-    document.getElementById('position').value = data.position || '';
-    document.getElementById('contactEmail').value = data.email || '';
-    document.getElementById('contactPhone').value = data.phone || '';
-    document.getElementById('address').value = data.address || '';
 }
 
 /**

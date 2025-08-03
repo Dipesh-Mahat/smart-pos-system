@@ -451,21 +451,22 @@ class SupplierMenu {
             try {
                 // Use auth service for logout if available
                 if (window.authService && typeof window.authService.logout === 'function') {
-                    window.authService.logout();
+                    // Auth service will handle API logout and redirect to main landing
+                    await window.authService.logout();
                 } else {
                     // Fallback to basic logout
                     localStorage.clear();
                     sessionStorage.clear();
                     
-                    // Redirect to supplier landing page
-                    window.location.href = '../supplier-landing.html';
+                    // Redirect to main landing page (not supplier-specific)
+                    window.location.href = '../landing.html';
                 }
             } catch (error) {
                 console.error('Error during logout:', error);
                 // Still proceed with logout even if there's an error
                 localStorage.clear();
                 sessionStorage.clear();
-                window.location.href = '../supplier-landing.html';
+                window.location.href = '../landing.html';
             }
         }
     }
