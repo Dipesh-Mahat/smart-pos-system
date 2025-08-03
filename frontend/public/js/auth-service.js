@@ -321,20 +321,28 @@ class AuthService {
                     
                     if (response.ok) {
                         // Log successful server-side logout
-                        if (window.securityLogger) {
-                            window.securityLogger.log('LOGOUT_SUCCESS_SERVER', { 
-                                timestamp: new Date().toISOString() 
-                            });
+                        try {
+                            if (window.securityLogger) {
+                                window.securityLogger.log('LOGOUT_SUCCESS_SERVER', { 
+                                    timestamp: new Date().toISOString() 
+                                });
+                            }
+                        } catch (logError) {
+                            console.warn('Security logging error:', logError);
                         }
                     }
                 } catch (error) {
                     console.error('Error calling logout endpoint:', error);
                     // Log failed server-side logout
-                    if (window.securityLogger) {
-                        window.securityLogger.log('LOGOUT_SERVER_ERROR', { 
-                            error: error.message,
-                            timestamp: new Date().toISOString() 
-                        });
+                    try {
+                        if (window.securityLogger) {
+                            window.securityLogger.log('LOGOUT_SERVER_ERROR', { 
+                                error: error.message,
+                                timestamp: new Date().toISOString() 
+                            });
+                        }
+                    } catch (logError) {
+                        console.warn('Security logging error:', logError);
                     }
                     // Continue with local logout even if API call fails
                 }
@@ -350,10 +358,14 @@ class AuthService {
             localStorage.removeItem(this.userKey);
             
             // Log client-side logout
-            if (window.securityLogger) {
-                window.securityLogger.log('LOGOUT_SUCCESS_CLIENT', { 
-                    timestamp: new Date().toISOString() 
-                });
+            try {
+                if (window.securityLogger) {
+                    window.securityLogger.log('LOGOUT_SUCCESS_CLIENT', { 
+                        timestamp: new Date().toISOString() 
+                    });
+                }
+            } catch (logError) {
+                console.warn('Security logging error:', logError);
             }
               // Redirect to login page
             window.location.href = '../landing.html';

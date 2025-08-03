@@ -37,8 +37,8 @@ class SecurityLogger {
         // Save to storage
         this.saveLogs();
         
-        // Output to console in development
-        if (process.env.NODE_ENV !== 'production') {
+        // Output to console in development (browser environment check)
+        if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
             console.info(`[SECURITY] ${event}`, data);
         }
     }
