@@ -724,17 +724,19 @@
                     
                     // Handle the correct API response format: {products: [...], pagination: {...}}
                     if (data && data.products && Array.isArray(data.products)) {
-                        // Normalize the product data - convert _id to id for consistency
+                        // Normalize the product data - convert _id to id for consistency and fix listing status
                         this.products = data.products.map(product => ({
                             ...product,
-                            id: product._id || product.id // Add id field using _id value
+                            id: product._id || product.id, // Add id field using _id value
+                            listed: product.listed === true || product.status === 'active' || (!product.hasOwnProperty('listed') && !product.hasOwnProperty('status'))
                         }));
                         console.log('Loaded products from database:', this.products.length);
                     } else if (data && data.success && Array.isArray(data.products)) {
                         // Legacy format support
                         this.products = data.products.map(product => ({
                             ...product,
-                            id: product._id || product.id // Handle both _id and id
+                            id: product._id || product.id, // Handle both _id and id
+                            listed: product.listed === true || product.status === 'active' || (!product.hasOwnProperty('listed') && !product.hasOwnProperty('status'))
                         }));
                         console.log('Loaded products from database (legacy format):', this.products.length);
                     } else {
@@ -822,7 +824,8 @@
                             barcode: product.barcode || 'N/A',
                             imageUrl: product.imageUrl || '',
                             icon: product.icon || 'fas fa-box',
-                            listed: Boolean(product.listed)
+                            // Handle listing status - default to true if status is 'active' or listed is true
+                            listed: product.listed === true || product.status === 'active' || (!product.hasOwnProperty('listed') && !product.hasOwnProperty('status'))
                         };
                         
                         return `
@@ -881,9 +884,14 @@
                 }
 
                 const total = this.products.length;
-                const active = this.products.filter(p => p.listed).length;
+                // Use the same logic as in rendering for determining listed status
+                const active = this.products.filter(p => 
+                    p.listed === true || p.status === 'active' || (!p.hasOwnProperty('listed') && !p.hasOwnProperty('status'))
+                ).length;
                 const lowStock = this.products.filter(p => p.stock <= p.minStock).length;
-                const unlisted = this.products.filter(p => !p.listed).length;
+                const unlisted = this.products.filter(p => 
+                    !(p.listed === true || p.status === 'active' || (!p.hasOwnProperty('listed') && !p.hasOwnProperty('status')))
+                ).length;
 
                 // Safely update stats elements with error handling
                 const updateElement = (id, value) => {
@@ -909,7 +917,10 @@
                     if (this.currentFilter === 'low-stock') {
                         filtered = filtered.filter(p => p.stock <= p.minStock);
                     } else if (this.currentFilter === 'unlisted') {
-                        filtered = filtered.filter(p => !p.listed);
+                        // Use the same logic as in rendering for determining unlisted status
+                        filtered = filtered.filter(p => 
+                            !(p.listed === true || p.status === 'active' || (!p.hasOwnProperty('listed') && !p.hasOwnProperty('status')))
+                        );
                     } else {
                         filtered = filtered.filter(p => p.category === this.currentFilter);
                     }
