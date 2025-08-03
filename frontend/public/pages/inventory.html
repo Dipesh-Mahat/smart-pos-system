@@ -368,58 +368,17 @@
                     <i class="fas fa-history"></i>
                     Recent Activities
                 </h2>
-                <div class="activity-list">                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-plus"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">New item added: Wai Wai Noodles (Family Pack)</div>
-                            <div class="activity-details">Added 50 units • SKU: NOD-WAI-FP</div>
-                        </div>
-                        <div class="activity-time">15 min ago</div>
-                    </div>
-
+                <div class="activity-list" id="activityList">
+                    <!-- Activities will be loaded dynamically -->
                     <div class="activity-item">
                         <div class="activity-icon">
-                            <i class="fas fa-edit"></i>
+                            <i class="fas fa-spinner fa-spin"></i>
                         </div>
                         <div class="activity-content">
-                            <div class="activity-title">Stock adjustment: Basmati Rice (1kg)</div>
-                            <div class="activity-details">Quantity adjusted +25 units • Reason: Found inventory</div>
+                            <div class="activity-title">Loading recent activities...</div>
+                            <div class="activity-details">Please wait while we fetch the latest inventory activities</div>
                         </div>
-                        <div class="activity-time">1 hour ago</div>
-                    </div>
-
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Shipment received from CG Foods Nepal</div>
-                            <div class="activity-details">125 items received • PO #PO-2024-0892</div>
-                        </div>
-                        <div class="activity-time">3 hours ago</div>
-                    </div>
-
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-exchange-alt"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Stock transfer completed</div>
-                            <div class="activity-details">30 units transferred from Warehouse A to Store Front</div>
-                        </div>
-                        <div class="activity-time">5 hours ago</div>
-                    </div>
-
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-clipboard-check"></i>
-                        </div>                        <div class="activity-content">
-                            <div class="activity-title">Stock take completed for Groceries section</div>
-                            <div class="activity-details">127 items counted • 3 variances found</div>
-                        </div>
-                        <div class="activity-time">1 day ago</div>
+                        <div class="activity-time">Now</div>
                     </div>
                 </div>
             </div>        </div>
@@ -431,8 +390,14 @@
             // Load inventory data
             loadInventoryData();
             
+            // Load recent activities
+            loadRecentActivities();
+            
             // Auto-refresh alerts every 5 minutes
-            setInterval(refreshAlerts, 300000);
+            setInterval(() => {
+                refreshAlerts();
+                loadRecentActivities();
+            }, 300000);
             
             // Set up filter event listeners
             setupFilters();
@@ -578,6 +543,167 @@
             document.getElementById('totalValue').textContent = formatCurrency(stats.inventoryValue || 0);
             
             console.log('Inventory summary updated successfully');
+        }
+        
+        function loadRecentActivities() {
+            console.log('Loading recent activities...');
+            
+            const apiService = window.apiService;
+            if (!apiService) {
+                console.error('API service not available');
+                showNoActivitiesMessage();
+                return;
+            }
+            
+            // Fetch recent activities from available sources
+            Promise.all([
+                // Get recent transactions (sales activities)
+                apiService.request('/shop/transactions?limit=15&sort=-createdAt').catch(err => {
+                    console.warn('Failed to load transactions:', err);
+                    return { transactions: [] };
+                }),
+                
+                // Get recently added products
+                apiService.request('/shop/products?limit=10&sort=-createdAt').catch(err => {
+                    console.warn('Failed to load recent products:', err);
+                    return { products: [] };
+                })
+            ])
+            .then(([transactionsResponse, productsResponse]) => {
+                console.log('Activities responses:', { transactionsResponse, productsResponse });
+                
+                // Process and combine activities
+                const activities = [];
+                
+                // Add transaction activities (sales)
+                if (transactionsResponse && (transactionsResponse.transactions || transactionsResponse.data)) {
+                    const transactions = transactionsResponse.transactions || transactionsResponse.data || transactionsResponse;
+                    if (Array.isArray(transactions)) {
+                        transactions.slice(0, 8).forEach(transaction => {
+                            activities.push({
+                                type: 'sale',
+                                icon: 'fas fa-shopping-cart',
+                                title: `Sale completed - Receipt #${transaction.receiptNumber || transaction._id?.slice(-6)}`,
+                                details: `${transaction.items?.length || 0} items sold • Total: NPR ${transaction.total || 0}`,
+                                time: transaction.createdAt || transaction.updatedAt,
+                                timestamp: new Date(transaction.createdAt || transaction.updatedAt).getTime()
+                            });
+                        });
+                    }
+                }
+                
+                // Add stock change activities from transaction items
+                if (transactionsResponse && (transactionsResponse.transactions || transactionsResponse.data)) {
+                    const transactions = transactionsResponse.transactions || transactionsResponse.data || transactionsResponse;
+                    if (Array.isArray(transactions)) {
+                        transactions.slice(0, 5).forEach(transaction => {
+                            if (transaction.items && Array.isArray(transaction.items)) {
+                                transaction.items.forEach(item => {
+                                    activities.push({
+                                        type: 'stock_change',
+                                        icon: 'fas fa-minus-circle',
+                                        title: `Stock reduced - ${item.name}`,
+                                        details: `${item.quantity} units sold • Receipt: ${transaction.receiptNumber || 'N/A'}`,
+                                        time: transaction.createdAt || transaction.updatedAt,
+                                        timestamp: new Date(transaction.createdAt || transaction.updatedAt).getTime() - 1 // Slightly older than sale
+                                    });
+                                });
+                            }
+                        });
+                    }
+                }
+                
+                // Add new product activities
+                if (productsResponse && (productsResponse.products || productsResponse.data)) {
+                    const products = productsResponse.products || productsResponse.data || productsResponse;
+                    if (Array.isArray(products)) {
+                        products.slice(0, 5).forEach(product => {
+                            activities.push({
+                                type: 'new_product',
+                                icon: 'fas fa-plus',
+                                title: `New product added - ${product.name}`,
+                                details: `${product.stock || 0} units added • SKU: ${product.barcode || product._id?.slice(-6)}`,
+                                time: product.createdAt || product.updatedAt,
+                                timestamp: new Date(product.createdAt || product.updatedAt).getTime()
+                            });
+                        });
+                    }
+                }
+                
+                // Sort activities by timestamp (newest first)
+                activities.sort((a, b) => b.timestamp - a.timestamp);
+                
+                // Take only the most recent 10 activities
+                const recentActivities = activities.slice(0, 10);
+                
+                console.log('Processed activities:', recentActivities);
+                updateActivitiesDisplay(recentActivities);
+            })
+            .catch(error => {
+                console.error('Error loading activities:', error);
+                showNoActivitiesMessage();
+            });
+        }
+        
+        function updateActivitiesDisplay(activities) {
+            const activityList = document.getElementById('activityList');
+            
+            if (!activities || activities.length === 0) {
+                showNoActivitiesMessage();
+                return;
+            }
+            
+            activityList.innerHTML = activities.map(activity => `
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="${activity.icon}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">${activity.title}</div>
+                        <div class="activity-details">${activity.details}</div>
+                    </div>
+                    <div class="activity-time">${formatTimeAgo(activity.time)}</div>
+                </div>
+            `).join('');
+        }
+        
+        function showNoActivitiesMessage() {
+            const activityList = document.getElementById('activityList');
+            activityList.innerHTML = `
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">No recent activities</div>
+                        <div class="activity-details">Start using your POS system to see activities here</div>
+                    </div>
+                    <div class="activity-time">-</div>
+                </div>
+            `;
+        }
+        
+        function formatTimeAgo(dateString) {
+            if (!dateString) return 'Unknown';
+            
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInMs = now - date;
+            const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+            const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+            const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+            
+            if (diffInMinutes < 1) {
+                return 'Just now';
+            } else if (diffInMinutes < 60) {
+                return `${diffInMinutes} min ago`;
+            } else if (diffInHours < 24) {
+                return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+            } else if (diffInDays < 30) {
+                return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
         }
         
         function setupFilters() {
