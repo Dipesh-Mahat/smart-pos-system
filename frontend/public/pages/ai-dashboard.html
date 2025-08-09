@@ -46,6 +46,33 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            position: relative;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin-left: auto;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .refresh-btn:hover {
+            transform: rotate(180deg) scale(1.1);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .refresh-btn:active {
+            transform: rotate(180deg) scale(0.95);
         }
 
         .header-subtitle {
@@ -134,13 +161,8 @@
         .card-icon.customers { background: linear-gradient(135deg, #ffc107, #fd7e14); }
         .card-icon.finance { background: linear-gradient(135deg, #17a2b8, #6f42c1); }
         .card-icon.products { background: linear-gradient(135deg, #e83e8c, #fd7e14); }
+        .card-icon.clearance { background: linear-gradient(135deg, #2ecc71, #27ae60); }
         .card-icon.business { background: linear-gradient(135deg, #6f42c1, #e83e8c); }
-
-        .card-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
 
         .extra-info {
             background: rgba(102, 126, 234, 0.1);
@@ -153,87 +175,69 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            transition: all 0.3s ease;
         }
 
         .extra-info i {
             font-size: 0.8rem;
         }
 
-        /* Skeleton Animation Styles */
-        .skeleton-card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .skeleton-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: skeleton-loading 1.5s infinite;
-        }
-
-        .skeleton-header {
+        .confidence-indicator {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
+            gap: 4px;
+            font-weight: 500;
         }
 
-        .skeleton-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #e9ecef, #f8f9fa);
-            animation: skeleton-pulse 1.5s ease-in-out infinite alternate;
+        .confidence-indicator i {
+            color: #ffc107;
         }
 
-        .skeleton-title {
-            width: 120px;
-            height: 20px;
-            background: linear-gradient(135deg, #e9ecef, #f8f9fa);
-            border-radius: 4px;
-            animation: skeleton-pulse 1.5s ease-in-out infinite alternate;
+        /* Enhanced card hover effects */
+        .insight-card:hover .extra-info {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
         }
 
-        .skeleton-badge {
-            position: absolute;
-            top: 16px;
-            right: 16px;
+        /* Simple Loading Animation Styles */
+        .simple-loading-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 200px;
+        }
+
+        .loading-pulse {
             width: 60px;
-            height: 20px;
-            background: linear-gradient(135deg, #e9ecef, #f8f9fa);
-            border-radius: 12px;
-            animation: skeleton-pulse 1.5s ease-in-out infinite alternate;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            animation: simple-pulse 1.5s ease-in-out infinite;
+            margin-bottom: 20px;
         }
 
-        .skeleton-line {
-            height: 14px;
-            background: linear-gradient(135deg, #e9ecef, #f8f9fa);
-            border-radius: 4px;
-            margin-bottom: 12px;
-            animation: skeleton-pulse 1.5s ease-in-out infinite alternate;
+        .loading-text {
+            color: #6c757d;
+            font-size: 1rem;
+            font-weight: 500;
         }
 
-        .skeleton-line.short { width: 70%; }
-        .skeleton-line.medium { width: 85%; }
-        .skeleton-line.long { width: 95%; }
-
-        @keyframes skeleton-loading {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        @keyframes skeleton-pulse {
-            0% { opacity: 0.6; }
-            100% { opacity: 1; }
+        @keyframes simple-pulse {
+            0%, 100% { 
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            50% { 
+                transform: scale(1.1);
+                opacity: 1;
+            }
         }
 
         .confidence-badge {
@@ -360,9 +364,12 @@
             <div class="header-section">
                 <h1 class="header-title">
                     <i class="fas fa-brain"></i>
-                    <span id="personalizedTitle">AI Business Insights</span>
+                    <span id="personalizedTitle">Smart POS Assistant</span>
+                    <button onclick="window.location.reload()" class="refresh-btn" title="Refresh for new insights">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </h1>
-                <p class="header-subtitle">Smart recommendations powered by AI to help grow your business and increase profits</p>
+                <p class="header-subtitle">AI-powered insights to boost your business performance</p>
                 <div class="business-context" id="businessContext" style="display: none;">
                     <div class="business-info">
                         <span class="business-name" id="businessName"></span>
@@ -383,7 +390,229 @@
         let aiData = null;
         let isLoading = false;
 
-        // Smart fallback insights for when AI is not available
+        // Real data engine using backend API
+        const realDataEngine = {
+            // Fetch real business data from backend
+            fetchBusinessData: async function() {
+                try {
+                    const response = await fetch('/api/shop/products', {
+                        headers: {
+                            'Authorization': `Bearer ${getAuthToken()}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data.products || data; // Handle different response formats
+                    }
+                } catch (error) {
+                    console.error('Error fetching business data:', error);
+                }
+                return null;
+            },
+
+            // Fetch real transaction data
+            fetchTransactionData: async function() {
+                try {
+                    const response = await fetch('/api/transactions', {
+                        headers: {
+                            'Authorization': `Bearer ${getAuthToken()}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data.transactions || data; // Handle different response formats
+                    }
+                } catch (error) {
+                    console.error('Error fetching transaction data:', error);
+                }
+                return null;
+            },
+
+            // Generate restock recommendations from real data
+            generateRealRestockRecommendations: function(products) {
+                if (!products || !products.length) return this.getFallbackRestock();
+                
+                const lowStockProducts = products.filter(product => 
+                    product.stock <= product.minStockLevel && product.stock > 0
+                );
+                
+                const outOfStockProducts = products.filter(product => 
+                    product.stock === 0
+                );
+
+                const recommendations = [];
+                
+                // Critical out of stock items
+                outOfStockProducts.slice(0, 2).forEach(product => {
+                    recommendations.push(`${product.name} - CRITICAL: Out of stock! Immediate reorder required.`);
+                });
+                
+                // Low stock items
+                lowStockProducts.slice(0, 3).forEach(product => {
+                    const daysLeft = Math.ceil(product.stock / 2); // Assuming 2 sales per day
+                    recommendations.push(`${product.name} - Only ${product.stock} units left (${daysLeft} days). Restock needed.`);
+                });
+
+                return recommendations.length > 0 ? recommendations : this.getFallbackRestock();
+            },
+
+            // Generate clearance suggestions from real data
+            generateRealClearanceRecommendations: function(products) {
+                if (!products || !products.length) return this.getFallbackClearance();
+                
+                const slowMovingProducts = products.filter(product => 
+                    product.stock > product.minStockLevel * 3 && product.stock > 10
+                );
+                
+                const recommendations = [];
+                
+                slowMovingProducts.slice(0, 3).forEach(product => {
+                    const overstock = product.stock - product.minStockLevel;
+                    const discountSuggestion = overstock > 50 ? '40%' : overstock > 20 ? '25%' : '15%';
+                    recommendations.push(`${product.name} - Overstocked with ${product.stock} units. Consider ${discountSuggestion} discount.`);
+                });
+
+                return recommendations.length > 0 ? recommendations : this.getFallbackClearance();
+            },
+
+            // Generate sales insights from real data
+            generateRealSalesInsights: function(products, transactions) {
+                const insights = [];
+                
+                if (products && products.length > 0) {
+                    // Find high-margin products
+                    const highMarginProducts = products.filter(p => 
+                        p.costPrice && (p.price - p.costPrice) / p.costPrice > 0.5
+                    ).slice(0, 2);
+                    
+                    if (highMarginProducts.length > 0) {
+                        insights.push(`High-profit items: ${highMarginProducts.map(p => p.name).join(', ')} have great margins. Promote these more.`);
+                    }
+                    
+                    // Find popular categories
+                    const categories = {};
+                    products.forEach(p => {
+                        categories[p.category] = (categories[p.category] || 0) + 1;
+                    });
+                    
+                    const topCategory = Object.keys(categories).reduce((a, b) => 
+                        categories[a] > categories[b] ? a : b
+                    );
+                    
+                    insights.push(`${topCategory} category has the most products (${categories[topCategory]} items). Focus marketing here.`);
+                }
+                
+                if (transactions && transactions.length > 0) {
+                    const avgTransaction = transactions.reduce((sum, t) => sum + t.total, 0) / transactions.length;
+                    insights.push(`Average transaction: Rs. ${avgTransaction.toFixed(0)}. Bundle items to increase basket size.`);
+                }
+                
+                return insights.length > 0 ? insights : this.getFallbackSales();
+            },
+
+            // Fallback recommendations
+            getFallbackRestock: function() {
+                return [
+                    "Monitor your best-selling items daily to prevent stockouts",
+                    "Set up automatic reorder points for essential products",
+                    "Review supplier lead times to optimize ordering schedule"
+                ];
+            },
+
+            getFallbackClearance: function() {
+                return [
+                    "Review products with no sales in the last 30 days",
+                    "Consider seasonal clearance for weather-dependent items",
+                    "Bundle slow-moving items with popular products"
+                ];
+            },
+
+            getFallbackSales: function() {
+                return [
+                    "Cross-sell complementary products at checkout",
+                    "Focus on high-margin items during peak hours",
+                    "Implement loyalty program for repeat customers"
+                ];
+            },
+
+            getFallbackCustomer: function() {
+                return [
+                    "Track customer purchase patterns for better service",
+                    "Group related products together for convenience",
+                    "Offer personalized recommendations based on history"
+                ];
+            }
+        };
+
+        // Two types of AI helper content that rotate on reload (without emojis)
+        const aiHelperContent = {
+            type1: {
+                title: 'Smart POS Assistant',
+                subtitle: 'Data-driven insights to optimize your business performance',
+                insights: {
+                    restock: {
+                        title: 'Restock Alerts',
+                        icon: 'inventory',
+                        iconClass: 'fas fa-exclamation-triangle',
+                        color: '#dc3545'
+                    },
+                    clearance: {
+                        title: 'Clearance Suggestions',
+                        icon: 'clearance',
+                        iconClass: 'fas fa-percentage',
+                        color: '#28a745'
+                    },
+                    sales: {
+                        title: 'Sales Optimization',
+                        icon: 'sales',
+                        iconClass: 'fas fa-chart-line',
+                        color: '#007bff'
+                    },
+                    customers: {
+                        title: 'Customer Insights',
+                        icon: 'customers',
+                        iconClass: 'fas fa-users',
+                        color: '#ffc107'
+                    }
+                }
+            },
+            type2: {
+                title: 'Business Intelligence Hub',
+                subtitle: 'Real-time analytics and smart inventory management',
+                insights: {
+                    restock: {
+                        title: 'Inventory Alerts',
+                        icon: 'inventory',
+                        iconClass: 'fas fa-boxes',
+                        color: '#e74c3c'
+                    },
+                    clearance: {
+                        title: 'Stock Clearance',
+                        icon: 'clearance',
+                        iconClass: 'fas fa-tag',
+                        color: '#2ecc71'
+                    },
+                    sales: {
+                        title: 'Revenue Analytics',
+                        icon: 'sales',
+                        iconClass: 'fas fa-rocket',
+                        color: '#3498db'
+                    },
+                    customers: {
+                        title: 'Purchase Patterns',
+                        icon: 'customers',
+                        iconClass: 'fas fa-brain',
+                        color: '#9b59b6'
+                    }
+                }
+            }
+        };
+
+        // Smart fallback insights (kept as backup)
         const fallbackInsights = {
             sales: {
                 title: 'Sales Optimization',
@@ -423,16 +652,129 @@
             }
         };
 
-        // Initialize the AI dashboard
+        // Initialize the AI dashboard with real data
         async function initializeAIDashboard() {
-            console.log('AI Dashboard initializing...');
+            console.log('Smart POS AI Dashboard initializing with real data...');
+            
+            // Update page title and subtitle based on helper type
+            updateAIHelperInterface();
             
             try {
-                // Try to load real AI insights
-                await loadAIInsights();
+                // Load real data recommendations
+                await loadRealDataRecommendations();
+                
+                // Then try to enhance with AI insights if available
+                // await loadAIInsights();
             } catch (error) {
-                console.error('Activating smart offline mode:', error);
-                loadFallbackInsights('offline');
+                console.error('Real data service unavailable, using fallback:', error);
+                loadFallbackInsights('fallback');
+            }
+        }
+
+        // Update AI helper interface with rotating content types
+        function updateAIHelperInterface() {
+            // Determine which type to show (alternates on each reload)
+            const showType2 = Math.random() > 0.5; // 50% chance for each type
+            const currentType = showType2 ? aiHelperContent.type2 : aiHelperContent.type1;
+            
+            // Store current type for use in recommendations
+            window.currentAIHelperType = currentType;
+            
+            // Update title and subtitle
+            const titleElement = document.getElementById('personalizedTitle');
+            const subtitleElement = document.querySelector('.header-subtitle');
+            
+            if (titleElement) {
+                titleElement.innerHTML = `<i class="fas fa-brain"></i> ${currentType.title}`;
+            }
+            
+            if (subtitleElement) {
+                subtitleElement.textContent = currentType.subtitle;
+            }
+            
+            console.log(`AI Helper Type: ${showType2 ? 'Type 2' : 'Type 1'} loaded`);
+        }
+
+        // Load real data recommendations
+        async function loadRealDataRecommendations() {
+            console.log('Loading real business data recommendations...');
+            
+            // Show simple loading animation
+            showSimpleLoading();
+            
+            try {
+                // Fetch real data from backend
+                const [productsData, transactionsData] = await Promise.all([
+                    realDataEngine.fetchBusinessData(),
+                    realDataEngine.fetchTransactionData()
+                ]);
+                
+                console.log('Products loaded:', productsData?.length || 0);
+                console.log('Transactions loaded:', transactionsData?.length || 0);
+                
+                // Get current AI helper type
+                const helperType = window.currentAIHelperType || aiHelperContent.type1;
+                
+                // Generate real data-based recommendations
+                const recommendations = {
+                    restock: realDataEngine.generateRealRestockRecommendations(productsData),
+                    clearance: realDataEngine.generateRealClearanceRecommendations(productsData),
+                    sales: realDataEngine.generateRealSalesInsights(productsData, transactionsData),
+                    customers: realDataEngine.getFallbackCustomer()
+                };
+                
+                // Create insight cards with real data
+                const insightCards = [
+                    {
+                        title: helperType.insights.restock.title,
+                        icon: helperType.insights.restock.icon,
+                        iconClass: helperType.insights.restock.iconClass,
+                        confidence: 'high',
+                        insights: recommendations.restock,
+                        extraInfo: `${recommendations.restock.length} items need attention`,
+                        customColor: helperType.insights.restock.color
+                    },
+                    {
+                        title: helperType.insights.clearance.title,
+                        icon: helperType.insights.clearance.icon,
+                        iconClass: helperType.insights.clearance.iconClass,
+                        confidence: 'high',
+                        insights: recommendations.clearance,
+                        extraInfo: `${recommendations.clearance.length} opportunities found`,
+                        customColor: helperType.insights.clearance.color
+                    },
+                    {
+                        title: helperType.insights.sales.title,
+                        icon: helperType.insights.sales.icon,
+                        iconClass: helperType.insights.sales.iconClass,
+                        confidence: 'medium',
+                        insights: recommendations.sales,
+                        extraInfo: 'Based on current inventory',
+                        customColor: helperType.insights.sales.color
+                    },
+                    {
+                        title: helperType.insights.customers.title,
+                        icon: helperType.insights.customers.icon,
+                        iconClass: helperType.insights.customers.iconClass,
+                        confidence: 'medium',
+                        insights: recommendations.customers,
+                        extraInfo: 'Customer behavior analysis',
+                        customColor: helperType.insights.customers.color
+                    }
+                ];
+                
+                // Small delay for smooth transition
+                setTimeout(() => {
+                    displayInsights(insightCards);
+                    console.log('Real data recommendations loaded successfully');
+                }, 600);
+                
+            } catch (error) {
+                console.error('Error loading real data:', error);
+                // Fall back to rule-based recommendations
+                setTimeout(() => {
+                    loadFallbackInsights('fallback');
+                }, 400);
             }
         }
 
@@ -701,10 +1043,19 @@
             }
         }
 
-        // Load fallback insights when AI is unavailable
+        // Load fallback insights when AI is unavailable (simplified)
         function loadFallbackInsights(mode = 'fallback') {
-            console.log('Loading business insights...');
+            console.log('Loading enhanced business insights...');
+            
             try {
+                // If rule-based recommendations are already loaded, don't override
+                const existingCards = document.querySelectorAll('.insight-card');
+                if (existingCards.length > 0) {
+                    console.log('Rule-based recommendations already displayed');
+                    return;
+                }
+                
+                // Load simple fallback only if rule-based failed
                 const insightCards = Object.values(fallbackInsights);
                 
                 if (!insightCards || insightCards.length === 0) {
@@ -713,24 +1064,14 @@
                     return;
                 }
                 
-                // Set message based on mode
-                let message = 'Business insights loaded!';
-                let messageType = 'info';
-                
-                if (mode === 'offline') {
-                    // Offline mode activated without visual indicator
-                    console.log('Offline mode activated silently');
-                }
-                
                 displayInsights(insightCards);
-                console.log('Business insights loaded successfully');
+                console.log('Fallback insights loaded successfully');
                 
             } catch (error) {
                 console.error('Error in loadFallbackInsights:', error);
                 forceLoadBasicContent();
             } finally {
-                // Hide skeleton loading
-                hideSkeletonLoading();
+                hideSimpleLoading();
             }
         }
 
@@ -752,35 +1093,28 @@
             }
         }
 
-        // Show skeleton loading animation
-        function showSkeletonLoading() {
+        // Show simple loading animation (replacing skeleton)
+        function showSimpleLoading() {
             const insightsSection = document.getElementById('insightsSection');
             if (!insightsSection) return;
 
-            const skeletonHTML = Array.from({length: 3}, (_, index) => `
-                <div class="skeleton-card">
-                    <div class="skeleton-badge"></div>
-                    <div class="skeleton-header">
-                        <div class="skeleton-icon"></div>
-                        <div class="skeleton-title"></div>
-                    </div>
-                    <div class="skeleton-line long"></div>
-                    <div class="skeleton-line medium"></div>
-                    <div class="skeleton-line short"></div>
-                    <div class="skeleton-line long"></div>
+            const loadingHTML = Array.from({length: 4}, (_, index) => `
+                <div class="simple-loading-card">
+                    <div class="loading-pulse"></div>
+                    <div class="loading-text">Loading insights...</div>
                 </div>
             `).join('');
 
-            insightsSection.innerHTML = skeletonHTML;
+            insightsSection.innerHTML = loadingHTML;
         }
         
-        // Hide skeleton loading animation
-        function hideSkeletonLoading() {
+        // Hide simple loading animation
+        function hideSimpleLoading() {
             const insightsSection = document.getElementById('insightsSection');
             if (!insightsSection) return;
             
-            // Clear skeleton content if it exists
-            if (insightsSection.querySelector('.skeleton-card')) {
+            // Clear loading content if it exists
+            if (insightsSection.querySelector('.simple-loading-card')) {
                 insightsSection.innerHTML = '';
             }
         }
@@ -845,7 +1179,7 @@
             displayInsights(insightCards);
         }
 
-        // Display insights in cards with personalized enhancements
+        // Display insights in cards with enhanced styling for rule-based recommendations
         function displayInsights(insightCards) {
             const insightsSection = document.getElementById('insightsSection');
             
@@ -855,37 +1189,42 @@
             }
             
             const html = insightCards.map(card => `
-                <div class="insight-card">
+                <div class="insight-card" ${card.customColor ? `style="border-left: 4px solid ${card.customColor};"` : ''}>
                     <div class="card-header">
-                        <div class="card-icon ${card.icon}">
+                        <div class="card-icon ${card.icon}" ${card.customColor ? `style="background: ${card.customColor};"` : ''}>
                             <i class="${card.iconClass}"></i>
                         </div>
                         <h3 class="card-title">${card.title}</h3>
                     </div>
-                    ${card.extraInfo ? `<div class="extra-info"><i class="fas fa-info-circle"></i> ${card.extraInfo}</div>` : ''}
+                    ${card.extraInfo ? `<div class="extra-info" ${card.customColor ? `style="background: ${card.customColor}20; color: ${card.customColor}; border: 1px solid ${card.customColor}40;"` : ''}><i class="fas fa-info-circle"></i> ${card.extraInfo}</div>` : ''}
                     <ul class="insights-list">
                         ${(card.insights || []).slice(0, 4).map(insight => `
                             <li>
-                                <i class="fas fa-check-circle"></i>
+                                <i class="fas fa-check-circle" ${card.customColor ? `style="color: ${card.customColor};"` : ''}></i>
                                 <span>${escapeHtml(insight)}</span>
                             </li>
                         `).join('')}
                     </ul>
+                    ${card.confidence ? `
+                        <div class="confidence-indicator" style="margin-top: 10px; font-size: 0.8rem; color: #6c757d;">
+                            <i class="fas fa-database"></i> Real data analysis
+                        </div>
+                    ` : ''}
                 </div>
             `).join('');
 
             insightsSection.innerHTML = html;
 
-            // Animate cards
+            // Animate cards with stagger effect
             const cards = insightsSection.querySelectorAll('.insight-card');
             cards.forEach((card, index) => {
                 card.style.opacity = '0';
                 card.style.transform = 'translateY(20px)';
                 setTimeout(() => {
-                    card.style.transition = 'all 0.4s ease';
+                    card.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
                     card.style.opacity = '1';
                     card.style.transform = 'translateY(0)';
-                }, index * 100);
+                }, index * 150);
             });
         }
 
@@ -924,10 +1263,11 @@
         `;
         document.head.appendChild(style);
 
-        // Backup initialization - runs immediately if DOM is already ready
+        // Backup initialization - simplified for real data mode
         function initializeNow() {
-            console.log('Backup initialization triggered');
-            loadFallbackInsights('offline');
+            console.log('Quick initialization with real data recommendations');
+            updateAIHelperInterface();
+            loadRealDataRecommendations();
         }
 
         // Initialize immediately if DOM is ready, otherwise wait for DOMContentLoaded
@@ -940,7 +1280,7 @@
                 try {
                     if (typeof initSmartPOSNavbar === 'function') {
                         initSmartPOSNavbar({
-                            title: 'AI Business Insights',
+                            title: 'Smart POS Assistant',
                             showBackButton: false,
                             showNotifications: true,
                             showProfile: true
@@ -959,19 +1299,19 @@
                     console.log('Menu initialization skipped');
                 }
                 
-                // Try to load personalized AI insights first (with fallback)
-                console.log('Attempting to load AI insights...');
-                try {
-                    loadAIInsights();
-                } catch (error) {
-                    console.log('AI insights loading error, using offline mode:', error);
-                    loadFallbackInsights('offline');
-                }
+                // Initialize the enhanced AI dashboard with real data engine
+                console.log('Starting Smart POS AI Dashboard with real business data...');
+                initializeAIDashboard();
             });
         } else {
             // DOM is already ready, initialize immediately
-            console.log('DOM already ready, initializing immediately');
-            initializeNow();
+            console.log('DOM already ready, initializing Smart POS Assistant with real data immediately');
+            
+            // Update AI helper interface first
+            updateAIHelperInterface();
+            
+            // Then load real data recommendations
+            loadRealDataRecommendations();
         }
     </script>
 </body>
